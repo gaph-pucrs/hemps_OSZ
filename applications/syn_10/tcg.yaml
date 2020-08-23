@@ -1,0 +1,24 @@
+real-time: 1 #If task is a real-time (1) or best-effort (0)
+secure: 1
+#Lines below informs the communication task pairs 
+taskA:
+ - taskB
+ - taskC
+taskB:
+ - taskB2
+ - taskB3
+taskB2:
+ - taskB4
+taskB3:
+ - taskB5
+taskB4:
+ - taskB6
+taskB5:
+ - taskB6
+taskB6:
+ - taskD
+taskC:
+ - taskC2
+taskC2:
+ - taskD
+ 
