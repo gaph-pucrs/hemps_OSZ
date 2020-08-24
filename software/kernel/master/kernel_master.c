@@ -45,7 +45,6 @@
 	ServiceHeader kernel_header;	
 #endif
 
-int DEBUG_RUARO = 1;
 
 NewTask * pending_new_task;
 
@@ -963,11 +962,11 @@ void handle_new_app(int app_ID, volatile unsigned int *ref_address, unsigned int
   			shape_location = search_shape(PEs_number);
   		}
 
-#if DEBUG_RUARO
+//#ifdef DEBUG_RUARO
 		putsv("end shape - ", MemoryRead(TICK_COUNTER));
 	  	putsv("Index: ", shape_index);
 	    	puts("\nShape location: ");  puts(itoh(shape_location)); puts("\n");
-#endif
+//#endif
 	    if( shape_location != -1 ){
 			set_Secure_Zone(shape_index);
 			print_migrating_list();	

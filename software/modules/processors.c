@@ -254,11 +254,12 @@ int get_free_processor(){ // retorna -1 se estiver nenhum PE sem tarefas SENAO v
 	processor_free_pages = processors[1].free_pages;
     //for(int i=1; i<MAX_CLUSTER_PEs; i++){
 	for(int i = MAX_CLUSTER_PEs -1; i > 0; i--){
-			
+		//processors[i].address
+		//processors[i].free_pages
 		if (processors[i].free_pages == MAX_LOCAL_TASKS){
 			processors_with_task = processors[i].address;
             		PE_x = processors_with_task >> 8;
-            		PE_y = processors_with_task && 0XFF;
+            		PE_y = processors_with_task & 0XFF;
             		puts("Conferindo1 Proc: \n");puts(itoh(processors_with_task));
             		if(PE_belong_SZ(PE_x, PE_y) != 1){
             			puts("Passou no 1\n");
@@ -269,7 +270,7 @@ int get_free_processor(){ // retorna -1 se estiver nenhum PE sem tarefas SENAO v
 		else{
 			if (processors[i].free_pages > processor_free_pages){
                     		PE_x = processors[i].address >> 8;
-                    		PE_y = processors[i].address && 0XFF; 
+                    		PE_y = processors[i].address & 0XFF; 
                     		puts("Conferindo2 Proc: \n");puts(itoh(processors[i].address));      
                     		if(PE_belong_SZ(PE_x, PE_y) != 1){
 					processor_with_less_resources = processors[i].address;
@@ -373,7 +374,7 @@ int PE_belong_SZ(int PE_x, int PE_y){
                     if(((PE_x >= xi_cut) && (PE_x <= xf_cut)) && ((PE_y >= yi_cut) && (PE_y <= yf_cut))  )
                         continue;
                 }
-                //puts("\nBelong? X: ");  puts(itoa(PE_x));  puts(" Y: ");  puts(itoa(PE_y));
+                puts("\nBelong? X: ");  puts(itoa(PE_x));  puts(" Y: ");  puts(itoa(PE_y));
                 if(((PE_x >= xi) && (PE_x < xf)) && ((PE_y >= yi) && (PE_y < yf))  )
                     return 1;
             }
@@ -657,8 +658,8 @@ int shape_recog(int X_size, int Y_size, int X_init, int Y_init){
   int  x, y, desl_Y, used;
   int XMASTER, YMASTER;
 
-  XMASTER = (get_net_address() >> 8) && 0xFF;
-  YMASTER = get_net_address() && 0xFF;
+  XMASTER = (get_net_address() >> 8) & 0xFF;
+  YMASTER = get_net_address() & 0xFF;
 
   used = 0;
   for(y = Y_init; y < Y_size + Y_init; y++){

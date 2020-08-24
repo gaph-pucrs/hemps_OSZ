@@ -119,7 +119,7 @@ int get_static_SZ(){
 		shapes[0].X_size = xf - xi + 1;
 		shapes[0].Y_size = yf - yi + 1;
 		shapes[0].position = (shapes[0].X_size << 24)|(shapes[0].Y_size << 16) | (xi << 8) | yi;
-		shapes[0].used = 1;
+		shapes[0].used = 1; //Bug --nome
 		shapes[0].cut = -1;
 		shapes[0].processors = shapes[0].X_size * shapes[0].Y_size;
 //		puts(">>>> Appid "); puts(itoa(appID)); 
