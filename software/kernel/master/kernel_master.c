@@ -45,6 +45,8 @@
 	ServiceHeader kernel_header;	
 #endif
 
+int DEBUG_RUARO = 1;
+
 NewTask * pending_new_task;
 
 /*Local Manager (LM) global variables*/
@@ -274,7 +276,7 @@ void request_application(Application *app){
 	unsigned int task_info[app->tasks_number*4];
 	int index_counter, tasks_mapped = 0;
 
-	//puts("\nRequest APP\n");
+	puts("\nRequest APP\n");
 
 	pending_app_to_map--;
 	index_counter = 0;
@@ -287,7 +289,7 @@ void request_application(Application *app){
 		}
 
 		if(!proc_is_migrating(t->allocated_proc)){
-			//puts("Request allocation of task "); puts(itoh(t->id)); puts(" to processor "); puts(itoh(t->allocated_proc)); puts("\n");
+			puts("Request allocation of task "); puts(itoh(t->id)); puts(" to processor "); puts(itoh(t->allocated_proc)); puts("\n");
 			task_info[index_counter++] = t->id;
 			task_info[index_counter++] = t->allocated_proc;
 			task_info[index_counter++] = t->initial_address;
@@ -957,14 +959,14 @@ void handle_new_app(int app_ID, volatile unsigned int *ref_address, unsigned int
 
 		if( shape_location == 0 ){
   			PEs_number = create_shapes(MAX_LOCAL_TASKS, application->tasks_number);
-  			//print_shapes_found(PEs_number);
+  			print_shapes_found(PEs_number);
   			shape_location = search_shape(PEs_number);
   		}
 
 #if DEBUG_RUARO
 		putsv("end shape - ", MemoryRead(TICK_COUNTER));
 	  	putsv("Index: ", shape_index);
-	    puts("\nShape location: ");  puts(itoh(shape_location)); puts("\n");
+	    	puts("\nShape location: ");  puts(itoh(shape_location)); puts("\n");
 #endif
 	    if( shape_location != -1 ){
 			set_Secure_Zone(shape_index);
