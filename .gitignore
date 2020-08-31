@@ -1,2 +1,4 @@
 
-testcases/
+testcases/*
+
+!testcases/examples
