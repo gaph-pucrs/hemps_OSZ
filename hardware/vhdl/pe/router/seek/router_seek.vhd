@@ -222,6 +222,7 @@ begin
 							int_out_ack_router_seek(sel_port) 		<= '1';
 						end if;
 						if in_the_table = '1' and sel_port = LOCAL and in_service_router_seek(sel_port) /= CLEAR_SERVICE then
+						--if in_the_table = '1' and in_service_router_seek(sel_port) /= CLEAR_SERVICE then
 							report "SERVICE " & CONV_STRING_8BITS("000" & in_service_router_seek(sel_port)) & " from LOCAL not added to the table! POSSIBLE ERROR!!!!";
 						end if;
 									
@@ -643,17 +644,17 @@ process(EA_manager, req_task , source_table, service_table, target_table, payloa
 					--report "END_BACKTRACK: " & CONV_STRING_32BITS(reg_backtrack(95 downto 64)) & CONV_STRING_32BITS(reg_backtrack(63 downto 32)) & CONV_STRING_32BITS(reg_backtrack(31 downto 0))& " " & CONV_STRING_8BITS(router_address(15 downto 8)) & " "  & CONV_STRING_8BITS(router_address(7 downto 0));
 				elsif (int_in_ack_router_seek(LOCAL) = '1'  and  service_table(sel) = END_TASK_SERVICE ) then
 					PE_manager <= INIT_CLEAR;
-					--report "SEND LOCAL: " 
-					--& CONV_STRING_8BITS(source_table(sel)(TARGET_SIZE-1 downto TARGET_SIZE_HALF)) & " " 
-					--& CONV_STRING_8BITS(source_table(sel)(TARGET_SIZE_HALF-1 downto 0)) & " " 
-					--& CONV_STRING_8BITS(target_table(sel)(TARGET_SIZE-1 downto TARGET_SIZE_HALF)) & " " 
-					--& CONV_STRING_8BITS(target_table(sel)(TARGET_SIZE_HALF-1 downto 0)) & " "
-					--& CONV_STRING_8BITS("000" & service_table(sel))	& " " 
-					--& CONV_STRING_8BITS("00"  & payload_table(sel));
 				elsif (int_in_ack_router_seek(LOCAL) = '1'  and  service_table(sel) = END_TASK_OTHER_CLUSTER_SERVICE ) then
 					PE_manager <= INIT_CLEAR;
 				elsif (int_in_ack_router_seek(LOCAL) = '1'  and  service_table(sel) = TASK_ALLOCATED_SERVICE ) then
 					PE_manager <= INIT_CLEAR;
+					report "SEND LOCAL: " 
+					& CONV_STRING_8BITS(source_table(sel)(TARGET_SIZE-1 downto TARGET_SIZE/2)) & " " 
+					& CONV_STRING_8BITS(source_table(sel)(TARGET_SIZE/2-1 downto 0)) & " " 
+					& CONV_STRING_8BITS(target_table(sel)(TARGET_SIZE-1 downto TARGET_SIZE/2)) & " " 
+					& CONV_STRING_8BITS(target_table(sel)(TARGET_SIZE/2-1 downto 0)) & " "
+					& CONV_STRING_8BITS("000" & service_table(sel))	& " " 
+					& CONV_STRING_8BITS(payload_table(sel));
 				elsif (int_in_ack_router_seek(LOCAL) = '1'  and  service_table(sel) = SET_SZ_RECEIVED_SERVICE ) then
 					PE_manager <= INIT_CLEAR;
 				elsif (int_in_ack_router_seek(LOCAL) = '1'  and  service_table(sel) = RCV_FREEZE_TASK_SERVICE ) then
