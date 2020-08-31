@@ -1,0 +1,25 @@
+hw:
+  page_size_KB:  64
+  tasks_per_PE: 2    
+  repository_size_MB:  1
+  physical_channels: 2
+  model_description: hybrid    # sc (gcc) | scmod (questa) | vhdl | hybrid (top module sc, internal vhdl)
+  noc_buffer_size: 8       # must be power of 2
+  mpsoc_dimension: [5,5]     # for while, must be a square shape
+  cluster_dimension: [5,5] # for while, must be a square shape - 24 - 5 MPEG
+  master_location: LB      # LB
+  open_port:
+    - port: [Injector,90,0,0,W,1,0,S]
+apps:                
+  - name: mpeg
+    start_time_ms: 0 #any unsigned integer number
+    secure: yes            
+  - name: mpeg
+    start_time_ms: 0 #any unsigned integer number
+    secure: yes       
+  - name: mpeg
+    start_time_ms: 0 #any unsigned integer number
+    secure: yes      
+  - name: mpeg
+    start_time_ms: 0 #any unsigned integer number
+    secure: yes   
