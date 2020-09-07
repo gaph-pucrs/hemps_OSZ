@@ -583,6 +583,7 @@ void pe::seek_receive(){
 					break;
 					case 0x3:
 						cout << "CLEAR SERVICE";
+						int_seek.write(1); // Provisório: Caso um Clear entre na memória
 					break;
 					case 0x4:
 						cout << "BACKTRACK";
