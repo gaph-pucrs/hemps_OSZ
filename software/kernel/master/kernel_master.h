@@ -17,7 +17,6 @@
 #include "../../../include/kernel_pkg.h"
 
 #define TASK_DESCRIPTOR_SIZE	26	//!< Size of the task descriptor into repository.txt file
-//#define WARD_MODULE
 
 /* Useful macros */
 #define	noc_interruption 		(MemoryRead(IRQ_STATUS) & IRQ_NOC)	//!< Signals a incoming packet from NoC
@@ -28,9 +27,6 @@
 
 #define seek_interruption (MemoryRead(IRQ_STATUS) & IRQ_SEEK)
 
-#ifdef WARD_MODULE
-#define WARD_TIME_OUT_SEND	 100000 // ~ 1 mile a cada send ward
-#endif
 
 //These functions are externed only for remove warings into kernel_master.c code
 void handle_new_app(int, volatile unsigned int *, unsigned int);

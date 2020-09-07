@@ -46,8 +46,9 @@ int get_task_location(int task_ID){
  * \param proc Location (address) of the task
  */
 void add_task_location(int task_ID, int proc){
-
+	//puts("Varrendo Task Location\n"); puts(itoa(MAX_TASK_LOCATION));
 	for(int i=0; i<MAX_TASK_LOCATION; i++) {
+		//puts("Task id "); puts(itoh(task_location[i].id)); puts(" proc "); puts(itoh(task_location[i].proc_address)); puts("\n");
 		if (task_location[i].id == -1){
 			task_location[i].id = task_ID;
 			task_location[i].proc_address = proc;

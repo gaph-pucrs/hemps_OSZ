@@ -196,6 +196,7 @@ void Seek(unsigned int service, unsigned int source, unsigned int target, unsign
 			case LOAN_PROCESSOR_RELEASE_SERVICE:
 			case INITIALIZE_SLAVE_SERVICE:
 			case INITIALIZE_CLUSTER_SERVICE:
+			case GMV_READY_SERVICE:
 				 MemoryWrite(SEEK_OPMODE_REGISTER,GLOBAL_MODE);
 			break;
 

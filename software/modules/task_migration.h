@@ -24,8 +24,8 @@ void migrate_dynamic_memory(TCB *);
 
 void send_update_task_location(unsigned int, unsigned int, unsigned int);
 
-//#define migration_puts(argument) puts(argument)
-#define migration_puts(argument) 
+#define migration_puts(argument) puts(argument)
+//#define migration_puts(argument) 
 
 
 #endif /* SOFTWARE_INCLUDE_TASK_MIGRATION_TASK_MIGRATION_H_ */

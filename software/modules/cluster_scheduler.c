@@ -150,9 +150,6 @@ int map_task(int last_proc_address, int task_id, int AppSec){
 	int slack_time;
 
 	//putsv("Mapping call for task id ", task_id);
-#if WARD_MODULE
-	return 1;
-#endif	
 
 
 #if MAX_STATIC_TASKS
@@ -366,11 +363,6 @@ int SearchCluster(int GM_cluster_id, int app_ID) {
 
 	// seach a static map task of the current app_ID, 
 	// if found return the cluster index
-#if WARD_MODULE
-	return 1;
-#endif
-
-
 #if MAX_STATIC_TASKS
 		for(int i = 0; i < MAX_STATIC_TASKS; i++){
 			int aux, cluster_master;;

@@ -21,7 +21,7 @@
 #include "communication.h"
 #include "utils.h"
 
-#define TASK_MIGRATION_DEBUG	1		//!<When enable shows puts related to task migration
+//#define TASK_MIGRATION_DEBUG  1	//!<When enable shows puts related to task migration
 
 void print_locations(){
 	for( int i=0; i<MAX_TASKS_APP; i++ ){
@@ -170,8 +170,11 @@ void migrate_dynamic_memory(TCB * tcb_aux){//FOCHI ANALISAR
 	remove_task_location(tcb_aux->id);
 	add_task_location(tcb_aux->id, processor);
 
+	
 	for( int i=0; i<MAX_TASKS_APP; i++ ){
-		task_location_array[i] = get_task_location( (app_id | i) );
+		task_location_array[i] = get_task_location(app_id | i);
+		if (task_location_array[i] != -1)
+			remove_task_location((app_id | i)); // Depois de salvas no array, limpar estrutura para próxima app
 		
 	#if TASK_MIGRATION_DEBUG
 		migration_puts("Location task "); migration_puts(itoa(app_id | i)); 
@@ -310,23 +313,6 @@ void migrate_dynamic_memory(TCB * tcb_aux){//FOCHI ANALISAR
 	migration_puts("Finish migrate PIPE\n");
 #endif
 	// ------ end task's PIPE-----
-
-#ifdef WARD_MODULE	
-		// Update task location to other remote communicating tasks
-		migration_puts("Start to update remote communicating tasks\n");
-		for( int i=0; i<MAX_TASKS_APP; i++ ){	
-			int location_t = get_task_location( (app_id | i) );
-			if (location_t != -1 && location_t != get_net_address()){	
-				migration_puts("Send migration update to task "); 
-				migration_puts(itoa((app_id | i))); migration_puts(" located at "); 
-				migration_puts(itoa(location_t)); migration_puts("\n");	
-
-				send_update_task_location(location_t, tcb_aux->id, processor);
-			}	
-		}
-		migration_puts("Finish to update remote communicating tasks\n");
-		// End update task location to other remote communicating tasks
-#endif	
 
 	// ------ data and bss -----
 #if TASK_MIGRATION_DEBUG

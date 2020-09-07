@@ -113,9 +113,10 @@ void send_task_allocated(TCB * allocated_task){
 	unsigned int aux_appID_task_ID;
 
 	aux_appID_task_ID = ((allocated_task->id >> 4) & 0x30) | (allocated_task->id & 0x0F);
-	if(allocated_task->secure == 1)
+	if(allocated_task->secure == 1){
+		puts("Task Allocated SEGURA: "); puts(itoh(aux_appID_task_ID)); puts("\n");
 		Seek(TASK_ALLOCATED_SERVICE, ((allocated_task->MAC_status << 24) |   (aux_appID_task_ID<<16) | (get_net_address()& 0xFFFF)), allocated_task->master_address, aux_appID_task_ID);
-	else
+	}else
 		Seek(TASK_ALLOCATED_SERVICE, ((aux_appID_task_ID<<16) | (get_net_address()& 0xFFFF)), allocated_task->master_address, aux_appID_task_ID);
 		
 	//puts("Task Allocated: "); puts(itoh(aux_appID_task_ID)); puts("\n");
@@ -1055,6 +1056,7 @@ void Scheduler() {
 
 	} else {
 
+		//puts("Idle Task Running\n");
 		current = &idle_tcb;	// schedules the idle task
 
 		last_idle_time = MemoryRead(TICK_COUNTER);
@@ -1223,9 +1225,7 @@ int SeekInterruptHandler(){
 				//print_task();	
 				puts(itoa(MemoryRead(TICK_COUNTER))); puts("\n");
 			 	puts("Received FREEZE_TASK_SERVICE"); puts("\n");
-#ifdef WARD_MODULE
-				aux = freeze_tasks_of_cluster(target);
-#else					
+					
 				aux = freeze_tasks_of_App(target);
 				
 				Seek(CLEAR_SERVICE, source, target ,payload);
@@ -1234,7 +1234,6 @@ int SeekInterruptHandler(){
 					puts("send FREEZE_TASK_RCV app: "); puts(itoh(payload)); puts("\n");
 					Seek(RCV_FREEZE_TASK_SERVICE, get_net_address(), source ,payload);
 				}
-#endif					
 				puts("Tasks FREZZED: "); puts(itoh(aux)); puts("\n");
 				//print_task();	
 			return aux;
@@ -1242,12 +1241,7 @@ int SeekInterruptHandler(){
 
 		case UNFREEZE_TASK_SERVICE: //enviado pelo Mastre WARD do cluster
 			puts("Received UNFREEZE_TASK_SERVICE"); puts("\n");
-#ifdef WARD_MODULE
-			cluster_master_address = (source&0xFFFF);
-			aux = unfreeze_tasks_of_cluster(target, source);
-#else					
 			aux = unfreeze_tasks_of_App(target);
-#endif					
 			puts("Tasks UNFREZZED: "); puts(itoh(aux)); puts("\n");
 			//print_locations();
 			return aux;
@@ -1264,7 +1258,11 @@ int SeekInterruptHandler(){
 		case INITIALIZE_CLUSTER_SERVICE:
 		case LOAN_PROCESSOR_REQUEST_SERVICE:
 		case LOAN_PROCESSOR_RELEASE_SERVICE:
+		break;
+		
 		case GMV_READY_SERVICE:
+			puts("Kernel GMV Serbvice Recebido\n"); //Testando se chegou isso
+		break;
 		case NEW_APP_SERVICE:
 		case NEW_APP_ACK_SERVICE:
 		break;

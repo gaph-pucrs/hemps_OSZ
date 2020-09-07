@@ -33,18 +33,6 @@
 #include "../../modules/csiphash.h"
 #include "../../modules/lfsr.h"
 
-#ifdef WARD_MODULE
-	#include "../../modules/define_pairs.h"
-	unsigned long int 	counter_ward_to_send = WARD_TIME_OUT_SEND;
-	unsigned long int 	tick_counter_aux;
-	unsigned int	net_address_to_send;
-	int time_out_freeze = 0, cont_ward = 0, cont_to_send_kernel = 0, impeachment = 0, migration=0;
-	int newcm, update_master_location;
-	volatile int kernel_initialized = 0;
-	struct_pairs my_pair; 
-	ServiceHeader kernel_header;	
-#endif
-
 
 NewTask * pending_new_task;
 
@@ -67,33 +55,6 @@ extern Shapes Secure_Zone[MAX_SHAPES];
 
 lfsr_t glfsr_d0;
 lfsr_t glfsr_c0;
-
-#ifdef WARD_MODULE
-void print_cluster_info(){
-	for (int i=0; i<CLUSTER_NUMBER; i++){	
-		puts("master_x: "); puts(itoa(cluster_info[i].master_x));puts("\n");	
-		puts("master_y: "); puts(itoa(cluster_info[i].master_y));puts("\n");	
-		puts("xi: "); puts(itoa(cluster_info[i].xi));puts("\n");	
-		puts("yi: "); puts(itoa(cluster_info[i].yi));puts("\n");	
-		puts("xf: "); puts(itoa(cluster_info[i].xf));puts("\n");	
-		puts("yf: "); puts(itoa(cluster_info[i].yf));puts("\n");	
-		puts("free_resources: "); puts(itoa(cluster_info[i].free_resources));puts("\n");	
-	}
-}
-
-int set_master_of_cluster_ID(int old_x, int old_y, int x, int y){
-	for(int i=0; i<CLUSTER_NUMBER; i++){
-		if (cluster_info[i].master_x == old_x && cluster_info[i].master_y == old_y){
-				cluster_info[i].master_x = x ;
-				cluster_info[i].master_y = y ;
-				cluster_info[i].free_resources = cluster_info[i].free_resources - MAX_LOCAL_TASKS ;
-				return i;			
-		}
-	}
-	puts("ERROR - novo cluster nao encontrado\n");
-	return -1;
-}
-#endif
 
 
 /** Assembles and sends a APP_TERMINATED packet to the global master
@@ -680,20 +641,6 @@ void handle_packet() {
 		putsv("Task migrated id: ", p.task_ID);
 		puts("New processor address: "); puts(itoh( p.source_PE)); puts("\n");
 
-#ifdef WARD_MODULE	
-		if (migration == 1){
-			//putsv("end migration time - ", MemoryRead(TICK_COUNTER));
-			Seek(WAIT_KERNEL_SERVICE, get_net_address(), get_slave_candidate_other_cluster(), 0);//Send to slave a warning to became a new master
-			//putsvsv("Received task migrated - task id: ", p.task_ID, " new proc ", p.source_PE);
-			puts("Send WAIT_KERNEL_SERVICE to "); puts(itoh(get_slave_candidate_other_cluster())); puts("\n"); //WARNING puts necessário para sincronização
-		}
-		else{
-			puts("Migration part II-- \n"); 
-			send_full_task_migration(get_task1_candidate_other_cluster(),get_slave_candidate_other_cluster(),newcm);//dispara a migração
-			migration--;
-			puts(itoh(migration));	puts("\n");	
-		}
-#else
 		if(sub_migrations(p.task_ID >> 8) == 0){
 
 			app_id = p.task_ID >> 8;
@@ -709,13 +656,9 @@ void handle_packet() {
 
 			Seek(CLEAR_SERVICE, p.released_proc << 16 | get_net_address(), 0, 0);
 		}
-
 		remove_from_migration_list(p.released_proc ,p.task_ID);
 		puts("Requesting allocation...\n");
 		request_task_of_application(p.released_proc);
-
-#endif	
-
 		break;
 
 	case SLACK_TIME_REPORT:
@@ -742,136 +685,6 @@ void initialize_cluster_load(){
 	}
 }
 
-#ifdef WARD_MODULE
-
-void initialize_pairs(){
-		define_pairs(get_net_address(), &my_pair);
-		net_address_to_send = ((my_pair.X_warded_1 << 8)+my_pair.Y_warded_1);
-        set_slave_candidate_other_cluster( (((my_pair.X_warded_1+1) << 8)+my_pair.Y_warded_1), -1); //Endereço utilizado pelo WARD para enviar o serviço de WAIT_KERNEL_SERVICE
-		initialize_fail_wrapper();
-		if ( get_net_address() != 0)
-			initialize_send_kernel();
-}		
-
-void initialize_fail_wrapper(){
-	puts("SAVE DMA_FAIL_KERNEL to "); puts(itoh(net_address_to_send)); puts("\n");
-	MemoryWrite(DMA_FAIL_KERNEL,net_address_to_send);
-}
-
-void initialize_send_kernel(){
-	kernel_header.header[MAX_SOURCE_ROUTING_PATH_SIZE-2] = get_slave_candidate_my_cluster();
-	kernel_header.header[MAX_SOURCE_ROUTING_PATH_SIZE-1] = get_slave_candidate_my_cluster();
-	kernel_header.payload_size = (CONSTANT_PKT_SIZE - 3) + PAGE_SIZE;
-	kernel_header.service = MIGRATION_KERNEL;
-	MemoryWrite(DMA_SEND_KERNEL,&kernel_header.header[MAX_SOURCE_ROUTING_PATH_SIZE-2]);
-}
-
-void send_kernel(){
-	putsv("init send kernel time - ", MemoryRead(TICK_COUNTER));
-	Seek(SEND_KERNEL_SERVICE, get_net_address(), net_address_to_send , 0);//Send to fail master a command to send de kernel master
-	puts("Send SEND_KERNEL_SERVICE to "); puts(itoh(net_address_to_send)); puts("\n\n");
-	net_address_to_send = get_slave_candidate_other_cluster();
-	set_master_other_cluster(get_slave_candidate_other_cluster());
-}
-
-void migrated_kernel(){
-	int freepages;
-	if (impeachment == 1 && migration == 0){
-		cont_to_send_kernel++;
-		if (cont_to_send_kernel == 100){//Aguarda um tempo						
-			if (get_task_candidate_other_cluster() == 0){// SE o cluster tiver um slave disponivel já inicia migração de KERNEL
-				Seek(WAIT_KERNEL_SERVICE, get_net_address(), get_slave_candidate_other_cluster(), 0);//Send to slave a warning to became a new master
-				puts("\nSend WAIT_KERNEL_SERVICE to "); puts(itoh(get_slave_candidate_other_cluster())); puts("\n"); //WARNING puts necessário para sincronização
-				migration = 1;
-			}
-			else{//Senão é necessário liberar um PE migrando sua tarefa para depois fazer a migração do kernel.
-				puts("Cluster falho está cheio "); puts("\n");
-				newcm = get_free_processor();
-				puts("Free processor "); puts(itoh(newcm)); puts("\n");
-				freepages = get_proc_free_pages(newcm);
-				puts("Free Pages of free processor "); puts(itoh(freepages)); puts("\n");
-				if ( freepages == MAX_LOCAL_TASKS && migration == 0){//se PE DESTINO do outro cluster ESTIVER estiver livre e for apenas uma tarefa.
-					if (get_task_candidate_other_cluster() == 1){
-						puts("Task a ser migrada "); puts(itoh(get_task0_candidate_other_cluster())); puts("\n");
-						puts("freepages do pe destino "); puts(itoh(freepages)); puts("\n");
-						putsv("init migration time - ", MemoryRead(TICK_COUNTER));
-						send_full_task_migration(get_task0_candidate_other_cluster(),get_slave_candidate_other_cluster(),newcm);//dispara a migração
-						migration++;
-					}
-					if(get_task_candidate_other_cluster() == 2){
-						puts("Task a ser migrada 1 "); puts(itoh(get_task0_candidate_other_cluster())); puts("\n");
-						puts("freepages do pe destino "); puts(itoh(freepages)); puts("\n");
-						send_full_task_migration(get_task0_candidate_other_cluster(),get_slave_candidate_other_cluster(),newcm);//dispara a migração									
-						migration=2;
-						puts("Task a ser migrada 2 "); puts(itoh(get_task1_candidate_other_cluster())); puts("\n");
-						puts("freepages do pe destino "); puts(itoh(freepages)); puts("\n");
-					}
-				}
-				else //SE cluster vizinho estiver cheio também
-					puts("\n Cluster is full wait for migration\n"); 
-					
-			}  
-		}
-	}	
-
-}
-
-void send_ward(){
-	int freepages;
-	tick_counter_aux = MemoryRead(TICK_COUNTER);
-
-	if (tick_counter_aux >= counter_ward_to_send && impeachment == 0){ //send ward_service enquanto não estiver acontecendo o impeachment
-		counter_ward_to_send = counter_ward_to_send + WARD_TIME_OUT_SEND;	
-		cont_ward++;	
-		time_out_freeze++;
-		puts(" SEND  WARD to "); puts(itoh(net_address_to_send)); puts("\n");
-		Seek(WARD_SERVICE, cont_ward<<16|get_net_address(), net_address_to_send, 0);//dispara o WARD_SERVICE
-	}
-	//if (impeachment == 0 && time_out_freeze == 3 && get_net_address() != 0x00000200){//received	
-	if (impeachment == 0 && time_out_freeze == 3){//received	
-		Seek(FREEZE_TASK_SERVICE, get_net_address(), net_address_to_send, 0);
-		puts("FREZZE on warded cluster master is fail "); puts(""); puts("\n"); //WARNING puts necessário para sincronização	
-		impeachment=1;
-		Seek(CLEAR_SERVICE, get_net_address(), net_address_to_send, 0);
-	}	
-}
-
-void restart_kernel(){
-int old_master;
-
-	old_master = get_net_address();
-	time_out_freeze=0;
-	counter_ward_to_send = MemoryRead(TICK_COUNTER);
-	Seek(CLEAR_SERVICE, old_master, old_master, 0);
-	puts("\nKernel migrated\n");
-	putsv("kernel time - ", MemoryRead(TICK_COUNTER));
-	puts("This kernel is NEW local master \n");
-	is_global_master = 0; //for now global master is not able to fail 
-	set_net_address(MemoryRead(NI_CONFIG));
-	//print_cluster_info();
-	clear_free_page_processor(get_net_address());
-	puts("\n\n");
-	puts("my address is "); puts(itoh(get_net_address()));puts("\n");	
-	Seek(UNFREEZE_TASK_SERVICE, get_net_address(), old_master, 0);
-	puts("UNFREZZE "); puts(""); puts("\n"); //WARNING puts necessário para sincronização
-	
-	update_master_location = set_master_of_cluster_ID((old_master >> 8) & 0XFF, (old_master & 0XFF), (get_net_address() >> 8) & 0xFF, (get_net_address() & 0XFF));
-	//print_cluster_info();
-	puts("\n\n");
-
-	if(update_master_location == -1)
-		puts("New master not found\n");
-
-		update_master_location = get_cluster_ID((get_net_address() >> 8) & 0xFF, (get_net_address() & 0XFF));
-		if(update_master_location != -1){
-			puts("Finded new master\n"); 
-		}
-		else
-			puts("New master not found\n");
-}
-
-#endif
-
 /** Initializes all slave processor by sending a INITIALIZE_SLAVE packet to each one
  */
 void initialize_slaves(){
@@ -888,7 +701,8 @@ void initialize_slaves(){
 		for(int i=cluster_info[clusterID].xi; i<=cluster_info[clusterID].xf; i++) {
 
 			proc_address = i*256 + j;//Forms the proc address
-
+			
+			
 			if( proc_address != net_address) {
 
 				//Fills the struct processors
@@ -907,6 +721,8 @@ void initialize_slaves(){
 	//puts("RH_addr:"); puts(itoh(RH_addr)); puts("\n");
 	//puts("LL_addr:"); puts(itoh(LL_addr)); puts("\n");            
 	Seek(INITIALIZE_SLAVE_SERVICE, (INITIALIZE_SLAVE_SERVICE <<16 | get_net_address()), LL_addr, RH_addr);
+
+	puts("Slaves inicializados:\n");
 
 
 }
@@ -985,11 +801,6 @@ void handle_new_app(int app_ID, volatile unsigned int *ref_address, unsigned int
 
 	mapping_completed = application_mapping(clusterID, application->app_ID);//
 
-	#ifdef WARD_MODULE	
-		new_master_candidate();
-		initialize_send_kernel();	
-	#endif
-
 	if (mapping_completed){
 		putsv("end mapping - ", MemoryRead(TICK_COUNTER));
 
@@ -1008,9 +819,6 @@ void handle_new_app(int app_ID, volatile unsigned int *ref_address, unsigned int
 
 
 int SeekInterruptHandler(){
-	#ifdef WARD_MODULE
-		unsigned int master_old, master_new;
-	#endif
 	
 	int LL_addr, RH_addr, master_address,selected_cluster,selected_cluster_proc;
 	unsigned int app_id,task_id, i, PE_address, MAC_status;
@@ -1180,7 +988,7 @@ int SeekInterruptHandler(){
 		break;
 		case TASK_ALLOCATED_SERVICE:
 			app_id = (payload >> 4) & 0x03;
-			puts("Task Allocated: "); puts(itoh(source)); puts("\n");
+			//puts("Task Allocated: "); puts(itoh(source)); puts("\n");
 			app = get_application_ptr(app_id);
 			//recalculates task_id
 			task_id = (app_id << 8) + (payload & 0x0F);
@@ -1238,6 +1046,7 @@ int SeekInterruptHandler(){
 			}
 			// if is last index send CLEAR of Initialize cluster service
 			if(i == CLUSTER_NUMBER-1)
+				puts("Slaves inicializados, enviando o clear\n"); //puts para sincronização
 				Seek(CLEAR_SERVICE, source, 0, 0);
 			initialize_slaves();
 		break;
@@ -1251,53 +1060,7 @@ int SeekInterruptHandler(){
 					puts("RCV_FREEZE_TASK "); puts(itoh(source)); puts("\n"); // used to reset the time_out
 		
 		break;
-		#ifdef WARD_MODULE
-			case WARD_SERVICE:
-					//puts("WARD_RECEIVED "); puts(itoh(source)); puts("\n"); // used to reset the time_out
-					time_out_freeze = 0;
-			break;
-			case FREEZE_TASK_SERVICE:
-			break;
-			case UNFREEZE_TASK_SERVICE:
-				//print_cluster_info();
-				master_new = (source&0xFFFF);
-				master_old = target;
-				impeachment=0;
-				update_master_location = set_master_of_cluster_ID((master_old >> 8) & 0XFF, (master_old & 0XFF), (master_new >> 8) & 0xFF, (master_new & 0XFF));
-				if(update_master_location == -1)
-					puts("New master not found\n");
-				update_master_location = get_cluster_ID((master_new >> 8) & 0xFF, (master_new & 0XFF));
-				if(update_master_location != -1){
-					puts("Finded new master\n");
-					time_out_freeze = 0; 
-				}
-				else
-					puts("New master not found\n");
-			break;
-			case SEND_KERNEL_SERVICE:
-			break;
-			case WAIT_KERNEL_SERVICE:
-			break;
-			case WAIT_KERNEL_SERVICE_ACK:
-				puts("Received WAIT_KERNEL_SERVICE_ACK to "); puts(itoh((source&0xFFFF))); puts("\n"); //WARNING puts necessário para sincronização
-				send_kernel();
-			break;
-			case MASTER_CANDIDATE_SERVICE:
-				//Seek(MASTER_CANDIDATE_SERVICE, task_id_processor_chousen, net_address_to_send, processors_with_task);
-				//puts("\n"); puts("Candidate a new master "); puts(itoh(payload)); puts("\n"); 
-				set_slave_candidate_other_cluster( ((payload & 0xf0)<<4 ) + (payload&0xf), source);
-				//set_slave_candidate_other_cluster( 3, 0x00000202);
-				puts("\n"); puts("Candidate a new master "); puts(itoh( ((payload & 0xf0)<<4)) ); puts("\n"); 
-			break;
-			case FAIL_KERNEL_SERVICE:
-			    //Seek(FREEZE_TASK_SERVICE, get_net_address(), net_address_to_send, 0);
-				//puts("\nReceived FAIL_KERNEL_SERVICE to "); puts(itoh((source&0xFFFF))); puts("\n"); //WARNING puts necessário para sincronização
-				//puts("FREZZE on warded cluster master is fail "); puts(""); puts("\n"); //WARNING puts necessário para sincronização					
-				//impeachment=1;
-				//Seek(CLEAR_SERVICE, get_net_address(), net_address_to_send, 0);					
-			break;
-			break;
-		#endif	
+		
 		//----------------------------------------------------------------------
 		// the services bellow if received by master is of another cluster
 		case OPEN_SECURE_ZONE_SERVICE:
@@ -1309,8 +1072,8 @@ int SeekInterruptHandler(){
 		break;
 		case NEW_APP_SERVICE:
 			if (is_global_master){//keep in mind manter uma estrutura de qual injector pediu alocação ..
+				puts("\nGlobal master receive a NEW_APP_SERVICE\n");
 				Seek(CLEAR_SERVICE, source, 0, 0);
-				//puts("\nGlobal master receive a NEW_APP_SERVICE\n");
 				selected_cluster = SearchCluster(clusterID, payload); //acha um cluster para colocar as apps
 				total_mpsoc_resources -= payload;
 				allocate_cluster_resource(selected_cluster, payload);
@@ -1334,12 +1097,7 @@ int SeekInterruptHandler(){
 
 
 int main() {
-
-	#ifdef WARD_MODULE	
-	migration=0;				
-	if (kernel_initialized == 0){
-		kernel_initialized = 1;
-	#endif		
+	
 	set_net_address(MemoryRead(NI_CONFIG));
 	//By default HeMPS assumes that GM is positioned at address 0
 	if ( get_net_address() == 0){
@@ -1376,30 +1134,14 @@ int main() {
 	if (is_global_master){
 		Seek(GMV_READY_SERVICE, get_net_address(), 0, 0);
 		puts("Kernel GMV Initialized\n");
-		//Seek(CLEAR_SERVICE, get_net_address(), 0, 0);
+		//puts("Kernel GMV Initialized Denovo pra ver se atrasa mais\n");
+		//puts("Kernel GMV Initialized Mais uma vez pra ver se atrasa mais\n");
+		Seek(CLEAR_SERVICE, get_net_address(), 0, 0);
 	}
 	else
 		puts("Kernel CM Initialized\n");
 	
-
-	#ifdef WARD_MODULE
-		initialize_pairs();		
-	}
-	else{
-		restart_kernel();
-		Seek(CLEAR_SERVICE, get_net_address(), net_address_to_send, 0);
-	}
-	#endif
-
 	for (;;) {
-
-		#ifdef WARD_MODULE
-
-			//send_ward();
-
-			migrated_kernel();
-
-		#endif
 
 		//LM looping
 		if (noc_interruption){
