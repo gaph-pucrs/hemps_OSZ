@@ -16,7 +16,6 @@
 #include "utils.h"
 
 //Globals
-Application applications[MAX_CLUSTER_APP];	//!< Store the applications informations, is equivalent to a attribute in OO paradigm
 
 
 /** Receives and app ID and return the Application pointer for the required app ID.
@@ -259,22 +258,6 @@ void initialize_applications(){
 	}
 }
 
-void set_RH_Address(int App_ID, int Address){
-	for(int i=0; i<MAX_CLUSTER_APP; i++){
-		if(applications[i].app_ID == App_ID){
-			applications[i].RH_Address = Address;
-			//puts("\nFound App: "); puts(itoh(App_ID)); puts(" to set RH: "); puts(itoh(Address)); puts("\n");
-		}
-	}
-}
-int get_AppID_with_RH_Address(int Address){
-	for(int i=0; i<MAX_CLUSTER_APP; i++){
-		//puts("\nApp: "); puts(itoh(applications[i].app_ID)); puts(" index: "); puts(itoh(i)); puts(" Address: "); puts(itoh(applications[i].RH_Address)); puts("\n");
-		if(applications[i].RH_Address == Address)
-			return applications[i].app_ID;
-	}
-	return -1;
-}
 int add_migrations(int App_ID){
 	for(int i=0; i<MAX_CLUSTER_APP; i++){
 		if(applications[i].app_ID == App_ID){

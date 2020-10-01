@@ -78,6 +78,7 @@ typedef struct {
 
 } Application;
 
+Application applications[MAX_CLUSTER_APP];	//!< Store the applications informations, is equivalent to a attribute in OO paradigm
 
 Application * get_application_ptr(int);
 
@@ -103,9 +104,9 @@ void remove_application(int);
 
 void initialize_applications();
 
-void set_RH_Address(int App_ID, int Address);
+// /void set_RH_Address(int App_ID, int Address);
 
-int  get_AppID_with_RH_Address(int Address);
+// int  get_AppID_with_RH_Address(int Address);
 
 int  add_migrations(int App_ID);
 

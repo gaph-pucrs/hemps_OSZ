@@ -123,20 +123,6 @@ int set_SZ_migrations(int SZ_index);
         migration_list  > processors.h
 */
 
-//void freeze_application(); // Not Secure API
-/*  Origem: processors.c
-    Instância: set_Secure_Zone()
-    Variáveis Globais:
-        migration_list  > processors.h
-*/
-
-//void print_migrating_list(); // Not Secure API
-/*  Origem: processors.c
-    Instância: handle_new_app() > kernel_master.c
-    Variáveis Globais:
-        migration_list  > processors.h
-*/
-
 void set_RH_Address(int App_ID, int Address);
 /*  Origem: applications.c
     Instância: SeekInterruptHandler > kernel_master.c
@@ -151,26 +137,11 @@ int get_AppID_with_RH_Address(int Address);
         applications  > applications.c
 */
 
-
-void Set_Secure_Zone(unsigned int left_low_corner, unsigned int right_high_corner, unsigned int master_PE);
-/*  Origem: seek.c
-    Instância: SeekInterruptHandler > kernel_slave.c
-    Variáveis Globais:
-        wrapper_value > seek.c
-*/
-
 int get_Secure_Zone_index(int RH_address);
 /*  Origem: processors.c
     Instância: SeekInterruptHandler > kernel_master.c
     Variáveis Globais:
         Secure_Zone[] > processors.c
-*/
-
-void Unset_Secure_Zone(unsigned int left_low_corner, unsigned int right_high_corner, unsigned int master_PE);
-/*  Origem: seek.c
-    Instância: SeekInterruptHandler > kernel_slave.c
-    Variáveis Globais:
-        wrapper_value > seek.c
 */
 
 void unset_Secure_Zone(int RH_address); 

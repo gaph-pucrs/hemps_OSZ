@@ -19,6 +19,8 @@
 #ifndef __KERNEL_SLAVE_H__
 #define __KERNEL_SLAVE_H__
 
+#define SLAVEpeHERE 1
+
 #include "../../modules/task_control.h"
 #include "../../include/api.h"
 

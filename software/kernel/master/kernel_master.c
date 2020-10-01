@@ -33,6 +33,7 @@
 #include "../../modules/csiphash.h"
 #include "../../modules/lfsr.h"
 
+#include "../../modules/osz_master.h"
 
 NewTask * pending_new_task;
 
@@ -50,8 +51,8 @@ unsigned int 	waiting_app_allocation = 0;											//!< Signal that an applicat
 unsigned int 	app_id_counter = 0;
 
 extern int shape_index;
-extern Shapes shapes[MAX_SHAPES];
-extern Shapes Secure_Zone[MAX_SHAPES];
+//extern Shapes shapes[MAX_SHAPES];
+//extern Shapes Secure_Zone[MAX_SHAPES];
 
 lfsr_t glfsr_d0;
 lfsr_t glfsr_c0;
@@ -770,7 +771,7 @@ void handle_new_app(int app_ID, volatile unsigned int *ref_address, unsigned int
 	application = read_and_create_application(app_ID, ref_address);
 	if(application->secure == 1){
 
-		shape_location = get_static_SZ();
+		shape_location = get_static_SZ(app_id_counter-1); // passar por parametro
 
 		if( shape_location == 0 ){
   			PEs_number = create_shapes(MAX_LOCAL_TASKS, application->tasks_number);
@@ -1132,10 +1133,8 @@ int main() {
 
 	//send ready by brnoc
 	if (is_global_master){
-		Seek(GMV_READY_SERVICE, get_net_address(), 0, 0);
 		puts("Kernel GMV Initialized\n");
-		//puts("Kernel GMV Initialized Denovo pra ver se atrasa mais\n");
-		//puts("Kernel GMV Initialized Mais uma vez pra ver se atrasa mais\n");
+		Seek(GMV_READY_SERVICE, get_net_address(), 0, 0); //remover
 		Seek(CLEAR_SERVICE, get_net_address(), 0, 0);
 	}
 	else

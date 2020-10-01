@@ -1,4 +1,4 @@
- /*!\file osz.c
+/*!\file osz.h
  * HEMPS VERSION - 8.5 - support for OSZ
  *
  * Distribution:  August 2020
@@ -12,8 +12,7 @@
  *
  */
 
-
-#include "osz.h"
+#include "osz_master.h"
 #include "utils.h"
 #include "processors.h"
 #include "applications.h"
@@ -21,10 +20,6 @@
 #include "seek.h" 
 
 //extern unsigned int app_id_counter;
-
-int LOCAL_left_low_corner = -1;
-int LOCAL_right_high_corner = -1;
-int wrapper_value = 0;
 
 ////////////////////////////////////////////
 void init_Secure_Zone(){
@@ -398,114 +393,6 @@ int get_Secure_Zone_index(int RH_address){
     return -1;
 }
 
-//////////////////////////////////////////////////////////////////////////////////////
-void Unset_Secure_Zone(unsigned int left_low_corner, unsigned int right_high_corner, unsigned int master_PE){
-  unsigned int my_X_addr, my_Y_addr, master_X_addr, master_Y_addr;
-
-  unsigned int RH_X_addr, RH_Y_addr, LOCAL_RH_X_addr, LOCAL_RH_Y_addr;
-  unsigned int LL_X_addr, LL_Y_addr;
-  int isolated_ports, previous_isolated;
-
-  my_X_addr = (get_net_address() & 0xF00) >> 8;
-  my_Y_addr = get_net_address() & 0x00F;
-
-  master_X_addr = (master_PE & 0xF0) >> 4;
-  master_Y_addr = master_PE & 0x00F;
-
-  LOCAL_RH_X_addr = (LOCAL_right_high_corner & 0xF0) >> 4;
-  LOCAL_RH_Y_addr = LOCAL_right_high_corner & 0x0F;
-
-  RH_X_addr = (right_high_corner & 0xF0) >> 4;
-  RH_Y_addr = right_high_corner & 0x0F;
-
-  LL_X_addr = (left_low_corner & 0xF0) >> 4;
-  LL_Y_addr = left_low_corner & 0x0F;
-
-
-  // send 
-  if((my_X_addr == LOCAL_RH_X_addr) && (my_Y_addr == LOCAL_RH_Y_addr)){
-    Seek(CLEAR_SERVICE, master_PE, master_PE, 0);
-  }
-
-
-  // puts("X");puts(itoh(my_X_addr));puts(" ");
-  // puts("Y");puts(itoh(my_Y_addr));puts("\n");
-
-  // puts("LL_X");puts(itoh(LL_X_addr));puts(" ");
-  // puts("LL_Y");puts(itoh(LL_Y_addr));puts("\n");
-
-  // puts("RH_X");puts(itoh(RH_X_addr));puts(" ");
-  // puts("RH_Y");puts(itoh(RH_Y_addr));puts("\n");
-
-  // read actual wrapper value
-  isolated_ports = wrapper_value;
-  previous_isolated = wrapper_value;
-
-
-  //seek_puts("previous wrapper: "); seek_puts(itoh(wrapper_value)); seek_puts("\n");
-  if(wrapper_value == 0)
-  	return;
-
-  if((my_X_addr == LOCAL_RH_X_addr) && (my_Y_addr == LOCAL_RH_Y_addr)){   
-      if ((LL_X_addr == master_X_addr) && (LL_Y_addr == master_Y_addr)){
-      	  right_high_corner = ((get_net_address() >> 4)& 0XF0) | (get_net_address() &  0X0F);
-          Seek(SECURE_ZONE_CLOSED_SERVICE, get_net_address(), master_PE, LOCAL_right_high_corner);
-          //puts("ENDSZ RH:");puts(itoh(LOCAL_right_high_corner));puts("\n"); 
-          seek_puts("Without CUT - wrapper: ");seek_puts(itoh(isolated_ports));seek_puts("\n");
-          seek_puts("RH address: ");seek_puts(itoh(right_high_corner));seek_puts("\n");
-          return;
-    }
-  }
-
-// This is to uncut at RH position
-//  // set wrapper port EAST
-//  if( (my_X_addr == LL_X_addr - 1) && (my_Y_addr >=  LL_Y_addr) &&  (my_Y_addr <=  RH_Y_addr) )
-//      isolated_ports = isolated_ports + 0x3;
-//
-//  // set wrapper port NORTH
-//  if( (my_Y_addr == LL_Y_addr - 1) && (my_X_addr == LL_X_addr ))
-//      isolated_ports = isolated_ports + 0x30;
-//
-//// UNSET wrapper port EAST
-//  if( (my_X_addr == LL_X_addr) && (my_Y_addr >=  LL_Y_addr) &&  (my_Y_addr <=  RH_Y_addr) )
-//      isolated_ports = isolated_ports - 0x3;
-//
-//  // UNSET wrapper port NORTH
-//  if( (my_Y_addr == RH_Y_addr) && (my_X_addr == RH_X_addr ))
-//      isolated_ports = isolated_ports - 0x30;    
-
-
-// This is to uncut at LL position
-// set wrapper port WEST
-  if( (my_X_addr == LL_X_addr + 1) && (my_Y_addr >=  LL_Y_addr) &&  (my_Y_addr <=  RH_Y_addr) )
-      isolated_ports = isolated_ports + 0x0C;
-
-  // set wrapper port SOUTH
-  if( (my_Y_addr == RH_Y_addr + 1) && (my_X_addr == RH_X_addr))
-      isolated_ports = isolated_ports + 0xC0;
-
-// UNSET wrapper port WEST
-  if( (my_X_addr == LL_X_addr) && (my_Y_addr >=  LL_Y_addr) &&  (my_Y_addr <=  RH_Y_addr) )
-      isolated_ports = isolated_ports - 0x0C;
-
-  // UNSET wrapper port SOUTH
-  if( (my_Y_addr == LL_Y_addr) && (my_X_addr == LL_X_addr ))
-      isolated_ports = isolated_ports - 0xC0;    
-
-
-  //if(isolated_ports != previous_isolated){
-  	seek_puts("write wrapper: ");seek_puts(itoh(isolated_ports));seek_puts("\n");
-    MemoryWrite(WRAPPER_REGISTER,isolated_ports);
-    if((my_X_addr == LOCAL_RH_X_addr) && (my_Y_addr == LOCAL_RH_Y_addr)){
-      Seek(SECURE_ZONE_CLOSED_SERVICE, get_net_address(), master_PE, LOCAL_right_high_corner);
-      puts("ENDSZ RH:");puts(itoh(LOCAL_right_high_corner));puts("\n"); 
-    }
-    //seek_puts("wrapper:");seek_puts(itoh(isolated_ports));seek_puts("\n");
-  //}
-  wrapper_value = isolated_ports;
-  seek_puts("RH address: ");seek_puts(itoh(right_high_corner));seek_puts("\n");
-  seek_puts("LOCAL RH address: ");seek_puts(itoh(LOCAL_right_high_corner));seek_puts("\n");
-}
 
 
 //////////////////////////////////////////////////////////////////////////////////////

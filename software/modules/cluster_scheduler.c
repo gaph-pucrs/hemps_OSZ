@@ -22,9 +22,10 @@
 #include "applications.h"
 #include "define_pairs.h"
 #include "seek.h" 
+#include "osz.h"
 
 extern unsigned int clusterID;
-extern unsigned int app_id_counter;
+//extern unsigned int app_id_counter;
 
 /** Allocate resources to a Cluster by decrementing the number of free resources. If the number of resources
  * is higher than free_resources, then free_resourcers receives zero, and the remaining of resources are allocated
@@ -88,7 +89,7 @@ void page_released(int cluster_id, int proc_address, int task_ID){
 
 	release_cluster_resources(cluster_id, 1);
 }
-
+/*
 int get_static_SZ(){
 	int appID;
 	int xi = 255, yi = 255, xf = 0, yf = 0;
@@ -134,7 +135,7 @@ int get_static_SZ(){
 
 	return 0;	
 }
-
+*/
 
 
 /** Maps a task into a cluster processor. This function only selects the processor not modifying any management structure

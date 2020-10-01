@@ -34,6 +34,8 @@
 #include "../../modules/csiphash.h"
 #include "../../modules/lfsr.h"
 
+#include "../../modules/osz_slave.h"
+
 #ifdef AES_MODULE
 #include "../../modules/aes.h"
 #endif 
@@ -1260,8 +1262,8 @@ int SeekInterruptHandler(){
 		case LOAN_PROCESSOR_RELEASE_SERVICE:
 		break;
 		
-		case GMV_READY_SERVICE:
-			puts("Kernel GMV Serbvice Recebido\n"); //Testando se chegou isso
+		case GMV_READY_SERVICE: // remover
+		 	puts("Kernel GMV Serbvice Recebido\n"); //Testando se chegou isso
 		break;
 		case NEW_APP_SERVICE:
 		case NEW_APP_ACK_SERVICE:

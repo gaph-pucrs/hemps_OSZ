@@ -99,9 +99,9 @@ void print_port(unsigned int);
 
 int ProcessTurns(unsigned int backtrack, unsigned int backtrack1, unsigned int backtrack2);
 
-void Set_Secure_Zone(unsigned int right_high_corner, unsigned int left_low_corner, unsigned int master_PE);
+//void Set_Secure_Zone(unsigned int right_high_corner, unsigned int left_low_corner, unsigned int master_PE);
 
-void Unset_Secure_Zone(unsigned int left_low_corner, unsigned int right_high_corner, unsigned int master_PE);
+//void Unset_Secure_Zone(unsigned int left_low_corner, unsigned int right_high_corner, unsigned int master_PE);
 
 void Start_App_Secure_Zone(unsigned int appID);
 

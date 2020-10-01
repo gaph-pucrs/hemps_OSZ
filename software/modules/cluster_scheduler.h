@@ -36,7 +36,7 @@ int SearchCluster(int, int);
 
 void new_master_candidate();
 
-int get_static_SZ();
+//int get_static_SZ();
 
 /*#if defined(WithoutLoad) || defined(WithProfiler)
 int SearchCluster(int app_task_number);

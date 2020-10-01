@@ -19,7 +19,7 @@
 
 #include "../../include/kernel_pkg.h"
 
-#define MAX_SHAPES     13
+//#define MAX_SHAPES     13
 #define MAX_MIGRATIONS 10
 
 #define OFF             0
@@ -40,21 +40,6 @@ typedef struct {
 	int task[MAX_LOCAL_TASKS]; 			//!<Array with the ID of all task allocated in a given processor
 } Processor;
 
-
-typedef struct 
-{
-  int processors;
-  int X_size, Y_size;
-  union{
-    int valid;
-    int occuped;
-  };
-  int excess;
-  int used;
-  int cut;
-  unsigned int position;
-} Shapes;
-
 typedef struct 
 {
   int status;
@@ -64,8 +49,7 @@ typedef struct
 } Migrations;
 
 Migrations migration_list[MAX_MIGRATIONS];
-Shapes shapes[MAX_SHAPES];
-Shapes Secure_Zone[MAX_SHAPES];
+Processor processors[MAX_CLUSTER_PEs];	//!<Processor array
 
 int shape_index;
 
@@ -81,9 +65,9 @@ void add_task(int, int);
 
 void remove_task(int, int);
 
-int get_proc_free_pages(int);
+int get_proc_free_pages(int proc_address);
 
-int get_proc_address(int);
+int get_proc_address(int index);
 
 int get_task_location(int);
 
@@ -95,15 +79,7 @@ int get_task_id_processor(int proc_address); //Add by Fochi
 
 void clear_free_page_processor(int proc_address); //Add by Fochi
 
-int create_valid_shapes(int PEs, int cont);
-
-int search_shape_in_cluster(int X_size, int Y_size, Shapes shape[], int cont, int used_looking );
-
-int search_shape(int );
-
 int get_shape_index(int);
-
-int set_SZ_migrations(int SZ_index);
 
 int proc_is_migrating(int proc_address);
 
@@ -114,8 +90,6 @@ void print_migrating_list();
 int get_task_id_FREEZING_in_migration_list(int proc_address);
 
 int set_migration_list_status(int proc_address, int status);
-
-int PE_belong_SZ(int PE_x, int PE_y);
 
 void freeze_application();
 
