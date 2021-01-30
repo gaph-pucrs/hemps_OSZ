@@ -15,8 +15,8 @@ apps:
     start_time_ms: 0 #any unsigned integer number
     #secure: yes
     static_mapping:
-      cons: [1,1]
-      prod: [2,2]                         
+      cons: [2,2]
+      prod: [1,1]                         
   - name: mpeg
     start_time_ms: 4 #any unsigned integer number
     secure: yes   

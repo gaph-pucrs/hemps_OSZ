@@ -567,6 +567,7 @@ SC_MODULE(pe) {
 			router->data_in[LOCAL](data_out_sender);//se for canal unico liga aqui.
 		#endif
 		router->tick_counter(tick_counter);
+		fail_wrapper_module->tick_counter(tick_counter);
 		
 		SC_METHOD(sequential_attr);
 		sensitive << clock.pos() << reset.pos();

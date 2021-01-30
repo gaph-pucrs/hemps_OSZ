@@ -122,7 +122,7 @@ void send_task_release(Application * app){
 
 			p = get_service_header_slot();
 			p->header[MAX_SOURCE_ROUTING_PATH_SIZE-1] = app->tasks[i].allocated_proc;
-	
+
 			p->service = TASK_RELEASE;
 	
 			p->app_task_number = app->tasks_number;
@@ -486,7 +486,6 @@ void handle_packet() {
 		break;
 
 	case INITIALIZE_CLUSTER:
-
 		global_master_address = p.source_PE;
 
 		reclustering_setup(p.cluster_ID);
@@ -775,7 +774,7 @@ void handle_new_app(int app_ID, volatile unsigned int *ref_address, unsigned int
 
 		if( shape_location == 0 ){
   			PEs_number = create_shapes(MAX_LOCAL_TASKS, application->tasks_number);
-  			print_shapes_found(PEs_number);
+  			//print_shapes_found(PEs_number);
   			shape_location = search_shape(PEs_number);
   		}
 
@@ -785,7 +784,7 @@ void handle_new_app(int app_ID, volatile unsigned int *ref_address, unsigned int
 	    	puts("\nShape location: ");  puts(itoh(shape_location)); puts("\n");
 //#endif
 	    if( shape_location != -1 ){
-			set_Secure_Zone(shape_index);
+			alloc_Secure_Zone(shape_index);
 			print_migrating_list();	
 	    } 
 	    else{ 
@@ -884,7 +883,7 @@ int SeekInterruptHandler(){
 		case END_TASK_SERVICE:
 			puts("End task SERVICE Task_ID: "); puts(itoh(payload)); puts("\n");
 			//hemps8
-			app_id = (payload >> 4) & 0x03;
+			app_id = (payload >> 4) & 0x0F;
 			app = get_application_ptr(app_id);
 			puts("App: "); puts(itoh(app)); puts("\n");
 		
@@ -917,7 +916,7 @@ int SeekInterruptHandler(){
 						if (is_global_master) {
 							handle_app_terminated(app->app_ID, app->tasks_number, net_address);
 						} else {
-							send_app_terminated(app, terminated_task_master);
+							send_app_terminated(app, terminated_task_master); // Poderia ser via Seek
 						}
 					remove_application(app->app_ID);
 				}	
@@ -936,7 +935,9 @@ int SeekInterruptHandler(){
 			puts("\nApp_id to START: "); puts(itoh(app_id));  puts("\n");
 			puts("\npayload: "); puts(itoh(payload));  puts("\n");
 			if(app_id != -1)
-				Seek(START_APP_SERVICE, (app_id<<16 |get_net_address()), payload, app_id);
+				//Seek(START_APP_SERVICE, (app_id<<16 |get_net_address()), payload, app_id);
+				Seek(START_APP_SERVICE, ((app_id << 24) | ((MemoryRead(TICK_COUNTER) << 16) & 0xFF0000) | get_net_address()), payload, app_id);
+				
 			else
 				putsv("\nThis Master don't have a secure zone with RH Address ", payload);
 			
@@ -946,6 +947,7 @@ int SeekInterruptHandler(){
 		break;
 		case SET_SZ_RECEIVED_SERVICE:
 			aux = get_Secure_Zone_index(payload);
+			app_id = get_AppID_with_RH_Address(payload);
 			if(aux != -1){
 				RH_addr = Secure_Zone[aux].cut >> 16;
 				LL_addr = Secure_Zone[aux].cut & 0XFFFF;
@@ -960,9 +962,13 @@ int SeekInterruptHandler(){
 				//puts("Cut LL_addr: "); puts(itoh(LL_addr)); puts("\n");
 
 				if(Secure_Zone[aux].cut != -1)
-					Seek(SET_EXCESS_SZ_SERVICE, (SET_EXCESS_SZ_SERVICE<<16 | get_net_address()), LL_addr, RH_addr);
+					//Seek(SET_EXCESS_SZ_SERVICE, (app_id <<16 | get_net_address()), LL_addr, RH_addr);
+					Seek(SET_EXCESS_SZ_SERVICE, ((app_id << 24) | ((MemoryRead(TICK_COUNTER) << 16) & 0xFF0000) | get_net_address()), LL_addr, RH_addr);
 				else
-					Seek(SET_EXCESS_SZ_SERVICE, (SET_EXCESS_SZ_SERVICE<<16 | get_net_address()), master_address, master_address);
+					//Seek(SET_EXCESS_SZ_SERVICE, (app_id <<16 | get_net_address()), master_address, master_address);
+					//Seek(SET_EXCESS_SZ_SERVICE, ((app_id << 24) | ((MemoryRead(TICK_COUNTER) << 16) & 0xFF0000) | get_net_address()), master_address, master_address);
+					Seek(SET_EXCESS_SZ_SERVICE, ((app_id << 24) | ((MemoryRead(TICK_COUNTER) << 16) & 0xFF0000) | get_net_address()), payload, payload);
+
 			}
 			else {
 				puts("Secure Zone not found!!!\nRH_address: "); puts(itoh(payload)); puts("\n");
@@ -984,11 +990,11 @@ int SeekInterruptHandler(){
 			} else {
 				send_app_terminated(app, terminated_task_master);
 			}
-			unset_Secure_Zone(app->RH_Address);
+			free_Secure_Zone(app->RH_Address);
 			remove_application(app->app_ID);
 		break;
 		case TASK_ALLOCATED_SERVICE:
-			app_id = (payload >> 4) & 0x03;
+			app_id = (payload >> 4) & 0x0F;
 			//puts("Task Allocated: "); puts(itoh(source)); puts("\n");
 			app = get_application_ptr(app_id);
 			//recalculates task_id
@@ -1029,9 +1035,11 @@ int SeekInterruptHandler(){
 						//puts("RH_addr: "); puts(itoh(RH_addr)); puts("\n");
 						//puts("LL_addr: "); puts(itoh(LL_addr)); puts("\n");
 						set_RH_Address(app->app_ID, RH_addr);
+						//get_Secure_Zone_index(RH_addr);
 						puts("SET_SECURE_ZONE at time: "), puts(itoa(MemoryRead(TICK_COUNTER))); puts("\n");
-						//Seek(SET_SECURE_ZONE_SERVICE, (SET_SECURE_ZONE_SERVICE<<16 | get_net_address()), LL_addr, RH_addr);
-						Seek(SET_SECURE_ZONE_SERVICE, (MemoryRead(TICK_COUNTER)<<16 | get_net_address()), LL_addr, RH_addr);
+						//Seek(SET_SECURE_ZONE_SERVICE, (get_Secure_Zone_index(RH_addr)<<16 | get_net_address()), LL_addr, RH_addr);
+						//Seek(SET_SECURE_ZONE_SERVICE, (MemoryRead(TICK_COUNTER)<<16 | get_net_address()), LL_addr, RH_addr);
+						Seek(SET_SECURE_ZONE_SERVICE, ((app_id << 24) | ((MemoryRead(TICK_COUNTER) << 16) & 0xFF0000) | get_net_address()), LL_addr, RH_addr);
 					}		
 			}
 		break;
@@ -1134,7 +1142,7 @@ int main() {
 	//send ready by brnoc
 	if (is_global_master){
 		puts("Kernel GMV Initialized\n");
-		Seek(GMV_READY_SERVICE, get_net_address(), 0, 0); //remover
+		Seek(GMV_READY_SERVICE, get_net_address(), 0, 0);
 		Seek(CLEAR_SERVICE, get_net_address(), 0, 0);
 	}
 	else

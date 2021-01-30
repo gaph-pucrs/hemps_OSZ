@@ -54,14 +54,22 @@ SC_MODULE(fail_WRAPPER_module){
 	enum fila_in{S_INIT_IN, S_END};
 	sc_signal<fila_in > EA_in;
 	
-void in_proc_FSM();
+	void in_proc_FSM();
+
+	sc_in<sc_uint<32 > > tick_counter;
+	void brNoC_monitor();
+
 
 	SC_CTOR(fail_WRAPPER_module){
     	SC_METHOD(in_proc_FSM);
     	sensitive << reset;
     	sensitive << clock.pos();
-	}
 
+		SC_METHOD(brNoC_monitor);
+		sensitive << reset;
+    	//sensitive << clock.pos();
+		sensitive << out_req_wrapper_local.pos();
+	}
 };
 
 #endif

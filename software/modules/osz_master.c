@@ -206,7 +206,7 @@ void shapes_invert_order(Shapes shapes[], int nb_valid_shapes){
     shapes[i].excess = shapes[nb_valid_shapes-i-1].excess;
     shapes[nb_valid_shapes-i-1].excess = shape_aux.excess;
   }
-  print_shapes_found(nb_valid_shapes);
+  //print_shapes_found(nb_valid_shapes);
 }
 
 //////////////////////////////////////////////////////////////////////////////////////
@@ -265,7 +265,8 @@ int shape_recog(int X_size, int Y_size, int X_init, int Y_init){
 }
 
 //////////////////////////////////////////////////////////////////////////////////////
-void set_Secure_Zone(int shape_index){
+//void set_Secure_Zone(int shape_index){
+void alloc_Secure_Zone(int shape_index){
     int i;
 
     for(i = 0; i < MAX_SHAPES; i++){
@@ -280,6 +281,7 @@ void set_Secure_Zone(int shape_index){
             Secure_Zone[i].position = shapes[shape_index].position;
             Secure_Zone[i].occuped = 1;
 
+            //updateOSZstatus(MemoryRead(TICK_COUNTER), i, )
             set_SZ_migrations(i);
             freeze_application();
             return;
@@ -396,7 +398,7 @@ int get_Secure_Zone_index(int RH_address){
 
 
 //////////////////////////////////////////////////////////////////////////////////////
-void unset_Secure_Zone(int RH_address){ // falta implementar
+void free_Secure_Zone(int RH_address){ // falta implementar
     int i, RH_SZ;
 
     RH_address = ((RH_address << 4) & 0XF00) | (RH_address & 0x0F);
@@ -435,7 +437,7 @@ int PE_belong_SZ(int PE_x, int PE_y){
                     if(((PE_x >= xi_cut) && (PE_x <= xf_cut)) && ((PE_y >= yi_cut) && (PE_y <= yf_cut))  )
                         continue;
                 }
-                puts("\nBelong? X: ");  puts(itoa(PE_x));  puts(" Y: ");  puts(itoa(PE_y));
+                //puts("\nBelong? X: ");  puts(itoa(PE_x));  puts(" Y: ");  puts(itoa(PE_y));
                 if(((PE_x >= xi) && (PE_x < xf)) && ((PE_y >= yi) && (PE_y < yf))  )
                     return 1;
             }
@@ -443,3 +445,9 @@ int PE_belong_SZ(int PE_x, int PE_y){
     return 0;
 }
 
+// ////////////////////////////
+// void updateOSZstatus(int timeStamp, ){
+
+//     FILE *logOSZ = fopen("logOSZ.txt", "w");
+
+// }

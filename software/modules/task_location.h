@@ -19,7 +19,7 @@
 
 #include "../../include/kernel_pkg.h"
 
-#define MAX_TASK_LOCATION	(MAX_LOCAL_TASKS*MAX_TASKS_APP)
+#define MAX_TASK_LOCATION	2*(MAX_LOCAL_TASKS*MAX_TASKS_APP) //Double to fit more than 1 app
 
 /**
  * \brief This structure stores the location (slave process address) of the other task

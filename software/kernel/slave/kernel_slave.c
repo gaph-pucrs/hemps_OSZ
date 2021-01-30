@@ -114,7 +114,7 @@ void send_task_terminated(TCB * terminated_task){
 void send_task_allocated(TCB * allocated_task){
 	unsigned int aux_appID_task_ID;
 
-	aux_appID_task_ID = ((allocated_task->id >> 4) & 0x30) | (allocated_task->id & 0x0F);
+	aux_appID_task_ID = ((allocated_task->id >> 4) & 0xF0) | (allocated_task->id & 0x0F);
 	if(allocated_task->secure == 1){
 		puts("Task Allocated SEGURA: "); puts(itoh(aux_appID_task_ID)); puts("\n");
 		Seek(TASK_ALLOCATED_SERVICE, ((allocated_task->MAC_status << 24) |   (aux_appID_task_ID<<16) | (get_net_address()& 0xFFFF)), allocated_task->master_address, aux_appID_task_ID);
@@ -247,7 +247,7 @@ int Syscall(unsigned int service, unsigned int arg0, unsigned int arg1, unsigned
 			puts("Task id: "); puts(itoa(current->id)); putsv(" terminated at ", MemoryRead(TICK_COUNTER));
 
 			// adjust appID e taskID to 6 bits
-			aux_appID_task_ID = ((current->id >> 4) & 0x30) | (current->id & 0x0F);
+			aux_appID_task_ID = ((current->id >> 4) & 0xF0) | (current->id & 0x0F);
 			Seek(END_TASK_SERVICE, ((current->master_address<<16) | (get_net_address()&0xffff)), current->master_address, aux_appID_task_ID);
 			if(current->master_address != cluster_master_address){
 			 	Seek(END_TASK_OTHER_CLUSTER_SERVICE, ((cluster_master_address<<16) | (get_net_address()&0xffff)), cluster_master_address, aux_appID_task_ID);
@@ -257,9 +257,11 @@ int Syscall(unsigned int service, unsigned int arg0, unsigned int arg1, unsigned
 
 			appID = current->id >> 8;
 
-			if ( !is_another_task_running(appID) ){
+			//clear_app_tasks_locations(current->id);
 
-				// clear_app_tasks_locations(appID);
+			if (!is_another_task_running(appID)){
+
+				//clear_app_tasks_locations(appID);
 			}
 
 			remove_last_msg_waiting_ack(current->id);
@@ -1134,9 +1136,9 @@ int SeekInterruptHandler(){
 
 		case SET_EXCESS_SZ_SERVICE:
 			puts("Received SET_EXCESS_SZ_SERVICE\n"); 
-			puts("source: "); puts(itoh(source)); puts("\n");
-			puts("target: "); puts(itoh(target)); puts("\n");
-			puts("payload: "); puts(itoh(payload)); puts("\n");
+			// puts("source: "); puts(itoh(source)); puts("\n");
+			// puts("target: "); puts(itoh(target)); puts("\n");
+			// puts("payload: "); puts(itoh(payload)); puts("\n");
 			Unset_Secure_Zone(target, payload, source);
 		break;
 
@@ -1172,7 +1174,7 @@ int SeekInterruptHandler(){
 				//puts("Send Clear Open"); puts("\n");
 				Seek(CLEAR_SERVICE, source, source, payload);
 			}
-			
+		
 			
 			for(int i = 0; i < MAX_LOCAL_TASKS; i++){
 				if ((tcbs[i].id >> 8) == target){
@@ -1263,8 +1265,8 @@ int SeekInterruptHandler(){
 		break;
 		
 		case GMV_READY_SERVICE: // remover
-		 	puts("Kernel GMV Serbvice Recebido\n"); //Testando se chegou isso
-		break;
+		// 	puts("Kernel GMV Serbvice Recebido\n"); //Testando se chegou isso
+		//break;
 		case NEW_APP_SERVICE:
 		case NEW_APP_ACK_SERVICE:
 		break;

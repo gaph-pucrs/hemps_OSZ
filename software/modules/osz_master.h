@@ -106,7 +106,7 @@ int shape_recog(int X_size, int Y_size, int X_init, int Y_init);
         processors  > processors.c
 */
 
-void set_Secure_Zone(int shape_index);
+void alloc_Secure_Zone(int shape_index); //void set_Secure_Zone(int shape_index);
 /*  Origem: processors.c
     Instância: handle_new_app() > kernel_master.c
     Variáveis Globais:
@@ -144,7 +144,8 @@ int get_Secure_Zone_index(int RH_address);
         Secure_Zone[] > processors.c
 */
 
-void unset_Secure_Zone(int RH_address); 
+void free_Secure_Zone(int RH_address); 
+//void unset_Secure_Zone(int RH_address); 
 /*  Origem: processors.c
     Instância: SeekInterruptHandler > kernel_master.c
     Variáveis Globais:

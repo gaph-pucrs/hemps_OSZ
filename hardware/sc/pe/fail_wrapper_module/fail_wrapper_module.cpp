@@ -14,9 +14,23 @@
 
 #include "fail_wrapper_module.h"
 
-//PROCESSO DE CONTROLE PARA PDN
+//-- PDN services
+//#define	SET_SECURE_ZONE_SERVICE		0b00111
+//#define	OPEN_SECURE_ZONE_SERVICE	0b01010
+//#define	SECURE_ZONE_CLOSED_SERVICE	0b01011
+//#define	SECURE_ZONE_OPENED_SERVICE	0b01100
+//#define	SET_SZ_RECEIVED_SERVICE		0b11101
+//#define	SET_EXCESS_SZ_SERVICE		0b11110
+//
 
+//PROCESSO DE CONTROLE PARA PDN
 void fail_WRAPPER_module::in_proc_FSM(){
+	#ifdef BRLOG
+	char aux[255]; 
+	FILE *fp;
+	reg_seek_service auxService;
+	#endif
+
 
 	if(reset.read() == true){
 		out_ack_wrapper_local.write(false);
@@ -65,9 +79,46 @@ void fail_WRAPPER_module::in_proc_FSM(){
 					break;	
 	
 				case S_END:
-						out_req_wrapper_local.write(0);			
+						out_req_wrapper_local.write(0);		
 				break;		
 			}
 		}
 	}	
 }
+
+//PROCESSO DE CONTROLE PARA PDN
+void fail_WRAPPER_module::brNoC_monitor(){
+	char aux[255]; 
+	FILE *fp;
+	reg_seek_service auxService;
+	//Store in aux the C's string way
+	sprintf(aux, "debug/traffic_brnoc.txt");
+
+
+	if(reset.read() == true){
+		//prevService = 0;
+	}else{
+		// Open a file called "aux" deferred on append mode
+		fp = fopen (aux, "a");
+		auxService = in_service_wrapper_local.read();
+
+		//if (auxService != prevService && (auxService == SET_SECURE_ZONE_SERVICE || auxService == OPEN_SECURE_ZONE_SERVICE || auxService == SECURE_ZONE_CLOSED_SERVICE || auxService == SECURE_ZONE_OPENED_SERVICE || auxService == SET_SZ_RECEIVED_SERVICE || auxService == SET_EXCESS_SZ_SERVICE)){
+		if (auxService == SET_SECURE_ZONE_SERVICE || auxService == OPEN_SECURE_ZONE_SERVICE || auxService == SECURE_ZONE_CLOSED_SERVICE || auxService == SECURE_ZONE_OPENED_SERVICE || auxService == SET_SZ_RECEIVED_SERVICE || auxService == SET_EXCESS_SZ_SERVICE || auxService == END_TASK_SERVICE){
+			sprintf(aux, "%d\t%X\t%X\t%X\t%d\n", (unsigned int)tick_counter.read(), (unsigned int) (in_source_wrapper_local.read()), (unsigned int)in_target_wrapper_local.read(), (unsigned int) in_payload_wrapper_local.read(), (unsigned int) auxService);
+			fprintf(fp,"%s",aux);
+			//prevService = auxService;
+		} 
+		/*else {			
+
+		}*/
+		fclose (fp);
+	}
+}
+/*-- PDN services
+    #define    SET_SECURE_ZONE_SERVICE                 0b00111
+    #define    OPEN_SECURE_ZONE_SERVICE                0b01010
+    #define    SECURE_ZONE_CLOSED_SERVICE              0b01011
+    #define    SECURE_ZONE_OPENED_SERVICE              0b01100
+    #define    SET_SZ_RECEIVED_SERVICE                 0b11101
+    #define    SET_EXCESS_SZ_SERVICE                   0b11110
+---*/

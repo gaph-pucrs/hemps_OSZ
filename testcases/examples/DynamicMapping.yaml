@@ -9,18 +9,18 @@ hw:
   cluster_dimension: [5,5]  # for while, must be a square shape - 24 - 5 MPEG
   master_location: LB      # LB
   open_port:
-    - port: [Injector,90,0,0,W,0,0,N]
+    - port: [Injector,90,0,0,S,0,0,W]
 
 apps:                
   - name: mpeg
     start_time_ms: 1 #any unsigned integer number
     secure: yes
   - name: mpeg
+    start_time_ms: 2 #any unsigned integer number
+    secure: yes
+  - name: mpeg
     start_time_ms: 3 #any unsigned integer number
     secure: yes
   - name: mpeg
-    start_time_ms: 6 #any unsigned integer number
-    secure: yes
-  - name: mpeg
-    start_time_ms: 9 #any unsigned integer number
+    start_time_ms: 4 #any unsigned integer number
     secure: yes
