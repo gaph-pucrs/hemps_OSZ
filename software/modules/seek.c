@@ -192,8 +192,8 @@ void Seek(unsigned int service, unsigned int source, unsigned int target, unsign
 			case UNFREEZE_TASK_SERVICE:
 			case FREEZE_TASK_SERVICE:
 			case RCV_FREEZE_TASK_SERVICE:
-			case LOAN_PROCESSOR_REQUEST_SERVICE:
-			case LOAN_PROCESSOR_RELEASE_SERVICE:
+			// case LOAN_PROCESSOR_REQUEST_SERVICE:
+			// case LOAN_PROCESSOR_RELEASE_SERVICE:
 			case INITIALIZE_SLAVE_SERVICE:
 			case INITIALIZE_CLUSTER_SERVICE:
 			case GMV_READY_SERVICE:
@@ -204,6 +204,8 @@ void Seek(unsigned int service, unsigned int source, unsigned int target, unsign
 			case BACKTRACK_SERVICE:
 			case SEARCHPATH_SERVICE:
 			case WARD_SERVICE:
+			case MSG_DELIVERY_RECEIPT:
+			case MSG_REQUEST_RECEIPT:
 				 MemoryWrite(SEEK_OPMODE_REGISTER,RESTRICT_MODE);
 			break;
 

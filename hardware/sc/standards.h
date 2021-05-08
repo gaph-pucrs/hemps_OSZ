@@ -97,8 +97,9 @@
 
 //Kernel pending service FIFO
 #define PENDING_SERVICE_INTR	0x20000400
-
 #define SLACK_MONITOR_WINDOW 	50000
+#define KERNEL_DEBUG_STATE    0x20000558
+
 
 //DMNI config code
 #define CODE_CS_NET 		1

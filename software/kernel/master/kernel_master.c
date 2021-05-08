@@ -20,8 +20,8 @@
 
 #include "kernel_master.h"
 
-#include "../../modules/utils.h"
 #include "../../include/plasma.h"
+#include "../../modules/utils.h"
 #include "../../include/services.h"
 #include "../../modules/packet.h"
 #include "../../modules/new_task.h"
@@ -496,8 +496,8 @@ void handle_packet() {
 		break;
 
 	case LOAN_PROCESSOR_REQUEST:
-	case LOAN_PROCESSOR_DELIVERY:
-	case LOAN_PROCESSOR_RELEASE:
+	//case LOAN_PROCESSOR_DELIVERY:
+	//case LOAN_PROCESSOR_RELEASE:
 
 		handle_reclustering((ServiceHeader *)&p);
 
@@ -1036,7 +1036,7 @@ int SeekInterruptHandler(){
 						//puts("LL_addr: "); puts(itoh(LL_addr)); puts("\n");
 						set_RH_Address(app->app_ID, RH_addr);
 						//get_Secure_Zone_index(RH_addr);
-						puts("SET_SECURE_ZONE at time: "), puts(itoa(MemoryRead(TICK_COUNTER))); puts("\n");
+						puts("SET_SECURE_ZONE at time: "); puts(itoa(MemoryRead(TICK_COUNTER))); puts("\n");
 						//Seek(SET_SECURE_ZONE_SERVICE, (get_Secure_Zone_index(RH_addr)<<16 | get_net_address()), LL_addr, RH_addr);
 						//Seek(SET_SECURE_ZONE_SERVICE, (MemoryRead(TICK_COUNTER)<<16 | get_net_address()), LL_addr, RH_addr);
 						Seek(SET_SECURE_ZONE_SERVICE, ((app_id << 24) | ((MemoryRead(TICK_COUNTER) << 16) & 0xFF0000) | get_net_address()), LL_addr, RH_addr);
@@ -1059,12 +1059,12 @@ int SeekInterruptHandler(){
 				Seek(CLEAR_SERVICE, source, 0, 0);
 			initialize_slaves();
 		break;
-		case LOAN_PROCESSOR_REQUEST_SERVICE:
-			handle_reclustering_request_from_seek((source&0xffff), target, payload);
-		break;
-		case LOAN_PROCESSOR_RELEASE_SERVICE:
-		    handle_reclustering_release_from_seek((source&0xffff), target, payload);
-		break;
+		// case LOAN_PROCESSOR_REQUEST_SERVICE:
+		// 	handle_reclustering_request_from_seek((source&0xffff), target, payload);
+		// break;
+		// case LOAN_PROCESSOR_RELEASE_SERVICE:
+		//     handle_reclustering_release_from_seek((source&0xffff), target, payload);
+		// break;
 		case RCV_FREEZE_TASK_SERVICE:
 					puts("RCV_FREEZE_TASK "); puts(itoh(source)); puts("\n"); // used to reset the time_out
 		

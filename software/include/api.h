@@ -24,6 +24,8 @@
 #define	REALTIME			5
 #define IOWRITEPIPE 		6
 #define IOREADPIPE  		7
+#define DULL		  		8
+
 
 #define MemoryWrite(A,V) *(volatile unsigned int*)(A)=(V)
 #define TRUE	1
@@ -41,6 +43,9 @@ extern int SystemCall();
 
 //Real-Time API - time represented in microseconds
 #define RealTime(period, deadline, execution_time) while(!SystemCall(REALTIME, period, deadline, execution_time))
+
+//Direct Message Sending test
+#define SendDirect() while(!SystemCall(DULL, 0, 0,0))
 
 /*--------------------------------------------------------------------
  * struct Message

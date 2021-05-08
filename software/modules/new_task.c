@@ -10,7 +10,7 @@
  * \brief This module implements the function of NewTask FIFO.
  * \detailed This module is used only by the manager kernel
  */
-
+#include "../include/plasma.h"
 #include "new_task.h"
 #include "utils.h"
 

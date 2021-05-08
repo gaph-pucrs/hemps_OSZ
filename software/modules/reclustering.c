@@ -76,7 +76,7 @@ void send_loan_proc_request(int address, int taskID){
 
 	p->header[MAX_SOURCE_ROUTING_PATH_SIZE-1] = address;
 
-	p->service = LOAN_PROCESSOR_REQUEST;
+	//p->service = LOAN_PROCESSOR_REQUEST;
 
 	p->task_ID = taskID;
 
@@ -102,7 +102,7 @@ void send_loan_proc_delivery(int master_address, int taskID, int proc, int hops)
 
 	p->header[MAX_SOURCE_ROUTING_PATH_SIZE-1] = master_address;
 
-	p->service = LOAN_PROCESSOR_DELIVERY;
+//	p->service = LOAN_PROCESSOR_DELIVERY;
 
 	p->task_ID = taskID;
 
@@ -128,7 +128,7 @@ void send_loan_proc_release(int master_address, int release_proc, int taskID){
 
 		p->header[MAX_SOURCE_ROUTING_PATH_SIZE-1] = master_address;
 
-		p->service = LOAN_PROCESSOR_RELEASE;
+	//	p->service = LOAN_PROCESSOR_RELEASE;
 
 		p->task_ID = taskID;
 
@@ -171,7 +171,7 @@ void fires_reclustering_protocol(){
     // Mount and send Load_Processor_Request passing LMP Address and task_ID
 	allocated_processor = (cluster_info[clusterID].master_x << 8) | cluster_info[clusterID].master_y;
        aux_appID_task_ID = ((reclustering.task->id >> 4) & 0x30) | (reclustering.task->id & 0x0F);
-	Seek(LOAN_PROCESSOR_REQUEST_SERVICE, get_net_address(), allocated_processor, aux_appID_task_ID);
+//	Seek(LOAN_PROCESSOR_REQUEST_SERVICE, get_net_address(), allocated_processor, aux_appID_task_ID);
 
 }
 
@@ -280,113 +280,113 @@ void handle_reclustering(ServiceHeader * p){
 
 	switch(p->service){
 
-	case LOAN_PROCESSOR_REQUEST:
+	// case LOAN_PROCESSOR_REQUEST:
 
-		#if RECLUSTERING_DEBUG
-			puts("\nReceive LOAN_PROCESSOR_REQUEST "); puts(" from proc "); puts(itoh(p->source_PE)); puts("\n");
-		#endif
+	// 	#if RECLUSTERING_DEBUG
+	// 		puts("\nReceive LOAN_PROCESSOR_REQUEST "); puts(" from proc "); puts(itoh(p->source_PE)); puts("\n");
+	// 	#endif
 
-		if (cluster_info[clusterID].free_resources <= 0){
+	// 	if (cluster_info[clusterID].free_resources <= 0){
 
-			send_loan_proc_delivery(p->source_PE, p->task_ID, -1, -1);
+	// 		send_loan_proc_delivery(p->source_PE, p->task_ID, -1, -1);
 
-		} else {
+	// 	} else {
 
-			//Procura pelo processador mais proximo do processador requisitnate
-			mapped_proc = map_task(0, p->task_ID, 0);
+	// 		//Procura pelo processador mais proximo do processador requisitnate
+	// 		mapped_proc = map_task(0, p->task_ID, 0);
 
-			hops = (p->allocated_processor >> 8) + (mapped_proc >> 8);
-			hops += (p->allocated_processor & 0xFF) + (mapped_proc & 0xFF);
+	// 		hops = (p->allocated_processor >> 8) + (mapped_proc >> 8);
+	// 		hops += (p->allocated_processor & 0xFF) + (mapped_proc & 0xFF);
 
-		#if RECLUSTERING_DEBUG
-			puts("Alocou proc "); puts(itoh(mapped_proc)); puts("\n");
-		#endif
+	// 	#if RECLUSTERING_DEBUG
+	// 		puts("Alocou proc "); puts(itoh(mapped_proc)); puts("\n");
+	// 	#endif
 
-			send_loan_proc_delivery(p->source_PE, p->task_ID, mapped_proc, hops);
+	// 		send_loan_proc_delivery(p->source_PE, p->task_ID, mapped_proc, hops);
 
-			page_used(clusterID, mapped_proc, p->task_ID);
+	// 		page_used(clusterID, mapped_proc, p->task_ID);
 
-		}
+	// 	}
 
-		break;
+	// 	break;
 
-	case LOAN_PROCESSOR_DELIVERY:
+	// case LOAN_PROCESSOR_DELIVERY:
 
-		#if RECLUSTERING_DEBUG
-			puts("\nReceive LOAN_PROCESSOR_DELIVERY "); puts(" from proc "); puts(itoh(p->source_PE)); puts("\n");
-			putsv("Numeros de delivery pendentes: ", reclustering.pending_loan_delivery);
-		#endif
+	// 	#if RECLUSTERING_DEBUG
+	// 		puts("\nReceive LOAN_PROCESSOR_DELIVERY "); puts(" from proc "); puts(itoh(p->source_PE)); puts("\n");
+	// 		putsv("Numeros de delivery pendentes: ", reclustering.pending_loan_delivery);
+	// 	#endif
 
-		// counter decrement
-		reclustering.pending_loan_delivery--;
+	// 	// counter decrement
+	// 	reclustering.pending_loan_delivery--;
 
-	  // The reclustering receives all Loan_Processor_Delivery
-	  // then select the closer (by hop number) and send Loan_Processor_Release passing
-	  // the PE address of selected processor to execute the task_ID
+	//   // The reclustering receives all Loan_Processor_Delivery
+	//   // then select the closer (by hop number) and send Loan_Processor_Release passing
+	//   // the PE address of selected processor to execute the task_ID
 	  		
-		// if hops received is small of actual change the selected processor
-		if (p->hops < reclustering.min_loan_proc_hops){
-			reclustering.min_loan_proc_hops = p->hops;
+	// 	// if hops received is small of actual change the selected processor
+	// 	if (p->hops < reclustering.min_loan_proc_hops){
+	// 		reclustering.min_loan_proc_hops = p->hops;
 
-			reclustering.current_borrowed_proc = p->allocated_processor;
+	// 		reclustering.current_borrowed_proc = p->allocated_processor;
 
-			reclustering.current_borrowed_master = p->source_PE;
-		}
+	// 		reclustering.current_borrowed_master = p->source_PE;
+	// 	}
 
-		//if all responses incomming then send the Loan_Processor_Release
-		if (reclustering.pending_loan_delivery == 0){
+	// 	//if all responses incomming then send the Loan_Processor_Release
+	// 	if (reclustering.pending_loan_delivery == 0){
 
-			#if RECLUSTERING_DEBUG
-				puts("Fim da rodada\n");
-			#endif
+	// 		#if RECLUSTERING_DEBUG
+	// 			puts("Fim da rodada\n");
+	// 		#endif
 
-			// Clear seek form previous Loan_Processor_Request
-			Seek(CLEAR_SERVICE, get_net_address(), 0, 0);
+	// 		// Clear seek form previous Loan_Processor_Request
+	// 		Seek(CLEAR_SERVICE, get_net_address(), 0, 0);
 
-			//if one processor was selected from responses
-			if (reclustering.current_borrowed_proc != -1){
+	// 		//if one processor was selected from responses
+	// 		if (reclustering.current_borrowed_proc != -1){
 
-				//At this point the reclustering has benn finished successifully
-				puts("Reclustering acabou com sucesso, tarefa alocada no proc "); puts(itoh(reclustering.current_borrowed_proc)); putsv(" com id ", reclustering.task->id);
+	// 			//At this point the reclustering has benn finished successifully
+	// 			puts("Reclustering acabou com sucesso, tarefa alocada no proc "); puts(itoh(reclustering.current_borrowed_proc)); putsv(" com id ", reclustering.task->id);
 
-				reclustering.active = 0;
+	// 			reclustering.active = 0;
 
-				reclustering.task->allocated_proc = reclustering.current_borrowed_proc;
+	// 			reclustering.task->allocated_proc = reclustering.current_borrowed_proc;
 
-				reclustering.task->borrowed_master = reclustering.current_borrowed_master;
+	// 			reclustering.task->borrowed_master = reclustering.current_borrowed_master;
 
-				//mount and send the Loan_Processor_Release message
-				aux_appID_task_ID = ((p->task_ID >> 4) & 0x30) | (p->task_ID & 0x0F);
-				Seek(LOAN_PROCESSOR_RELEASE_SERVICE, get_net_address(), reclustering.task->allocated_proc , aux_appID_task_ID);	
+	// 			//mount and send the Loan_Processor_Release message
+	// 			aux_appID_task_ID = ((p->task_ID >> 4) & 0x30) | (p->task_ID & 0x0F);
+	// 			Seek(LOAN_PROCESSOR_RELEASE_SERVICE, get_net_address(), reclustering.task->allocated_proc , aux_appID_task_ID);	
 
-				//Searches for a new task waiting reclustering
-				app = get_application_ptr((reclustering.task->id >> 8));
+	// 			//Searches for a new task waiting reclustering
+	// 			app = get_application_ptr((reclustering.task->id >> 8));
 
-				// Clear seek form previous Loan_Processor_Release
-				Seek(CLEAR_SERVICE, get_net_address(), 0 , 0);	
-				puts("  "); puts("\n");
+	// 			// Clear seek form previous Loan_Processor_Release
+	// 			Seek(CLEAR_SERVICE, get_net_address(), 0 , 0);	
+	// 			puts("  "); puts("\n");
 
-				reclustering_next_task(app);
+	// 			reclustering_next_task(app);
 
-			} 
-			else {
+	// 		} 
+	// 		else {
 
-				puts("ERROR: reclustering falhou");
+	// 			puts("ERROR: reclustering falhou");
 
-			}
-		}
+	// 		}
+	// 	}
 
-	break;
+	// break;
 
-	case LOAN_PROCESSOR_RELEASE:
+	// case LOAN_PROCESSOR_RELEASE:
 
-		#if RECLUSTERING_DEBUG
-			puts("\nReceive LOAN_PROCESSOR_RELEASE "); puts(" from proc "); puts(itoh(p->source_PE)); putsv(" task id ", p->task_ID);
-		#endif
+	// 	#if RECLUSTERING_DEBUG
+	// 		puts("\nReceive LOAN_PROCESSOR_RELEASE "); puts(" from proc "); puts(itoh(p->source_PE)); putsv(" task id ", p->task_ID);
+	// 	#endif
 
-		page_released(clusterID, p->released_proc, p->task_ID);
+	// 	page_released(clusterID, p->released_proc, p->task_ID);
 
-		break;
+	// 	break;
 	}
 }
 

@@ -87,6 +87,9 @@ void pe::mem_mapped_registers(){
 			case DMNI_TIMEOUT_SIGNAL:
 				cpu_mem_data_read.write(dmni_timeout_ni.read());
 			break;
+			case KERNEL_DEBUG_STATE:		
+				cpu_mem_data_read.write(kernel_debug.read());
+			break;
 			default:
 				cpu_mem_data_read.write(data_read_ram.read());
 			break;
@@ -213,31 +216,58 @@ void pe::sequential_attr(){
 		}
 		//*********************************************************************
 
+		// //************** simluation-time debug implementation *******************
+		// if (cpu_mem_address_reg.read() == DEBUG && write_enable.read() == 1){
+		// 	sprintf(aux, "log/log%dx%d.txt", (unsigned int) router_address.range(15,8), (unsigned int) router_address.range(7,0));
+		// 	fp = fopen (aux, "a");
+
+		// 	end = 0;
+		// 	for(int i=0;i<4;i++) {
+		// 		c = cpu_mem_data_write_reg.read().range(31-i*8,24-i*8);
+
+		// 		//Writes a string in the line
+		// 		if(c != 10 && c != 0 && !end){
+		// 			fprintf(fp,"%c",c);
+		// 		}
+		// 		//Detects the string end
+		// 		else if(c == 0){
+		// 			end = true;
+		// 		}
+		// 		//Line feed detected. Writes the line in the file
+		// 		else if(c == 10){
+		// 			fprintf(fp,"%c",c);
+		// 		}
+		// 	}
+
+		// 	fclose (fp);
+		//}
+
 		//************** simluation-time debug implementation *******************
 		if (cpu_mem_address_reg.read() == DEBUG && write_enable.read() == 1){
 			sprintf(aux, "log/log%dx%d.txt", (unsigned int) router_address.range(15,8), (unsigned int) router_address.range(7,0));
 			fp = fopen (aux, "a");
 
 			end = 0;
-			for(int i=0;i<4;i++) {
-				c = cpu_mem_data_write_reg.read().range(31-i*8,24-i*8);
+			uint32_t address = cpu_mem_data_write_reg.read()/4;
+			while(!end){
+				unsigned long word = mem->ram_data[address++];
+				word = __builtin_bswap32(word);
+				char str[5] = {};
+				memcpy(str, &word, 4);
 
-				//Writes a string in the line
-				if(c != 10 && c != 0 && !end){
-					fprintf(fp,"%c",c);
-				}
-				//Detects the string end
-				else if(c == 0){
-					end = true;
-				}
-				//Line feed detected. Writes the line in the file
-				else if(c == 10){
-					fprintf(fp,"%c",c);
+				fprintf(fp, "%s", str);
+
+				for(int i = 0; i < 4; i++){
+					if(str[i] == 0){
+						end = 1;
+						break;
+					}
 				}
 			}
 
 			fclose (fp);
 		}
+
 
 		//************ NEW DEBBUG AND REPORT logs - they are used by HeMPS Debbuger Tool********
 		if (write_enable.read()==1){
@@ -286,6 +316,10 @@ void pe::sequential_attr(){
 
 		if ((cpu_mem_address_reg.read() == TIME_SLICE_ADDR) and (write_enable.read()==1) ) {
 			time_slice.write(cpu_mem_data_write_reg.read());
+  		}
+	  				  
+		if ((cpu_mem_address_reg.read() == KERNEL_DEBUG_STATE) and (write_enable.read()==1) ) {
+			kernel_debug.write(cpu_mem_data_write_reg.read());
   		}
   		
   		tick_counter.write((tick_counter.read() + 1) );
@@ -648,11 +682,13 @@ void pe::seek_receive(){
 						int_seek.write(1);
 					break;							
 					case 0x13:
-						cout << "LOAN_PROCESSOR_REQUEST_SERVICE";
+						cout << "MSG_DELIVERY_RECEIPT";
+						// cout << "LOAN_PROCESSOR_REQUEST_SERVICE";
 						int_seek.write(1);
 					break;
 					case 0x14:
-						cout << "LOAN_PROCESSOR_RELEASE_SERVICE";
+						cout << "MSG_REQUEST_RECEIPT";
+						// cout << "LOAN_PROCESSOR_REQUEST_SERVICE";
 						int_seek.write(1);
 					break;
 					case 0x15:

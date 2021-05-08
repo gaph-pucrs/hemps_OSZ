@@ -42,8 +42,8 @@
 #define TASK_ALLOCATED_SERVICE          16
 #define INITIALIZE_SLAVE_SERVICE        17
 #define	INITIALIZE_CLUSTER_SERVICE	    18
-#define LOAN_PROCESSOR_REQUEST_SERVICE  19
-#define LOAN_PROCESSOR_RELEASE_SERVICE  20
+// #define LOAN_PROCESSOR_REQUEST_SERVICE  19
+// #define LOAN_PROCESSOR_RELEASE_SERVICE  20
 #define END_TASK_OTHER_CLUSTER_SERVICE  21
 #define	WAIT_KERNEL_SERVICE				22
 #define	SEND_KERNEL_SERVICE				23
@@ -55,12 +55,16 @@
 #define SET_SZ_RECEIVED_SERVICE         29
 #define SET_EXCESS_SZ_SERVICE           30
 #define	RCV_FREEZE_TASK_SERVICE			31
+#define	MSG_DELIVERY_RECEIPT		    19
+#define	MSG_REQUEST_RECEIPT				20
 
 
 #define	IRQ_SEEK						0x80
 
-#define seek_puts(argument) puts(argument)
-// #define seek_puts(argument) 
+// #define seek_puts(argument) puts(argument)
+#define seek_puts(argument) 
+
+
 
 //used for seek purposes
 int slot_seek;

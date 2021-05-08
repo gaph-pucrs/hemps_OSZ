@@ -1,4 +1,4 @@
-vsim -t ps +notimingchecks hardware/work.test_bench
+vsim -novopt -t ps +notimingchecks hardware/work.test_bench
 
 do wave.do
 onerror {resume}

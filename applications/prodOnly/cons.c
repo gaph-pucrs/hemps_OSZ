@@ -1,5 +1,5 @@
 /*
- * prod.c
+ * cons.c
  *
  *  Created on: 07/03/2013
  *      Author: mruaro
@@ -9,13 +9,15 @@
 #include <stdlib.h>
 #include "prod_cons_std.h"
 
+
 Message msg;
+
 
 int main()
 {
 
 	int i;
-	volatile int t;
+	volatile int p;
 
 	/* 2K */
 	//Echo("my app 890my app 890my app 890my app 890my app 890my app 890my app 890my app 890my app 890my app 890my app 890my app 890my app 890my app 890my app 890my app 890my app 890my app 890my app 890my app 890my app 890my app 890my app 890my app 890my app 890my app 890my app 890my app 890my app 890my app 890my app 890my app 890my app 890my app 890my apmy app 890my app 890my app 890my app 890my app 890my app 890abcdefgij");
@@ -65,28 +67,23 @@ int main()
 	// Echo("ec app 890my y app 890my app 890my app 890my apmy app 890my app 890my app 890my app 890my app 890my app 890abcdefgij");
 
 
-
-	Echo("Inicio da aplicacao prod");
+	Echo("Inicio da aplicacao cons");
 	Echo(itoa(GetTick()));
 
-	msg.length = 10;
-	for(i=0;i<msg.length;i++) msg.msg[i]= 0XF0+i;
-
-	//msg.msg[9] = 0xB0A;
-
 	for(i=0; i<PROD_CONS_ITERATIONS; i++){
-		Echo(itoa(i));
-		Send(&msg, cons);
-		//IOSend(&msg, 8);		// caimi test Working :-)
-		//IOReceive(&msg, IO_PERIPHERAL);  	//
-		Echo(itoa(msg.msg[0]));
-		Echo(itoa(msg.msg[msg.length]));
-		//Echo(itoa(GetTick()));
+		// Echo(itoa(i));
+		// Receive(&msg, prod);
+		// //IOSend(&msg, IO_PERIPHERAL);		// caimi test Working :-)
+		// //IOReceive(&msg, IO_PERIPHERAL);  	//
+		// //Echo(itoa(msg.msg[0]));
+		// //Echo(itoa(msg.msg[1]));
+		// Echo(itoa(GetTick()));
 	}
 
 
-	Echo("Fim da aplicacao prod");
+	Echo("Fim da aplicacao cons");
 	Echo(itoa(GetTick()));
+
 	exit();
 
 }

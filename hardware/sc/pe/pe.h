@@ -130,6 +130,7 @@ SC_MODULE(pe) {
 	sc_signal < sc_uint <32 > > tick_counter_local;
 	sc_signal < sc_uint <32 > > tick_counter;
 	sc_signal < sc_uint <8 > > 	current_page;
+	sc_signal < sc_uint <32 > > kernel_debug;
 	//cpu
 	sc_signal < sc_uint <32 > > cpu_mem_address;
 	sc_signal < sc_uint <32 > > cpu_mem_data_write;

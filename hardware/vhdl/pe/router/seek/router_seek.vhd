@@ -161,8 +161,12 @@ with in_sel_reg_backtrack_seek select
 	 fail_with_mode_out(SOUTH) <= in_fail_router_seek(SOUTH) and opmode_table(sel);
 	 fail_with_mode_out(LOCAL) <= in_fail_router_seek(LOCAL) and opmode_table(sel);
 
-     int_in_ack_router_seek <= in_ack_router_seek or fail_with_mode_out;    
-	 out_req_router_seek <= int_out_req_router_seek and not(fail_with_mode_out);     
+    int_in_ack_router_seek <= in_ack_router_seek or fail_with_mode_out;
+	--  int_in_ack_router_seek <= in_ack_router_seek;    
+    
+	out_req_router_seek <= int_out_req_router_seek and not(fail_with_mode_out); 
+	--  out_req_router_seek <= int_out_req_router_seek;  
+    
 
 
 
@@ -345,7 +349,7 @@ end process;
 ----  INPUT TABLE FSM process  2 - computa o próximo estado a partir dos valores atuais de estado e sinais de controle - lógica combinacional
 ----
 --process(EA_manage, todos os sinais de if)
-process(EA_manager, EA_manager_input, req_int, in_the_table, space_aval_in_the_table, backtrack_pending_in_table, searchpath_pending_in_table, in_req_router_seek, compare_service_pending_in_table, sel_port, in_service_router_seek, service_pending_in_table)
+process(PE_manager, EA_manager, EA_manager_input, req_int, in_the_table, space_aval_in_the_table, backtrack_pending_in_table, searchpath_pending_in_table, in_req_router_seek, compare_service_pending_in_table, sel_port, in_service_router_seek, service_pending_in_table)
 begin
 		case EA_manager_input is		
 
@@ -403,7 +407,7 @@ begin
 				end if;				
 				
 			when TEST_SEND_LOCAL => 
-				if PE_manager = SEND_LOCAL or PE_manager = COMPARE_TARGET then --or (sel = source_index and  pending_table = 1) then 
+				if PE_manager = SEND_LOCAL or PE_manager = COMPARE_TARGET  then --or (sel = source_index and  pending_table = 1) then 
 					PE_manager_input	<= 	TEST_SEND_LOCAL;						
 				else
 					PE_manager_input	<=	WRITE_CLEAR_INPUT;	 
@@ -552,8 +556,10 @@ process(EA_manager, req_task , source_table, service_table, target_table, payloa
 				if (pending_table(sel) = '1') and (service_table(sel) = CLEAR_SERVICE or service_table(sel) = SET_SECURE_ZONE_SERVICE or service_table(sel) = START_APP_SERVICE 
 					or  service_table(sel) = OPEN_SECURE_ZONE_SERVICE or  service_table(sel) = GMV_READY_SERVICE or  service_table(sel) = FREEZE_TASK_SERVICE or  service_table(sel) = UNFREEZE_TASK_SERVICE 
 					or  service_table(sel) = INITIALIZE_SLAVE_SERVICE or  service_table(sel) = NEW_APP_ACK_SERVICE or  service_table(sel) = NEW_APP_SERVICE or  service_table(sel) = INITIALIZE_CLUSTER_SERVICE 
-					or  service_table(sel) = LOAN_PROCESSOR_REQUEST_SERVICE or  service_table(sel) = SET_EXCESS_SZ_SERVICE or  service_table(sel) = LOAN_PROCESSOR_RELEASE_SERVICE) then
+					or  service_table(sel) = SET_EXCESS_SZ_SERVICE ) then 
 					PE_manager <= PROPAGATE;
+				--  or  service_table(sel) = LOAN_PROCESSOR_REQUEST_SERVICE or  service_table(sel) = LOAN_PROCESSOR_RELEASE_SERVICE
+				-- 	or service_table(sel) = MSG_REQUEST_RECEIPT
 				elsif (pending_table(sel) = '1') and (service_table(sel) = BACKTRACK_SERVICE) then
 					PE_manager <= SERVICE_BACKTRACK;
 				elsif pending_local(sel) = '1' then
@@ -648,13 +654,13 @@ process(EA_manager, req_task , source_table, service_table, target_table, payloa
 					PE_manager <= INIT_CLEAR;
 				elsif (int_in_ack_router_seek(LOCAL) = '1'  and  service_table(sel) = TASK_ALLOCATED_SERVICE ) then
 					PE_manager <= INIT_CLEAR;
-					report "SEND LOCAL: " 
-					& CONV_STRING_8BITS(source_table(sel)(TARGET_SIZE-1 downto TARGET_SIZE/2)) & " " 
-					& CONV_STRING_8BITS(source_table(sel)(TARGET_SIZE/2-1 downto 0)) & " " 
-					& CONV_STRING_8BITS(target_table(sel)(TARGET_SIZE-1 downto TARGET_SIZE/2)) & " " 
-					& CONV_STRING_8BITS(target_table(sel)(TARGET_SIZE/2-1 downto 0)) & " "
-					& CONV_STRING_8BITS("000" & service_table(sel))	& " " 
-					& CONV_STRING_8BITS(payload_table(sel));
+					-- report "SEND LOCAL: " 
+					-- & CONV_STRING_8BITS(source_table(sel)(TARGET_SIZE-1 downto TARGET_SIZE/2)) & " " 
+					-- & CONV_STRING_8BITS(source_table(sel)(TARGET_SIZE/2-1 downto 0)) & " " 
+					-- & CONV_STRING_8BITS(target_table(sel)(TARGET_SIZE-1 downto TARGET_SIZE/2)) & " " 
+					-- & CONV_STRING_8BITS(target_table(sel)(TARGET_SIZE/2-1 downto 0)) & " "
+					-- & CONV_STRING_8BITS("000" & service_table(sel))	& " " 
+					-- & CONV_STRING_8BITS(payload_table(sel));
 				elsif (int_in_ack_router_seek(LOCAL) = '1'  and  service_table(sel) = SET_SZ_RECEIVED_SERVICE ) then
 					PE_manager <= INIT_CLEAR;
 				elsif (int_in_ack_router_seek(LOCAL) = '1'  and  service_table(sel) = RCV_FREEZE_TASK_SERVICE ) then
@@ -666,6 +672,10 @@ process(EA_manager, req_task , source_table, service_table, target_table, payloa
 				elsif (int_in_ack_router_seek(LOCAL) = '1'  and  service_table(sel) = WAIT_KERNEL_SERVICE ) then
 					PE_manager <= INIT_CLEAR;	
 				elsif (int_in_ack_router_seek(LOCAL) = '1'  and  service_table(sel) = WAIT_KERNEL_SERVICE_ACK ) then
+					PE_manager <= INIT_CLEAR;	
+				elsif (int_in_ack_router_seek(LOCAL) = '1'  and  service_table(sel) = MSG_DELIVERY_RECEIPT ) then
+					PE_manager <= INIT_CLEAR;	
+				elsif (int_in_ack_router_seek(LOCAL) = '1'  and  service_table(sel) = MSG_REQUEST_RECEIPT ) then
 					PE_manager <= INIT_CLEAR;		
 				elsif (in_ack_send_kernel_seek = '1'  and  service_table(sel) = SEND_KERNEL_SERVICE ) then 
 					PE_manager <= INIT_CLEAR;
@@ -702,12 +712,16 @@ process(EA_manager, req_task , source_table, service_table, target_table, payloa
 					PE_manager <= SEND_LOCAL;
 				elsif ((vector_ack_ports or vector_nack_ports) = "1111" )  and service_table(sel) = NEW_APP_SERVICE then
 					PE_manager <= SEND_LOCAL;					
-				elsif ((vector_ack_ports or vector_nack_ports) = "1111" )  and service_table(sel) = LOAN_PROCESSOR_REQUEST_SERVICE and source_table(sel)(15 downto 0) /= router_address then
-					PE_manager <= SEND_LOCAL;
-				elsif ((vector_ack_ports or vector_nack_ports) = "1111" )  and service_table(sel) = LOAN_PROCESSOR_RELEASE_SERVICE and source_table(sel)(15 downto 0) /= router_address then
-					PE_manager <= SEND_LOCAL;
+				-- elsif ((vector_ack_ports or vector_nack_ports) = "1111" )  and service_table(sel) = LOAN_PROCESSOR_REQUEST_SERVICE and source_table(sel)(15 downto 0) /= router_address then
+				-- 	PE_manager <= SEND_LOCAL;
+				-- elsif ((vector_ack_ports or vector_nack_ports) = "1111" )  and service_table(sel) = LOAN_PROCESSOR_RELEASE_SERVICE and source_table(sel)(15 downto 0) /= router_address then
+				-- 	PE_manager <= SEND_LOCAL;
 				elsif ((vector_ack_ports or vector_nack_ports) = "1111" )  and service_table(sel) = SET_SECURE_ZONE_SERVICE and source_table(sel)(15 downto 0) /= router_address then
 					PE_manager <= SEND_LOCAL;
+				-- elsif ((vector_ack_ports or vector_nack_ports) = "1111" )  and service_table(sel) = MSG_DELIVERY_RECEIPT and source_table(sel)(15 downto 0) /= router_address then
+				-- 	PE_manager <= SEND_LOCAL;
+				-- elsif ((vector_ack_ports or vector_nack_ports) = "1111" )  and service_table(sel) = MSG_REQUEST_RECEIPT and source_table(sel)(15 downto 0) /= router_address then
+				-- 	PE_manager <= SEND_LOCAL;
 				elsif ((vector_ack_ports or vector_nack_ports) = "1111" )  and service_table(sel) = SET_EXCESS_SZ_SERVICE and source_table(sel)(15 downto 0) /= router_address then
 					PE_manager <= SEND_LOCAL;
 				elsif ((vector_ack_ports or vector_nack_ports) = "1111" )  and service_table(sel) = OPEN_SECURE_ZONE_SERVICE and source_table(sel)(15 downto 0) /= router_address then

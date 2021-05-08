@@ -13,6 +13,7 @@
  * Adittionally it have a function named: SearchCluster, which selects the cluster to send an application. This
  * function in only used in the global master mode
  */
+#include "../include/plasma.h"
 
 #include "cluster_scheduler.h"
 
@@ -243,7 +244,7 @@ int map_task(int last_proc_address, int task_id, int AppSec){
 	
 		if (canditate_proc != -1){
 	
-			puts("Task mapping for task "), puts(itoa(task_id)); puts(" maped at proc "); puts(itoh(canditate_proc)); puts("\n");
+			puts("Task mapping for task "); puts(itoa(task_id)); puts(" maped at proc "); puts(itoh(canditate_proc)); puts("\n");
 	
 			return canditate_proc;
 		}

@@ -59,13 +59,13 @@ package seek_pkg is
     constant    SECURE_ZONE_CLOSED_SERVICE              : std_logic_vector(TAM_SERVICE_SEEK-1 downto 0) := "01011";
     constant    SECURE_ZONE_OPENED_SERVICE              : std_logic_vector(TAM_SERVICE_SEEK-1 downto 0) := "01100";
     constant    FREEZE_TASK_SERVICE                     : std_logic_vector(TAM_SERVICE_SEEK-1 downto 0) := "01101";
-    constant    UNFREEZE_TASK_SERVICE                   : std_logic_vector(TAM_SERVICE_SEEK-1 downto 0) := "01110";
-    constant    MASTER_CANDIDATE_SERVICE                : std_logic_vector(TAM_SERVICE_SEEK-1 downto 0) := "01111";
+    constant    UNFREEZE_TASK_SERVICE                   : std_logic_vector(TAM_SERVICE_SEEK-1 downto 0) := "01110";  
+    constant    MASTER_CANDIDATE_SERVICE                : std_logic_vector(TAM_SERVICE_SEEK-1 downto 0) := "01111"; 
     constant    TASK_ALLOCATED_SERVICE                  : std_logic_vector(TAM_SERVICE_SEEK-1 downto 0) := "10000";
     constant    INITIALIZE_SLAVE_SERVICE                : std_logic_vector(TAM_SERVICE_SEEK-1 downto 0) := "10001";
     constant    INITIALIZE_CLUSTER_SERVICE              : std_logic_vector(TAM_SERVICE_SEEK-1 downto 0) := "10010";
-    constant    LOAN_PROCESSOR_REQUEST_SERVICE          : std_logic_vector(TAM_SERVICE_SEEK-1 downto 0) := "10011";
-    constant    LOAN_PROCESSOR_RELEASE_SERVICE          : std_logic_vector(TAM_SERVICE_SEEK-1 downto 0) := "10100";
+    --constant    LOAN_PROCESSOR_REQUEST_SERVICE          : std_logic_vector(TAM_SERVICE_SEEK-1 downto 0) := "10011"; --
+    --constant    LOAN_PROCESSOR_RELEASE_SERVICE          : std_logic_vector(TAM_SERVICE_SEEK-1 downto 0) := "10100"; --
     constant    END_TASK_OTHER_CLUSTER_SERVICE          : std_logic_vector(TAM_SERVICE_SEEK-1 downto 0) := "10101";
     constant    WAIT_KERNEL_SERVICE                     : std_logic_vector(TAM_SERVICE_SEEK-1 downto 0) := "10110";
     constant    SEND_KERNEL_SERVICE                     : std_logic_vector(TAM_SERVICE_SEEK-1 downto 0) := "10111";
@@ -77,6 +77,8 @@ package seek_pkg is
     constant    SET_SZ_RECEIVED_SERVICE                 : std_logic_vector(TAM_SERVICE_SEEK-1 downto 0) := "11101";
     constant    SET_EXCESS_SZ_SERVICE                   : std_logic_vector(TAM_SERVICE_SEEK-1 downto 0) := "11110";
     constant    RCV_FREEZE_TASK_SERVICE                 : std_logic_vector(TAM_SERVICE_SEEK-1 downto 0) := "11111";
+    constant    MSG_DELIVERY_RECEIPT                     : std_logic_vector(TAM_SERVICE_SEEK-1 downto 0) := "10011";
+    constant    MSG_REQUEST_RECEIPT                     : std_logic_vector(TAM_SERVICE_SEEK-1 downto 0) := "10100";
 
     subtype     regNtarget                              is std_logic_vector((TARGET_SIZE-1) downto 0);
     subtype     regNsource                              is std_logic_vector((SOURCE_SIZE-1) downto 0);
@@ -91,12 +93,12 @@ package seek_pkg is
 
 end package seek_pkg;
 
-------------------------------------------------------------------------------------------------------------------
--- Service                      type                        	Operation Mode      Payload     Target
--- START_APP_SERVICE            Broadcast to all local ports   	Global              AppID       RH_corner
--- TARGET_UNREACHABLE_SERVICE   Broadcast With Target       	Global              --          TaskID Address
--- CLEAR_SERVICE                Broadcast Without Target    	Global              --          --
--- BACKTRACK_SERVICE            Unicast                     	Restrict            Hop number  --
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+-- Service                      type                        	Operation Mode      Payload     Target                          Source
+-- START_APP_SERVICE            Broadcast to all local ports   	Global              AppID       RH_corner                       --
+-- TARGET_UNREACHABLE_SERVICE   Broadcast With Target       	Global              --          TaskID Address                  --
+-- CLEAR_SERVICE                Broadcast Without Target    	Global              --          --                              --
+-- BACKTRACK_SERVICE            Unicast                     	Restrict            Hop number  --                              --
 -- SEARCHPATH_SERVICE           Broadcast With Target          	Restrict            Hop number  Target Unreachable Address
 -- END_TASK_SERVICE             Broadcast With Target       	Global              TaskID      CMP Address
 -- PACKET_RESEND_SERVICE        Broadcast With Target       	Global              --          TaskID Address
@@ -116,3 +118,7 @@ end package seek_pkg;
 -- NEW_APP_SERVICE              Broadcast to all local ports    Global              Nr,task     Global master virtual
 -- NEW_APP_ACK_SERVICE          Broadcast With Target           Global              Nr,task     Address of the LMP
 -- GMV_READY_SERVICE            Broadcast Without Target        Global              --          Injection Entity 
+-- MSG_DELIVERY_RECEIPT             Broadcast With Target           Global              TgtAppID    TargetID                        SrcAppID
+-- MSG_REQUEST_RECEIPT          Broadcast With Target           Global              TgtAppID    TargetID                        SrcAppID
+
+--Seek(MSG_DELIVERY_RECEIPT, target, (AppID << 16), 0); 

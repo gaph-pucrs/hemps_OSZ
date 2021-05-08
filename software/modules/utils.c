@@ -14,16 +14,18 @@
 #include "../include/plasma.h"
 #include "utils.h"
 
-#define FALSE		0
-#define TRUE		1
+#define FALSE 0
+#define TRUE 1
 
 unsigned int net_address;
 
-void set_net_address(unsigned int addr){
+void set_net_address(unsigned int addr)
+{
 	net_address = addr;
 }
 
-unsigned int get_net_address(){
+unsigned int get_net_address()
+{
 	return net_address;
 }
 
@@ -31,53 +33,74 @@ unsigned int get_net_address(){
  * \param string array of chars
  * \return The int return is only to avoid a build-in warning
  */
-int puts(char *string) {
+// #define puts(str)	MemoryWrite(UART_WRITE, str)
 
-	int *str_part;
-	//This is the most crazy and complicated FOR declaration that I ever seen. For obviously purposes, I divided the FOR section in lines
-	//PS: This indicates a hardware developer putting its hands on software development
-	for(
-			str_part = (int*)string,  MemoryWrite(UART_WRITE,*str_part);
 
-			!( ( (char*)str_part )[0] == 0 || ( (char*)str_part )[1] == 0 || ( (char*)str_part )[2] == 0 || ( (char*)str_part )[3] == 0);
+// int puts(char *string)
+// {
 
-			*str_part++,MemoryWrite(UART_WRITE, *str_part)
-	);
-	return 0;
-}
+// 	int *str_part;
+// 	//This is the most crazy and complicated FOR declaration that I ever seen. For obviously purposes, I divided the FOR section in lines
+// 	//PS: This indicates a hardware developer putting its hands on software development
+// 	for (
+// 		str_part = (int *)string, MemoryWrite(UART_WRITE, *str_part);
 
+// 		!(((char *)str_part)[0] == 0 || ((char *)str_part)[1] == 0 || ((char *)str_part)[2] == 0 || ((char *)str_part)[3] == 0);
+
+// 		*str_part++, MemoryWrite(UART_WRITE, *str_part))
+// 		;
+// 	return 0;
+// }
+
+// int puts(char *string) {
+// 	MemoryWrite(UART_WRITE, string);
+
+// 	/* Uncomment for VHDL compatibility */
+// 	// int *str_part;
+// 	// //This is the most crazy and complicated FOR declaration that I ever seen. For obviously purposes, I divided the FOR section in lines
+// 	// //PS: This indicates a hardware developer putting its hands on software development
+// 	// for(
+// 	// 		str_part = (int*)string,  MemoryWrite(UART_WRITE,*str_part);
+
+// 	// 		!( ( (char*)str_part )[0] == 0 || ( (char*)str_part )[1] == 0 || ( (char*)str_part )[2] == 0 || ( (char*)str_part )[3] == 0);
+
+// 	// 		*str_part++,MemoryWrite(UART_WRITE, *str_part)
+// 	// );
+
+// 	return 0;
+// }
 /**Converts a integer number to its decimal representation in a array of char
  * \param num Integer number to be converted
  * \return Array of chars
  */
 char *itoa(unsigned int num)
 {
-   static char buf[12];
-   static char buf2[12];
-   int i,j;
+	static char buf[12];
+	static char buf2[12];
+	int i, j;
 
-   if (num==0)
-   {
-      buf[0] = '0';
-      buf[1] = '\0';
-      return &buf[0];
-   }
+	if (num == 0)
+	{
+		buf[0] = '0';
+		buf[1] = '\0';
+		return &buf[0];
+	}
 
-   for(i=0;i<11 && num!=0;i++)
-   {
-      buf[i]=(char)((num%10)+'0');
-      num/=10;
-   }
-   buf2[i] = '\0';
-   j = 0;
-   i--;
-   for(;i>=0;i--){
-         buf2[i]=buf[j];
-         j++;
-   }
-   return &buf2[0];
+	for (i = 0; i < 11 && num != 0; i++)
+	{
+		buf[i] = (char)((num % 10) + '0');
+		num /= 10;
+	}
+	buf2[i] = '\0';
+	j = 0;
+	i--;
+	for (; i >= 0; i--)
+	{
+		buf2[i] = buf[j];
+		j++;
+	}
+	return &buf2[0];
 }
-
 
 /**Converts a integer number to its hexadecimal representation in a array of char
  * \param num Integer number to be converted
@@ -85,37 +108,37 @@ char *itoa(unsigned int num)
  */
 char *itoh(unsigned int num)
 {
-   static char buf[11];
-   int i;
-   buf[10]=0;
+	static char buf[11];
+	int i;
+	buf[10] = 0;
 
-   buf[0] = '0';
-   buf[1] = 'x';
+	buf[0] = '0';
+	buf[1] = 'x';
 
-   if (num==0)
-   {
-      buf[2] = '0';
-      buf[3] = '0';
-      buf[4] = '0';
-      buf[5] = '0';
-      buf[6] = '0';
-      buf[7] = '0';
-      buf[8] = '0';
-      buf[9] = '0';
-      return buf;
-   }
+	if (num == 0)
+	{
+		buf[2] = '0';
+		buf[3] = '0';
+		buf[4] = '0';
+		buf[5] = '0';
+		buf[6] = '0';
+		buf[7] = '0';
+		buf[8] = '0';
+		buf[9] = '0';
+		return buf;
+	}
 
-   for(i=9;i>=2;--i)
-   {
-      if ((num%16) < 10)
-         buf[i]=(char)((num%16)+'0');
-      else
-         buf[i]=(char)((num%16)+'W');
+	for (i = 9; i >= 2; --i)
+	{
+		if ((num % 16) < 10)
+			buf[i] = (char)((num % 16) + '0');
+		else
+			buf[i] = (char)((num % 16) + 'W');
 
-      num/=16;
-   }
+		num /= 16;
+	}
 
-   return buf;
+	return buf;
 }
 
 /**Module
@@ -124,8 +147,10 @@ char *itoh(unsigned int num)
  */
 int abs(int num)
 {
-	if(num<0) return -num;
-	else return num;
+	if (num < 0)
+		return -num;
+	else
+		return num;
 }
 
 /**
@@ -145,7 +170,7 @@ int add(int a, int b)
 {
 	int res;
 
-	res=a+b;
+	res = a + b;
 	return res;
 }
 
@@ -153,39 +178,40 @@ int sub(int a, int b)
 {
 	int res;
 
-	res=a-b;
+	res = a - b;
 	return res;
 }
 
-void *memset(void *dst, int c, unsigned long bytes) {
+void *memset(void *dst, int c, unsigned long bytes)
+{
 
-   unsigned char *Dst = (unsigned char*)dst;
+	unsigned char *Dst = (unsigned char *)dst;
 
-   while((int)bytes-- > 0)
-      *Dst++ = (unsigned char)c;
+	while ((int)bytes-- > 0)
+		*Dst++ = (unsigned char)c;
 
-   return dst;
+	return dst;
 }
 
 char *fixetoa(int nume)
 {
 	static char buf[13];
 	static char buf2[13];
-	int i,j;
-	int num=nume;
+	int i, j;
+	int num = nume;
 
-	if (num<0)
+	if (num < 0)
 	{
-		num=num*(-1);
+		num = num * (-1);
 
-		for(i=0;i<12 && (num!=0 || i<5) ;i++)
+		for (i = 0; i < 12 && (num != 0 || i < 5); i++)
 		{
-			if (num==0)
-				buf[i]='0';
+			if (num == 0)
+				buf[i] = '0';
 			else
 			{
-				  buf[i]=(char)((num%10)+'0');
-				  num/=10;
+				buf[i] = (char)((num % 10) + '0');
+				num /= 10;
 			}
 		}
 
@@ -195,37 +221,37 @@ char *fixetoa(int nume)
 		j = 0;
 		i--;
 
-		for(;i>=0;i--)
+		for (; i >= 0; i--)
 		{
-			if(j==4)
+			if (j == 4)
 			{
-				buf2[i]='.';
+				buf2[i] = '.';
 				i--;
 			}
-				buf2[i]=buf[j];
-				j++;
+			buf2[i] = buf[j];
+			j++;
 		}
 
-		buf2[0]='-';
+		buf2[0] = '-';
 		return &buf2[0];
 	}
 	else
 	{
-		if (num==0)
+		if (num == 0)
 		{
 			buf[0] = '0';
 			buf[1] = '\0';
 			return &buf[0];
 		}
 
-		for(i=0;i<12 && (num!=0 || i<5);i++)
+		for (i = 0; i < 12 && (num != 0 || i < 5); i++)
 		{
-			if (num==0)
-				  buf[i]='0';
+			if (num == 0)
+				buf[i] = '0';
 			else
 			{
-				  buf[i]=(char)((num%10)+'0');
-				  num/=10;
+				buf[i] = (char)((num % 10) + '0');
+				num /= 10;
 			}
 		}
 
@@ -233,30 +259,32 @@ char *fixetoa(int nume)
 		buf2[i] = '\0';
 		j = 0;
 		i--;
-		for(;i>=0;i--)
+		for (; i >= 0; i--)
 		{
-			if(j==4)
+			if (j == 4)
 			{
-				buf2[i]='.';
+				buf2[i] = '.';
 				i--;
 			}
-			buf2[i]=buf[j];
+			buf2[i] = buf[j];
 			j++;
 		}
 		return &buf2[0];
 	}
 }
 
-char *strcpy(char *dst, const char *src) {
+char *strcpy(char *dst, const char *src)
+{
 
-	char *dstSave=dst;
-   	int c;
+	char *dstSave = dst;
+	int c;
 
-   	do {
-    	c = *dst++ = *src++;
-   	} while(c);
+	do
+	{
+		c = *dst++ = *src++;
+	} while (c);
 
-   return dstSave;
+	return dstSave;
 }
 
 /*void memcpy(unsigned int *dest, const unsigned int *src, size_t n) {
@@ -267,11 +295,13 @@ char *strcpy(char *dst, const char *src) {
 		dest[i] = src[i];
 }*/
 
-int strlen(const char *string) {
+int strlen(const char *string)
+{
 
-   const char *base=string;
+	const char *base = string;
 
-   while(*string++) ;
+	while (*string++)
+		;
 
-   return string - base - 1;
+	return string - base - 1;
 }

@@ -21,6 +21,7 @@ int wrapper_value = 0;
 int LOCAL_left_low_corner = -1;
 int LOCAL_right_high_corner = -1;
 
+
 //////////////////////////////////////////////////////////////////////////////////////
 void Set_Secure_Zone(unsigned int left_low_corner, unsigned int right_high_corner, unsigned int master_PE){
 	unsigned int my_X_addr, my_Y_addr;
@@ -42,6 +43,12 @@ void Set_Secure_Zone(unsigned int left_low_corner, unsigned int right_high_corne
 		Seek(CLEAR_SERVICE, master_PE, master_PE, 0);
 	}
 
+  if ((my_X_addr > RH_X_addr) || (my_Y_addr > RH_Y_addr))
+    return;
+  if ((my_X_addr < LL_X_addr) || (my_Y_addr < LL_Y_addr))
+    return;
+  
+
 	// puts("X");puts(itoh(my_X_addr));puts(" ");
 	// puts("Y");puts(itoh(my_Y_addr));puts("\n");
 
@@ -59,9 +66,12 @@ void Set_Secure_Zone(unsigned int left_low_corner, unsigned int right_high_corne
 		}
 		if(my_X_addr == LL_X_addr){//WEST
 			// puts("W border\n");
-			isolated_ports = 0xC;
+			isolated_ports = 0xC + isolated_ports;
 		}
 	}
+  // S  N  W  E
+  // 11 11 11 11
+  // 
 
 	//NORTH or SOUTH test
 	if(my_X_addr >= LL_X_addr && my_X_addr <= RH_X_addr){
@@ -119,7 +129,7 @@ void Unset_Secure_Zone(unsigned int left_low_corner, unsigned int right_high_cor
 
   if ((right_high_corner == left_low_corner) && (LOCAL_right_high_corner == right_high_corner)){
     noCut = 1;
-    puts("Não tem corte\n");
+    // puts("Não tem corte\n");
   }
 
   if (noCut){ //Caso não precise de CUT
@@ -127,7 +137,7 @@ void Unset_Secure_Zone(unsigned int left_low_corner, unsigned int right_high_cor
       if((my_X_addr == RH_X_addr) && (my_Y_addr == RH_Y_addr)){     //Se veio o indice do meu RH local na mensagem de CUT
         myOSZ = 1;
         Seek(CLEAR_SERVICE, master_PE, master_PE, 0);
-        puts("Não tem corte e é minha zona segura\n");
+        // puts("Não tem corte e é minha zona segura\n");
       }
     }
   }else{    //Caso precise de CUT
@@ -135,7 +145,7 @@ void Unset_Secure_Zone(unsigned int left_low_corner, unsigned int right_high_cor
       if((LL_X_addr == LOCAL_LL_X_addr) && (LL_Y_addr == LOCAL_LL_Y_addr)){ //Se for no meu LL
         myOSZ = 1;
         Seek(CLEAR_SERVICE, master_PE, master_PE, 0);
-        puts("Tem corte e é minha zona segura\n");
+        // puts("Tem corte e é minha zona segura\n");
       }
     }
   }
@@ -169,8 +179,8 @@ void Unset_Secure_Zone(unsigned int left_low_corner, unsigned int right_high_cor
       	  right_high_corner = ((get_net_address() >> 4)& 0XF0) | (get_net_address() &  0X0F);
           Seek(SECURE_ZONE_CLOSED_SERVICE, get_net_address(), master_PE, LOCAL_right_high_corner);
           //puts("ENDSZ RH:");puts(itoh(LOCAL_right_high_corner));puts("\n"); 
-          seek_puts("Without CUT - wrapper: ");seek_puts(itoh(isolated_ports));seek_puts("\n");
-          seek_puts("RH address: ");seek_puts(itoh(right_high_corner));seek_puts("\n");
+          // seek_puts("Without CUT - wrapper: ");seek_puts(itoh(isolated_ports));seek_puts("\n");
+          // seek_puts("RH address: ");seek_puts(itoh(right_high_corner));seek_puts("\n");
           return;
   }
 
@@ -223,4 +233,114 @@ void Unset_Secure_Zone(unsigned int left_low_corner, unsigned int right_high_cor
   wrapper_value = isolated_ports;
   seek_puts("RH address: ");seek_puts(itoh(right_high_corner));seek_puts("\n");
   seek_puts("LOCAL RH address: ");seek_puts(itoh(LOCAL_right_high_corner));seek_puts("\n");
+}
+
+int findBlankTicket(Ticket* tickets){
+  for (int i = 0; i < 2*MAX_TASKS_APP; i++)
+  {
+    if (tickets[i].status == BLANK)
+      return i;
+  }
+}
+
+int checkTicket(Ticket* tickets, unsigned int prod, unsigned int cons){
+  for (int i = 0; i < 2*MAX_TASKS_APP; i++)
+  {
+    if ((tickets[i].producer == prod) && (tickets[i].consumer == cons) && (tickets[i].status != BLANK)){
+      return i;
+    }
+  }
+  return -1;
+}
+
+int checkTicketCode(Ticket* tickets, unsigned int code){
+  if (code == 0xFFFF)
+    return END_SESSION;
+  
+  for (int i = 0; i < 2*MAX_TASKS_APP; i++)
+  {
+    if ((tickets[i].code == code) && (tickets[i].status != BLANK)){
+      return i;
+    }
+  }
+
+  return START_SESSION;
+}
+
+int clearTicket(Ticket* tickets, int index){
+  tickets[index].time = 0;
+  tickets[index].producer = -1;
+  tickets[index].consumer = -1;
+  tickets[index].status = BLANK;
+  tickets[index].msg->length = -1;
+}
+
+void initMessageQueue(){
+  for (int i = 0; i < WAITING_MSG_QUEUE; i++)
+    waitingMessages[i].length = -1;
+  for (int i = 0; i < 2*MAX_TASKS_APP; i++){
+    deliveryTicket[i].sent = 0;
+    deliveryTicket[i].rcvd = 0;
+    deliveryTicket[i].avgLatency = 0;
+    deliveryTicket[i].time = 0;
+    deliveryTicket[i].consumer = -1;
+    deliveryTicket[i].producer = -1;
+    }
+}
+
+Message* getMessageSlot(){
+  for (int i = 0; i < WAITING_MSG_QUEUE; i++)
+  {
+    if (waitingMessages[i].length == -1)
+      return &waitingMessages[i];
+  }
+  
+  return -1;
+}
+
+int createSession(Ticket* tickets, unsigned int prod, unsigned int cons, int code){
+  int auxIndex = findBlankTicket(tickets);
+  
+  tickets[auxIndex].status = WAITING;
+  tickets[auxIndex].code = code;
+  tickets[auxIndex].consumer = cons;
+	tickets[auxIndex].producer = prod;
+
+  //puts("Sessao cons: ");puts(itoh(cons));puts("prod: ");puts(itoh(prod));puts(" criada\n");
+
+  return auxIndex;
+}
+
+void printSessions(Ticket* tickets, unsigned int task){
+
+  for (int i = 0; i < 2*MAX_TASKS_APP; i++)
+  {
+    if (tickets[i].status != BLANK){
+        puts("Session ------ Code: ");puts(itoh(deliveryTicket[i].code));puts("\n");
+        puts("  Consumer: ");puts(itoh(deliveryTicket[i].consumer));puts("\n");
+        puts("  Producer: ");puts(itoh(deliveryTicket[i].producer));puts("\n");
+        puts("  Recieved: ");puts(itoa(deliveryTicket[i].rcvd));puts("\n");
+        puts("  Sent: ");puts(itoa(deliveryTicket[i].sent));puts("\n");
+        //eturn;
+    }
+  }
+}
+
+void printSessionStatus(Ticket* tickets, unsigned int index){
+  puts("Session ------ Code: ");puts(itoh(deliveryTicket[index].code));puts("\n");
+  puts("  Consumer: ");puts(itoh(deliveryTicket[index].consumer));puts("\n");
+  puts("  Producer: ");puts(itoh(deliveryTicket[index].producer));puts("\n");
+  puts("  Recieved: ");puts(itoa(deliveryTicket[index].rcvd));puts("\n");
+  puts("  Sent: ");puts(itoa(deliveryTicket[index].sent));puts("\n");
+}
+
+int checkRunningSession(Ticket* tickets, unsigned int task){
+  for (int i = 0; i < 2*MAX_TASKS_APP; i++)
+  {
+    if ((tickets[i].status != BLANK))
+      if ((tickets[i].producer == task) || (tickets[i].consumer == task))
+        return i;
+    
+  }
+  return -1;
 }
