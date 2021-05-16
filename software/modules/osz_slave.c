@@ -243,6 +243,7 @@ int findBlankTicket(Ticket* tickets){
     if (tickets[i].status == BLANK)
       return i;
   }
+  return -1;
 }
 
 int checkTicket(Ticket* tickets, unsigned int prod, unsigned int cons){
@@ -278,8 +279,10 @@ int clearTicket(Ticket* tickets, int index){
 }
 
 void initMessageQueue(){
-  for (int i = 0; i < WAITING_MSG_QUEUE; i++)
+  for (int i = 0; i < WAITING_MSG_QUEUE; i++){
     waitingMessages[i].length = -1;
+    waitingServices[i].service = BLANK;
+  }
   for (int i = 0; i < 2*MAX_TASKS_APP; i++){
     deliveryTicket[i].sent = 0;
     deliveryTicket[i].rcvd = 0;
@@ -303,7 +306,7 @@ Message* getMessageSlot(){
 ServiceHeader* getServiceSlot(){
   for (int i = 0; i < WAITING_MSG_QUEUE; i++)
   {
-    if (waitingServices[i].service != BLANK)
+    if (waitingServices[i].service == BLANK)
       return &waitingServices[i];
   }
   
@@ -313,6 +316,12 @@ ServiceHeader* getServiceSlot(){
 int createSession(Ticket* tickets, unsigned int prod, unsigned int cons, int code){
   int auxIndex = findBlankTicket(tickets);
   
+  if (auxIndex == -1){
+    puts("Sem slot de Session\n");
+    return -1;
+  }
+  
+
   tickets[auxIndex].status = WAITING;
   tickets[auxIndex].code = code;
   tickets[auxIndex].consumer = cons;
@@ -374,11 +383,16 @@ int copyService(ServiceHeader* SHsource, ServiceHeader* SHtarget){
 }
 
 ServiceHeader* checkWaitingServices(ServiceHeader* serviceQueue, int sProd, int sCons, int serv){
+  // session_puts("********** Checking WAITING QUEUE:");
   for (int i = 0; i < WAITING_MSG_QUEUE; i++)
   {
-    if ((serviceQueue[i].producer_task == sProd) && (serviceQueue[i].consumer_task == sCons) && (serviceQueue[i].service == MESSAGE_REQUEST)){
+		// session_puts("producer:");session_puts(itoh(serviceQueue[i].producer_task)); session_puts("\n");
+    // session_puts("consumer:");session_puts(itoh(serviceQueue[i].consumer_task)); session_puts("\n");
+    // session_puts("service:");session_puts(itoh(serviceQueue[i].service)); session_puts("\n");
+    if ((serviceQueue[i].producer_task == sProd) && (serviceQueue[i].consumer_task == sCons) && (serviceQueue[i].service == serv)){
       return &serviceQueue[i];
     }
   }
+  // session_puts("**********NAO ACHOU:");
   return -1;
 }

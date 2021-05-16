@@ -46,7 +46,7 @@ void Unset_Secure_Zone(unsigned int left_low_corner, unsigned int right_high_cor
 //#define session_time_puts(argument) puts(argument)
 #define session_time_puts(argument) 
 
-//#define session_puts(argument) puts(argument)
+// #define session_puts(argument) puts(argument)
 #define session_puts(argument) 
 #define SESSION_MANAGER
 
@@ -88,4 +88,4 @@ int auxTime;
 int tInit, tEnd;
 int auxCode;
 int auxSlot;
-ServiceHeader* auxService;
+//ServiceHeader* auxService;

@@ -447,9 +447,10 @@ int Syscall(unsigned int service, unsigned int arg0, unsigned int arg1, unsigned
 				tInit = MemoryRead(TICK_COUNTER);
 				auxIndex = checkTicket(deliveryTicket, producer_task, consumer_task);
 				if(auxIndex < 0){
-					session_puts("Criando a Session no PROD\n");
+					session_puts("Criando a Session no CONS\n");
 					do{auxCode = MemoryRead(TICK_COUNTER) & 0xFFFF;}while(auxCode == 0xFFFF); // Código não pode ser FFFF
 					auxIndex = createSession(deliveryTicket, producer_task, consumer_task, auxCode);
+					printSessionStatus(deliveryTicket, auxIndex);
 					Seek(MSG_REQUEST_RECEIPT, ((deliveryTicket[auxIndex].code <<16) | (producer_task <<8 & 0xFF00) | (consumer_task & 0xFF)), producer_PE, ((consumer_task >> 8) & 0xFF));
 				}else{
 					//deliveryTicket[recptIndex].sent += 1;
@@ -708,16 +709,19 @@ int handle_packet(volatile ServiceHeader * p) {
 		tInit = MemoryRead(TICK_COUNTER);
 		
 		#ifdef SESSION_MANAGER
-		
+		// session_puts("producer:");session_puts(itoh(p->producer_task)); session_puts("\n");
+		// session_puts("consumer:");session_puts(itoh(p->consumer_task)); session_puts("\n");
 		auxIndex = checkTicket(deliveryTicket, p->producer_task, p->consumer_task);
 		if (auxIndex < 0){
 			session_puts("DATA: REQUEST - Nao achou a Sessao, salvando Service \n");
 			auxSlot = getServiceSlot();
-			copyService(p, waitingServices[auxSlot]);
+			if (auxSlot < 0)
+				session_puts("DATA: Nao tem lugar na ServiceQueue");
+			copyService(p, auxSlot);
 		}else{
 			if (deliveryTicket[auxIndex].status == WAITING)
 			{
-				session_puts("DATA: -------->> REQUEST esperando validação\n");			
+				session_puts("DATA: -------->> REQUEST esperando autorizar\n");			
 				deliveryTicket[auxIndex].time = arrivalTime;
 				deliveryTicket[auxIndex].consumer = p->consumer_task;
 				deliveryTicket[auxIndex].producer = p->producer_task;
@@ -870,7 +874,7 @@ int handle_packet(volatile ServiceHeader * p) {
 
 		if (deliveryTicket[auxIndex].status == WAITING){
 				
-			//session_puts("DATA: -------->> Mensagem esperando validação\n");
+			session_puts("DATA: -------->> Mensagem esperando validação\n");
 			
 			//recptIndex = findBlankTicket(deliveryTicket);
 			
@@ -1326,6 +1330,7 @@ int SeekInterruptHandler(){
 	Message * msg_ptr;
 	TCB * tcb_ptr = 0;
 	PipeSlot* tmpSlot;
+	ServiceHeader* auxService = 0;
 	int task_loc;
 
 	switch(service){
@@ -1367,7 +1372,7 @@ int SeekInterruptHandler(){
 		#ifdef SESSION_MANAGER
 		case MSG_DELIVERY_RECEIPT: //MDR_HANDLER
 			tInit = MemoryRead(TICK_COUNTER);
-			//session_puts("Received MSG_DELIVERY_RECEIPT\n"); 
+			session_puts("CONTROL: Received MSG_DELIVERY_RECEIPT\n"); 
 			// puts("source: "); puts(itoh(source)); puts("\n");
 			// puts("target: "); puts(itoh(target)); puts("\n");
 			// puts("time: "); puts(itoh(payload)); puts("\n");
@@ -1408,16 +1413,7 @@ int SeekInterruptHandler(){
 					deliveryTicket[auxIndex].status = WAITING_DATA; 
 				}
 			}else{
-				//puts("MESSAGE_DELIVERY vem ai, criando Ticket!!\n"); 
-				//puts("CONTROL: Nao achou a Sessao!\n"); 
-
-				//recptIndex = findBlankTicket(deliveryTicket);
-				
-				// deliveryTicket[auxIndex].time = (source >> 16 & 0xFFFF);
-				// deliveryTicket[auxIndex].consumer = auxConsumer;
-				// deliveryTicket[auxIndex].producer = auxProducer;
-				// deliveryTicket[auxIndex].status = WAITING_DATA;
-
+				puts("CONTROL: Nao achou a Sessao!\n"); 
 			}
 		tEnd = MemoryRead(TICK_COUNTER);
 		session_time_puts("TICKET DEL= ");session_time_puts(itoa(tEnd-tInit));session_time_puts("\n");
@@ -1446,24 +1442,28 @@ int SeekInterruptHandler(){
 			case START_SESSION:
 				auxIndex = createSession(deliveryTicket, auxProducer, auxConsumer, (source >> 16 & 0xFFFF));
 				session_puts("CONTROL: Received START_SESSION\n");
-				auxService = checkWaitingServices(waitingServices, auxProducer, auxConsumer, MESSAGE_REQUEST);
-				if ( auxService < 0)
-					break;
-				else
-					session_puts("CONTROL: Tinha MR na fila\n");
+				printSessionStatus(deliveryTicket, auxIndex);
 			default:
 				session_puts("CONTROL: Received MRR\n");
-				if (deliveryTicket[auxIndex].status == WAITING)
+				auxService = checkWaitingServices(waitingServices, auxProducer, auxConsumer, MESSAGE_REQUEST);
+				if (auxService != -1)
+					session_puts("CONTROL: Tinha MR na fila\n");
+
+				if ((deliveryTicket[auxIndex].status == WAITING) || (auxService != -1))
 				{
 					session_puts("---- Receipt Primeiro, registrando chegada\n");
 					deliveryTicket[auxIndex].time = (source >> 16 & 0xFFFF);
 					deliveryTicket[auxIndex].consumer = auxConsumer;
 					deliveryTicket[auxIndex].producer = auxProducer;
+					deliveryTicket[auxIndex].header = auxService;
 					deliveryTicket[auxIndex].status = WAITING_DATA;
-				}else if (deliveryTicket[auxIndex].status == WAITING_TICKET)
+				}
+				if ((deliveryTicket[auxIndex].status == WAITING_TICKET) || (auxService != -1))
 				{
 					session_puts("---- Receipt Segundo, resgatando MR\n");
-					deliveryTicket[auxIndex].status = WAITING; 				
+					
+					auxService = deliveryTicket[auxIndex].header;
+
 					tmpSlot = remove_PIPE(auxService->producer_task, auxService->consumer_task);
 
 					//Test if there is no message in PIPE
@@ -1494,10 +1494,11 @@ int SeekInterruptHandler(){
 						Seek(MSG_DELIVERY_RECEIPT, ((MemoryRead(TICK_COUNTER) <<16) | (auxService->producer_task <<8 & 0xFF00) | ( auxService->consumer_task & 0xFF)), auxService->requesting_processor, ((auxService->consumer_task >> 8) & 0xFF));
 						send_message_delivery(auxService->producer_task, auxService->consumer_task, auxService->requesting_processor, &tmpSlot->message);
 					} else {
-						session_puts("---- deu no PASS\n");
+						session_puts("---- deu no Pass\n");
 						tcb_ptr = searchTCB(auxService->consumer_task);
 						write_local_msg_to_task(tcb_ptr, tmpSlot->message.length, tmpSlot->message.msg);
 					}
+					auxService->service = BLANK;
 				}
 				break;
 			}
