@@ -61,7 +61,7 @@
 
 #define	IRQ_SEEK						0x80
 
-// #define seek_puts(argument) puts(argument)
+ //#define seek_puts(argument) puts(argument)
 #define seek_puts(argument) 
 
 

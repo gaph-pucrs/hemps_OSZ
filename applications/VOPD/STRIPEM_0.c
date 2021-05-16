@@ -11,10 +11,13 @@ int j;
 
 	msg.length=128;
 	Receive(&msg,ACDC_0);
+	Echo("Recebeu ACDC_0");
 	msg.length=22;
 	Receive(&msg,ACDC_0);
+	Echo("Recebeu ACDC_0");
 	msg.length=128;
 	Send(&msg,IQUANT_0);
+	Echo("Mandou ACDC_0");
 
 	exit();
 

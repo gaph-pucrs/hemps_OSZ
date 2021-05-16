@@ -11,8 +11,10 @@ int j;
 
 	msg.length=128;
 	Send(&msg,RUN_0);
+	Echo("Enviou p RUN_0");
 	msg.length=87;
 	Send(&msg,RUN_0);
+	Echo("Enviou p RUN_0");
 
 	exit();
 

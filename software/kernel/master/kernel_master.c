@@ -902,7 +902,7 @@ int SeekInterruptHandler(){
 					puts("All Tasks Finished AppID: "); puts(itoh(app_id)); puts("\n");
 					//puts("Secure: "); puts(itoh(app->secure)); puts("\n");
 					if(app->secure == 1){
-						Seek(OPEN_SECURE_ZONE_SERVICE, get_net_address(), app_id, app->RH_Address);
+						Seek(OPEN_SECURE_ZONE_SERVICE, MemoryRead(TICK_COUNTER)<<16 | get_net_address(), app_id, app->RH_Address);
 					}
 					else{
 				
@@ -949,6 +949,7 @@ int SeekInterruptHandler(){
 			aux = get_Secure_Zone_index(payload);
 			app_id = get_AppID_with_RH_Address(payload);
 			if(aux != -1){
+				puts(itoh(Secure_Zone[aux].cut));
 				RH_addr = Secure_Zone[aux].cut >> 16;
 				LL_addr = Secure_Zone[aux].cut & 0XFFFF;
 

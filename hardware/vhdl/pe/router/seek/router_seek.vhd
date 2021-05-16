@@ -407,7 +407,7 @@ begin
 				end if;				
 				
 			when TEST_SEND_LOCAL => 
-				if PE_manager = SEND_LOCAL or PE_manager = COMPARE_TARGET  then --or (sel = source_index and  pending_table = 1) then 
+				if PE_manager = SEND_LOCAL or PE_manager = COMPARE_TARGET  then
 					PE_manager_input	<= 	TEST_SEND_LOCAL;						
 				else
 					PE_manager_input	<=	WRITE_CLEAR_INPUT;	 

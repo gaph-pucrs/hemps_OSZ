@@ -41,6 +41,9 @@ void Unset_Secure_Zone(unsigned int left_low_corner, unsigned int right_high_cor
 
 #define WAITING_MSG_QUEUE 10 
 
+//#define session_time_puts(argument) puts(argument)
+#define session_time_puts(argument) 
+
 //#define session_puts(argument) puts(argument)
 #define session_puts(argument) 
 //#define SESSION_MANAGER
@@ -79,3 +82,4 @@ int recptIndex;
 int auxIndex;
 int auxTime;
 int tInit, tEnd;
+int auxCode;
