@@ -16,6 +16,8 @@
 #include "utils.h"
 #include "define_pairs.h"
 #include "seek.h" 
+#include "packet.h"
+
 
 int wrapper_value = 0;
 int LOCAL_left_low_corner = -1;
@@ -298,6 +300,16 @@ Message* getMessageSlot(){
   return -1;
 }
 
+ServiceHeader* getServiceSlot(){
+  for (int i = 0; i < WAITING_MSG_QUEUE; i++)
+  {
+    if (waitingServices[i].service != BLANK)
+      return &waitingServices[i];
+  }
+  
+  return -1;
+}
+
 int createSession(Ticket* tickets, unsigned int prod, unsigned int cons, int code){
   int auxIndex = findBlankTicket(tickets);
   
@@ -341,6 +353,32 @@ int checkRunningSession(Ticket* tickets, unsigned int task){
       if ((tickets[i].producer == task) || (tickets[i].consumer == task))
         return i;
     
+  }
+  return -1;
+}
+
+int copyService(ServiceHeader* SHsource, ServiceHeader* SHtarget){
+  SHtarget->header[MAX_SOURCE_ROUTING_PATH_SIZE] = SHsource->header[MAX_SOURCE_ROUTING_PATH_SIZE];
+  SHtarget->payload_size = SHsource->payload_size;
+  SHtarget->service = SHsource->service;
+  SHtarget->producer_task = SHsource->producer_task;
+  SHtarget->consumer_task = SHsource->consumer_task;
+  SHtarget->source_PE = SHsource->source_PE;
+  SHtarget->timestamp = SHsource->timestamp;
+  SHtarget->transaction = SHsource->transaction;
+  SHtarget->requesting_processor = SHsource->requesting_processor;
+  SHtarget->pkt_size = SHsource->pkt_size;
+  SHtarget->code_size = SHsource->code_size;
+  SHtarget->cpu_slack_time = SHsource->cpu_slack_time;
+  SHtarget->initial_address = SHsource->initial_address;
+}
+
+ServiceHeader* checkWaitingServices(ServiceHeader* serviceQueue, int sProd, int sCons, int serv){
+  for (int i = 0; i < WAITING_MSG_QUEUE; i++)
+  {
+    if ((serviceQueue[i].producer_task == sProd) && (serviceQueue[i].consumer_task == sCons) && (serviceQueue[i].service == MESSAGE_REQUEST)){
+      return &serviceQueue[i];
+    }
   }
   return -1;
 }

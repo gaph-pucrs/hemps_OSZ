@@ -710,44 +710,58 @@ int handle_packet(volatile ServiceHeader * p) {
 		#ifdef SESSION_MANAGER
 		
 		auxIndex = checkTicket(deliveryTicket, p->producer_task, p->consumer_task);
-		if (auxIndex < 0)
-			session_puts("DATA: Nao achou a Sessão\n");
-		else{
-			session_puts("DATA: REQUEST - Achou Sessão\n");
+		if (auxIndex < 0){
+			session_puts("DATA: REQUEST - Nao achou a Sessao, salvando Service \n");
+			auxSlot = getServiceSlot();
+			copyService(p, waitingServices[auxSlot]);
+		}else{
+			if (deliveryTicket[auxIndex].status == WAITING)
+			{
+				session_puts("DATA: -------->> REQUEST esperando validação\n");			
+				deliveryTicket[auxIndex].time = arrivalTime;
+				deliveryTicket[auxIndex].consumer = p->consumer_task;
+				deliveryTicket[auxIndex].producer = p->producer_task;
+				deliveryTicket[auxIndex].status = WAITING_TICKET;
+				deliveryTicket[auxIndex].header = getServiceSlot();
+			}
+			else if (deliveryTicket[auxIndex].status == WAITING_DATA)
+			{
+				session_puts("DATA: REQUEST - Achou Sessão\n");
 
-			slot_ptr = remove_PIPE(p->producer_task, p->consumer_task);
+				slot_ptr = remove_PIPE(p->producer_task, p->consumer_task);
 
-			//Test if there is no message in PIPE
-			if (slot_ptr == 0){
+				//Test if there is no message in PIPE
+				if (slot_ptr == 0){
 
-				//Gets the location of the producer task
-				task_loc = get_task_location(p->producer_task);
+					//Gets the location of the producer task
+					task_loc = get_task_location(p->producer_task);
 
-				//This if check if the task was migrated
-				if ( task_loc != -1 && task_loc != net_address && p->requesting_processor == p->source_PE){
+					//This if check if the task was migrated
+					if ( task_loc != -1 && task_loc != net_address && p->requesting_processor == p->source_PE){
 
-					//MESSAGE_REQUEST by pass
-					send_message_request(p->producer_task, p->consumer_task, task_loc, p->requesting_processor);
+						//MESSAGE_REQUEST by pass
+						send_message_request(p->producer_task, p->consumer_task, task_loc, p->requesting_processor);
 
-					if ( search_PIPE_producer(p->producer_task) == 0){
+						if ( search_PIPE_producer(p->producer_task) == 0){
 
-						send_update_task_location(p->requesting_processor, p->producer_task, task_loc);
+							send_update_task_location(p->requesting_processor, p->producer_task, task_loc);
+						}
+
+					} else {
+
+						insert_message_request(p->producer_task, p->consumer_task, p->requesting_processor);
 					}
 
+				} else if (p->requesting_processor != net_address){
+					deliveryTicket[auxIndex].sent += 1;
+					Seek(MSG_DELIVERY_RECEIPT, ((MemoryRead(TICK_COUNTER) <<16) | (p->producer_task <<8 & 0xFF00) | ( p->consumer_task & 0xFF)), p->requesting_processor, ((p->consumer_task >> 8) & 0xFF));
+					send_message_delivery(p->producer_task, p->consumer_task, p->requesting_processor, &slot_ptr->message);
+					
+				//This else is executed when this slave receved a own MESSAGE_REQUEST due a by pass
 				} else {
-
-					insert_message_request(p->producer_task, p->consumer_task, p->requesting_processor);
+					tcb_ptr = searchTCB(p->consumer_task);
+					write_local_msg_to_task(tcb_ptr, slot_ptr->message.length, slot_ptr->message.msg);
 				}
-
-			} else if (p->requesting_processor != net_address){
-				deliveryTicket[auxIndex].sent += 1;
-				Seek(MSG_DELIVERY_RECEIPT, ((MemoryRead(TICK_COUNTER) <<16) | (p->producer_task <<8 & 0xFF00) | ( p->consumer_task & 0xFF)), p->requesting_processor, ((p->consumer_task >> 8) & 0xFF));
-				send_message_delivery(p->producer_task, p->consumer_task, p->requesting_processor, &slot_ptr->message);
-				
-			//This else is executed when this slave receved a own MESSAGE_REQUEST due a by pass
-			} else {
-				tcb_ptr = searchTCB(p->consumer_task);
-				write_local_msg_to_task(tcb_ptr, slot_ptr->message.length, slot_ptr->message.msg);
 			}
 		}
 		//MemoryWrite(KERNEL_DEBUG_STATE, 0);
@@ -1311,6 +1325,8 @@ int SeekInterruptHandler(){
 	unsigned int auxProducer, auxConsumer;
 	Message * msg_ptr;
 	TCB * tcb_ptr = 0;
+	PipeSlot* tmpSlot;
+	int task_loc;
 
 	switch(service){
 		case TARGET_UNREACHABLE_SERVICE:
@@ -1414,22 +1430,75 @@ int SeekInterruptHandler(){
 			// session_puts("time: "); puts(itoh(payload)); puts("\n");
 
 			tInit = MemoryRead(TICK_COUNTER);
+
+
 			auxConsumer = (payload << 8) | (source & 0xFF);
 			auxProducer = (payload << 8) | ((source >> 8) & 0xFF);
 			auxIndex = checkTicketCode(deliveryTicket, (source >> 16 & 0xFFFF));				
 			switch (auxIndex)
 			{
-			case START_SESSION:
-				createSession(deliveryTicket, auxProducer, auxConsumer, (source >> 16 & 0xFFFF));
-				session_puts("Received START_SESSION\n");
-				break;
 			case END_SESSION:
 				auxIndex = checkTicket(deliveryTicket, auxProducer, auxConsumer);
 				//printSessionStatus(deliveryTicket, auxIndex);
 				clearTicket(deliveryTicket, auxIndex);
-				session_puts("Received END_SESSION\n");
+				session_puts("CONTROL: Received END_SESSION\n");
 				break;
+			case START_SESSION:
+				auxIndex = createSession(deliveryTicket, auxProducer, auxConsumer, (source >> 16 & 0xFFFF));
+				session_puts("CONTROL: Received START_SESSION\n");
+				auxService = checkWaitingServices(waitingServices, auxProducer, auxConsumer, MESSAGE_REQUEST);
+				if ( auxService < 0)
+					break;
+				else
+					session_puts("CONTROL: Tinha MR na fila\n");
 			default:
+				session_puts("CONTROL: Received MRR\n");
+				if (deliveryTicket[auxIndex].status == WAITING)
+				{
+					session_puts("---- Receipt Primeiro, registrando chegada\n");
+					deliveryTicket[auxIndex].time = (source >> 16 & 0xFFFF);
+					deliveryTicket[auxIndex].consumer = auxConsumer;
+					deliveryTicket[auxIndex].producer = auxProducer;
+					deliveryTicket[auxIndex].status = WAITING_DATA;
+				}else if (deliveryTicket[auxIndex].status == WAITING_TICKET)
+				{
+					session_puts("---- Receipt Segundo, resgatando MR\n");
+					deliveryTicket[auxIndex].status = WAITING; 				
+					tmpSlot = remove_PIPE(auxService->producer_task, auxService->consumer_task);
+
+					//Test if there is no message in PIPE
+					if (tmpSlot == 0){
+						session_puts("---- sem mensagem no PIPE\n");
+						//Gets the location of the producer task
+						task_loc = get_task_location(auxService->producer_task);
+
+						//This if check if the task was migrated
+						if ( task_loc != -1 && task_loc != net_address && auxService->requesting_processor == auxService->source_PE){
+
+							//MESSAGE_REQUEST by pass
+							send_message_request(auxService->producer_task, auxService->consumer_task, task_loc, auxService->requesting_processor);
+
+							if ( search_PIPE_producer(auxService->producer_task) == 0){
+
+								send_update_task_location(auxService->requesting_processor, auxService->producer_task, task_loc);
+							}
+
+						} else {
+
+							insert_message_request(auxService->producer_task, auxService->consumer_task, auxService->requesting_processor);
+						}
+
+					} else if (auxService->requesting_processor != net_address){
+						session_puts("---- mensagem n local, enviando MD e MDR\n");
+						deliveryTicket[auxIndex].sent += 1;
+						Seek(MSG_DELIVERY_RECEIPT, ((MemoryRead(TICK_COUNTER) <<16) | (auxService->producer_task <<8 & 0xFF00) | ( auxService->consumer_task & 0xFF)), auxService->requesting_processor, ((auxService->consumer_task >> 8) & 0xFF));
+						send_message_delivery(auxService->producer_task, auxService->consumer_task, auxService->requesting_processor, &tmpSlot->message);
+					} else {
+						session_puts("---- deu no PASS\n");
+						tcb_ptr = searchTCB(auxService->consumer_task);
+						write_local_msg_to_task(tcb_ptr, tmpSlot->message.length, tmpSlot->message.msg);
+					}
+				}
 				break;
 			}
 		tEnd = MemoryRead(TICK_COUNTER);

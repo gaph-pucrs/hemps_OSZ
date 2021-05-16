@@ -13,6 +13,8 @@
  */
 #include "../../include/kernel_pkg.h"
 #include "../include/api.h"
+#include "packet.h"
+
 
 
 void Set_Secure_Zone(unsigned int left_low_corner, unsigned int right_high_corner, unsigned int master_PE);
@@ -46,7 +48,7 @@ void Unset_Secure_Zone(unsigned int left_low_corner, unsigned int right_high_cor
 
 //#define session_puts(argument) puts(argument)
 #define session_puts(argument) 
-//#define SESSION_MANAGER
+#define SESSION_MANAGER
 
 typedef struct 
 {
@@ -55,7 +57,7 @@ typedef struct
 	unsigned int time;
     unsigned int avgLatency;
     Message* msg;
-    // ServiceHeader header; 
+    ServiceHeader* header; 
     unsigned int status;
     int sent;
     int rcvd;
@@ -77,9 +79,13 @@ typedef struct
 
 
 Message waitingMessages[WAITING_MSG_QUEUE];
+ServiceHeader waitingServices[WAITING_MSG_QUEUE];
 Ticket deliveryTicket[2*MAX_TASKS_APP];
+Ticket requestTicket[2*MAX_TASKS_APP];
 int recptIndex;
 int auxIndex;
 int auxTime;
 int tInit, tEnd;
 int auxCode;
+int auxSlot;
+ServiceHeader* auxService;
