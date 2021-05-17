@@ -396,3 +396,23 @@ ServiceHeader* checkWaitingServices(ServiceHeader* serviceQueue, int sProd, int 
   // session_puts("**********NAO ACHOU:");
   return -1;
 }
+
+int send_message_delivery_ticket(Ticket * tickets,unsigned int prod, unsigned int cons, unsigned int target){
+  int index = checkTicket(deliveryTicket, prod, cons);
+  tickets[index].sent += 1;
+	Seek(MSG_DELIVERY_RECEIPT, (tickets[index].code <<16) | tickets[index].sent , target, 0);
+}
+
+int send_message_request_ticket(Ticket* tickets, unsigned int prod, unsigned int cons, unsigned int target){
+  int index, code;
+  index  = checkTicket(tickets, prod, cons);
+  if(index < 0){
+    session_puts("Criando a Session no CONS\n");
+    do{code = MemoryRead(TICK_COUNTER) & 0xFFFF;}while(code == 0xFFFF); // Código não pode ser FFFF
+    index = createSession(tickets, prod, cons, code);
+    Seek(MSG_REQUEST_RECEIPT, ((tickets[index].code <<16) | (prod <<8 & 0xFF00) | (cons & 0xFF)), target, ((cons >> 8) & 0xFF));
+  }else{
+    Seek(MSG_REQUEST_RECEIPT, ((tickets[index].code <<16) | tickets[index].rcvd), target, 0);
+  }
+
+}
