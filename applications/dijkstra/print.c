@@ -95,13 +95,14 @@ int execute() {
 			ProcessMessage();
 		}
 
-		Echo("########");
-		Echo(itoa(GetTick()));
+		//Echo(itoa(GetTick()));
 
 		if (ended == (NPROC)) {
 			return 0;
 		}
 	}
+
+	Echo("######## END DIJSTRA");
 
 	return 0;
 }

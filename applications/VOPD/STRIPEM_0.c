@@ -6,6 +6,7 @@ int main()
 
 Message msg;
 int j;
+	Echo("STRIPEM");
 
 	for(j=0;j<128;j++) msg.msg[j]=j;
 

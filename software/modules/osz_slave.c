@@ -238,19 +238,21 @@ void Unset_Secure_Zone(unsigned int left_low_corner, unsigned int right_high_cor
 }
 
 int findBlankTicket(Ticket* tickets){
-  for (int i = 0; i < 2*MAX_TASKS_APP; i++)
+  for (int i = 0; i < MAX_SESSIONS; i++)
   {
     if (tickets[i].status == BLANK)
       return i;
   }
+
+  puts("ERROR: No free Session structure");
   return -1;
 }
 
 int checkTicket(Ticket* tickets, unsigned int prod, unsigned int cons){
-  for (int i = 0; i < 2*MAX_TASKS_APP; i++)
+  for (int i = 0; i < MAX_SESSIONS; i++)
   {
-    if ((tickets[i].producer == prod) && (tickets[i].consumer == cons) && (tickets[i].status != BLANK)){
-      return i;
+    if ((tickets[i].producer == prod) && (tickets[i].consumer == cons)){     
+	    return i;
     }
   }
   return -1;
@@ -260,9 +262,9 @@ int checkTicketCode(Ticket* tickets, unsigned int code){
   if (code == 0xFFFF)
     return END_SESSION;
   
-  for (int i = 0; i < 2*MAX_TASKS_APP; i++)
+  for (int i = 0; i < MAX_SESSIONS; i++)
   {
-    if ((tickets[i].code == code) && (tickets[i].status != BLANK)){
+    if ((tickets[i].code == code)){
       return i;
     }
   }
@@ -270,79 +272,90 @@ int checkTicketCode(Ticket* tickets, unsigned int code){
   return START_SESSION;
 }
 
-int clearTicket(Ticket* tickets, int index){
-  tickets[index].time = 0;
-  tickets[index].producer = -1;
-  tickets[index].consumer = -1;
-  tickets[index].status = BLANK;
-  tickets[index].msg->length = -1;
-}
-
 void initMessageQueue(){
   for (int i = 0; i < WAITING_MSG_QUEUE; i++){
     waitingMessages[i].length = -1;
     waitingServices[i].service = BLANK;
   }
-  for (int i = 0; i < 2*MAX_TASKS_APP; i++){
-    deliveryTicket[i].sent = 0;
-    deliveryTicket[i].rcvd = 0;
-    deliveryTicket[i].avgLatency = 0;
-    deliveryTicket[i].time = 0;
-    deliveryTicket[i].consumer = -1;
-    deliveryTicket[i].producer = -1;
-    }
+  for (int i = 0; i < MAX_SESSIONS; i++){
+    clearTicket(deliveryTicket, i);
+  }
 }
 
 Message* getMessageSlot(){
   for (int i = 0; i < WAITING_MSG_QUEUE; i++)
   {
-    if (waitingMessages[i].length == -1)
+    if (waitingMessages[i].length == -1){
       return &waitingMessages[i];
+    }
   }
   
+  puts("ERROR: No free MessageSlots");
   return -1;
+}
+
+void clearMessageSlot(Message* m){
+  m->length = -1;
 }
 
 ServiceHeader* getServiceSlot(){
   for (int i = 0; i < WAITING_MSG_QUEUE; i++)
   {
-    if (waitingServices[i].service == BLANK)
+    if (waitingServices[i].service == BLANK){
       return &waitingServices[i];
+    }
   }
-  
+
+  puts("ERROR: No free ServiceSlots");
   return -1;
+}
+
+void clearServiceSlot(ServiceHeader* slot){
+  slot->service = BLANK;
+}
+
+int clearTicket(Ticket* tickets, int index){
+  // puts("Limpando Sessão:\n")
+  // printSessionStatus(tickets, index);
+  tickets[index].time = 0;
+  tickets[index].producer = -1;
+  tickets[index].consumer = -1;
+  tickets[index].status = BLANK;
+  tickets[index].sent = 0;
+  tickets[index].rcvd = 0;
+  tickets[index].code = 0;
+  tickets[index].msg->length = -1;
+  tickets[index].pairIndex = -1;
+
 }
 
 int createSession(Ticket* tickets, unsigned int prod, unsigned int cons, int code){
   int auxIndex = findBlankTicket(tickets);
-  
+
   if (auxIndex == -1){
     puts("Sem slot de Session\n");
     return -1;
   }
   
-
-  tickets[auxIndex].status = WAITING;
-  tickets[auxIndex].code = code;
+  tickets[auxIndex].status = WAITING_ANY;
+  tickets[auxIndex].code = code & 0xFFC0;
   tickets[auxIndex].consumer = cons;
 	tickets[auxIndex].producer = prod;
+  tickets[auxIndex].pairIndex = code & 0x3F;
 
-  //puts("Sessao cons: ");puts(itoh(cons));puts("prod: ");puts(itoh(prod));puts(" criada\n");
-
+  // puts("Criando Session: ");
+  // printSessionStatus(tickets, auxIndex);
   return auxIndex;
 }
 
-void printSessions(Ticket* tickets, unsigned int task){
+void printSessions(Ticket* tickets){
 
-  for (int i = 0; i < 2*MAX_TASKS_APP; i++)
+  for (int i = 0; i < MAX_SESSIONS; i++)
   {
     if (tickets[i].status != BLANK){
         puts("Session ------ Code: ");puts(itoh(deliveryTicket[i].code));puts("\n");
         puts("  Consumer: ");puts(itoh(deliveryTicket[i].consumer));puts("\n");
         puts("  Producer: ");puts(itoh(deliveryTicket[i].producer));puts("\n");
-        puts("  Recieved: ");puts(itoa(deliveryTicket[i].rcvd));puts("\n");
-        puts("  Sent: ");puts(itoa(deliveryTicket[i].sent));puts("\n");
-        //eturn;
     }
   }
 }
@@ -351,17 +364,20 @@ void printSessionStatus(Ticket* tickets, unsigned int index){
   puts("Session ------ Code: ");puts(itoh(deliveryTicket[index].code));puts("\n");
   puts("  Consumer: ");puts(itoh(deliveryTicket[index].consumer));puts("\n");
   puts("  Producer: ");puts(itoh(deliveryTicket[index].producer));puts("\n");
-  puts("  Recieved: ");puts(itoa(deliveryTicket[index].rcvd));puts("\n");
-  puts("  Sent: ");puts(itoa(deliveryTicket[index].sent));puts("\n");
+  puts("  PairIndex: ");puts(itoh(deliveryTicket[index].pairIndex));puts("\n");
+  puts("  MyIndex: ");puts(itoh(index));puts("\n");
+  // puts("  Recieved: ");puts(itoa(deliveryTicket[index].rcvd));puts("\n");
+  // puts("  Sent: ");puts(itoa(deliveryTicket[index].sent));puts("\n");
 }
 
 int checkRunningSession(Ticket* tickets, unsigned int task){
-  for (int i = 0; i < 2*MAX_TASKS_APP; i++)
+  for (int i = 0; i < MAX_SESSIONS; i++)
   {
-    if ((tickets[i].status != BLANK))
-      if ((tickets[i].producer == task) || (tickets[i].consumer == task))
+    if ((tickets[i].status != BLANK)){
+      if ((tickets[i].producer == task) || (tickets[i].consumer == task)){
         return i;
-    
+      }
+    }
   }
   return -1;
 }
@@ -383,36 +399,34 @@ int copyService(ServiceHeader* SHsource, ServiceHeader* SHtarget){
 }
 
 ServiceHeader* checkWaitingServices(ServiceHeader* serviceQueue, int sProd, int sCons, int serv){
-  // session_puts("********** Checking WAITING QUEUE:");
   for (int i = 0; i < WAITING_MSG_QUEUE; i++)
   {
-		// session_puts("producer:");session_puts(itoh(serviceQueue[i].producer_task)); session_puts("\n");
-    // session_puts("consumer:");session_puts(itoh(serviceQueue[i].consumer_task)); session_puts("\n");
-    // session_puts("service:");session_puts(itoh(serviceQueue[i].service)); session_puts("\n");
     if ((serviceQueue[i].producer_task == sProd) && (serviceQueue[i].consumer_task == sCons) && (serviceQueue[i].service == serv)){
       return &serviceQueue[i];
     }
   }
-  // session_puts("**********NAO ACHOU:");
   return -1;
 }
 
 int send_message_delivery_ticket(Ticket * tickets,unsigned int prod, unsigned int cons, unsigned int target){
-  int index = checkTicket(deliveryTicket, prod, cons);
+  int index;
+  index = checkTicket(tickets, prod, cons);
+  if (index < 0)
+    puts("ERRO: não achou sessão no MDR\n"); 
   tickets[index].sent += 1;
-	Seek(MSG_DELIVERY_RECEIPT, (tickets[index].code <<16) | tickets[index].sent , target, 0);
+	Seek(MSG_DELIVERY_RECEIPT, (tickets[index].code <<16) | (tickets[index].pairIndex << 16) | tickets[index].sent , target, index);
 }
 
 int send_message_request_ticket(Ticket* tickets, unsigned int prod, unsigned int cons, unsigned int target){
   int index, code;
   index  = checkTicket(tickets, prod, cons);
   if(index < 0){
-    session_puts("Criando a Session no CONS\n");
-    do{code = MemoryRead(TICK_COUNTER) & 0xFFFF;}while(code == 0xFFFF); // Código não pode ser FFFF
-    index = createSession(tickets, prod, cons, code);
-    Seek(MSG_REQUEST_RECEIPT, ((tickets[index].code <<16) | (prod <<8 & 0xFF00) | (cons & 0xFF)), target, ((cons >> 8) & 0xFF));
+    //session_puts("Criando a Session no CONS: ");
+    do{code = (MemoryRead(TICK_COUNTER)*get_net_address()) & 0xFFC0;}while(code == 0xFFC0); // Código não pode ser FFC0
+    index = createSession(tickets, prod, cons, (code | 0x3F));
+    Seek(MSG_REQUEST_RECEIPT, ((tickets[index].code <<16) | (index << 16) | (prod <<8 & 0xFF00) | (cons & 0xFF)), target, ((cons >> 8) & 0xFF));
   }else{
-    Seek(MSG_REQUEST_RECEIPT, ((tickets[index].code <<16) | tickets[index].rcvd), target, 0);
+    Seek(MSG_REQUEST_RECEIPT, ((tickets[index].code <<16) | (tickets[index].pairIndex << 16) | tickets[index].rcvd), target, 0);
   }
 
 }

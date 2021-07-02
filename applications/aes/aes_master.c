@@ -16,12 +16,12 @@
 // number of efectived used slaves
 #define NUMBER_OF_SLAVES 8	
 // number of total slaves allocated
-#define MAX_SLAVES 8		 	
+#define MAX_SLAVES 11		 	
 
 /**************************** VARIABLES *****************************/
 
 //index of slaves (slave names)
-int Slave[MAX_SLAVES] = {aes_slave1,aes_slave2,aes_slave3,aes_slave4,aes_slave5,aes_slave6,aes_slave7,aes_slave8};
+int Slave[MAX_SLAVES] = {aes_slave1,aes_slave2,aes_slave3,aes_slave4,aes_slave5,aes_slave6,aes_slave7,aes_slave8,aes_slave9,aes_slave10,aes_slave11};
 Message msg;
 
 /*************************** MAIN PROGRAM ***************************/
@@ -86,6 +86,8 @@ int main()
 			aux_msg[0] = END_TASK;
 		memcpy(&msg.msg, &aux_msg, 4*msg.length);
 		Send(&msg, Slave[x]);  
+		Echo("Sent conf to:");	
+		Echo(itoa(x));
 	}
 
 	// Send blocks to Cipher and 
@@ -97,6 +99,8 @@ int main()
 				msg.length = 4*AES_BLOCK_SIZE;
 				memcpy(msg.msg, &plain_msg[(x+y)*AES_BLOCK_SIZE], 4*AES_BLOCK_SIZE);
 				Send(&msg, Slave[(x+y) % NUMBER_OF_SLAVES]);
+				Echo("Sent BLOCK to:");	
+				Echo(itoa(y));
 			}
 		}
 	
@@ -104,6 +108,8 @@ int main()
 		for(y = 0; y < NUMBER_OF_SLAVES; y++){
 			if(qtd_messages[(x+y) % NUMBER_OF_SLAVES] != 0){
 				Receive(&msg, Slave[(x+y) % NUMBER_OF_SLAVES]);
+				Echo("Received BLOCK from:");	
+				Echo(itoa(y));
 				j = 0;
 				for (i=(x+y)*AES_BLOCK_SIZE;i < ((x+y)*AES_BLOCK_SIZE) + AES_BLOCK_SIZE; i++)
 				{

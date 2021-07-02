@@ -53,8 +53,12 @@ def generate_testbench_h( yaml_r ):
     ############################# verify if peripheral file exists in /hardware/sc/peripherals/IO_peripheral/ directory
     ############################# to include the respective .h file in testbench
     for port in open_ports:
-        module_name = re.sub (r'\d\d*\w*', '',  port[0], flags=re.IGNORECASE)
-        module_name = re.sub (r'_(?![a-z])', '', module_name, flags=re.IGNORECASE)
+	foo = re.compile(r'\d\d*\w*', flags=re.IGNORECASE)
+        module_name = foo.sub ('',  port[0])
+       ## module_name = re.sub (r'\d\d*\w*', '',  port[0], flags=re.IGNORECASE)
+	foo = re.compile(r'_(?![a-z])', flags=re.IGNORECASE)
+        module_name = foo.sub ( '', module_name)        
+	#module_name = re.sub (r'_(?![a-z])', '', module_name, flags=re.IGNORECASE)
 
         file_name = str.lower(module_name + ".h")
         if file_name in peripheral_files:
@@ -74,7 +78,9 @@ def generate_testbench_h( yaml_r ):
         ############################# verify if hardware module is defined in .h file of respective peripheral
         file_to_open = "hardware/sc/peripherals/IO_peripheral/"+str(file_name)
 
-        with open(file_to_open) as openfileobject:
+      #  with open(file_to_open, "r") as openfileobject:
+	openfileobject = open(file_to_open);
+	try:
             flag = 0
             string_to_search = "SC_MODULE("+str.lower(module_name)
             #print string_to_search
@@ -94,7 +100,9 @@ def generate_testbench_h( yaml_r ):
                 print "             [injector_1, 2, 0, S, 0, 1, W]"
                 print "             [Injector, 2, 0, S, 0, 1, W]"
                 sys.exit( )
-
+	finally:
+		openfileobject.close()
+	
     file_lines.append("\n")
     file_lines.append("SC_MODULE(test_bench) {\n")
     file_lines.append("    \n")
@@ -113,8 +121,12 @@ def generate_testbench_h( yaml_r ):
     ############################# and change the pointer name if equal (module and pointer equal result in compilation error)
     ############################# then declare the peripheral hardware pointer
     for port in open_ports:
-        module_name = re.sub (r'\d\d*\w*', '',  port[0], flags=re.IGNORECASE)
-        module_name = re.sub (r'_(?![a-z])', '', module_name, flags=re.IGNORECASE)        
+	foo = re.compile(r'\d\d*\w*', flags=re.IGNORECASE)
+        module_name = foo.sub ('',  port[0])
+	foo = re.compile(r'_(?![a-z])', flags=re.IGNORECASE)
+        module_name = foo.sub ( '', module_name)
+       	#module_name = re.sub (r'\d\d*\w*', '',  port[0], flags=re.IGNORECASE)        
+	#module_name = re.sub (r'_(?![a-z])', '', module_name, flags=re.IGNORECASE)        
         file_name = str.lower(module_name + ".h")
         if file_name in peripheral_files:
             if port[0] == str.lower(module_name):
@@ -188,8 +200,12 @@ def generate_testbench_h( yaml_r ):
     ############################# and change the pointer name if equal (module and pointer equal result in compilation error)
     ############################# then instance the peripheral hardware module
     for port in open_ports:
-        module_name = re.sub (r'\d\d*\w*', '',  port[0], flags=re.IGNORECASE)
-        module_name = re.sub (r'_(?![a-z])', '', module_name, flags=re.IGNORECASE)
+	foo = re.compile(r'\d\d*\w*', flags=re.IGNORECASE)
+        module_name = foo.sub ('',  port[0])
+	foo = re.compile(r'_(?![a-z])', flags=re.IGNORECASE)
+        module_name = foo.sub ( '', module_name)
+       	#module_name = re.sub (r'\d\d*\w*', '',  port[0], flags=re.IGNORECASE)        
+	#module_name = re.sub (r'_(?![a-z])', '', module_name, flags=re.IGNORECASE)
         file_name = str.lower(module_name + ".h")
         if file_name in peripheral_files:
             if port[0] == str.lower(module_name):
@@ -217,8 +233,12 @@ def generate_testbench_h( yaml_r ):
             bisect.insort(list_index, pe_number)
 
     for port in open_ports:
-            module_name = re.sub (r'\d\d*\w*', '',  port[0], flags=re.IGNORECASE)
-            module_name = re.sub (r'_(?![a-z])', '', module_name, flags=re.IGNORECASE)
+	    foo = re.compile(r'\d\d*\w*', flags=re.IGNORECASE)
+            module_name = foo.sub ('',  port[0])
+	    foo = re.compile(r'_(?![a-z])', flags=re.IGNORECASE)
+            module_name = foo.sub ( '', module_name)
+            #module_name = re.sub (r'\d\d*\w*', '',  port[0], flags=re.IGNORECASE)
+            #module_name = re.sub (r'_(?![a-z])', '', module_name, flags=re.IGNORECASE)
             if port[0] == str.lower(module_name): 
                 module_name = "ptr_" + port[0]
             else:

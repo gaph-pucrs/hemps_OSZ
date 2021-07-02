@@ -7,6 +7,8 @@ int main()
 Message msg;
 int j;
 
+	Echo("VOPREC");
+
 	for(j=0;j<128;j++) msg.msg[j]=j;
 
 	msg.length=128;
@@ -27,6 +29,8 @@ int j;
 	msg.length=92;
 	Receive(&msg,VOPME_0);
 	Echo("Recebeu VOPME_0");
+
+	Echo("##### FIM DA VOPD");
 
 	exit();
 

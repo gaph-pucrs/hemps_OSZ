@@ -7,7 +7,7 @@ int main()
 int j;
 Message msg;
 
-//Echo(strcat("b,SRAM1,",itoa(GetTick())));
+Echo( "b,SRAM1," );
 
 
 	for(j=0;j<128;j++) msg.msg[j]=j;
@@ -15,14 +15,13 @@ Message msg;
 	/*Comm MCPU 1280*/
 	msg.length=128;
 	for(j=0;j<10;j++) Receive(&msg,MCPU_0);
-	//Echo(strcat("r,MPEG_m14(1280),",itoa(GetTick())));
+	Echo( "r,MPEG_m14(1280)," );
 	/*Comm RAST 1280*/
 	msg.length=128;
 	for(j=0;j<10;j++) Send(&msg,RAST_0);
-	//Echo(strcat("s,MPEG_m15(1280),",itoa(GetTick())));
-	//Echo(strcat(strcat(strcat("i,",itoa(i)),","),itoa(GetTick())));
+	Echo( "s,MPEG_m15(1280)," );
 
-//Echo(strcat("e,SRAM1,",itoa(GetTick())));
+Echo( "e,SRAM1," );
 
 exit();
 

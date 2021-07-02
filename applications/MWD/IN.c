@@ -7,6 +7,7 @@ int main()
 {
 
 int i, j;
+	Echo("##### INICIO DA MWD");
 
 	for(j=0;j<128;j++) msg.msg[j]=i;
 

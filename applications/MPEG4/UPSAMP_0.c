@@ -7,7 +7,7 @@ int main()
 int j;
 Message msg;
 
-//Echo(strcat("b,UPSAMP,",itoa(GetTick())));
+Echo( "b,UPSAMP," );
 
 
 	for(j=0;j<128;j++) msg.msg[j]=j;
@@ -19,7 +19,7 @@ Message msg;
 	msg.length=46;
 	Receive(&msg,SRAM2_0);
 	//Echo("FIM RECEIVEEEEEEEEEEEEEEEEEEEEE!!!!!!!!!!!!!\n");
-	//Echo(strcat("r,MPEG_m7(11310),",itoa(GetTick())));
+	Echo( "r,MPEG_m7(11310)," );
 	/*Comm SDRAM 15000*/
 	msg.length=128;
 	for(j=0;j<117;j++)
@@ -30,16 +30,16 @@ Message msg;
 	}
 	msg.length=24;
 	Receive(&msg,SDRAM_0);
-	//Echo(strcat("r,MPEG_m9(15000),",itoa(GetTick())));
+	Echo( "r,MPEG_m9(15000)," );
 	/*Comm SDRAM 15000*/
 	msg.length=128;
 	for(j=0;j<117;j++) Send(&msg,SDRAM_0);
 	msg.length=24;
 	Send(&msg,SDRAM_0);
-	//Echo(strcat("s,MPEG_m10(15000),",itoa(GetTick())));
-	//Echo(strcat(strcat(strcat("i,",itoa(i)),","),itoa(GetTick())));
+	Echo( "s,MPEG_m10(15000)," );
+	//Echo(   "i,",itoa(i)),",") );
 
-//Echo(strcat("e,UPSAMP,",itoa(GetTick())));
+Echo( "e,UPSAMP," );
 
 exit();
 

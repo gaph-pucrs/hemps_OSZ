@@ -31,19 +31,22 @@ void Unset_Secure_Zone(unsigned int left_low_corner, unsigned int right_high_cor
         wrapper_value > seek.c
 */
 
+
 // Ticket Status
 #define BLANK 0
 #define WAITING_DATA 1
 #define WAITING_TICKET 2
-#define WAITING 3
+#define WAITING_ANY 3
 #define SUSPICIOUS 4
 
 #define END_SESSION -1
 #define START_SESSION -2
 
+// Array Sizes
 #define WAITING_MSG_QUEUE 10 
+#define MAX_SESSIONS 2*MAX_TASKS_APP
 
-//#define session_time_puts(argument) puts(argument)
+// #define session_time_puts(argument) puts(argument)
 #define session_time_puts(argument) 
 
 // #define session_puts(argument) puts(argument)
@@ -62,6 +65,7 @@ typedef struct
     int sent;
     int rcvd;
     int code;
+    int pairIndex;
 } Ticket;
 
 // typedef struct 
@@ -80,12 +84,13 @@ typedef struct
 
 Message waitingMessages[WAITING_MSG_QUEUE];
 ServiceHeader waitingServices[WAITING_MSG_QUEUE];
-Ticket deliveryTicket[2*MAX_TASKS_APP];
-Ticket requestTicket[2*MAX_TASKS_APP];
+Ticket deliveryTicket[MAX_SESSIONS];
+Ticket requestTicket[MAX_SESSIONS];
 int recptIndex;
 int auxIndex;
 int auxTime;
 int tInit, tEnd;
 int auxCode;
 int auxSlot;
+Ticket* auxSession;
 //ServiceHeader* auxService;

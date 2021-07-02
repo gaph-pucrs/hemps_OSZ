@@ -241,7 +241,8 @@ unsigned int resend_messages(int remote_addr){
 		
 		if (pipe[i].status == WAITING_ACK && consumer_proc == remote_addr) {
 			send_message_delivery(pipe[i].producer_task, pipe[i].consumer_task, remote_addr, &pipe[i].message);
-			comm_puts("resent mesage delivery to: "); comm_puts(itoh(consumer_proc)); comm_puts("\n");
+			// puts("resent mesage delivery to: "); puts(itoh(consumer_proc)); puts("\n");
+			// comm_puts("resent mesage delivery to: "); comm_puts(itoh(consumer_proc)); comm_puts("\n");
 			return 1;
 		}
 	}

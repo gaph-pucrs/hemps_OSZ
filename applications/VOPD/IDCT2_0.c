@@ -7,6 +7,8 @@ int main()
 Message msg;
 int j;
 
+	Echo("IDCT2");
+
 	for(j=0;j<128;j++) msg.msg[j]=j;
 
 	msg.length=128;

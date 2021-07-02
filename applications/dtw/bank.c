@@ -41,6 +41,7 @@ int main(){
 	msg.length = SIZE * SIZE; //SIZE*SIZE nao pode ser maior que 128, senao usar o SendData
 
 	for(j=0; j<PATTERN_PER_TASK; j++){
+		Echo("Iteration");
 		for(i=0; i<TOTAL_TASKS; i++){
 			randPattern(pattern); //gera uma matriz de valores aleatorios, poderiam ser coeficientes MFCC
 			memcpy(msg.msg, pattern, sizeof(pattern));
@@ -50,7 +51,7 @@ int main(){
 			//Echo(a);
 			//Echo(itoa(GetTick()));
 		}
-		Echo(itoa(GetTick()));
+		//Echo(itoa(GetTick()));
 	}
 
 	Echo("Bank sendedd all patterns\n");

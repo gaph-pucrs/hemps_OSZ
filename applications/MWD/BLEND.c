@@ -14,6 +14,8 @@ int i, j;
 	msg.length=128;
 	for(j=0;j<5;j++) Receive(&msg,SE);
 
+	Echo("##### FIM DA MWD");
+
 exit();
 
 }

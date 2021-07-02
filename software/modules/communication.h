@@ -22,7 +22,7 @@
 #include "../include/api.h"
 
 
-#define PIPE_SIZE       MAX_LOCAL_TASKS * 6//3 //24				//!< Size of the pipe array in fucntion of the maximum number of local task
+#define PIPE_SIZE        MAX_LOCAL_TASKS*(MAX_TASKS_APP-1) //MAX_LOCAL_TASKS * 12 //6 //3 //24				//!< Size of the pipe array in fucntion of the maximum number of local task
 #define REQUEST_SIZE	 MAX_LOCAL_TASKS*(MAX_TASKS_APP-1) //50	//!< Size of the message request array in fucntion of the maximum number of local task and max task per app
 #define MAX_TASK_SLOTS	 PIPE_SIZE/MAX_LOCAL_TASKS				//!< Maximum number of pipe slots that a task have
 

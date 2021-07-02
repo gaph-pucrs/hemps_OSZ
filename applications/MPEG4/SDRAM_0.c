@@ -7,7 +7,8 @@ int main()
 int j;
 Message msg;
 
-//Echo(strcat("b,SDRAM,",itoa(GetTick())));
+Echo("b,SDRAM0");
+Echo(itoa(GetTick()));
 
 
 	for(j=0;j<128;j++) msg.msg[j]=j;
@@ -15,11 +16,11 @@ Message msg;
 	/*Comm BAB 1280*/
 	msg.length=128;
 	for(j=0;j<10;j++) Send(&msg,BAB_0);
-	//Echo(strcat("s,MPEG_m6(1280),",itoa(GetTick())));
+	Echo( "s,MPEG_m6(1280)," );
 	/*Comm BAB 1280*/
 	msg.length=128;
 	for(j=0;j<10;j++) Receive(&msg,BAB_0);
-	//Echo(strcat("r,MPEG_m8(1280),",itoa(GetTick())));
+	Echo( "r,MPEG_m8(1280)," );
 	/*Comm UPSAMP 15000*/
 	msg.length=128;
 	for(j=0;j<117;j++)
@@ -30,7 +31,7 @@ Message msg;
 	}
 	msg.length=24;
 	Send(&msg,UPSAMP_0);
-	//Echo(strcat("s,MPEG_m9(15000),",itoa(GetTick())));
+	Echo( "s,MPEG_m9(15000)," );
 	/*Comm UPSAMP 15000*/
 	msg.length=128;
 	for(j=0;j<117;j++)
@@ -41,44 +42,44 @@ Message msg;
 	}
 	msg.length=24;
 	Receive(&msg,UPSAMP_0);
-	//Echo(strcat("r,MPEG_m10(15000),",itoa(GetTick())));
+	Echo( "r,MPEG_m10(15000)," );
 	/*Comm ADSP 1280*/
 	msg.length=128;
 	for(j=0;j<10;j++) Send(&msg,ADSP_0);
-	//Echo(strcat("s,MPEG_m11(1280),",itoa(GetTick())));
+	Echo( "s,MPEG_m11(1280)," );
 	/*Comm MCPU 1280*/
 	msg.length=128;
 	for(j=0;j<10;j++) Send(&msg,MCPU_0);
-	//Echo(strcat("s,MPEG_m12(1280),",itoa(GetTick())));
+	Echo( "s,MPEG_m12(1280)," );
 	/*Comm ADSP 1280*/
 	msg.length=128;
 	for(j=0;j<10;j++) Receive(&msg,ADSP_0);
-	//Echo(strcat("r,MPEG_m13(1280),",itoa(GetTick())));
+	Echo( "r,MPEG_m13(1280)," );
 	/*Comm RAST 10130*/
 	msg.length=128;
 	for(j=0;j<79;j++) Send(&msg,RAST_0);
 	msg.length=18;
 	Send(&msg,RAST_0);
-	//Echo(strcat("s,MPEG_m16(10130),",itoa(GetTick())));
+	Echo( "s,MPEG_m16(10130)," );
 	/*Comm RAST 10130*/
 	msg.length=128;
 	for(j=0;j<79;j++) Receive(&msg,RAST_0);
 	msg.length=18;
 	Receive(&msg,RAST_0);
-	//Echo(strcat("r,MPEG_m17(10130),",itoa(GetTick())));
+	Echo( "r,MPEG_m17(10130)," );
 	/*Comm AU 1280*/
 	msg.length=128;
 	for(j=0;j<10;j++) Send(&msg,AU_0);
-	//Echo(strcat("s,MPEG_m18(1280),",itoa(GetTick())));
+	Echo( "s,MPEG_m18(1280)," );
 	/*Comm VU 3210*/
 	msg.length=128;
 	for(j=0;j<25;j++) Send(&msg,VU_0);
+	Echo( "s,MPEG_m20(testanmo)," );
 	msg.length=10;
 	Send(&msg,VU_0);
-	//Echo(strcat("s,MPEG_m19(3210),",itoa(GetTick())));
-	//Echo(strcat(strcat(strcat("i,",itoa(i)),","),itoa(GetTick())));
+	Echo( "s,MPEG_m21(10)," );
 
-//Echo(strcat("e,SDRAM,",itoa(GetTick())));
+Echo( "e,SDRAM," );
 
 exit();
 

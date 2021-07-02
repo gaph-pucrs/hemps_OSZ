@@ -490,7 +490,8 @@ process(clock, reset)--processo que gerencia cada estado manager
 						
 					when PROPAGATE =>							
 						for j in 0 to (NPORT_SEEK-2) loop  
-							if (j /= to_integer(unsigned((backtrack_port_table(sel)))) )  then                       
+						--if (j /= to_integer(unsigned((backtrack_port_table(sel)))))  then       -- Backtrack local, CLEAR não passava                
+							if (j /= to_integer(unsigned((backtrack_port_table(sel)))) OR service_table(sel) = CLEAR_SERVICE)  then                       
 								int_out_req_router_seek(j)	<= '1';
 							end if;       
 						end loop;	
@@ -498,7 +499,8 @@ process(clock, reset)--processo que gerencia cada estado manager
 					when WAIT_ACK_PORTS =>
 
 						--do not execute acks when backtrack port is local
-						if backtrack_port_table(sel) /= x"4" then
+						-- if backtrack_port_table(sel) /= x"4" then
+						if (backtrack_port_table(sel) /= x"4" and service_table(sel) /= CLEAR_SERVICE) then
 							vector_ack_ports(to_integer(unsigned(backtrack_port_table(sel)(1 DOWNTO 0)))) <= '1';
 						end if;
 						for j in 0 to (NPORT_SEEK-2) loop  

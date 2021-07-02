@@ -8,7 +8,7 @@ Message msg;
 int j;
 
 
-//Echo(strcat("b,VU,",itoa(GetTick())));
+Echo( "b,VU," );
 
 
 	for(j=0;j<128;j++) msg.msg[j]=j;
@@ -16,12 +16,13 @@ int j;
 	/*Comm SDRAM 3210*/
 	msg.length=128;
 	for(j=0;j<25;j++) Receive(&msg,SDRAM_0);
+	Echo( "r,MPEG_m20(3210)," );
 	msg.length=10;
 	Receive(&msg,SDRAM_0);
-	//Echo(strcat("r,MPEG_m19(3210),",itoa(GetTick())));
-	//Echo(strcat(strcat(strcat("i,",itoa(i)),","),itoa(GetTick())));
+	Echo( "r,MPEG_m21(3210)," );
 
-//Echo(strcat("e,VU,",itoa(GetTick())));
+Echo("b,VU");
+Echo(itoa(GetTick()));
 
 exit();
 
