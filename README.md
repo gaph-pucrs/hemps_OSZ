@@ -2,11 +2,11 @@
 Versão da HeMPS com OSZ, sem suporte a Periféricos
 
 ## SessionManager
-Versão da HeMPS com OSZ & Communication Sessions
+Versão da HeMPS com OSZ & **Communication Sessions**
 
 Para habilidar a funcionalidade Sessions, inserir:
 
 *session: yes*
 
 como parâmetro do [hw] no YAML
-(como no Example.yaml)           
+(como no ![Example.yaml](https://github.com/gaph-pucrs/hemps_OSZ/blob/SessionManager/testcases/examples/Example.yaml))           
