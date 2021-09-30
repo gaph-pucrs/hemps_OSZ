@@ -154,9 +154,6 @@ def get_session(yaml_reader):
     return session    
 
 #------- Repository Generation Scope ------------------- 
-
-
-#------- Repository Generation Scope ------------------- 
 #ATTENTION: STATIC MAPPING ONLY WORKS IF THE APPS START TIME ARE ORDERED
 #This function serches for all task statically mapped and return a list of tuple={task_id, proc}
 def get_static_mapping_list(yaml_reader):
