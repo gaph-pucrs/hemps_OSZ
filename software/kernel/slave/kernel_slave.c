@@ -281,21 +281,21 @@ int Syscall(unsigned int service, unsigned int arg0, unsigned int arg1, unsigned
 			#ifdef SESSION_MANAGER
 			for (j = 0; j < MAX_SESSIONS; j++) // Termina as sessões abertas que tenham essa tarefa como consumidora
   			{
-				if ((deliveryTicket[j].consumer == current->id) && (deliveryTicket[j].status != BLANK)){
+				if ((Sessions[j].consumer == current->id) && (Sessions[j].status != BLANK)){
 					// puts("Terminando a Sessao:\n");
-					Seek(MSG_REQUEST_RECEIPT, 
-					((0xFFC0 << 16) | (deliveryTicket[j].pairIndex << 16) | ((deliveryTicket[j].producer << 8) & 0xFF00) | (deliveryTicket[j].consumer & 0xFF))
-					,get_task_location(deliveryTicket[j].producer)
-					,((deliveryTicket[j].consumer >> 8) & 0xFF));
-					// printSessionStatus(deliveryTicket, j);
-					clearTicket(deliveryTicket, j);
+					Seek(MSG_REQUEST_CONTROL, 
+					((0xFFC0 << 16) | (Sessions[j].pairIndex << 16) | ((Sessions[j].producer << 8) & 0xFF00) | (Sessions[j].consumer & 0xFF))
+					,get_task_location(Sessions[j].producer)
+					,((Sessions[j].consumer >> 8) & 0xFF));
+					// printSessionStatus(Sessions, j);
+					clearSession(Sessions, j);
 				}
 			}
 
-			j = checkRunningSession(deliveryTicket, current->id);
+			j = checkRunningSession(Sessions, current->id);
 			if (j >= 0){
 				// puts("Session ");
-				// printSessionStatus(deliveryTicket, j);
+				// printSessionStatus(Sessions, j);
 				// puts(" still running\n");
 				return 0;
 			}
@@ -322,12 +322,16 @@ int Syscall(unsigned int service, unsigned int arg0, unsigned int arg1, unsigned
 
 			remove_last_msg_waiting_ack(current->id);
 
-			//printSessionStatus(deliveryTicket,current->id);
+			//printSessionStatus(Sessions,current->id);
 
 		return 1;
 
 		case WRITEPIPE:
 			tInit = MemoryRead(TICK_COUNTER);
+			
+			#ifdef SESSION_MANAGER
+			timeoutMonitor(Sessions, tInit);
+			#endif
 
 			if ( MemoryRead(DMNI_SEND_ACTIVE) ){
 				return 0;
@@ -387,7 +391,7 @@ int Syscall(unsigned int service, unsigned int arg0, unsigned int arg1, unsigned
 					#ifdef SESSION_MANAGER
 					// tInit = MemoryRead(TICK_COUNTER);
 					session_puts("SYSCALL: Eviando delivery WRITEPIPE\n ");
-					send_message_delivery_ticket(deliveryTicket, producer_task, consumer_task, consumer_PE);
+					send_message_delivery_control(Sessions, producer_task, consumer_task, consumer_PE);
 					// tEnd= MemoryRead(TICK_COUNTER);
 					// session_time_puts("REQ SEND= ");session_time_puts(itoa(tEnd-tInit));session_time_puts("\n");
 					#endif
@@ -402,6 +406,9 @@ int Syscall(unsigned int service, unsigned int arg0, unsigned int arg1, unsigned
 
 		case READPIPE:
 			tInit = MemoryRead(TICK_COUNTER);
+			#ifdef SESSION_MANAGER
+			timeoutMonitor(Sessions, tInit);
+			#endif
 
 			if ( MemoryRead(DMNI_SEND_ACTIVE) ){
 				return 0;
@@ -453,7 +460,7 @@ int Syscall(unsigned int service, unsigned int arg0, unsigned int arg1, unsigned
 
 			} else { //Remote producer : Sends the message request (remote producer)
 				#ifdef SESSION_MANAGER
-				send_message_request_ticket(deliveryTicket, producer_task, consumer_task, producer_PE);
+				send_message_request_control(Sessions, producer_task, consumer_task, producer_PE);
 				#endif
 				// session_puts("Req Via  READPIPE");
 				// session_puts("producer:");session_puts(itoh(producer_task)); session_puts("\n");
@@ -681,9 +688,9 @@ int handle_packet(volatile ServiceHeader * p) {
 		// puts("consumer:");puts(itoh(p->consumer_task)); puts("\n");
 		// puts("source:");puts(itoh(p->source_PE)); puts("\n");
 	
-		// printSessions(deliveryTicket);
+		// printSessions(Sessions);
 		session_puts("DATA: Chegou REQUEST de "); session_puts(itoh(p->producer_task)); session_puts("\n");
-		auxIndex = checkTicket(deliveryTicket, p->producer_task, p->consumer_task);
+		auxIndex = checkSession(Sessions, p->producer_task, p->consumer_task);
 		if (auxIndex < 0){
 			// session_puts("DATA: REQUEST - Nao achou a Sessao, salvando Service \n");
 			auxSlot = getServiceSlot();
@@ -691,18 +698,28 @@ int handle_packet(volatile ServiceHeader * p) {
 				session_puts("DATA: Nao tem lugar na ServiceQueue");
 			copyService(p, auxSlot);
 		}else{
-			auxSession = &deliveryTicket[auxIndex];
-			if (auxSession->status == WAITING_ANY)
+			auxSession = &Sessions[auxIndex];
+			if (auxSession->status == WAITING_ANY )
 			{
 				session_puts("DATA: -->> REQUEST esperando autorizar\n");			
 				// auxSession->time = arrivalTime;
-				auxSession->status = WAITING_TICKET;
+				auxSession->status = WAITING_CONTROL;
 				auxSlot = getServiceSlot();
 				copyService(p, auxSlot);
 				auxSession->header =auxSlot;
+				// puts("**MR NoC ANY:");puts(itoa(p->arrival_time - p->timestamp));puts("\n");
+
 			}
-			else if (auxSession->status == WAITING_DATA)
+			else if (auxSession->status == WAITING_DATA || auxSession->status == SUSPICIOUS)
 			{
+				// puts("**MR NoC DATA:");puts(itoa(p->arrival_time - p->timestamp));puts("\n");
+				// puts("**MR Check:");puts(itoa(p->arrival_time - auxSession->time));puts("\n");
+			
+				// if (tInit - auxSession->time  > LAT_THRESHOLD){
+				//		puts("WARNING REQ: XXXXX suspicious packet latency XXXXX \n");
+				// }
+				auxSession->time = 0;
+
 				session_puts("DATA: -->> REQUEST - Achou Sessão\n");
 
 				slot_ptr = remove_PIPE(p->producer_task, p->consumer_task);
@@ -732,7 +749,7 @@ int handle_packet(volatile ServiceHeader * p) {
 
 				} else if (p->requesting_processor != net_address){
 					// session_puts("DATA: Enviando DELIVERY por MR\n");
-					send_message_delivery_ticket(deliveryTicket, p->producer_task, p->consumer_task, p->requesting_processor);
+					send_message_delivery_control(Sessions, p->producer_task, p->consumer_task, p->requesting_processor);
 					send_message_delivery(p->producer_task, p->consumer_task, p->requesting_processor, &slot_ptr->message);
 					
 				//This else is executed when this slave receved a own MESSAGE_REQUEST due a by pass
@@ -741,6 +758,7 @@ int handle_packet(volatile ServiceHeader * p) {
 					write_local_msg_to_task(tcb_ptr, slot_ptr->message.length, slot_ptr->message.msg);
 				}
 				auxSession->status = WAITING_ANY;
+				auxSession->header = -1;
 			}
 		}
 		//MemoryWrite(KERNEL_DEBUG_STATE, 0);
@@ -778,7 +796,7 @@ int handle_packet(volatile ServiceHeader * p) {
 
 		} else if (p->requesting_processor != net_address){
 			send_message_delivery(p->producer_task, p->consumer_task, p->requesting_processor, &slot_ptr->message);
-			//puts("MANDOU O RECEIPT Req\n");
+			//puts("MANDOU O CONTROL Req\n");
 			// puts("target:");puts(itoh(p->requesting_processor)); puts("\n");
 			// puts("ID+Source:");puts(itoh((MemoryRead(TICK_COUNTER)<<16) | (get_net_address()& 0xFFFF))); puts("\n"); 
 		//This else is executed when this slave receved a own MESSAGE_REQUEST due a by pass
@@ -833,33 +851,44 @@ int handle_packet(volatile ServiceHeader * p) {
 
 	case  MESSAGE_DELIVERY: //MD_HANDLER
 		tInit = MemoryRead(TICK_COUNTER);
-
 	#ifdef SESSION_MANAGER 
 		// arrivalTime = auxTime;
 		// puts("\n");// puts("DATA: Chegou DELIVERY de "); puts(itoh(p->producer_task)); puts("\n");
-		auxIndex = checkTicket(deliveryTicket, p->producer_task, p->consumer_task);
+		auxIndex = checkSession(Sessions, p->producer_task, p->consumer_task);
 		if (auxIndex < 0)
 			session_puts("DATA: Nao achou a Sessao\n");
 
 		// puts("consumer_task:");puts(itoh( p->consumer_task));puts("\n");
 		// puts("producer_task:");puts(itoh(p->producer_task));puts("\n");
 
-		auxSession = &deliveryTicket[auxIndex];
+		auxSession = &Sessions[auxIndex];
 		// session_puts("DATA: status ="); session_puts(itoa(auxSession->status));
 		if (auxSession->status == WAITING_ANY){
 				
 			session_puts("DATA: -->> Mensagem esperando validação\n");
 					
 			// auxSession->time = arrivalTime;
-			auxSession->status = WAITING_TICKET;
+			auxSession->status = WAITING_CONTROL;
 			auxSession->msg = getMessageSlot();
 
 			//Escreve na fila de Mensagens
 			auxSession->msg->length = p->msg_lenght;
 			msg_ptr = auxSession->msg;
-			
-		}else if (auxSession->status == WAITING_DATA){
 
+			// puts("**MD NoC ANY:");puts(itoa(p->arrival_time - p->timestamp));puts("\n");
+			auxSession->time = 0;
+			
+		}else if (auxSession->status == WAITING_DATA || auxSession->status == SUSPICIOUS){
+
+			// if (tInit - auxSession->time  > LAT_THRESHOLD){
+			// 	puts("WARNING DEL: XXXXX suspicious packet latency XXXXX \n");
+			// }
+			// puts("---lat DATA:");puts(itoa( tInit - p->timestamp));puts("\n");
+			// puts("---lat HW:");puts(itoa( p->arrival_time));puts("\n");
+			// puts("**MD NoC DATA:");puts(itoa(p->arrival_time - p->timestamp));puts("\n");
+			// puts("**MD Check:");puts(itoa(p->arrival_time - auxSession->time));puts("\n");
+			
+			auxSession->time = 0;
 			//Escreve direto na TAREFA
 			session_puts("DATA: -->> Mensagem validada\n");
 			tcb_ptr = searchTCB(p->consumer_task);
@@ -876,14 +905,14 @@ int handle_packet(volatile ServiceHeader * p) {
 			MemoryWrite(DMNI_TIMEOUT_SIGNAL,0);
 			puts("payload incompleto...\n");
 		}
-		else if (auxSession->status == WAITING_DATA){		
+		else if (auxSession->status == WAITING_DATA || auxSession->status == SUSPICIOUS){		
 			// session_puts("DATA: -------->> Mensagem Autorizada\n");			
-			//clearTicket(deliveryTicket, auxIndex);
+			//clearSession(Sessions, auxIndex);
 			//puts("payload Completo...\n");
 			tcb_ptr->reg[0] = 1;
 
 			auxSession->status = WAITING_ANY;
-			//auxSession->rcvd += 1;
+			// auxSession->requested += 1;
 
 			if(tcb_ptr->scheduling_ptr->status != BLOCKED)
 				tcb_ptr->scheduling_ptr->status = READY;
@@ -1288,9 +1317,9 @@ int SeekInterruptHandler(){
 	target = MemoryRead(SEEK_TARGET_REGISTER);
 	source = MemoryRead(SEEK_SOURCE_REGISTER);
 	service = MemoryRead(SEEK_SERVICE_REGISTER);
-	
-	// For TICKET
-	unsigned int auxProducer, auxConsumer, auxCode;
+	int t1, t2, t3;
+	// For Sessions
+	unsigned int auxProducer, auxConsumer, auxCode, auxNumber;
 	Message * msg_ptr;
 	TCB * tcb_ptr = 0;
 	PipeSlot* tmpSlot;
@@ -1299,6 +1328,7 @@ int SeekInterruptHandler(){
 
 	switch(service){
 		case TARGET_UNREACHABLE_SERVICE:
+			// puts("TUS\n");
 			//perform clear
 			//Seek(CLEAR_SERVICE, source, target, 0);
 			//global variable for finding seek
@@ -1312,13 +1342,19 @@ int SeekInterruptHandler(){
 				//seek_puts("bug FDP\n");
 				seek_unr_count++;
 			}
+
+			// SERVICE  SOURCE TARGET PAYLOAD
+			// 5		32		16		8
+
+			// SEARCHPATH - 0x 0000 XXXX - 0xXXXX - 0x00
+
 			Seek(SEARCHPATH_SERVICE, ((seek_unr_count<<16) | (get_net_address()&0xffff)), source>>16, 0);
 			seek_unr_count++;
 			// seek_unr_count = seek_unr_count+3;
 		break;
 
 		case BACKTRACK_SERVICE:
-			// seek_puts("backtrack\n");
+			// puts("Backtrack\n");
 			slot_seek = ProcessTurns(backtrack, backtrack1, backtrack2);
 			// seek_puts("slot: "); seek_puts(itoa(slot_seek)); seek_puts("\n");
 			Seek(CLEAR_SERVICE, ((SR_Table[slot_seek].target<<16) | (get_net_address()&0xffff)), 0,0);
@@ -1334,37 +1370,33 @@ int SeekInterruptHandler(){
 		break;
 
 		#ifdef SESSION_MANAGER
-		case MSG_DELIVERY_RECEIPT: //MDR_HANDLER
+		case MSG_DELIVERY_CONTROL: //MDC_HANDLER
 			tInit = MemoryRead(TICK_COUNTER);
-			session_puts("CONTROL: Received MSG_DELIVERY_RECEIPT\n"); 
-			//  puts("source: "); puts(itoh(source)); puts("\n");
-			//  puts("target: "); puts(itoh(target)); puts("\n");
-			//puts("time: "); puts(itoh(payload)); puts("\n");
+			session_puts("CONTROL: Received MSG_DELIVERY_CONTROL\n"); 
+			
+			auxNumber = (source & 0xFFFF); // Number of received MESSAGE_DELIVERY
+			auxCode = ((source >> 16) & 0xFFC0); // 10-bit Code
+			auxIndex = (source >> 16) & 0x3F;    // 6-bit Index
 
-			auxCode = ((source >> 16) & 0xFFC0); // 10 bits de código
-			auxIndex = (source >> 16) & 0x3F;
-			// session_puts("Index: "); session_puts(itoh(auxIndex)); session_puts(" // Code: "); session_puts(itoh(auxCode)); session_puts("\n");
-
-			if (deliveryTicket[auxIndex].pairIndex == 0x3F){
-				// session_puts("Atualizou o pairIndex: "); session_puts(itoh(payload)); session_puts("\n");
-				deliveryTicket[auxIndex].pairIndex = payload;
+			if (Sessions[auxIndex].pairIndex == 0x3F){  // The first MDControl is the Session_ACK
+				Sessions[auxIndex].pairIndex = payload; // Confirming the index of the sender to do the direct indexing
 			}
-			// auxIndex = checkTicketCode(deliveryTicket, auxCode);
-			// auxIndex = deliveryTicket[auxIndex].pairIndex;
-			// printSessionStatus(deliveryTicket, auxIndex);
+
+			
 			if(auxIndex != 0x3F)
 			{
-				auxSession = &deliveryTicket[auxIndex];
-				auxConsumer = auxSession->consumer;
+				auxSession = &Sessions[auxIndex];   // Get the Session pointer (much used)
+				auxConsumer = auxSession->consumer; 
 				auxProducer = auxSession->producer;
-				
-				// session_puts("CONTROL: achou a Session\n"); 
-				if (auxSession->status == WAITING_TICKET)
+
+				if (auxSession->sent == auxNumber){ // Checks if it is a repeated MDC accidentally entering the kernel
+					session_puts("ERROR(MDC): Repeated MDC\n");
+				}
+				else if (auxSession->status == WAITING_CONTROL) // If the Data arrived first, the status will be WAITING_CONTROL
 				{
-					// session_puts("CONTROL: WAITING_TICKET\n"); 
 					msg_ptr = auxSession->msg;
 					if (msg_ptr == -1)
-						puts("CONTROL: Nao achou o ticket criado pelo MD\n"); 
+						puts("CONTROL: Nao achou a sessão criada pelo MD\n"); 
 
 					tcb_ptr = searchTCB(auxConsumer);
 
@@ -1376,115 +1408,118 @@ int SeekInterruptHandler(){
 					if (remove_msg_request(get_task_location(auxProducer), auxConsumer, auxProducer) == 0)
 						session_puts("CONTROL: Request não encontrado:\n");
 					
-					if (auxSession->rcvd != (source & 0xFFFF) +1)
+					if (auxSession->requested != (source & 0xFFFF) +1)
 						session_puts("ERRO(antes): numeros recebidos e enviados errados\n");
 
-					// auxSession->rcvd += 1;
+					auxSession->sent += 1;
 					auxSession->status = WAITING_ANY;
 					msg_ptr->length = -1 ; //clearMessageSlot(msg_ptr);
 
-				}else if (auxSession->status == WAITING_ANY){
-					// if (auxSession->rcvd +1 != (source & 0xFFFF))
-					// 	session_puts("ERRO(dps): numeros recebidos e enviados errados\n");
-					auxSession->sent = source & 0xFFFF;
-					auxSession->status = WAITING_DATA; 
+				}else if (auxSession->status == WAITING_ANY){ // If this is first, computate the sent values and set to WAITING_DATA, MD will handle the rest
+					auxSession->sent += 1;
+					auxSession->status = WAITING_DATA;
+					auxSession->time = tInit;
 				}
 			}else{
 				puts("CONTROL: ERRO MDR nao achou a Sessao!\n"); 
 			}
 		tEnd = MemoryRead(TICK_COUNTER);
-		session_time_puts("TICKET DEL= ");session_time_puts(itoa(tEnd-tInit));session_time_puts("\n");
+		session_time_puts("CONTROL DEL= ");session_time_puts(itoa(tEnd-tInit));session_time_puts("\n");
 		break;
 
-		case MSG_REQUEST_RECEIPT: //MRR_HANDLER
-			session_puts("Received MSG_REQUEST_RECEIPT\n");
-			// session_puts("source: "); puts(itoh(source)); puts("\n");
-			// session_puts("target: "); puts(itoh(target)); puts("\n");
-			// session_puts("time: "); puts(itoh(payload)); puts("\n");
-
+		case MSG_REQUEST_CONTROL: //MRR_HANDLER
 			tInit = MemoryRead(TICK_COUNTER);
-
 
 			auxConsumer = (payload << 8) | (source & 0xFF);
 			auxProducer = (payload << 8) | ((source >> 8) & 0xFF);
-			auxCode = ((source >> 16) & 0xFFC0); // 10 bits de código  "1111 1111 11 00 0000"
+			auxCode = ((source >> 16) & 0xFFC0); // 10 bits de código 
 			auxIndex = ((source >> 16) & 0x3F); // 6 bits do índice 
-			// session_puts("Index: "); session_puts(itoh(auxIndex)); session_puts(" // Code: "); session_puts(itoh(auxCode)); session_puts("\n");
-			// printSessionStatus(deliveryTicket, auxIndex);
+			auxNumber = source & 0xFFFF;
+			auxService = -1;
+
 			if (auxCode == 0xFFC0){ // END_SESSION // Se o código for "11 1111 1111"
-				// session_puts("Index: "); session_puts(itoh(auxIndex)); session_puts(" // Code: "); session_puts(itoh(auxCode)); session_puts("\n");
-				session_puts("CONTROL: Received END_SESSION\n");
-				// printSessionStatus(deliveryTicket, auxIndex);
-				clearTicket(deliveryTicket, auxIndex); // O índice vem junto no "code"
+				// session_puts("CONTROL: Received END_SESSION\n");
+				clearSession(Sessions, auxIndex); // O índice vem junto no "code"
 			}
-			else if(deliveryTicket[auxIndex].code != auxCode) //START_SESSION
+			else if(Sessions[auxIndex].code != auxCode) //START_SESSION
 			{
-				session_puts("CONTROL: Received START_SESSION\n");
-				if (checkTicketCode(deliveryTicket, auxCode) == START_SESSION){
-					auxIndex = createSession(deliveryTicket, auxProducer, auxConsumer, (auxCode | auxIndex));
+				// session_puts("CONTROL: Received START_SESSION\n");
+				if (checkSessionCode(Sessions, auxCode) == START_SESSION){
+					auxIndex = createSession(Sessions, auxProducer, auxConsumer, (auxCode | auxIndex)); // Session Creation 
+					Sessions[auxIndex].header = checkWaitingServices(waitingServices, auxProducer, auxConsumer, MESSAGE_REQUEST); // Checking for pending MRs
 				}
-				// printSessionStatus(deliveryTicket, auxIndex);
 			}
-			if (deliveryTicket[auxIndex].code == auxCode) //default
+			// t1 = MemoryRead(TICK_COUNTER);
+			if (Sessions[auxIndex].code == auxCode) //default
 			{
-				session_puts("CONTROL: Received MRR\n");
-				auxService = checkWaitingServices(waitingServices, auxProducer, auxConsumer, MESSAGE_REQUEST);
-				auxSession = &deliveryTicket[auxIndex];
-				// if (auxService != -1)
-				// 	session_puts("CONTROL: Tinha MR na fila\n");
+				// session_puts("CONTROL: Received MRC\n");
+				auxSession = &Sessions[auxIndex];
+				//AuxService needs to be retrieved and, in case of new Session, both steps need to be done here- Control and Data
+				auxService = auxSession->header;
 
-				if ((auxSession->status == WAITING_ANY) || (auxService != -1))
-				{
-					session_puts("---- Receipt Primeiro, registrando chegada\n");
-					// auxSession->time = (source >> 16 & 0xFFFF);
-					auxSession->header = auxService;
-					auxSession->status = WAITING_DATA;
-				}
-				if ((auxSession->status == WAITING_TICKET) || (auxService != -1))
-				{
-					session_puts("---- Receipt Segundo, resgatando MR\n");
-					
-					auxService = auxSession->header;
+				if ((auxSession->requested == auxNumber) && (auxNumber != 1) ){ // Repeated MRC 
+					// session_puts("ERRO(req): Recebendo MRC repetido\n");
+				}else{
+					auxSession->requested += 1;  
 
-					tmpSlot = remove_PIPE(auxService->producer_task, auxService->consumer_task);
+					if ((auxSession->status == WAITING_ANY) || (auxService != -1)){ 
+						// session_puts("---- Receipt Primeiro, registrando chegada\n");
+						// auxSession->header = auxService;
+						auxSession->status = WAITING_DATA;
+						auxSession->time = tInit;
+						
+					}
+					// t2 = MemoryRead(TICK_COUNTER);
+					if ((auxSession->status == WAITING_CONTROL) || (auxService != -1)){
+						// session_puts("---- Receipt Segundo, resgatando MR\n");
+						
+						// auxService = auxSession->header;
 
-					//Test if there is no message in PIPE
-					if (tmpSlot == 0){
-						// session_puts("---- sem mensagem no PIPE\n");
-						//Gets the location of the producer task
-						task_loc = get_task_location(auxService->producer_task);
+						tmpSlot = remove_PIPE(auxService->producer_task, auxService->consumer_task);
 
-						//This if check if the task was migrated
-						if ( task_loc != -1 && task_loc != net_address && auxService->requesting_processor == auxService->source_PE){
+						//Test if there is no message in PIPE
+						if (tmpSlot == 0){
+							// session_puts("---- sem mensagem no PIPE\n");
+							//Gets the location of the producer task
+							task_loc = get_task_location(auxService->producer_task);
 
-							//MESSAGE_REQUEST by pass
-							send_message_request(auxService->producer_task, auxService->consumer_task, task_loc, auxService->requesting_processor);
+							//This if check if the task was migrated
+							if ( task_loc != -1 && task_loc != net_address && auxService->requesting_processor == auxService->source_PE){
 
-							if ( search_PIPE_producer(auxService->producer_task) == 0){
+								//MESSAGE_REQUEST by pass
+								send_message_request(auxService->producer_task, auxService->consumer_task, task_loc, auxService->requesting_processor);
 
-								send_update_task_location(auxService->requesting_processor, auxService->producer_task, task_loc);
+								if ( search_PIPE_producer(auxService->producer_task) == 0){
+
+									send_update_task_location(auxService->requesting_processor, auxService->producer_task, task_loc);
+								}
+
+							} else {
+								insert_message_request(auxService->producer_task, auxService->consumer_task, auxService->requesting_processor);
 							}
 
+						} else if (auxService->requesting_processor != net_address){
+							// session_puts("---- enviando MD e MDR\n");
+							// t3 = MemoryRead(TICK_COUNTER);
+							send_message_delivery_control(Sessions, auxService->producer_task, auxService->consumer_task, auxService->requesting_processor);
+							send_message_delivery(auxService->producer_task, auxService->consumer_task, auxService->requesting_processor, &tmpSlot->message);
 						} else {
-
-							insert_message_request(auxService->producer_task, auxService->consumer_task, auxService->requesting_processor);
+							// session_puts("---- deu no Pass\n");
+							tcb_ptr = searchTCB(auxService->consumer_task);
+							write_local_msg_to_task(tcb_ptr, tmpSlot->message.length, tmpSlot->message.msg);
 						}
-
-					} else if (auxService->requesting_processor != net_address){
-						// session_puts("---- enviando MD e MDR\n");
-						send_message_delivery_ticket(deliveryTicket, auxService->producer_task, auxService->consumer_task, auxService->requesting_processor);
-						send_message_delivery(auxService->producer_task, auxService->consumer_task, auxService->requesting_processor, &tmpSlot->message);
-					} else {
-						session_puts("---- deu no Pass\n");
-						tcb_ptr = searchTCB(auxService->consumer_task);
-						write_local_msg_to_task(tcb_ptr, tmpSlot->message.length, tmpSlot->message.msg);
+						auxService->service = BLANK; //clearServiceSlot(auxService);
+						auxSession->status = WAITING_ANY;
+						auxSession->header = -1;
 					}
-					auxService->service = BLANK; //clearServiceSlot(auxService);
-					auxSession->status = WAITING_ANY;
 				}
 			}		
 		tEnd = MemoryRead(TICK_COUNTER);
-		session_time_puts("TICKET REQ= ");session_time_puts(itoa(tEnd-tInit));session_time_puts("\n");
+		session_time_puts("CONTROL REQ= ");session_time_puts(itoa(tEnd-tInit));session_time_puts("\n");
+		// session_time_puts("T1= ");session_time_puts(itoa(t1-tInit));session_time_puts("\n");
+		// session_time_puts("T2= ");session_time_puts(itoa(t2-tInit));session_time_puts("\n");
+		// session_time_puts("T3= ");session_time_puts(itoa(t3-tInit));session_time_puts("\n");
+
 		break;
 		#endif
 
@@ -1661,7 +1696,6 @@ void OS_InterruptServiceRoutine(unsigned int status) {
 	ServiceHeader * next_service;
 	unsigned call_scheduler;
 
-
 	if (current == &idle_tcb){
 		total_slack_time += MemoryRead(TICK_COUNTER) - last_idle_time;
 	}
@@ -1724,6 +1758,10 @@ void OS_InterruptServiceRoutine(unsigned int status) {
 		MemoryWrite(SCHEDULING_REPORT, current->id);
 	}
 
+	#ifdef SESSION_MANAGER
+	timeoutMonitor(Sessions, MemoryRead(TICK_COUNTER));
+	#endif
+	
     /*runs the scheduled task*/
     ASM_RunScheduledTask(current);
 }
@@ -1804,7 +1842,7 @@ int main(){
 
 	initFTStructs();
 
-    initMessageQueue();
+    initSessions();
 
 	init_service_header_slots();
 

@@ -682,12 +682,12 @@ void pe::seek_receive(){
 						int_seek.write(1);
 					break;							
 					case 0x13:
-						cout << "MSG_DELIVERY_RECEIPT";
+						cout << "MSG_DELIVERY_CONTROL";
 						// cout << "LOAN_PROCESSOR_REQUEST_SERVICE";
 						int_seek.write(1);
 					break;
 					case 0x14:
-						cout << "MSG_REQUEST_RECEIPT";
+						cout << "MSG_REQUEST_CONTROL";
 						// cout << "LOAN_PROCESSOR_REQUEST_SERVICE";
 						int_seek.write(1);
 					break;

@@ -34,7 +34,8 @@ int main()
 	int msg_length, blocks, qtd_messages[MAX_SLAVES];
 	int pad_value, aux_msg[3];
 	int aux1_blocks_PE;
-	int aux2_blocks_PE;	
+	int aux2_blocks_PE;
+	int round=0;
 
 	// fill each block with values 'A', 'B', ...
 	for(x = 0; x < MSG_LENGHT; x++){
@@ -87,10 +88,11 @@ int main()
 		memcpy(&msg.msg, &aux_msg, 4*msg.length);
 		Send(&msg, Slave[x]);  
 	}
-
 	// Send blocks to Cipher and 
 	// Receive the correspondent block Encrypted
 	for(x = 0; x < blocks+1; x += NUMBER_OF_SLAVES){
+		round ++;
+		Echo("Round: "); Echo(itoa(round));
 		// send a block to Slave_PE encrypt
 		for(y = 0; y < NUMBER_OF_SLAVES; y++){
 			if(qtd_messages[(x+y) % NUMBER_OF_SLAVES] != 0){
@@ -146,7 +148,8 @@ int main()
 	// Send blocks to Cipher and 
 	// Receive the correspondent block Encrypted
 	for(x = 0; x < blocks+1; x += NUMBER_OF_SLAVES){
-		// send each block to a Slave_PE
+		round ++;
+		Echo("Round: "); Echo(itoa(round));		// send each block to a Slave_PE
 		for(y = 0; y < NUMBER_OF_SLAVES; y++){
 			if(qtd_messages[(x+y) % NUMBER_OF_SLAVES] != 0){
 				msg.length = 4*AES_BLOCK_SIZE;

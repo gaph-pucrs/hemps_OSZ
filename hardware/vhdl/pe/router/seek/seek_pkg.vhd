@@ -77,8 +77,8 @@ package seek_pkg is
     constant    SET_SZ_RECEIVED_SERVICE                 : std_logic_vector(TAM_SERVICE_SEEK-1 downto 0) := "11101";
     constant    SET_EXCESS_SZ_SERVICE                   : std_logic_vector(TAM_SERVICE_SEEK-1 downto 0) := "11110";
     constant    RCV_FREEZE_TASK_SERVICE                 : std_logic_vector(TAM_SERVICE_SEEK-1 downto 0) := "11111";
-    constant    MSG_DELIVERY_RECEIPT                     : std_logic_vector(TAM_SERVICE_SEEK-1 downto 0) := "10011";
-    constant    MSG_REQUEST_RECEIPT                     : std_logic_vector(TAM_SERVICE_SEEK-1 downto 0) := "10100";
+    constant    MSG_DELIVERY_CONTROL                     : std_logic_vector(TAM_SERVICE_SEEK-1 downto 0) := "10011";
+    constant    MSG_REQUEST_CONTROL                     : std_logic_vector(TAM_SERVICE_SEEK-1 downto 0) := "10100";
 
     subtype     regNtarget                              is std_logic_vector((TARGET_SIZE-1) downto 0);
     subtype     regNsource                              is std_logic_vector((SOURCE_SIZE-1) downto 0);
@@ -118,7 +118,7 @@ end package seek_pkg;
 -- NEW_APP_SERVICE              Broadcast to all local ports    Global              Nr,task     Global master virtual
 -- NEW_APP_ACK_SERVICE          Broadcast With Target           Global              Nr,task     Address of the LMP
 -- GMV_READY_SERVICE            Broadcast Without Target        Global              --          Injection Entity 
--- MSG_DELIVERY_RECEIPT             Broadcast With Target           Global              TgtAppID    TargetID                        SrcAppID
--- MSG_REQUEST_RECEIPT          Broadcast With Target           Global              TgtAppID    TargetID                        SrcAppID
+-- MSG_DELIVERY_CONTROL             Broadcast With Target           Global              TgtAppID    TargetID                        SrcAppID
+-- MSG_REQUEST_CONTROL          Broadcast With Target           Global              TgtAppID    TargetID                        SrcAppID
 
---Seek(MSG_DELIVERY_RECEIPT, target, (AppID << 16), 0); 
+--Seek(MSG_DELIVERY_CONTROL, target, (AppID << 16), 0); 

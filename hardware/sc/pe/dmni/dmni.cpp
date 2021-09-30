@@ -156,6 +156,8 @@ void dmni::receive(){
 		receive_active.write(0);
 		DMNI_Receive.write(WAIT);
 		intr_count.write(0);
+		tick_counter.write(0);
+		flit_location.write(0);
 		for(int i=0; i<BUFFER_SIZE; i++){ //in vhdl replace by OTHERS=>'0'
 			is_header[i] = 0;
 		}
@@ -280,17 +282,28 @@ void dmni::receive(){
 			
 					if (write_enable.read() == 1 && read_av.read() == 1){
 						mem_byte_we.write(0xF);
-			
-						mem_data_write.write(buffer[first.read()].read());
+						flit_location.write((flit_location.read() + 1));
+
+						// mem_data_write.write(buffer[first.read()].read());
+
+						if (flit_location.read() == 8){
+							mem_data_write.write(tick_counter.read());
+						}else{
+							mem_data_write.write(buffer[first.read()].read());
+						}
+
 						first.write(first.read() + 1);
 						add_buffer.write(0);
 						recv_address.write(recv_address.read() + WORD_SIZE);
 						recv_size.write(recv_size.read() - 1);
-						
+
 						//if size == 0 OR the eop signal is set, the reception ended
 						// if (recv_size.read() == 0){
 						if (recv_size.read() == 0){
 							DMNI_Receive.write(END);
+							if(buffer_eop[first.read()] == 1){
+								flit_location.write(0);
+							}
 						}
 						else{
 							if(buffer_eop[first.read()] == 1){
@@ -303,12 +316,14 @@ void dmni::receive(){
 								}
 								else{//normal reception
 									DMNI_Receive.write(END);
+									flit_location.write(0);
 								}
 							}
 						}
 					} else {
 						if(buffer_eop[first.read()] == 1){
 							DMNI_Receive.write(END);
+							flit_location.write(0);
 						}
 						mem_byte_we.write(0);
 					}
@@ -346,6 +361,8 @@ void dmni::receive(){
 
 		} //end if  if (reg_interrupt_received_wait.read() == 0){	
 	} //end else
+
+	tick_counter.write((tick_counter.read() + 1) );
 }
 
 

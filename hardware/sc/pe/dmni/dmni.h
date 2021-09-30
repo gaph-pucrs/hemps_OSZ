@@ -109,6 +109,8 @@ SC_MODULE(dmni){
 	sc_signal<sc_uint<32 > > 	address;
 	sc_signal<sc_uint<32 > > 	address_2;
 	sc_signal<sc_uint<32 > > 	size;
+	sc_signal<sc_uint<32 > > 	tick_counter;
+	sc_signal<sc_uint<32 > > 	flit_location;
 	sc_signal<sc_uint<32 > > 	size_2;
 	sc_signal<sc_uint<32 > >	send_address;
 	sc_signal<sc_uint<32 > >	send_address_2;

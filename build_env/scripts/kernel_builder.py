@@ -47,6 +47,7 @@ def generate_sw_pkg( yaml_r ):
     static_mapping_list = get_static_mapping_list(yaml_r)
     io_number =         get_io_number(yaml_r)
     open_ports =        get_open_ports(yaml_r)
+    session =           get_session(yaml_r)
 
     
     cluster_list = create_cluster_list(x_mpsoc_dim, y_mpsoc_dim, x_cluster_dim, y_cluster_dim, master_location)
@@ -98,6 +99,11 @@ def generate_sw_pkg( yaml_r ):
     for port in open_ports:
         file_lines.append("#define "+str.upper(port[0])+"\t\t\t\t\t"+str(port[1])+"\n")
     
+    if session:
+        file_lines.append("\n//Comunication Session protocol is Enabled\n")
+        file_lines.append("#define SESSION_MANAGER\n")
+
+
     file_lines.append("\n")
     #file_lines.append("#ifdef IS_MASTER\n")
     file_lines.append("//This struct stores the cluster information\n")

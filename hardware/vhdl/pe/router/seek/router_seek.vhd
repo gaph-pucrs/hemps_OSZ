@@ -493,7 +493,7 @@ process(clock, reset)--processo que gerencia cada estado manager
 						--if (j /= to_integer(unsigned((backtrack_port_table(sel)))))  then       -- Backtrack local, CLEAR não passava                
 							if (j /= to_integer(unsigned((backtrack_port_table(sel)))) OR service_table(sel) = CLEAR_SERVICE)  then                       
 								int_out_req_router_seek(j)	<= '1';
-							end if;       
+							end if;
 						end loop;	
 					
 					when WAIT_ACK_PORTS =>
@@ -561,7 +561,7 @@ process(EA_manager, req_task , source_table, service_table, target_table, payloa
 					or  service_table(sel) = SET_EXCESS_SZ_SERVICE ) then 
 					PE_manager <= PROPAGATE;
 				--  or  service_table(sel) = LOAN_PROCESSOR_REQUEST_SERVICE or  service_table(sel) = LOAN_PROCESSOR_RELEASE_SERVICE
-				-- 	or service_table(sel) = MSG_REQUEST_RECEIPT
+				-- 	or service_table(sel) = MSG_REQUEST_CONTROL
 				elsif (pending_table(sel) = '1') and (service_table(sel) = BACKTRACK_SERVICE) then
 					PE_manager <= SERVICE_BACKTRACK;
 				elsif pending_local(sel) = '1' then
@@ -675,9 +675,9 @@ process(EA_manager, req_task , source_table, service_table, target_table, payloa
 					PE_manager <= INIT_CLEAR;	
 				elsif (int_in_ack_router_seek(LOCAL) = '1'  and  service_table(sel) = WAIT_KERNEL_SERVICE_ACK ) then
 					PE_manager <= INIT_CLEAR;	
-				elsif (int_in_ack_router_seek(LOCAL) = '1'  and  service_table(sel) = MSG_DELIVERY_RECEIPT ) then
+				elsif (int_in_ack_router_seek(LOCAL) = '1'  and  service_table(sel) = MSG_DELIVERY_CONTROL ) then
 					PE_manager <= INIT_CLEAR;	
-				elsif (int_in_ack_router_seek(LOCAL) = '1'  and  service_table(sel) = MSG_REQUEST_RECEIPT ) then
+				elsif (int_in_ack_router_seek(LOCAL) = '1'  and  service_table(sel) = MSG_REQUEST_CONTROL ) then
 					PE_manager <= INIT_CLEAR;		
 				elsif (in_ack_send_kernel_seek = '1'  and  service_table(sel) = SEND_KERNEL_SERVICE ) then 
 					PE_manager <= INIT_CLEAR;
@@ -720,9 +720,9 @@ process(EA_manager, req_task , source_table, service_table, target_table, payloa
 				-- 	PE_manager <= SEND_LOCAL;
 				elsif ((vector_ack_ports or vector_nack_ports) = "1111" )  and service_table(sel) = SET_SECURE_ZONE_SERVICE and source_table(sel)(15 downto 0) /= router_address then
 					PE_manager <= SEND_LOCAL;
-				-- elsif ((vector_ack_ports or vector_nack_ports) = "1111" )  and service_table(sel) = MSG_DELIVERY_RECEIPT and source_table(sel)(15 downto 0) /= router_address then
+				-- elsif ((vector_ack_ports or vector_nack_ports) = "1111" )  and service_table(sel) = MSG_DELIVERY_CONTROL and source_table(sel)(15 downto 0) /= router_address then
 				-- 	PE_manager <= SEND_LOCAL;
-				-- elsif ((vector_ack_ports or vector_nack_ports) = "1111" )  and service_table(sel) = MSG_REQUEST_RECEIPT and source_table(sel)(15 downto 0) /= router_address then
+				-- elsif ((vector_ack_ports or vector_nack_ports) = "1111" )  and service_table(sel) = MSG_REQUEST_CONTROL and source_table(sel)(15 downto 0) /= router_address then
 				-- 	PE_manager <= SEND_LOCAL;
 				elsif ((vector_ack_ports or vector_nack_ports) = "1111" )  and service_table(sel) = SET_EXCESS_SZ_SERVICE and source_table(sel)(15 downto 0) /= router_address then
 					PE_manager <= SEND_LOCAL;

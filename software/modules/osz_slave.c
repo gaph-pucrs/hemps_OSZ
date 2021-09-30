@@ -237,51 +237,132 @@ void Unset_Secure_Zone(unsigned int left_low_corner, unsigned int right_high_cor
   seek_puts("LOCAL RH address: ");seek_puts(itoh(LOCAL_right_high_corner));seek_puts("\n");
 }
 
-int findBlankTicket(Ticket* tickets){
+
+//////////////////// Session Functions ////////////////////
+
+/*--------------------------------------------------------------------
+* findBlankSession
+*
+* DESCRIPTION:
+*    Searches the session array structure for a free space
+*
+*    parameters: *sessions - array of the system sessions
+*    
+*    return: the position or -1 if there is no free position
+*--------------------------------------------------------------------*/
+int findBlankSession(Session* sessions){
   for (int i = 0; i < MAX_SESSIONS; i++)
   {
-    if (tickets[i].status == BLANK)
+    if (sessions[i].status == BLANK)
       return i;
   }
-
   puts("ERROR: No free Session structure");
   return -1;
 }
 
-int checkTicket(Ticket* tickets, unsigned int prod, unsigned int cons){
+/*--------------------------------------------------------------------
+* checkSession
+*
+* DESCRIPTION:
+*    Searches the session array structure for a running session of Prod and Cons
+*
+*    parameters:  *sessions - array of the system sessions
+*                  prod - producer task ID
+*                  cons - consumer task ID               
+*    
+*    return: the position or -1 if there is no free position
+*--------------------------------------------------------------------*/
+int checkSession(Session* sessions, unsigned int prod, unsigned int cons){
   for (int i = 0; i < MAX_SESSIONS; i++)
   {
-    if ((tickets[i].producer == prod) && (tickets[i].consumer == cons)){     
+    if ((sessions[i].producer == prod) && (sessions[i].consumer == cons)){     
 	    return i;
     }
   }
   return -1;
 }
 
-int checkTicketCode(Ticket* tickets, unsigned int code){
-  if (code == 0xFFFF)
+
+/*--------------------------------------------------------------------
+* checkSessionCode
+*
+* DESCRIPTION:
+*    Searches the session array structure for a running session by CODE
+*
+*    parameters:  *sessions - array of the system sessions
+*                  code - session code
+*    
+*    return:  the position if there is a match
+*             END_SESSION if the code is 0xFFFF
+*             START_SESSION if there is no running session with that code
+*--------------------------------------------------------------------*/
+int checkSessionCode(Session* sessions, unsigned int code){
+  if (code == 0xFFFF)   // 0xFFFF is the signature for ending a session
     return END_SESSION;
   
-  for (int i = 0; i < MAX_SESSIONS; i++)
+  for (int i = 0; i < MAX_SESSIONS; i++) //Checking every session on the array
   {
-    if ((tickets[i].code == code)){
+    if ((sessions[i].code == code))
       return i;
-    }
   }
 
-  return START_SESSION;
+  return START_SESSION; // No session is found, so this is a new Session request
 }
 
-void initMessageQueue(){
+/*--------------------------------------------------------------------
+* clearSession
+*
+* DESCRIPTION:
+*    Clears the slot of the Session array
+*
+*    parameters:  *sessions - array of the system sessions
+*                  index - the index of the session in the array
+*    
+*    return:  none
+*--------------------------------------------------------------------*/
+int clearSession(Session* sessions, int index){
+  sessions[index].producer = -1; 
+  sessions[index].consumer = -1;
+  sessions[index].time = 0;
+  sessions[index].status = BLANK;
+  sessions[index].sent = 0;
+  sessions[index].requested = 0;
+  sessions[index].code = 0;
+  sessions[index].msg->length = -1;
+  sessions[index].pairIndex = -1;
+
+}
+
+/*--------------------------------------------------------------------
+* initSessions
+*
+* DESCRIPTION:
+*    Initializes the structures utilized by the Sessions Protocol
+*
+*    parameters:  none
+*    
+*    return:  none
+*--------------------------------------------------------------------*/
+void initSessions(){
   for (int i = 0; i < WAITING_MSG_QUEUE; i++){
     waitingMessages[i].length = -1;
     waitingServices[i].service = BLANK;
   }
   for (int i = 0; i < MAX_SESSIONS; i++){
-    clearTicket(deliveryTicket, i);
+    clearSession(Sessions, i);
   }
 }
 
+/*--------------------------------------------------------------------
+* getMessageSlot
+*
+* DESCRIPTION:
+*    Searches for a free space to put a Delivery Message
+*
+*    parameters:  none
+*    
+*    return:  pointer to the Message Slot
+*--------------------------------------------------------------------*/
 Message* getMessageSlot(){
   for (int i = 0; i < WAITING_MSG_QUEUE; i++)
   {
@@ -294,10 +375,30 @@ Message* getMessageSlot(){
   return -1;
 }
 
+/*--------------------------------------------------------------------
+* clearMessageSlot
+*
+* DESCRIPTION:
+*    Clears an specific Message Slot
+*
+*    parameters:  *m - slot to be cleared
+*    
+*    return:  none
+*--------------------------------------------------------------------*/
 void clearMessageSlot(Message* m){
   m->length = -1;
 }
 
+/*--------------------------------------------------------------------
+* getServiceSlot
+*
+* DESCRIPTION:
+*    Searches for a free space to put a Request Message Service
+*
+*    parameters:  none
+*    
+*    return:  pointer to the Service Slot
+*--------------------------------------------------------------------*/
 ServiceHeader* getServiceSlot(){
   for (int i = 0; i < WAITING_MSG_QUEUE; i++)
   {
@@ -310,71 +411,113 @@ ServiceHeader* getServiceSlot(){
   return -1;
 }
 
+/*--------------------------------------------------------------------
+* clearMessageSlot
+*
+* DESCRIPTION:
+*    Clears an specific Message Slot
+*
+*    parameters:  *m - slot to be cleared
+*    
+*    return:  none
+*--------------------------------------------------------------------*/
 void clearServiceSlot(ServiceHeader* slot){
   slot->service = BLANK;
 }
 
-int clearTicket(Ticket* tickets, int index){
-  // puts("Limpando Sessão:\n")
-  // printSessionStatus(tickets, index);
-  tickets[index].time = 0;
-  tickets[index].producer = -1;
-  tickets[index].consumer = -1;
-  tickets[index].status = BLANK;
-  tickets[index].sent = 0;
-  tickets[index].rcvd = 0;
-  tickets[index].code = 0;
-  tickets[index].msg->length = -1;
-  tickets[index].pairIndex = -1;
 
-}
-
-int createSession(Ticket* tickets, unsigned int prod, unsigned int cons, int code){
-  int auxIndex = findBlankTicket(tickets);
+/*--------------------------------------------------------------------
+* createSession
+*
+* DESCRIPTION:
+*    Creates a Session in the system
+*
+*    parameters:  *sessions - array of the system sessions
+*                  code - session code
+*                  prod - producer task ID
+*                  cons - consumer task ID     
+*    
+*    return:  the index of the created Session in the Session Structure
+*--------------------------------------------------------------------*/
+int createSession(Session* sessions, unsigned int prod, unsigned int cons, int code){
+  int auxIndex = findBlankSession(sessions); // Get a free space
 
   if (auxIndex == -1){
-    puts("Sem slot de Session\n");
+    puts("No slot available for new Sessions\n");
     return -1;
   }
   
-  tickets[auxIndex].status = WAITING_ANY;
-  tickets[auxIndex].code = code & 0xFFC0;
-  tickets[auxIndex].consumer = cons;
-	tickets[auxIndex].producer = prod;
-  tickets[auxIndex].pairIndex = code & 0x3F;
+  // Filling initial values
+  sessions[auxIndex].status = WAITING_ANY;
+  sessions[auxIndex].code = code & 0xFFC0;
+  sessions[auxIndex].consumer = cons;
+	sessions[auxIndex].producer = prod;
+  sessions[auxIndex].pairIndex = code & 0x3F; // Three last bits of the code are the Index
 
-  // puts("Criando Session: ");
-  // printSessionStatus(tickets, auxIndex);
   return auxIndex;
 }
 
-void printSessions(Ticket* tickets){
+/*--------------------------------------------------------------------
+* printSessions
+*
+* DESCRIPTION:
+*    Prints the running sessions on the system
+*
+*    parameters:  *sessions - array of the system sessions    
+*    
+*    return: none
+*--------------------------------------------------------------------*/
+void printSessions(Session* sessions){
 
   for (int i = 0; i < MAX_SESSIONS; i++)
   {
-    if (tickets[i].status != BLANK){
-        puts("Session ------ Code: ");puts(itoh(deliveryTicket[i].code));puts("\n");
-        puts("  Consumer: ");puts(itoh(deliveryTicket[i].consumer));puts("\n");
-        puts("  Producer: ");puts(itoh(deliveryTicket[i].producer));puts("\n");
+    if (sessions[i].status != BLANK){
+        puts("Session ------ Code: ");puts(itoh(Sessions[i].code));puts("\n");
+        puts("  Consumer: ");puts(itoh(Sessions[i].consumer));puts("\n");
+        puts("  Producer: ");puts(itoh(Sessions[i].producer));puts("\n");
     }
   }
 }
 
-void printSessionStatus(Ticket* tickets, unsigned int index){
-  puts("Session ------ Code: ");puts(itoh(deliveryTicket[index].code));puts("\n");
-  puts("  Consumer: ");puts(itoh(deliveryTicket[index].consumer));puts("\n");
-  puts("  Producer: ");puts(itoh(deliveryTicket[index].producer));puts("\n");
-  puts("  PairIndex: ");puts(itoh(deliveryTicket[index].pairIndex));puts("\n");
+/*--------------------------------------------------------------------
+* printSessionStatus
+*
+* DESCRIPTION:
+*    Prints the main parameters of a specific session
+*
+*    parameters:  *sessions - array of the system sessions 
+*                  index - position of the Session to be printed   
+*    
+*    return: none
+*--------------------------------------------------------------------*/
+void printSessionStatus(Session* sessions, unsigned int index){
+  puts("Session ------ Code: ");puts(itoh(Sessions[index].code));puts("\n");
+  puts("  Consumer: ");puts(itoh(Sessions[index].consumer));puts("\n");
+  puts("  Producer: ");puts(itoh(Sessions[index].producer));puts("\n");
+  puts("  PairIndex: ");puts(itoh(Sessions[index].pairIndex));puts("\n");
   puts("  MyIndex: ");puts(itoh(index));puts("\n");
-  // puts("  Recieved: ");puts(itoa(deliveryTicket[index].rcvd));puts("\n");
-  // puts("  Sent: ");puts(itoa(deliveryTicket[index].sent));puts("\n");
+  // puts("  Recieved: ");puts(itoa(Sessions[index].requested));puts("\n");
+  // puts("  Sent: ");puts(itoa(Sessions[index].sent));puts("\n");
 }
 
-int checkRunningSession(Ticket* tickets, unsigned int task){
+/*--------------------------------------------------------------------
+* checkRunningSession
+*
+* DESCRIPTION:
+*   Searches the running sessions to find if there is an open session with
+* a specific task
+*
+*    parameters:  *sessions - array of the system sessions 
+*                  task - task to be searched in sessions   
+*    
+*    return:  the index of the found Session
+*             -1 if not found
+*--------------------------------------------------------------------*/
+int checkRunningSession(Session* sessions, unsigned int task){
   for (int i = 0; i < MAX_SESSIONS; i++)
   {
-    if ((tickets[i].status != BLANK)){
-      if ((tickets[i].producer == task) || (tickets[i].consumer == task)){
+    if ((sessions[i].status != BLANK)){
+      if ((sessions[i].producer == task) || (sessions[i].consumer == task)){
         return i;
       }
     }
@@ -382,7 +525,18 @@ int checkRunningSession(Ticket* tickets, unsigned int task){
   return -1;
 }
 
-int copyService(ServiceHeader* SHsource, ServiceHeader* SHtarget){
+/*--------------------------------------------------------------------
+* copyService
+*
+* DESCRIPTION:
+*   Copies one Service Header into another slot
+*
+*    parameters:  *SHsource - Service Heaader Slot Source 
+*                 *SHtarget - Service Heaader Slot Target   
+*    
+*    return: none
+*--------------------------------------------------------------------*/
+void copyService(ServiceHeader* SHsource, ServiceHeader* SHtarget){
   SHtarget->header[MAX_SOURCE_ROUTING_PATH_SIZE] = SHsource->header[MAX_SOURCE_ROUTING_PATH_SIZE];
   SHtarget->payload_size = SHsource->payload_size;
   SHtarget->service = SHsource->service;
@@ -398,6 +552,21 @@ int copyService(ServiceHeader* SHsource, ServiceHeader* SHtarget){
   SHtarget->initial_address = SHsource->initial_address;
 }
 
+/*--------------------------------------------------------------------
+* checkWaitingServices
+*
+* DESCRIPTION:
+*   Searches the waiting services array to find if there is an specific service
+* with correspondent consumer and producer waiting to be handled
+*
+*    parameters:  *serviceQueue - array of the waiting Service Headers 
+*                  sProd - producer task to be searched  
+*                  sCons - consumer task to be searched    
+*                  serv - service task to be searched in sessions   
+*    
+*    return:  pointer to the found Service slot
+*             -1 if not found
+*--------------------------------------------------------------------*/
 ServiceHeader* checkWaitingServices(ServiceHeader* serviceQueue, int sProd, int sCons, int serv){
   for (int i = 0; i < WAITING_MSG_QUEUE; i++)
   {
@@ -408,25 +577,97 @@ ServiceHeader* checkWaitingServices(ServiceHeader* serviceQueue, int sProd, int 
   return -1;
 }
 
-int send_message_delivery_ticket(Ticket * tickets,unsigned int prod, unsigned int cons, unsigned int target){
+/*--------------------------------------------------------------------
+* send_message_delivery_control
+*
+* DESCRIPTION:
+*   Sends the MESSAGE_DELIVERY_CONTROL of the Sessions Protocol
+*
+*    parameters:  *sessions - array of the system sessions 
+*                  prod - producer task of the Session
+*                  cons - consumer task of the Session
+*                  target - NoC address of the PE to send the Message  
+*    
+*    return:  none
+*--------------------------------------------------------------------*/
+void send_message_delivery_control(Session * sessions,unsigned int prod, unsigned int cons, unsigned int target){
   int index;
-  index = checkTicket(tickets, prod, cons);
+  index = checkSession(sessions, prod, cons); // Search for the Session
   if (index < 0)
     puts("ERRO: não achou sessão no MDR\n"); 
-  tickets[index].sent += 1;
-	Seek(MSG_DELIVERY_RECEIPT, (tickets[index].code <<16) | (tickets[index].pairIndex << 16) | tickets[index].sent , target, index);
+  sessions[index].sent += 1; // Increase the number of sent Messages
+	Seek(MSG_DELIVERY_CONTROL, (sessions[index].code <<16) | (sessions[index].pairIndex << 16) | sessions[index].sent , target, index);
 }
 
-int send_message_request_ticket(Ticket* tickets, unsigned int prod, unsigned int cons, unsigned int target){
+/*--------------------------------------------------------------------
+* send_message_request_control
+*
+* DESCRIPTION:
+*   Sends the MESSAGE_REQUEST_CONTROL of the Sessions Protocol
+*
+*    parameters:  *sessions - array of the system sessions 
+*                  prod - producer task of the Session
+*                  cons - consumer task of the Session
+*                  target - NoC address of the PE to send the Message  
+*    
+*    return:  none
+*--------------------------------------------------------------------*/
+void send_message_request_control(Session* sessions, unsigned int prod, unsigned int cons, unsigned int target){
   int index, code;
-  index  = checkTicket(tickets, prod, cons);
-  if(index < 0){
-    //session_puts("Criando a Session no CONS: ");
-    do{code = (MemoryRead(TICK_COUNTER)*get_net_address()) & 0xFFC0;}while(code == 0xFFC0); // Código não pode ser FFC0
-    index = createSession(tickets, prod, cons, (code | 0x3F));
-    Seek(MSG_REQUEST_RECEIPT, ((tickets[index].code <<16) | (index << 16) | (prod <<8 & 0xFF00) | (cons & 0xFF)), target, ((cons >> 8) & 0xFF));
+  index  = checkSession(sessions, prod, cons); 
+  if(index < 0){ // Case not found, create a new Session
+    do{code = (MemoryRead(TICK_COUNTER)*get_net_address()) & 0xFFC0;}while(code == 0xFFC0); // Code cannot be 0xFFC0
+    index = createSession(sessions, prod, cons, (code | 0x3F));
+    sessions[index].requested += 1; // Increase the number of requested Messages
+    // The first MSG_REQUEST_CTRL is the Start Session step, sendig the Producer, Consumer, Code and Index
+    Seek(MSG_REQUEST_CONTROL, ((sessions[index].code <<16) | (index << 16) | (prod <<8 & 0xFF00) | (cons & 0xFF)), target, ((cons >> 8) & 0xFF));
   }else{
-    Seek(MSG_REQUEST_RECEIPT, ((tickets[index].code <<16) | (tickets[index].pairIndex << 16) | tickets[index].rcvd), target, 0);
+    sessions[index].requested += 1;
+   // The others MSG_REQUEST_CTRL are default, sending the Code, Index and Number of requested packets to check the order
+    Seek(MSG_REQUEST_CONTROL, ((sessions[index].code <<16) | (sessions[index].pairIndex << 16) | sessions[index].requested), target, 0);
   }
+}
 
+/*--------------------------------------------------------------------
+* timeoutMonitor
+*
+* DESCRIPTION:
+*   Funtion that monitors the time inbetween the receiving of a Data and Control.
+*  Case it is more than the Threshold, triggers the recovery protocol
+*
+*    parameters:  *sessions - array of the system sessions 
+*                  time - current time  
+*    
+*    return:  none
+*--------------------------------------------------------------------*/
+void timeoutMonitor(Session* sessions, int time){
+	int TUStarget =0;
+	int TUSsource = get_net_address();
+
+  // if (MemoryRead(TICK_COUNTER) < TIMEOUT_SLEEP)
+  //   return;
+
+  for (int i = 0; i < MAX_SESSIONS; i++)
+  {
+    if (sessions[i].status == WAITING_DATA){
+      if (time - sessions[i].time > LAT_THRESHOLD){
+        // puts("WARNING: THRESHOLD VIOLATION ON SESSION "); puts(itoa(i)); puts("\n");
+        // puts("TIME NOW "); puts(itoa(time)); puts("\n");
+        // puts("ARRIVAL TIME "); puts(itoa(sessions[i].time)); puts("\n");
+        // puts("PROD "); puts(itoh(sessions[i].producer)); puts("\n");
+        // puts("CONS "); puts(itoh(sessions[i].consumer)); puts("\n");
+        // puts("SOURCE "); puts(itoh(TUSsource)); puts("\n");
+        sessions[i].status = SUSPICIOUS;
+        if (TUSsource == get_task_location(Sessions[i].producer))
+          TUStarget = get_task_location(Sessions[i].consumer);
+        else
+          TUStarget = get_task_location(Sessions[i].producer);
+        
+        // puts("TARGET "); puts(itoh(TUStarget)); puts("\n");
+        // Seek(TARGET_UNREACHABLE_SERVICE, (TUSsource<<16) | (TUStarget & 0xFFFF), TUStarget, 0);
+        return;
+      }
+    }
+  }
+  return;
 }

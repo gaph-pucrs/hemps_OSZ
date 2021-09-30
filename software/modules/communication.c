@@ -700,6 +700,8 @@ void send_message_delivery(int producer_task, int consumer_task, int consumer_PE
 
 	p->msg_lenght = msg_ptr->length;
 
+	p->arrival_time = 0x12345678;
+
 //	puts("producer: "); puts(itoh(producer_task));
 //	puts("  length: "); puts(itoh(msg_ptr->length));
 //	puts("\n");

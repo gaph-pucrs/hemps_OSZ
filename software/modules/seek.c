@@ -204,8 +204,8 @@ void Seek(unsigned int service, unsigned int source, unsigned int target, unsign
 			case BACKTRACK_SERVICE:
 			case SEARCHPATH_SERVICE:
 			case WARD_SERVICE:
-			case MSG_DELIVERY_RECEIPT:
-			case MSG_REQUEST_RECEIPT:
+			case MSG_DELIVERY_CONTROL:
+			case MSG_REQUEST_CONTROL:
 				 MemoryWrite(SEEK_OPMODE_REGISTER,RESTRICT_MODE);
 			break;
 
@@ -214,7 +214,7 @@ void Seek(unsigned int service, unsigned int source, unsigned int target, unsign
 
 			break;
 		}
-		// Must be last value writed because target value fires the seek_send function
+		// Must be last value written because target value fires the seek_send function
 
 		MemoryWrite(SEEK_TARGET_REGISTER,target);  
 
@@ -240,9 +240,9 @@ int ProcessTurns(unsigned int backtrack, unsigned int backtrack1, unsigned int b
 	j=0;//variable j is used to index the final path
 	i=0;//variable i is used to index the number of ports (2 bits) read
 	//this loop reads the flits and puts each port in each position of table.port[i]
-	do {
-		port[i] = backtrack & 0x3;
-		next_port = (backtrack >> 2) & 0x3;
+	do { 
+		port[i] = backtrack & 0x3; //01
+		next_port = (backtrack >> 2) & 0x3;  //00 
 		backtrack >>= 2;
 		i++;
 		if(i==16){
@@ -294,12 +294,13 @@ int ProcessTurns(unsigned int backtrack, unsigned int backtrack1, unsigned int b
 		print_port(port[j]);
 	}
 	seek_puts("\n");
-	//writes the path as an header of source routing
+	//writes the path as a header of source routing
 	shift=24;
-	//16 bits flit
-	SR_Table[slot_seek].path[0] = 0x70007000;
-	for(i=0;i<=j;i++){
-		SR_Table[slot_seek].path[i/6] = SR_Table[slot_seek].path[i/6]|((port[i]&0x0f) << shift);
+	//16 bits flit 
+	SR_Table[slot_seek].path[0] = 0x70007000; 
+	for(i=0;i<=j;i++){ 
+		SR_Table[slot_seek].path[i/6] = SR_Table[slot_seek].path[i/6] | ((port[i]&0x0f) << shift); 
+		
 		switch(shift){
 			case 16:
 				shift = 8;
@@ -309,7 +310,7 @@ int ProcessTurns(unsigned int backtrack, unsigned int backtrack1, unsigned int b
 				SR_Table[slot_seek].path[i/6+1] = 0x70007000;
 			break;
 			default:
-				shift = shift - 4;
+				shift = shift - 4; 
 			break;
 		}
 	}

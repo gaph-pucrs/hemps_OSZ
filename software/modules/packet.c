@@ -162,7 +162,7 @@ void send_packet(ServiceHeader *p, unsigned int initial_address, unsigned int dm
 	p->payload_size = (CONSTANT_PKT_SIZE - 2) + dmni_msg_size;
 	//NEW/
 
-	p->transaction = 0;
+	p->transaction = 0x1234;
 
 	p->source_PE = get_net_address();
 	

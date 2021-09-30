@@ -146,6 +146,14 @@ def get_io_number(yaml_reader):
     number = len(get_open_ports(yaml_reader))
     return number    
 
+def get_session(yaml_reader):
+    try:
+        session = yaml_reader["hw"]["session"]
+    except:
+        session = 0  
+    return session    
+
+
 
 #------- Repository Generation Scope ------------------- 
 #ATTENTION: STATIC MAPPING ONLY WORKS IF THE APPS START TIME ARE ORDERED

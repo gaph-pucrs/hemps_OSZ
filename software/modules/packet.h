@@ -48,7 +48,11 @@ typedef struct {
 
 	unsigned int source_PE;				//!<Store the packet source PE address
 	unsigned int timestamp;				//!<Store the packet timestamp, filled automatically by send_packet function
-	unsigned int transaction;			//!<Unused field for while
+	
+	union {
+		unsigned int transaction;			//!<Unused field for while
+		unsigned int arrival_time;
+	};
 
 	union {								//!<Generic union
 		unsigned int msg_lenght;
