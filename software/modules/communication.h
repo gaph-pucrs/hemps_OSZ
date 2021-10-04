@@ -107,15 +107,17 @@ void send_message_delivery(int, int, int, Message *);
  
 void send_message_request_(int, int, unsigned int, unsigned int,  unsigned int);
 
-void send_message_io(int, int, Message *);
+void send_message_io(int, int, Message *, int);
 
-void send_io_request(int, int, unsigned int);
+void send_io_request(int, int, unsigned int, int);
+
+void send_peripheral_SR_path(int, int, int);
 
 #define send_message_request(producer_task, consumer_task, producer_PE, sourcePE) send_message_request_(producer_task, consumer_task, producer_PE, sourcePE, 1)
 	
 unsigned int remove_last_msg_waiting_ack(int taskID);
 
-// #define comm_puts(argument) puts(argument)
+//#define comm_puts(argument) puts(argument)
 #define comm_puts(argument) 
 
 #endif /* SOFTWARE_INCLUDE_COMMUNICATION_COMMUNICATION_H_ */

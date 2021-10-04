@@ -75,6 +75,9 @@ port(
 	credit_i                :  in regNport;
 	eop_out					: out regNport;
 
+	mask_local_tx_output	: out std_logic;
+	io_packet_mask			: out regNport;
+
 	target                  : out regflit;
 	source                  : out regflit;
 	w_source_target         : out std_logic;
@@ -139,13 +142,16 @@ begin
 		clock           => clock,
 		reset           => reset,
 		req_routing     => h,
+		eop_in			=> eop_in,
 		ack_routing     => ack_h,
+		io_mask_wrapper => io_packet_mask,
 		data_in_header_fixed  => buffer_wire_SC,
 		data_in_header  => header_routing,
 		sender          => sender,
 		next_flit       => next_flit,
 		enable_shift    => enable_shift,
 		table           => table,
+		mask_local_tx_output => mask_local_tx_output,
 		tx_internal		=> tx_internal,
 		target          => target,
 		source          => source,

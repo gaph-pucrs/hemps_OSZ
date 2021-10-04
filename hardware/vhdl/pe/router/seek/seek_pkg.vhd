@@ -59,8 +59,8 @@ package seek_pkg is
     constant    SECURE_ZONE_CLOSED_SERVICE              : std_logic_vector(TAM_SERVICE_SEEK-1 downto 0) := "01011";
     constant    SECURE_ZONE_OPENED_SERVICE              : std_logic_vector(TAM_SERVICE_SEEK-1 downto 0) := "01100";
     constant    FREEZE_TASK_SERVICE                     : std_logic_vector(TAM_SERVICE_SEEK-1 downto 0) := "01101";
-    constant    UNFREEZE_TASK_SERVICE                   : std_logic_vector(TAM_SERVICE_SEEK-1 downto 0) := "01110";  
-    constant    MASTER_CANDIDATE_SERVICE                : std_logic_vector(TAM_SERVICE_SEEK-1 downto 0) := "01111"; 
+    constant    UNFREEZE_TASK_SERVICE                   : std_logic_vector(TAM_SERVICE_SEEK-1 downto 0) := "01110";
+    constant    MASTER_CANDIDATE_SERVICE                : std_logic_vector(TAM_SERVICE_SEEK-1 downto 0) := "01111";
     constant    TASK_ALLOCATED_SERVICE                  : std_logic_vector(TAM_SERVICE_SEEK-1 downto 0) := "10000";
     constant    INITIALIZE_SLAVE_SERVICE                : std_logic_vector(TAM_SERVICE_SEEK-1 downto 0) := "10001";
     constant    INITIALIZE_CLUSTER_SERVICE              : std_logic_vector(TAM_SERVICE_SEEK-1 downto 0) := "10010";

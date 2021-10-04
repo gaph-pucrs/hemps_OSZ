@@ -93,10 +93,13 @@ package standards is
 	constant PACKET_SWITCHING_XY            : std_logic_vector(3 downto 0) := x"0";
 	constant PACKET_SWITCHING_SR            : std_logic_vector(3 downto 0) := x"7";
         --header flit to access the IO
+        constant IO_PACKET                      : std_logic_vector(3 downto 0) := x"6";
+        --constant OUT_IO                         : std_logic_vector(3 downto 0) := x"6";
         constant OUT_NORTH                      : std_logic_vector(3 downto 0) := x"5";
         constant OUT_EAST                       : std_logic_vector(3 downto 0) := x"4";
         constant OUT_WEST                       : std_logic_vector(3 downto 0) := x"3";
         constant OUT_SOUTH                      : std_logic_vector(3 downto 0) := x"2";
+        constant OUT_WRAPPER                    : std_logic_vector(3 downto 0) := x"1";
 
 ---------------------------------------------------------
 -- CONSTANTS INDEPENDENTES

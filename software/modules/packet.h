@@ -22,6 +22,14 @@
  //#define CONSTANT_PKT_SIZE	14	//!<Constant Service Header size, based on the structure ServiceHeader.
 #define CONSTANT_PKT_SIZE	13	//!<Constant Service Header size, based on the structure ServiceHeader.
 
+#define 	OUT_NORTH		5
+#define 	OUT_EAST		4
+#define 	OUT_WEST		3
+#define 	OUT_SOUTH		2
+
+#define INPUT_DIRECTION      0
+#define OUTPUT_DIRECTION     1
+#define CLEAR_INPUT_DIRECTION      2
 
 /**
  * \brief This structure is in charge to defines the ServiceHeader field that can be filled by the software part
@@ -32,23 +40,26 @@ typedef struct {
 	unsigned int payload_size;			//!<Stores the number of flits that forms the remaining of packet
 	unsigned int service;				//!<Store the packet service code (see services.h file)
 	union {								//!<Generic union
-		   unsigned int producer_task;
-		   unsigned int task_ID;
-		   unsigned int app_ID;
+		unsigned int producer_task;
+		unsigned int task_ID;
+		unsigned int app_ID;
+		unsigned int io_service;
+		unsigned int SR_target;
 	};
 
 	union {								//!<Generic union
-	   unsigned int consumer_task;
-	   unsigned int peripheral_ID;
-	   unsigned int cluster_ID;
-	   unsigned int master_ID;
-	   unsigned int hops;
-	   unsigned int period;
+	   	unsigned int consumer_task;
+	   	unsigned int peripheral_ID;
+	   	unsigned int cluster_ID;
+	   	unsigned int master_ID;
+	   	unsigned int hops;
+	   	unsigned int period;
+		unsigned int io_port; 
 	};
 
 	unsigned int source_PE;				//!<Store the packet source PE address
 	unsigned int timestamp;				//!<Store the packet timestamp, filled automatically by send_packet function
-	
+
 	union {
 		unsigned int transaction;			//!<Unused field for while
 		unsigned int arrival_time;
@@ -67,6 +78,7 @@ typedef struct {
 		unsigned int app_descriptor_size;
 		unsigned int allocated_processor;
 		unsigned int requesting_processor;
+	   	unsigned int io_direction;
 	};
 
 	union {								//!<Generic union
@@ -120,6 +132,15 @@ void DMNI_send_data(unsigned int, unsigned int);
 void send_packet(ServiceHeader *, unsigned int, unsigned int);
 void send_packet_io(ServiceHeader *, unsigned int, unsigned int, int);
 
+int find_io_peripheral(unsigned int );
+
+int get_last_hop(unsigned int, unsigned int );
+
+int find_SZ_position_and_direction_to_IO(int );
+
+void send_wrapper_close_back__open_forward(int );
+
+void send_wrapper_close_forward(int );
 
 int read_packet(ServiceHeader *);
 

@@ -533,7 +533,7 @@ int Syscall(unsigned int service, unsigned int arg0, unsigned int arg1, unsigned
 			//	return 0;
 			//}
 
-			send_message_io(producer_task, arg1, msg_read);
+			send_message_io(producer_task, arg1, msg_read, current->secure);
 
 			current->scheduling_ptr->status = WAITING;
 
@@ -553,11 +553,10 @@ int Syscall(unsigned int service, unsigned int arg0, unsigned int arg1, unsigned
 			//producer_task = (int) arg1;
 
 
-			send_io_request(arg1, consumer_task, net_address);
+			send_io_request(arg1, consumer_task, net_address, current->secure);
 
 
-			//Sets task as waiting blocking its execution, it will execute again when the message is produced by a WRITEPIPE or incoming message Delivery
-
+			//Sets task as waiting blocking its execution, it will execute again when the message is produced by a WRITEPIPE or incoming MSG_DELIVERY
 			current->scheduling_ptr->status = WAITING;
 
 			schedule_after_syscall = 1;
@@ -577,7 +576,7 @@ int Syscall(unsigned int service, unsigned int arg0, unsigned int arg1, unsigned
 
 				} else {
 
-					send_messages_request(producer_task, consumer_task, producer_PE, net_address);
+					send_message_request(producer_task, consumer_task, producer_PE, net_address);
 				}
 
 				current->scheduling_ptr->status = WAITING;
@@ -813,6 +812,15 @@ int handle_packet(volatile ServiceHeader * p) {
 	tEnd = MemoryRead(TICK_COUNTER);
 	session_time_puts("DATA REQ= ");session_time_puts(itoa(tEnd-tInit));session_time_puts("\n");
 	break;
+
+	case IO_OPEN_WRAPPER:
+		//adjust_wrapper(p->io_service, p->io_port);
+
+		puts("-------->> Chegou OPEN WRAPPER\n");
+		//puts("io_port: ");puts(itoh(p->io_port)); puts("\n");
+		//puts("io_service: ");puts(itoh(p->io_service)); puts("\n");
+	break;
+
 
 	case  IO_ACK:
 		puts("-------->> Chegou IO\n");
@@ -1332,21 +1340,24 @@ int SeekInterruptHandler(){
 			//perform clear
 			//Seek(CLEAR_SERVICE, source, target, 0);
 			//global variable for finding seek
-			slot_seek = GetFreeSlotSourceRouting();
+
 			seek_puts("unr: "); seek_puts(itoh(source)); seek_puts("\n");
+			slot_seek = GetFreeSlotSourceRouting(source>>16);
 			
-			SR_Table[slot_seek].target = source>>16;
-			SR_Table[slot_seek].tableSlotStatus = SR_USADO;
+			if(slot_seek != -1){
+				//seek_puts("slot: "); seek_puts(itoa(slot_seek)); seek_puts("\n");
+				SR_Table[slot_seek].target = source>>16;
+				SR_Table[slot_seek].tableSlotStatus = SR_USADO;
+			}	
 			
 			if(seek_unr_count == (source>>16)){
 				//seek_puts("bug FDP\n");
 				seek_unr_count++;
 			}
-
-			// SERVICE  SOURCE TARGET PAYLOAD
-			// 5		32		16		8
-
-			// SEARCHPATH - 0x 0000 XXXX - 0xXXXX - 0x00
+			aux =  search_Target(source>>16);
+			if(((aux == search_Service(IO_REQUEST)) || (aux == search_Service(IO_DELIVERY))) && (aux != -1)){
+				send_wrapper_close_back__open_forward(aux);
+			}
 
 			Seek(SEARCHPATH_SERVICE, ((seek_unr_count<<16) | (get_net_address()&0xffff)), source>>16, 0);
 			seek_unr_count++;
@@ -1354,14 +1365,31 @@ int SeekInterruptHandler(){
 		break;
 
 		case BACKTRACK_SERVICE:
-			// puts("Backtrack\n");
+			// seek_puts("backtrack\n");
+			//seek_puts("backtrak: "); seek_puts(itoh(backtrack)); seek_puts("\n");
 			slot_seek = ProcessTurns(backtrack, backtrack1, backtrack2);
 			// seek_puts("slot: "); seek_puts(itoa(slot_seek)); seek_puts("\n");
 			Seek(CLEAR_SERVICE, ((SR_Table[slot_seek].target<<16) | (get_net_address()&0xffff)), 0,0);
 			aux = resend_messages(SR_Table[slot_seek].target);
-			// if(aux == 0){puts("no msg deliver");};
-			aux = resend_msg_request(SR_Table[slot_seek].target);
-			// if(aux == 0){puts("no msg req");};		
+			aux = aux + resend_msg_request(SR_Table[slot_seek].target);
+
+			if(aux == 0){
+				aux =  search_Target(source>>16);
+				if(((aux == search_Service(IO_REQUEST)) || (aux == search_Service(IO_DELIVERY))) && (aux != -1)){
+					send_wrapper_close_forward(aux);
+				}				
+            	aux = resend_control_message(backtrack, backtrack1, backtrack2, SR_Table[slot_seek].target);
+        	}
+
+			if(aux == 0){
+				int peripheral_id;
+				peripheral_id = find_io_peripheral(get_net_address());
+				if(peripheral_id){
+					send_peripheral_SR_path(slot_seek, peripheral_id, target);
+					puts(" SR Peripheral\n"); 
+				}
+			}
+
 		break;
 
 		case SET_SECURE_ZONE_SERVICE:
@@ -1566,7 +1594,7 @@ int SeekInterruptHandler(){
 				//puts("Send Clear Open"); puts("\n");
 				Seek(CLEAR_SERVICE, source, source, payload);
 			}
-		
+			
 			
 			for(int i = 0; i < MAX_LOCAL_TASKS; i++){
 				if ((tcbs[i].id >> 8) == target){
@@ -1805,6 +1833,9 @@ int main(){
 
 	ASM_SetInterruptEnable(FALSE);
 
+	MemoryWrite(WRAPPER_MASK_GO_REGISTER,0XFFFFFFFF);
+	MemoryWrite(WRAPPER_MASK_BACK_REGISTER,0XFFFFFFFF);
+
 	#ifdef AES_MODULE
 		putsv("Key Size:", KEY_SIZE); 
 		putsv("INIT aes key - ", MemoryRead(TICK_COUNTER)); 
@@ -1842,7 +1873,7 @@ int main(){
 
 	initFTStructs();
 
-    initSessions();
+	initSessions();
 
 	init_service_header_slots();
 

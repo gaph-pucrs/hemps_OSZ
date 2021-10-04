@@ -74,7 +74,11 @@ SC_MODULE(pe) {
 //	sc_signal 	<bool > 						in_nack_router_seek_local;
 	sc_signal 	<bool > 						in_opmode_router_seek_local;
 	sc_signal 	<bool > 						in_fail_router_seek_local;
-	 sc_signal 	<bool > 						out_req_router_seek_local;
+	sc_signal   <bool > 						mask_local_tx_output_local;
+	sc_signal   <bool > 						cpu_mask_clear;
+	sc_signal   <bool > 						mask_tx;
+	sc_signal   <bool > 						result_rx;
+	sc_signal 	<bool > 						out_req_router_seek_local;
 	 sc_signal 	<bool > 						out_ack_router_seek_local;
 	 sc_signal 	<bool > 						out_nack_router_seek_local;
 	 sc_signal 	<bool > 						out_opmode_router_seek_local;
@@ -242,6 +246,14 @@ SC_MODULE(pe) {
 	sc_signal <bool > 						in_cpu_opmode_seek;
 	sc_signal <bool >						wrapper_reg[NPORT];
 
+	sc_signal <sc_uint <10 > >				wrapper_mask_go_reg;
+	sc_signal <sc_uint <10 > >				wrapper_mask_back_reg;
+
+	sc_signal <sc_uint <10 > >				wrapper_mask_router_in;
+	sc_signal <sc_uint <10 > >				wrapper_mask_router_out;
+
+	sc_signal <bool >						io_packet_mask[NPORT];
+
 	unsigned char shift_mem_page;
 
 	mlite_cpu		*	cpu;
@@ -296,7 +308,7 @@ SC_MODULE(pe) {
 
 	
 	SC_HAS_PROCESS(pe);
-	pe(sc_module_name name_, regaddress address_ = 0x00) : sc_module(name_), router_address(address_) {
+	pe(sc_module_name name_, regaddress address_ = 0x00) : sc_module(name_), router_address(address_) { // @suppress("Class members should be properly initialized")
 
 		end_sim_reg.write(0x00000001);
 
@@ -366,7 +378,8 @@ SC_MODULE(pe) {
 		dm_ni->data_out(data_out_ni);//data out da ni vai ser ligado no sinal auxiliar
 		dm_ni->credit_i(credit_i_ni);
 		dm_ni->clock_rx(clock_rx_ni);
-		dm_ni->rx(rx_ni);
+		//dm_ni->rx(rx_ni);
+		dm_ni->rx(result_rx);
 		dm_ni->eop_in(eop_in_ni);
 		dm_ni->data_in(data_in_ni);
 		dm_ni->credit_o(credit_o_ni);
@@ -406,11 +419,14 @@ SC_MODULE(pe) {
 				router->data_out[i](data_out[i]);
 				router->credit_i[i](credit_i[i]);
 				router->data_in[i](data_in[i]);
+				fail_wrapper_module->eop_out_router_ports[i](eop_out[i]);
+				fail_wrapper_module->eop_in_router_ports[i](eop_in[i]);
+				fail_wrapper_module->io_packet_mask[i](io_packet_mask[i]);
 			}
-			router->fail_in				[LOCAL0](router_fail_in[LOCAL0]);
-			router->fail_in				[LOCAL1](router_fail_in[LOCAL1]);
-			router->fail_out			[LOCAL0](router_fail_out[LOCAL0]);
-			router->fail_out			[LOCAL1](router_fail_out[LOCAL1]);
+			router->fail_in			[LOCAL0](router_fail_in[LOCAL0]);
+			router->fail_in			[LOCAL1](router_fail_in[LOCAL1]);
+			router->fail_out		[LOCAL0](router_fail_out[LOCAL0]);
+			router->fail_out		[LOCAL1](router_fail_out[LOCAL1]);
 
 			router->clock_rx 		[LOCAL0](clock);
 			router->clock_tx 		[LOCAL0](clock_rx_local0);
@@ -434,17 +450,21 @@ SC_MODULE(pe) {
 
 		
 			// Noc to dmni
-			router->tx			[LOCAL1](rx_ni);
+			router->tx				[LOCAL1](rx_ni);
 			router->data_out 		[LOCAL1](data_in_ni);
 			router->credit_i 		[LOCAL1](credit_o_ni);
-			router->eop_out		[LOCAL1](eop_in_ni);
+			router->eop_out			[LOCAL1](eop_in_ni);
 			
 			router->target(target);
 			router->source(source);
 			router->w_source_target(w_source_target);
+			router->mask_local_tx_output(mask_local_tx_output_local);
 			router->w_addr(w_addr);
+			fail_wrapper_module->wrapper_mask_go_from_CPU(wrapper_mask_go_reg);
+			fail_wrapper_module->wrapper_mask_back_from_CPU(wrapper_mask_back_reg);
 			for(i=0;i<NPORT;i++){
 				router->rot_table[i](rot_table[i]);
+				router->io_packet_mask[i](io_packet_mask[i]);
 			}
 			seek->clock(clock);
 			seek->reset(reset);
@@ -493,6 +513,13 @@ SC_MODULE(pe) {
 			fail_wrapper_module->out_fail_wrapper_local(in_fail_wrapper_local);
 			fail_wrapper_module->in_ack_wrapper_local(out_ack_wrapper_local);
 			fail_wrapper_module->in_nack_wrapper_local(out_nack_wrapper_local);
+			fail_wrapper_module->cpu_mask_clear(cpu_mask_clear);
+			fail_wrapper_module->eop_in_from_router_local(eop_in_ni);
+			fail_wrapper_module->clock_rx_from_router_local(clock_rx_ni);
+			fail_wrapper_module->rx_from_router_local(rx_ni);
+			fail_wrapper_module->data_in_from_router_local(data_in_ni);
+			fail_wrapper_module->wrapper_mask_router_in(wrapper_mask_router_in);
+			fail_wrapper_module->wrapper_mask_router_out(wrapper_mask_router_out);
 			// interface PE->SEEK //fochi
 			seek->in_source_router_seek[LOCAL](in_source_wrapper_local); 
 			seek->in_target_router_seek[LOCAL](in_target_wrapper_local);
@@ -565,13 +592,13 @@ SC_MODULE(pe) {
 			router->credit_o[LOCAL](credit_i_sender);
 			router->data_out[LOCAL](data_in_ni);
 			router->credit_i[LOCAL](credit_o_ni);
-			router->data_in[LOCAL](data_out_sender);//se for canal unico liga aqui.
+			router->data_in[LOCAL](data_out_sender);//se for canal unico liga aqui.			
 		#endif
 		router->tick_counter(tick_counter);
 		fail_wrapper_module->tick_counter(tick_counter);
 		
 		SC_METHOD(sequential_attr);
-		sensitive << clock.pos() << reset.pos();
+		sensitive << clock.pos() << reset.pos();			
 		
 		SC_METHOD(log_process);
 		sensitive << clock.pos() << reset.pos();
@@ -584,6 +611,7 @@ SC_MODULE(pe) {
 		sensitive << cpu_set_op << cpu_set_size << cpu_set_address << cpu_set_address_2 << cpu_set_size_2 << cpu_send_kernel << cpu_fail_kernel<< cpu_wait_kernel << dmni_enable_internal_ram;
 		sensitive << mem_data_read << cpu_enable_ram << cpu_mem_write_byte_enable_reg << dmni_mem_write_byte_enable << mem_address_service_header_kernel;
 		sensitive << dmni_mem_data_write << ni_intr << slack_update_timer;
+		sensitive << rx_ni << mask_tx;
 		
 		SC_METHOD(mem_mapped_registers);
 		sensitive << cpu_mem_address_reg;
@@ -633,12 +661,15 @@ SC_MODULE(pe) {
 			sensitive << router_fail_out[i];
 			sensitive << external_fail_out[i];
 			sensitive << wrapper_reg[i];
+			sensitive << io_packet_mask[i];
+			sensitive << wrapper_mask_router_out;
 		}
 		SC_METHOD(fail_in_generation);
 		for(i=0;i<NPORT-1;i++){
 			sensitive << fail_in[i];
 			sensitive << external_fail_in[i];
 			sensitive << wrapper_reg[i];
+			sensitive << wrapper_mask_router_in;
 		}
 		SC_METHOD(wrapper_register_handle);
 		sensitive << clock.pos();

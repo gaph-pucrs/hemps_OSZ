@@ -350,7 +350,15 @@ int get_master_address(int slave_address){
 	return -1;
 }
 
-
+int get_cluster_index(int X_Add, int Y_Add){
+	int i;
+	for (i=0; i<CLUSTER_NUMBER; i++){
+		if(X_Add <= cluster_info[i].xf &&  X_Add >= cluster_info[i].xi)
+		  if(Y_Add <= cluster_info[i].yf &&  Y_Add >= cluster_info[i].yi)
+		  	return i;
+	}
+	return -1;
+}
 
 
 /**Selects a cluster to insert an application
@@ -388,7 +396,7 @@ int SearchCluster(int GM_cluster_id, int app_ID) {
 		}
 	}
 
-	if (cluster_info[GM_cluster_id].free_resources >= freest_cluster){
+	if (cluster_info[GM_cluster_id].free_resources > freest_cluster){
 		selected_cluster = GM_cluster_id;
 	}
 	if (selected_cluster == -1) {

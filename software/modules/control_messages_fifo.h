@@ -38,10 +38,14 @@ int search_Target(unsigned int );
 
 //int search_Target_Service(unsigned int, unsigned int );
 
+int get_CM_peripheral_ID(int );
+
+int get_CM_IO_service(int );
+
 void initialize_CM_FIFO();
 
 void print_CM_FIFO();
 
-int resend_control_message(unsigned int target);
+int resend_control_message(unsigned int backtrack, unsigned int backtrack1, unsigned int backtrack2, unsigned int target);
 
 #endif /* SOFTWARE_INCLUDE_CONTROL_MESSAGES_FIFO_ */

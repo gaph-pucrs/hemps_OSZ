@@ -41,7 +41,8 @@ void injector::brnoc_in_proc_FSM(){
  					address_to_clear = in_source_router_seek_primary.read();
  					global_master_location = in_source_router_seek_primary.read();
 					cout << "GMV location: " << global_master_location << endl;
-					EA_in_brnoc.write(S_ACK);			
+					EA_in_brnoc.write(S_ACK);
+			break;
 
 				
 			case S_ACK_NEW_APP_RECEIVE:								

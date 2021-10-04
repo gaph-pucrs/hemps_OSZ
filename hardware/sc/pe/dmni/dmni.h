@@ -22,7 +22,7 @@
  * send - read from memory and write to noc
  * recv - read from noc and write to memory
  */
-#define BUFFER_SIZE 64 //Alterar o tamanho implica em mudar o numero de bits de firs e last
+#define BUFFER_SIZE 16 //Alterar o tamanho implica em mudar o numero de bits de firs e last
 #define DMNI_TIMER 16
 #define WORD_SIZE	4
 #define FAIL_RECEPTION_TIMEOUT 0x0400
@@ -98,8 +98,9 @@ SC_MODULE(dmni){
 	sc_signal<bool >			is_header[BUFFER_SIZE];
 	sc_signal<sc_uint<4> >		intr_count;
 
-	sc_signal<sc_uint<6> > 		first, last;
+	sc_signal<sc_uint<4> > 		first, last;
 	sc_signal<bool >           add_buffer;
+	sc_signal<bool >           flag_middle_eop;
 
 	//32 bits
 	sc_signal<sc_uint<32> > 	payload_size;

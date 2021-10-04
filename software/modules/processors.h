@@ -19,7 +19,7 @@
 
 #include "../../include/kernel_pkg.h"
 
-//#define MAX_SHAPES     13
+
 #define MAX_MIGRATIONS 10
 
 #define OFF             0
@@ -53,21 +53,22 @@ Processor processors[MAX_CLUSTER_PEs];	//!<Processor array
 
 int shape_index;
 
-void init_procesors();
+void init_processors();
 
 void update_proc_slack_time(int, int);
 
 int get_proc_slack_time(int);
 
-void add_procesor(int);
+void add_processor(int);
 
 void add_task(int, int);
+void print_processors();
 
 void remove_task(int, int);
 
-int get_proc_free_pages(int proc_address);
+int get_proc_free_pages(int);
 
-int get_proc_address(int index);
+int get_proc_address(int);
 
 int get_task_location(int);
 

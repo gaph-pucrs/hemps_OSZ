@@ -14,61 +14,21 @@
 #include "../include/plasma.h"
 #include "utils.h"
 
-#define FALSE 0
-#define TRUE 1
+#define FALSE		0
+#define TRUE		1
 
 unsigned int net_address;
 
-void set_net_address(unsigned int addr)
-{
+void set_net_address(unsigned int addr){
 	net_address = addr;
 }
 
-unsigned int get_net_address()
-{
+unsigned int get_net_address(){
 	return net_address;
 }
 
-/**Print the string in the text file log
- * \param string array of chars
- * \return The int return is only to avoid a build-in warning
- */
-// #define puts(str)	MemoryWrite(UART_WRITE, str)
 
 
-// int puts(char *string)
-// {
-
-// 	int *str_part;
-// 	//This is the most crazy and complicated FOR declaration that I ever seen. For obviously purposes, I divided the FOR section in lines
-// 	//PS: This indicates a hardware developer putting its hands on software development
-// 	for (
-// 		str_part = (int *)string, MemoryWrite(UART_WRITE, *str_part);
-
-// 		!(((char *)str_part)[0] == 0 || ((char *)str_part)[1] == 0 || ((char *)str_part)[2] == 0 || ((char *)str_part)[3] == 0);
-
-// 		*str_part++, MemoryWrite(UART_WRITE, *str_part))
-// 		;
-// 	return 0;
-// }
-
-// int puts(char *string) {
-// 	MemoryWrite(UART_WRITE, string);
-
-// 	/* Uncomment for VHDL compatibility */
-// 	// int *str_part;
-// 	// //This is the most crazy and complicated FOR declaration that I ever seen. For obviously purposes, I divided the FOR section in lines
-// 	// //PS: This indicates a hardware developer putting its hands on software development
-// 	// for(
-// 	// 		str_part = (int*)string,  MemoryWrite(UART_WRITE,*str_part);
-
-// 	// 		!( ( (char*)str_part )[0] == 0 || ( (char*)str_part )[1] == 0 || ( (char*)str_part )[2] == 0 || ( (char*)str_part )[3] == 0);
-
-// 	// 		*str_part++,MemoryWrite(UART_WRITE, *str_part)
-// 	// );
-
-// 	return 0;
-// }
 /**Converts a integer number to its decimal representation in a array of char
  * \param num Integer number to be converted
  * \return Array of chars

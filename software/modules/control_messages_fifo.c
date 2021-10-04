@@ -30,8 +30,8 @@ void insert_CM_FIFO(ServiceHeader *p, unsigned int initial_address, unsigned int
 		// services that uses PIPE
 		case MESSAGE_REQUEST:
 		case MESSAGE_DELIVERY:
-		case IO_DELIVERY:
-		case IO_REQUEST:
+		case IO_OPEN_WRAPPER:
+		case IO_SR_PATH:
 				return;
 		break;
 
@@ -40,10 +40,11 @@ void insert_CM_FIFO(ServiceHeader *p, unsigned int initial_address, unsigned int
 		case INITIALIZE_CLUSTER:
 		case INITIALIZE_SLAVE:
 				if( search_Service(p->service) == -1 )
-					return;
-
+					return; 								// @suppress("No break at end of case")
 
 		// services with payload: save the pointer to data and length
+		case IO_DELIVERY:
+		case IO_REQUEST:
 		case NEW_APP:
 		case TASK_ALLOCATION:
 		case APP_ALLOCATION_MAP:
@@ -59,7 +60,7 @@ void insert_CM_FIFO(ServiceHeader *p, unsigned int initial_address, unsigned int
 		case MIGRATION_DATA_BSS: 
 		case MIGRATION_PIPE: //ANALISAR FOCHI
 			 CMFifo[cmfifo_ptr].ptr_payload    = initial_address;
-			 CMFifo[cmfifo_ptr].payload_length = dmni_msg_size;
+			 CMFifo[cmfifo_ptr].payload_length = dmni_msg_size;      // @suppress("No break at end of case")
 
 		//  all services copy the service header to CM_FIFO
 		case TASK_ALLOCATED:
@@ -132,6 +133,20 @@ int search_Service(unsigned int service_code){
 			i = CM_FIFO_LENGTH-1;
 	}
 	return -1;
+}
+int get_CM_peripheral_ID(int CM_index){
+	return CMFifo[CM_index].service_header.cluster_ID;
+}
+
+int get_CM_IO_service(int CM_index){
+	if( CMFifo[CM_index].service_header.service == IO_REQUEST )
+		return 0;
+	else if( CMFifo[CM_index].service_header.service == IO_DELIVERY )
+		return 1;
+	else{
+		puts("ERROR: IO_service not found!!!\n");
+		while(1);
+	}
 }
 
 
@@ -211,19 +226,33 @@ void print_CM_FIFO(){
 }
 
 
-int resend_control_message(unsigned int target){
+int resend_control_message(unsigned int backtrack, unsigned int backtrack1, unsigned int backtrack2, unsigned int target){
 	int CMFifo_index;
 
+	//print_CM_FIFO();
 	CMFifo_index = search_Target(target);
 	//puts("CMFifo_index: "); puts(itoh(CMFifo_index)); puts("\n");
 	if(CMFifo_index != -1){
-		send_packet(&CMFifo[CMFifo_index].service_header, CMFifo[CMFifo_index].ptr_payload , CMFifo[CMFifo_index].payload_length);
-		CMFifo[CMFifo_index].used = YES;
-		return 1;
+		if((CMFifo[CMFifo_index].service_header.service != IO_DELIVERY) && (CMFifo[CMFifo_index].service_header.service != IO_REQUEST)){
+			//puts("\nSR control message\n");
+			send_packet(&CMFifo[CMFifo_index].service_header, CMFifo[CMFifo_index].ptr_payload , CMFifo[CMFifo_index].payload_length);
+			CMFifo[CMFifo_index].used = YES;
+			return 1;
+		}
+		else{ // ajustar backtrack para o IO
+			//puts("SR IO message\n");
+			adjust_backtrack_IO(backtrack, backtrack1, backtrack2, target);
+			// service_header.cluster_ID contains the peripheral_ID; service_header.task_ID contains the io_service;
+			open_wrapper_IO_SZ(CMFifo[CMFifo_index].service_header.cluster_ID, CMFifo[CMFifo_index].service_header.task_ID);
+			send_packet(&CMFifo[CMFifo_index].service_header, CMFifo[CMFifo_index].ptr_payload , CMFifo[CMFifo_index].payload_length);
+			CMFifo[CMFifo_index].used = YES;
+			//puts("\nenviou message\n");
+			return 1;
+		}
 	}
 	else{
 		puts("\nERROR: control message NOT found!!!");
-		return -1;
+		return 0;
 
 	}
 

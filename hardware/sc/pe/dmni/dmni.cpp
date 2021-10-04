@@ -146,6 +146,7 @@ void dmni::receive(){
 	sc_uint<4> intr_counter_temp;
 
 	if (reset.read() == 1){
+		flag_middle_eop = 0;
 		cont.write(0);
 		first.write(0);
 		last.write(0);
@@ -168,6 +169,10 @@ void dmni::receive(){
 
 
 			intr_counter_temp = intr_count.read();
+			if(flag_middle_eop.read() == 1 && intr_counter_temp > 0){
+				intr_counter_temp = intr_counter_temp - 1;
+				flag_middle_eop.write(0);
+			}
 	
 			if (cont.read() == 0) {//32 bits high flit
 			//Read from NoC
@@ -186,10 +191,11 @@ void dmni::receive(){
 				if(eop_in.read() == 1){
 					buffer[last.read()].write((buffer_high.read(),data_in.read()));
 					buffer_eop[last.read()].write(eop_in.read());
-					add_buffer.write(1);
-					last.write(last.read() + 1);
+					add_buffer.write(0);
+					last.write(last.read() - 2);
 					cont.write(0);
 					SR.write(HEADER);
+					flag_middle_eop.write(1);
 				}
 			}
 		}
@@ -296,7 +302,7 @@ void dmni::receive(){
 						add_buffer.write(0);
 						recv_address.write(recv_address.read() + WORD_SIZE);
 						recv_size.write(recv_size.read() - 1);
-
+						
 						//if size == 0 OR the eop signal is set, the reception ended
 						// if (recv_size.read() == 0){
 						if (recv_size.read() == 0){

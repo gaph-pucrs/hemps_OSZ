@@ -54,12 +54,17 @@ SC_MODULE(io_peripheral){
   sc_out<bool >     eop_out_primary;
     
 
+  int i;
+
+
   enum FSM_in{S_INIT_IN, S_RECEIVE, S_WAIT, S_SERVICE, S_PAYLOAD};
   sc_signal<FSM_in > EA_in;
 
-  enum FSM_out{S_WAIT_REQ, S_SEND_HEADER, S_SEND_PAYLOAD, S_WAIT_CREDIT_PAYLOAD, S_WAIT_CREDIT_HEADER, S_SEND_EOP};
+  enum FSM_out{S_WAIT_REQ, S_SR_PREVIOUS_REQ, S_SR_PREVIOUS_ACK, S_SR_REQ, S_SR_ACK, S_XY_REQ, S_XY_ACK, S_SEND_HEADER, S_SEND_PAYLOAD, S_WAIT_CREDIT_PAYLOAD, S_WAIT_CREDIT_HEADER, S_SEND_EOP};
   sc_signal<FSM_out > EA_out;
 
+  enum FSM_sr_path{S_WAIT_ORDER, S_VERIFY_TARGET, S_NEW_TARGET, S_TARGET_FOUND, S_COPY};
+  sc_signal<FSM_sr_path > EA_sr_path;
 
   regflit               buffer_in_flit[BUFFER_IN_PERIPHERAL];
   regflit               buffer_out_flit[BUFFER_OUT_PERIPHERAL];
@@ -70,18 +75,38 @@ SC_MODULE(io_peripheral){
   regflit                 reg_peripheral_ID;
   regflit                 reg_task_ID;
   regflit                 reg_source_PE;
+  //regflit                 reg_target_PE;
 
   sc_uint<1>              IO_request;
+  sc_uint<1>              IO_SR_request;
   sc_uint<1>              IO_ack;
+  sc_uint<1>              IO_SR_ack;
+  sc_uint<1>              IO_SR;
+  sc_uint<1>              SR_found;
   reg8                    flit_in_counter;
   reg8                    flit_out_counter;
-  reg32                   packet_size;
+  reg8                    header_size;
+  reg32                   payload_size;
+
+
+  regflit               SR_target[IO_SR_PATHS];
+  regflit               SR_size[IO_SR_PATHS];
+  regflit               SR_path[IO_SR_PATHS][10];
+  sc_uint<1>            SR_used[IO_SR_PATHS];
+  sc_uint<3>            SR_index, SR_PATH_index;
+
+  sc_uint<2>            previous_message_sent[IO_SR_PATHS]; // 0 - Ack; 1 - Request; 2 - Empty
+  regflit               previous_target[IO_SR_PATHS];
+  regflit               previous_task_ID[IO_SR_PATHS];
+  sc_uint<3>            previous_index;
+
+
+
+
 
   void in_proc_FSM();
   void out_proc_FSM();
-
-  void change_state_sequ();
-  void change_state_comb();
+  void SR_path_FSM();
   void seek_ack();
 
   SC_HAS_PROCESS(io_peripheral);
@@ -96,8 +121,14 @@ SC_MODULE(io_peripheral){
     sensitive << reset;
     sensitive << clock.pos();
 
-   SC_METHOD(seek_ack);
-   sensitive << clock.pos();
+    SC_METHOD(seek_ack);
+    sensitive << clock.pos();
+
+    SC_METHOD(SR_path_FSM);
+     sensitive << reset;
+     sensitive << clock.pos();
+
+
   }
 private:
     int io_id;

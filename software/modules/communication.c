@@ -235,14 +235,13 @@ unsigned int resend_messages(int remote_addr){
 	for(i=0; i<PIPE_SIZE; i++) {
 		//gets processor remote address of this pipe slot
 		consumer_proc = get_task_location(pipe[i].consumer_task);
-		print_pipe_status(pipe[i].status);
-		comm_puts(itoh(consumer_proc));
-		comm_puts("\n");
+		//print_pipe_status(pipe[i].status);
+		//comm_puts(itoh(consumer_proc));
+		//comm_puts("\n");
 		
 		if (pipe[i].status == WAITING_ACK && consumer_proc == remote_addr) {
 			send_message_delivery(pipe[i].producer_task, pipe[i].consumer_task, remote_addr, &pipe[i].message);
-			// puts("resent mesage delivery to: "); puts(itoh(consumer_proc)); puts("\n");
-			// comm_puts("resent mesage delivery to: "); comm_puts(itoh(consumer_proc)); comm_puts("\n");
+			comm_puts("resent mesage delivery to: "); comm_puts(itoh(consumer_proc)); comm_puts("\n");
 			return 1;
 		}
 	}
@@ -743,15 +742,22 @@ void send_message_request_(int producer_task, int consumer_task, unsigned int pr
  *  \param consumer_task ID of the peripheral that consume the message 
  *  \param msg_ptr Message pointer
  */
-void send_message_io(int producer_task, int peripheral_ID, Message * msg_ptr){
+void send_message_io(int producer_task, int peripheral_ID, Message * msg_ptr, int secure){
 
 	ServiceHeader *p = get_service_header_slot();
 
 	//p->header[MAX_SOURCE_ROUTING_PATH_SIZE-1] = get_task_location(consumer_task);
 
+	if(secure){
+		open_wrapper_IO_SZ(peripheral_ID, 1);  // IO_service: 0 - request; 1 - delivery
+		//puts("atrasando o envio do pacote"); puts("\n");
+		//get_net_address();
+		//puts("atrasando mais um pouco o envio do pacote"); puts("\n");
+	}
+
 	p->service = IO_DELIVERY;
 
-	p->producer_task = producer_task;
+	p->task_ID = producer_task;
 
 	p->peripheral_ID = peripheral_ID;
 
@@ -765,19 +771,47 @@ void send_message_io(int producer_task, int peripheral_ID, Message * msg_ptr){
  * \param consumer_task Consumer task ID (Receive())
  * \param sourcePE Processor address of the consumer task
  */
-void send_io_request(int peripheral_ID, int consumer_task, unsigned int sourcePE){
+void send_io_request(int peripheral_ID, int consumer_task, unsigned int sourcePE, int secure){
 
 	ServiceHeader *p = get_service_header_slot();
+	if(secure){
+		open_wrapper_IO_SZ(peripheral_ID, 0);  // IO_service: 0 - request; 1 - delivery
+	}
 
 	p->service = IO_REQUEST;
 
 	p->requesting_processor = sourcePE;
 
-	p->producer_task = peripheral_ID;
+	p->task_ID = consumer_task;
 
-	p->consumer_task = consumer_task;
+	p->peripheral_ID = peripheral_ID;
 
 	//add_msg_request(p->header[MAX_SOURCE_ROUTING_PATH_SIZE-1], consumer_task, peripheral_ID); //caimi: arrumar header
 
 	send_packet_io(p, 0, 0, peripheral_ID);
+}
+
+void send_peripheral_SR_path(int slot_seek, int peripheral_ID, int target){
+	int i;
+	ServiceHeader *p = get_service_header_slot();
+
+	p->service = IO_SR_PATH;
+
+	p->SR_target = SR_Table[slot_seek].target;
+
+	p->peripheral_ID = peripheral_ID;
+
+	puts("\nTarget: "); puts(itoh(SR_Table[slot_seek].target));
+	puts("\nHeader: \n");
+	for (i = 0; i < SR_Table[slot_seek].path_size; i++){
+		puts("        "); puts(itoh(SR_Table[slot_seek].path[i])); puts("\n");
+	}
+	//p->consumer_task = consumer_task;
+
+	//add_msg_request(p->header[MAX_SOURCE_ROUTING_PATH_SIZE-1], consumer_task, peripheral_ID); //caimi: arrumar header
+
+	send_packet_io(p, &SR_Table[slot_seek].path[0], SR_Table[slot_seek].path_size, peripheral_ID);
+
+
+
 }

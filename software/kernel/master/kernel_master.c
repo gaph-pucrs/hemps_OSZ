@@ -197,10 +197,11 @@ void send_app_allocation_map(Application * app, unsigned int * task_info, int ta
 	p->app_task_number = tasks_map_number;
 
 	//putsv("Send new APP REQUEST to master - id: ", p->task_ID );
-	//putsv(" app id: ", app->app_ID);
+	//putsv("App id: ", app->app_ID);
 
-	send_packet(p, (unsigned int) task_info, app->tasks_number*4);
-	//send_packet_io(p, (unsigned int) task_info, app->tasks_number*4, INJECTOR);
+	if(get_net_address() != global_master_address)
+		send_packet(p, (unsigned int) task_info, app->tasks_number*4);
+
 	send_packet_io(p, (unsigned int) task_info, tasks_map_number*4, INJECTOR);
 
 	while (MemoryRead(DMNI_SEND_ACTIVE));
@@ -898,26 +899,26 @@ int SeekInterruptHandler(){
 			puts("Released from: "); puts(itoh(source & 0xffff)); puts("\n");
 			//Test if is necessary to terminated the app
 			if (app->terminated_tasks == app->tasks_number){
-				
-					puts("All Tasks Finished AppID: "); puts(itoh(app_id)); puts("\n");
-					//puts("Secure: "); puts(itoh(app->secure)); puts("\n");
-					if(app->secure == 1){
-						Seek(OPEN_SECURE_ZONE_SERVICE, MemoryRead(TICK_COUNTER)<<16 | get_net_address(), app_id, app->RH_Address);
-					}
-					else{
-				
-						for (int i=0; i<app->tasks_number; i++){
-							if (app->tasks[i].borrowed_master != -1){
-								terminated_task_master[i] = app->tasks[i].borrowed_master;
-							} else {
-								terminated_task_master[i] = net_address;
-							}
-						}
-						if (is_global_master) {
-							handle_app_terminated(app->app_ID, app->tasks_number, net_address);
+			
+				puts("All Tasks Finished AppID: "); puts(itoh(app_id)); puts("\n");
+				//puts("Secure: "); puts(itoh(app->secure)); puts("\n");
+				if(app->secure == 1){
+					Seek(OPEN_SECURE_ZONE_SERVICE, MemoryRead(TICK_COUNTER)<<16 | get_net_address(), app_id, app->RH_Address);
+				}
+				else{
+			
+					for (int i=0; i<app->tasks_number; i++){
+						if (app->tasks[i].borrowed_master != -1){
+							terminated_task_master[i] = app->tasks[i].borrowed_master;
 						} else {
-							send_app_terminated(app, terminated_task_master); // Poderia ser via Seek
+							terminated_task_master[i] = net_address;
 						}
+					}
+					if (is_global_master) {
+						handle_app_terminated(app->app_ID, app->tasks_number, net_address);
+					} else {
+						send_app_terminated(app, terminated_task_master); // Poderia ser via Seek
+					}
 					remove_application(app->app_ID);
 				}	
 			}				
@@ -1082,7 +1083,7 @@ int SeekInterruptHandler(){
 		break;
 		case NEW_APP_SERVICE:
 			if (is_global_master){//keep in mind manter uma estrutura de qual injector pediu alocação ..
-				puts("\nGlobal master receive a NEW_APP_SERVICE\n");
+
 				Seek(CLEAR_SERVICE, source, 0, 0);
 				selected_cluster = SearchCluster(clusterID, payload); //acha um cluster para colocar as apps
 				total_mpsoc_resources -= payload;
@@ -1110,7 +1111,8 @@ int main() {
 	
 	set_net_address(MemoryRead(NI_CONFIG));
 	//By default HeMPS assumes that GM is positioned at address 0
-	if ( get_net_address() == 0){
+	//if ( get_net_address() == 0){
+	if ( get_net_address() == (cluster_info[0].master_x*256+ cluster_info[0].master_y )){
 
 		puts("This kernel is global master\n");
 

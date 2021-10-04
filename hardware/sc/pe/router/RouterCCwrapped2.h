@@ -22,6 +22,9 @@ SC_MODULE(RouterCCwrapped) {
 		sc_in<bool >  fail_in[NPORT];
 		sc_out<bool >  fail_out[NPORT];
 
+		sc_out<bool> 		mask_local_tx_output;
+    	sc_out<bool > 		io_packet_mask[NPORT];
+
 		sc_out<regflit> 			source;
 		sc_out<regflit> 			target;
 		sc_out<bool> 				w_source_target;
@@ -41,6 +44,9 @@ SC_MODULE(RouterCCwrapped) {
 		sc_signal<regNport > fail_in_internal;
 		sc_signal<regNport > fail_out_internal;
 
+		sc_signal<regNport > io_packet_mask_internal;
+
+
 		RouterCC *router;
 
 		void upd_clock_rx();
@@ -53,6 +59,7 @@ SC_MODULE(RouterCCwrapped) {
 		void upd_credit_i();
 		void upd_fail_in();
 		void upd_fail_out();
+		void upd_io_packet_mask();
 
 		//Traffic monitor
 		sc_in<sc_uint<32 > > tick_counter;
@@ -153,7 +160,7 @@ SC_MODULE(RouterCCwrapped) {
 				router->credit_i(credit_i_internal);
 			#endif
 
-			
+				router->mask_local_tx_output(mask_local_tx_output);
 				router->target(target);
 				router->source(source);
 				router->w_source_target(w_source_target);
@@ -217,6 +224,9 @@ SC_MODULE(RouterCCwrapped) {
 // 
 			SC_METHOD(upd_eop_out);
 			sensitive << eop_out_internal;
+
+			SC_METHOD(upd_io_packet_mask);
+			sensitive << io_packet_mask_internal;			
 
 		}
 		~RouterCCwrapped()

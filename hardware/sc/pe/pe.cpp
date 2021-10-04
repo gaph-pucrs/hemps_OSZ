@@ -161,6 +161,7 @@ void pe::comb_assignments(){
 	l_irq_status[0] = (!dmni_send_active_sig.read() && pending_service.read());
 	
 	irq_status.write(l_irq_status);
+	result_rx = rx_ni & mask_local_tx_output_local;
 }
 
 void pe::sequential_attr(){
@@ -755,12 +756,15 @@ void pe::seek_receive(){
 //generates the fail_out and fail_in accordin to external_fail_in and external_fail_out
 void pe::fail_out_generation(){
 	for(i=0;i<NPORT-1;i++){	
-		fail_out[i].write(router_fail_out[i].read() | external_fail_out[i].read() | wrapper_reg[i].read());
+		fail_out[i].write(router_fail_out[i].read() | external_fail_out[i].read() | (wrapper_reg[i].read() & ( wrapper_mask_router_out.read()[i] | io_packet_mask[i] ) ) );
+		//fail_out[i].write(router_fail_out[i].read() | external_fail_out[i].read() | ( wrapper_reg[i].read() & wrapper_mask_router_out.read()[i] ) );
+		//fail_out[i].write(router_fail_out[i].read() | external_fail_out[i].read() |  wrapper_reg[i].read() );
 	}
 }
 void pe::fail_in_generation(){
 	for(i=0;i<NPORT-1;i++){
-			router_fail_in[i].write(fail_in[i].read() | external_fail_in[i].read() | wrapper_reg[i].read());
+		router_fail_in[i].write(fail_in[i].read() | external_fail_in[i].read() | ( wrapper_reg[i].read() & wrapper_mask_router_in.read()[i]));
+		//router_fail_in[i].write(fail_in[i].read() | external_fail_in[i].read() | wrapper_reg[i].read() );
 	}
 }
 

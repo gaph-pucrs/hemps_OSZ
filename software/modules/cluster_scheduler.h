@@ -34,6 +34,8 @@ int get_cluster_ID(int , int );
 
 int SearchCluster(int, int);
 
+int get_cluster_index(int, int );
+
 void new_master_candidate();
 
 //int get_static_SZ();
