@@ -18,8 +18,12 @@
 #include "applications.h"
 #include "define_pairs.h"
 #include "seek.h" 
+#include "packet.h"
+
 
 //extern unsigned int app_id_counter;
+unsigned int address_go, address_back;
+unsigned int port_go, port_back;  // 0-EAST; 1 - WEST ; 2 - NORTH; 3 - SOUTH
 
 ////////////////////////////////////////////
 void init_Secure_Zone(){
@@ -443,6 +447,57 @@ int PE_belong_SZ(int PE_x, int PE_y){
             }
         }
     return 0;
+}
+
+void open_wrapper_IO_SZ(int peripheral_id, int io_service){ // io_service: 0 - request; 1 - delivery
+	int aux;
+
+	ServiceHeader *p = get_service_header_slot();
+
+	// aux = find_SZ_position_and_direction_to_IO(peripheral_id);
+
+	// if(aux == -1)
+	// 	return;
+
+    //puts("forward OPEN WRAPPER: "); puts(itoh(address_go)); puts("\n");
+
+    //-----------------------------------------------------------------------------
+    //OUT_WRAPPER
+	p->header[MAX_SOURCE_ROUTING_PATH_SIZE-2] = (0x1 << 28) | ((0X3F00 & address_go) << 14) | ((0X003F & address_go) << 16)| address_go;
+	p->header[MAX_SOURCE_ROUTING_PATH_SIZE-1] = (0x1 << 28) | ((0X3F00 & address_go) << 14) | ((0X003F & address_go) << 16)| address_go;
+
+	p->payload_size = (CONSTANT_PKT_SIZE - 2);
+
+	p->service = IO_OPEN_WRAPPER;
+
+	p->source_PE = get_net_address();
+
+	p->io_port = port_go;
+
+	p->io_direction = OUTPUT_DIRECTION;
+
+	if(io_service == 0)  //io_service: 0 - REQUEST   1 - DELIVERY
+		p->io_service = IO_REQUEST;
+	else
+		p->io_service = IO_DELIVERY;
+
+	send_packet(p, 0, 0);
+
+    //------------------------------------------------------------------------------
+    //IN_WRAPPER
+	p->header[MAX_SOURCE_ROUTING_PATH_SIZE-2] = (0x1 << 28) | ((0X3F00 & address_back) << 14)| ((0X003F & address_back) << 16)| address_back;
+	p->header[MAX_SOURCE_ROUTING_PATH_SIZE-1] = (0x1 << 28) | ((0X3F00 & address_back) << 14)| ((0X003F & address_back) << 16)| address_back;
+
+	p->io_port = port_back;
+	p->io_direction = INPUT_DIRECTION;
+
+	if(io_service == 0)  //io_service: 0 - REQUEST   1 - DELIVERY
+		p->io_service = IO_DELIVERY;
+	else
+		p->io_service = IO_ACK;
+
+	send_packet(p, 0, 0);
+
 }
 
 // ////////////////////////////

@@ -107,7 +107,7 @@ SC_MODULE(fail_WRAPPER_module){
 
 
    	void in_dataNOC_FSM();
-	void in_proc_FSM();
+	// void in_proc_FSM();
 	void write_mask();
 
 	SC_CTOR(fail_WRAPPER_module){

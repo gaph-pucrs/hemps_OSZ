@@ -23,7 +23,7 @@
 #include "applications.h"
 #include "define_pairs.h"
 #include "seek.h" 
-#include "osz.h"
+#include "osz_master.h"
 
 extern unsigned int clusterID;
 //extern unsigned int app_id_counter;

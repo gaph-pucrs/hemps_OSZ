@@ -35,6 +35,7 @@
 
 #include "../../modules/osz_master.h"
 
+
 NewTask * pending_new_task;
 
 /*Local Manager (LM) global variables*/
@@ -693,7 +694,7 @@ void initialize_slaves(){
 	int proc_address; //, index_counter;
 	unsigned int LL_addr, RH_addr;	
 
-	init_procesors();
+	init_processors();
 
 	//init_shapes();
 
@@ -707,11 +708,11 @@ void initialize_slaves(){
 			if( proc_address != net_address) {
 
 				//Fills the struct processors
-				add_procesor(proc_address);
+				add_processor(proc_address);
 
 			}
 			else
-				add_procesor(proc_address);
+				add_processor(proc_address);
 		}
 	}
 
@@ -871,7 +872,7 @@ int SeekInterruptHandler(){
 			// seek_puts("slot: "); seek_puts(itoa(slot_seek)); seek_puts("\n");
 			//while(seek_interruption){}
 			Seek(CLEAR_SERVICE, ((SR_Table[slot_seek].target<<16) | (get_net_address()&0xffff)), 0,0);
-			aux = resend_control_message(SR_Table[slot_seek].target);
+			aux = resend_control_message(backtrack, backtrack1, backtrack2, SR_Table[slot_seek].target);
 			if(aux == -1){
 				puts("ERROR: no msg deliver\n");
 			}

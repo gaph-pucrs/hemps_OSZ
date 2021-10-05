@@ -322,8 +322,8 @@ void clear_free_page_processor(int proc_address){ //Add by Fochi
 
 void print_processors(){
 	for(int i=0; i<MAX_CLUSTER_PEs; i++){
-		puts("Index: "), puts(itoa(i));
-		puts("  Endereco: "), puts(itoh(processors[i].address)); puts("\n");
+		puts("Index: "); puts(itoa(i));
+		puts("  Endereco: "); puts(itoh(processors[i].address)); puts("\n");
 	}
 }
 

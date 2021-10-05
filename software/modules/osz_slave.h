@@ -11,10 +11,12 @@
  * \brief This module implements functions to open and close Opaque Secure Zones
  *
  */
+
+#ifndef _OSZ_SLAVE_H_
+#define _OSZ_SLAVE_H_
+
 #include "../../include/kernel_pkg.h"
 #include "../include/api.h"
-#include "packet.h"
-
 
 
 void Set_Secure_Zone(unsigned int left_low_corner, unsigned int right_high_corner, unsigned int master_PE);
@@ -82,3 +84,28 @@ int auxCode;
 int auxSlot;
 Session* auxSession;
 //ServiceHeader* auxService;
+
+// int findBlankSession(Session* sessions);
+// int checkSession(Session* sessions, unsigned int prod, unsigned int cons);
+// int checkSessionCode(Session* sessions, unsigned int code);
+// int clearSession(Session* sessions, int index);
+// void initSessions();
+// Message* getMessageSlot();
+// void clearMessageSlot(Message* m);
+// ServiceHeader* getServiceSlot();
+// void clearServiceSlot(ServiceHeader* slot);
+// int createSession(Session* sessions, unsigned int prod, unsigned int cons, int code);
+// void printSessions(Session* sessions);
+// void printSessionStatus(Session* sessions, unsigned int index);
+// int checkRunningSession(Session* sessions, unsigned int task);
+// void copyService(ServiceHeader* SHsource, ServiceHeader* SHtarget);
+// ServiceHeader* checkWaitingServices(ServiceHeader* serviceQueue, int sProd, int sCons, int serv);
+// void send_message_delivery_control(Session * sessions,unsigned int prod, unsigned int cons, unsigned int target);
+// void send_message_request_control(Session* sessions, unsigned int prod, unsigned int cons, unsigned int target);
+// void timeoutMonitor(Session* sessions, int time);
+// int find_SZ_position_and_direction_to_IO(int peripheral_id);
+// void open_wrapper_IO_SZ(int peripheral_id, int io_service); // io_service: 0 - request; 1 - delivery
+// void send_wrapper_close_back__open_forward(int CM_index);
+// void send_wrapper_close_forward(int CM_index);
+
+#endif
