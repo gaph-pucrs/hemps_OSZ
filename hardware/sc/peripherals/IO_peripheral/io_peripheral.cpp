@@ -56,7 +56,10 @@ void io_peripheral::SR_path_FSM(){
 
             case S_COPY:
                     SR_target[SR_index] = reg_task_ID;
-                    SR_size[SR_index]   = reg_msg_size - 10;
+                    // if (reg_msg_size % 2 == 1)
+                    //     SR_size[SR_index]  = reg_msg_size - 9;
+                    // else
+                        SR_size[SR_index]  = reg_msg_size - 10;
                     SR_used[SR_index]   = 1;
                     for(i = 0; i < SR_size[SR_index]; i++){
                         SR_path[SR_index][i]  = buffer_in_flit[i];
@@ -417,7 +420,8 @@ void io_peripheral::out_proc_FSM(){
 					if(credit_i_primary.read() == true){
 						data_out_primary.write(buffer_out_flit[flit_out_counter]);
 						flit_out_counter = flit_out_counter + 1; 
-						if(flit_out_counter == 26){
+						//if(flit_out_counter == 26){
+                        if(flit_out_counter == header_size){
 							if(payload_size == 0){  
 								EA_out.write(S_SEND_EOP);
 								eop_out_primary.write(true);

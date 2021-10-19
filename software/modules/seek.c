@@ -137,14 +137,14 @@ void print_SR_Table(slot_seek){
 
 void print_port(unsigned int port){
 	switch(port){
-		case 0x0: seek_puts("E0"); break;
-		case 0x4: seek_puts("E1"); break;
-		case 0x1: seek_puts("W0"); break;
-		case 0x5: seek_puts("W1"); break;
-		case 0x2: seek_puts("N0"); break;
-		case 0x6: seek_puts("N1"); break;
-		case 0x3: seek_puts("S0"); break;
-		case 0x7: seek_puts("S1"); break;
+		case 0x0: seek_puts("E0"); break;	//0000
+		case 0x4: seek_puts("E1"); break;	//0100	
+		case 0x1: seek_puts("W0"); break;	//0001
+		case 0x5: seek_puts("W1"); break;	//0101
+		case 0x2: seek_puts("N0"); break;	//0010
+		case 0x6: seek_puts("N1"); break;	//0110
+		case 0x3: seek_puts("S0"); break;	//0011
+		case 0x7: seek_puts("S1"); break;	//0111
 		default: seek_puts("-"); break;
 	}
 }
@@ -246,6 +246,8 @@ int ProcessTurns(unsigned int backtrack, unsigned int backtrack1, unsigned int b
 	}
 	//gets target address
 	seek_puts("Target: ");seek_puts(itoh((((net_address>>8) + addrX)<<8) | ((net_address + addrY)&0xff)));seek_puts("\n");
+	puts("Target: ");puts(itoh((((net_address>>8) + addrX)<<8) | ((net_address + addrY)&0xff)));puts("\n");
+
 	//gets index in SR_Table
 	slot_seek = SearchSourceRoutingDestination( (((net_address>>8) + addrX)<<8) | ((net_address + addrY)&0xff) );
 	// seek_puts("PATH to ");

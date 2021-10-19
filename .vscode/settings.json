@@ -1,0 +1,6 @@
+{
+    "files.associations": {
+        "control_messages_fifo.h": "c",
+        "*.tcc": "cpp"
+    }
+}

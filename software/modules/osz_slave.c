@@ -95,7 +95,7 @@ void Set_Secure_Zone(unsigned int left_low_corner, unsigned int right_high_corne
 		LOCAL_right_high_corner = right_high_corner;
 		if((my_X_addr == RH_X_addr) && (my_Y_addr == RH_Y_addr)){
 			Seek(SET_SZ_RECEIVED_SERVICE, get_net_address(), master_PE, right_high_corner);
-			puts("SET SZ RH: ");puts(itoh(LOCAL_right_high_corner));puts("\n");	
+			seek_puts("SET SZ RH: ");seek_puts(itoh(LOCAL_right_high_corner));seek_puts("\n");	
 		}
 		seek_puts("wrapper: ");seek_puts(itoh(isolated_ports));seek_puts("\n");
 	}
@@ -104,6 +104,8 @@ void Set_Secure_Zone(unsigned int left_low_corner, unsigned int right_high_corne
 
 //////////////////////////////////////////////////////////////////////////////////////
 void Unset_Secure_Zone(unsigned int left_low_corner, unsigned int right_high_corner, unsigned int master_PE){
+  //cut - LLcut, RHcut, master
+	//NoCut - RHsz, RHsz, master
   unsigned int my_X_addr, my_Y_addr, master_X_addr, master_Y_addr;
 
   unsigned int RH_X_addr, RH_Y_addr, LOCAL_RH_X_addr, LOCAL_RH_Y_addr;
@@ -178,15 +180,15 @@ void Unset_Secure_Zone(unsigned int left_low_corner, unsigned int right_high_cor
   if(wrapper_value == 0)
   	return;
 
-  if (noCut && myOSZ){
-  //if((my_X_addr == LOCAL_RH_X_addr) && (my_Y_addr == LOCAL_RH_Y_addr)){   
-      	  right_high_corner = ((get_net_address() >> 4)& 0XF0) | (get_net_address() &  0X0F);
-          Seek(SECURE_ZONE_CLOSED_SERVICE, get_net_address(), master_PE, LOCAL_right_high_corner);
-          //puts("ENDSZ RH:");puts(itoh(LOCAL_right_high_corner));puts("\n"); 
-          // seek_puts("Without CUT - wrapper: ");seek_puts(itoh(isolated_ports));seek_puts("\n");
-          // seek_puts("RH address: ");seek_puts(itoh(right_high_corner));seek_puts("\n");
-          return;
-  }
+  // if (noCut && myOSZ){
+  // //if((my_X_addr == LOCAL_RH_X_addr) && (my_Y_addr == LOCAL_RH_Y_addr)){   
+  //     	  right_high_corner = ((get_net_address() >> 4)& 0XF0) | (get_net_address() &  0X0F);
+  //         Seek(SECURE_ZONE_CLOSED_SERVICE, get_net_address(), master_PE, LOCAL_right_high_corner);
+  //         //puts("ENDSZ RH:");puts(itoh(LOCAL_right_high_corner));puts("\n"); 
+  //         // seek_puts("Without CUT - wrapper: ");seek_puts(itoh(isolated_ports));seek_puts("\n");
+  //         // seek_puts("RH address: ");seek_puts(itoh(right_high_corner));seek_puts("\n");
+  //         //return;
+  // }
 
 // This is to uncut at RH position
 //  // set wrapper port EAST
@@ -205,7 +207,7 @@ void Unset_Secure_Zone(unsigned int left_low_corner, unsigned int right_high_cor
 //  if( (my_Y_addr == RH_Y_addr) && (my_X_addr == RH_X_addr ))
 //      isolated_ports = isolated_ports - 0x30;    
 
-
+if(noCut == 0){
 // This is to uncut at LL position
 // set wrapper port WEST
   if( (my_X_addr == LL_X_addr + 1) && (my_Y_addr >=  LL_Y_addr) &&  (my_Y_addr <=  RH_Y_addr) )
@@ -222,18 +224,16 @@ void Unset_Secure_Zone(unsigned int left_low_corner, unsigned int right_high_cor
   // UNSET wrapper port SOUTH
   if( (my_Y_addr == LL_Y_addr) && (my_X_addr == LL_X_addr ))
       isolated_ports = isolated_ports - 0xC0;    
+}
 
-
-  //if(isolated_ports != previous_isolated){
-  	seek_puts("write wrapper: ");seek_puts(itoh(isolated_ports));seek_puts("\n");
-    MemoryWrite(WRAPPER_REGISTER,isolated_ports);
-    if(myOSZ){
+  puts("write wrapper: ");puts(itoh(isolated_ports));puts("\n");
+  MemoryWrite(WRAPPER_REGISTER,isolated_ports);
+  if(myOSZ){
     //if((my_X_addr == LOCAL_RH_X_addr) && (my_Y_addr == LOCAL_RH_Y_addr)){
       Seek(SECURE_ZONE_CLOSED_SERVICE, get_net_address(), master_PE, LOCAL_right_high_corner);
       puts("ENDSZ RH:");puts(itoh(LOCAL_right_high_corner));puts("\n"); 
-    }
+  }
     //seek_puts("wrapper:");seek_puts(itoh(isolated_ports));seek_puts("\n");
-  //}
   wrapper_value = isolated_ports;
   seek_puts("RH address: ");seek_puts(itoh(right_high_corner));seek_puts("\n");
   seek_puts("LOCAL RH address: ");seek_puts(itoh(LOCAL_right_high_corner));seek_puts("\n");
@@ -793,6 +793,10 @@ int find_SZ_position_and_direction_to_IO(int peripheral_id){
             port_back = 0;                 
         }
     }
+    // puts("address_go: ");puts(itoa(address_go));puts("\n");
+    // puts("address_back: ");puts(itoa(address_back));puts("\n");
+    // puts("port_go: ");puts(itoa(port_go));puts("\n");
+    // puts("port_back: ");puts(itoa(port_back));puts("\n");  
     return 1;
 }
 
@@ -848,12 +852,12 @@ void open_wrapper_IO_SZ(int peripheral_id, int io_service){ // io_service: 0 - r
 
 }
 
-void send_wrapper_close_back__open_forward(int CM_index){
+void send_wrapper_close_back__open_forward(int CM_index){ //Tentar inverter a ordem que isso é feito
 	int peripheral_ID, io_service, aux;
 
 	ServiceHeader *p = get_service_header_slot();
 
-	//puts("CM_index: "); puts(itoa(CM_index)); puts("\n");
+	// puts("\nCM_index: "); puts(itoa(CM_index)); puts("\n");
 
 	peripheral_ID = get_CM_peripheral_ID(CM_index);
 	io_service = get_CM_IO_service(CM_index); // 0 - REQUEST; 1 - DELIVERY
@@ -862,6 +866,9 @@ void send_wrapper_close_back__open_forward(int CM_index){
 
 	if(aux == -1)
 		return;
+
+  // puts("peripheral_ID: "); puts(itoa(peripheral_ID)); puts("\n");
+  // puts("io_service: "); puts(itoa(io_service)); puts("\n");
 
     //-----------------------------------------------------------------------------
 	p->header[MAX_SOURCE_ROUTING_PATH_SIZE-2] = (0x1 << 28) | ((0X3F00 & address_go) << 14) | ((0X003F & address_go) << 16)| address_go;
@@ -884,21 +891,26 @@ void send_wrapper_close_back__open_forward(int CM_index){
 
 	send_packet(p, 0, 0);
 
+  // puts("Mandou1: "); puts("\n");
+
     //---------------------------------------------------------------------------------
-	p->header[MAX_SOURCE_ROUTING_PATH_SIZE-2] = (0x1 << 28) | ((0X3F00 & address_back) << 14)| ((0X003F & address_back) << 16)| address_back;
-	p->header[MAX_SOURCE_ROUTING_PATH_SIZE-1] = (0x1 << 28) | ((0X3F00 & address_back) << 14)| ((0X003F & address_back) << 16)| address_back;
+	// p->header[MAX_SOURCE_ROUTING_PATH_SIZE-2] = (0x1 << 28) | ((0X3F00 & address_back) << 14)| ((0X003F & address_back) << 16)| address_back;
+	// p->header[MAX_SOURCE_ROUTING_PATH_SIZE-1] = (0x1 << 28) | ((0X3F00 & address_back) << 14)| ((0X003F & address_back) << 16)| address_back;
 
-	p->io_port = port_go;
+	// p->io_port = port_go;
 
-	p->io_direction = CLEAR_INPUT_DIRECTION;
+	// // p->io_direction = CLEAR_INPUT_DIRECTION;
+  // ///p->io_direction = OUTPUT_DIRECTION;
 
-	if(io_service == 0)  //io_service: 0 - REQUEST   1 - DELIVERY
-		p->io_service = IO_DELIVERY;
-	else
-		p->io_service = IO_ACK;
+	// if(io_service == 0)  //io_service: 0 - REQUEST   1 - DELIVERY
+	// 	p->io_service = IO_DELIVERY;
+	// else
+	// 	p->io_service = IO_ACK;
 
-	send_packet(p, 0, 0);
+	// send_packet(p, 0, 0);
 
+  // puts("Mandou2: "); puts("\n");
+  return;
 }
 
 

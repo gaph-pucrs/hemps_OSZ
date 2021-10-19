@@ -519,7 +519,7 @@ int Syscall(unsigned int service, unsigned int arg0, unsigned int arg1, unsigned
 
 			producer_task =  current->id;
 
-			//puts("IO - WRITEPIPE - prod: "); puts(itoa(producer_task)); putsv(" consumer ", arg1);
+			// puts("IO - WRITEPIPE - prod: "); puts(itoa(producer_task)); putsv(" consumer ", arg1);
 
 			/*Points the message in the task page. Address composition: offset + msg address*/
 			msg_read = (Message *)((current->offset) | arg0);
@@ -538,7 +538,8 @@ int Syscall(unsigned int service, unsigned int arg0, unsigned int arg1, unsigned
 			current->scheduling_ptr->status = WAITING;
 
 			schedule_after_syscall = 1;
-	
+			// puts("IO WRITEPIPE END: ");
+
 
 		return 1;
 
@@ -668,7 +669,7 @@ int handle_packet(volatile ServiceHeader * p) {
 
 		//puts("header:");puts(itoh(p->header[MAX_SOURCE_ROUTING_PATH_SIZE-2])); puts("\n");
 		//puts("size:");puts(itoh(p->payload_size)); puts("\n");
-		//puts("service:");puts(itoh(p->service)); puts("\n");
+		// puts("DATA - service:");puts(itoh(p->service)); puts("\n");
 		//puts("producer:");puts(itoh(p->producer_task)); puts("\n");
 		//puts("consumer:");puts(itoh(p->consumer_task)); puts("\n");
 		//puts("source:");puts(itoh(p->source_PE)); puts("\n");
@@ -823,22 +824,22 @@ int handle_packet(volatile ServiceHeader * p) {
 
 
 	case  IO_ACK:
-		puts("-------->> Chegou IO\n");
-		puts("header:");puts(itoh(p->header[MAX_SOURCE_ROUTING_PATH_SIZE-2])); puts("\n");
-		puts("size:");puts(itoh(p->payload_size)); puts("\n");
-		puts("service:");puts(itoh(p->service)); puts("\n");
-		puts("producer:");puts(itoh(p->producer_task)); puts("\n");
-		puts("consumer:");puts(itoh(p->consumer_task)); puts("\n");
-		puts("source:");puts(itoh(p->source_PE)); puts("\n");
-		puts("length:");puts(itoh(p->msg_lenght)); puts("\n");
+		puts("-------->> Chegou IO ACK\n");
+		// puts("header:");puts(itoh(p->header[MAX_SOURCE_ROUTING_PATH_SIZE-2])); puts("\n");
+		// puts("size:");puts(itoh(p->payload_size)); puts("\n");
+		// puts("service:");puts(itoh(p->service)); puts("\n");
+		// puts("producer:");puts(itoh(p->producer_task)); puts("\n");
+		// puts("consumer:");puts(itoh(p->consumer_task)); puts("\n");
+		// puts("source:");puts(itoh(p->source_PE)); puts("\n");
+		// puts("length:");puts(itoh(p->msg_lenght)); puts("\n");
 
 		tcb_ptr = searchTCB(p->producer_task);
 		//puts("tcb_ptr:");puts(itoh(tcb_ptr)); puts("\n");
 
-		puts("Status scheduler antes:");puts(itoh(tcb_ptr->scheduling_ptr->status)); puts("\n");
+		// puts("Status scheduler antes:");puts(itoh(tcb_ptr->scheduling_ptr->status)); puts("\n");
 		if(tcb_ptr->scheduling_ptr->status != BLOCKED)
 			tcb_ptr->scheduling_ptr->status = READY;
-		puts("Status scheduler depois:");puts(itoh(tcb_ptr->scheduling_ptr->status)); puts("\n");
+		// puts("Status scheduler depois:");puts(itoh(tcb_ptr->scheduling_ptr->status)); puts("\n");
 
 		#if MIGRATION_ENABLED
 			if (tcb_ptr->proc_to_migrate != -1){
@@ -856,7 +857,7 @@ int handle_packet(volatile ServiceHeader * p) {
 
 
 	case  IO_DELIVERY:
-
+		puts("-------->> Chegou IO DELIVERY\n");
 	case  MESSAGE_DELIVERY: //MD_HANDLER
 		tInit = MemoryRead(TICK_COUNTER);
 	#ifdef SESSION_MANAGER 
@@ -1212,7 +1213,7 @@ int handle_packet(volatile ServiceHeader * p) {
 	case KE_VALUE:
 
 		puts("Cripted KE VALUE MESSAGE received");  puts("\n");
-        putsv(" time - ", MemoryRead(TICK_COUNTER));
+        // putsv(" time - ", MemoryRead(TICK_COUNTER));
 
 		DMNI_read_data(Ke, 6);
 
@@ -1351,27 +1352,32 @@ int SeekInterruptHandler(){
 			}	
 			
 			if(seek_unr_count == (source>>16)){
-				//seek_puts("bug FDP\n");
 				seek_unr_count++;
 			}
 			aux =  search_Target(source>>16);
+
 			if(((aux == search_Service(IO_REQUEST)) || (aux == search_Service(IO_DELIVERY))) && (aux != -1)){
 				send_wrapper_close_back__open_forward(aux);
 			}
 
 			Seek(SEARCHPATH_SERVICE, ((seek_unr_count<<16) | (get_net_address()&0xffff)), source>>16, 0);
 			seek_unr_count++;
-			// seek_unr_count = seek_unr_count+3;
+
 		break;
 
 		case BACKTRACK_SERVICE:
-			// seek_puts("backtrack\n");
-			//seek_puts("backtrak: "); seek_puts(itoh(backtrack)); seek_puts("\n");
+			puts("Received BACKTRACK_SERVICE\n");
+			// puts("backtrack: "); puts(itoh(backtrack)); puts("\n");
+			// puts("backtrack1: "); puts(itoh(backtrack1)); puts("\n");
+			// puts("backtrack2: "); puts(itoh(backtrack2)); puts("\n");
+
 			slot_seek = ProcessTurns(backtrack, backtrack1, backtrack2);
 			// seek_puts("slot: "); seek_puts(itoa(slot_seek)); seek_puts("\n");
 			Seek(CLEAR_SERVICE, ((SR_Table[slot_seek].target<<16) | (get_net_address()&0xffff)), 0,0);
 			aux = resend_messages(SR_Table[slot_seek].target);
+  			// puts("resend_messages: "); puts(itoa(aux)); puts("\n");
 			aux = aux + resend_msg_request(SR_Table[slot_seek].target);
+			// puts("resend_msg_request: "); puts(itoa(aux)); puts("\n");
 
 			if(aux == 0){
 				aux =  search_Target(source>>16);
@@ -1386,10 +1392,9 @@ int SeekInterruptHandler(){
 				peripheral_id = find_io_peripheral(get_net_address());
 				if(peripheral_id){
 					send_peripheral_SR_path(slot_seek, peripheral_id, target);
-					puts(" SR Peripheral\n"); 
+					// puts(" SR Peripheral\n"); 
 				}
 			}
-
 		break;
 
 		case SET_SECURE_ZONE_SERVICE:
@@ -1559,6 +1564,8 @@ int SeekInterruptHandler(){
 			// Ignorar se for secure já
 			if (LOCAL_right_high_corner != -1){
 				Unset_Secure_Zone(target, payload, source);
+				//cut - LL, RH, master
+				//NoCut - LL, RH, master
 			}
 		break;
 
@@ -1571,7 +1578,7 @@ int SeekInterruptHandler(){
 			//seek_puts("Address: "); seek_puts(itoh(get_net_address())); seek_puts("\n");
 			aux = unblock_tasks_of_App(payload);
 			seek_puts("Tasks Unbloqued: "); seek_puts(itoh(aux)); seek_puts("\n");
-			putsv("time - ", MemoryRead(TICK_COUNTER));
+			// putsv("time - ", MemoryRead(TICK_COUNTER));
 			aux = ((get_net_address() & 0xF00) >> 4) + (get_net_address() & 0x00F);
 			if(LOCAL_right_high_corner == aux){
 				seek_puts("clear START_APP service!"); seek_puts("\n");
@@ -1732,7 +1739,7 @@ void OS_InterruptServiceRoutine(unsigned int status) {
 
 	if ( status & IRQ_NOC ){
 		auxTime = MemoryRead(TICK_COUNTER);
-		//puts("Tempo da Interrupção: ");puts(itoa(auxTime));puts("\n");
+		// puts("Tempo da Interrupção: ");puts(itoa(auxTime));puts("\n");
 		//printar o tempo do novo tratamento
 		if (read_packet(&p) != -1){
 			if (MemoryRead(DMNI_SEND_ACTIVE) && (p.service == MESSAGE_REQUEST || p.service == TASK_MIGRATION) ){

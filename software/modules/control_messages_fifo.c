@@ -253,7 +253,6 @@ int resend_control_message(unsigned int backtrack, unsigned int backtrack1, unsi
 	else{
 		puts("\nERROR: control message NOT found!!!");
 		return 0;
-
 	}
 
 }
