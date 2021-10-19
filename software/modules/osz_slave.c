@@ -176,15 +176,15 @@ void Unset_Secure_Zone(unsigned int left_low_corner, unsigned int right_high_cor
   if(wrapper_value == 0)
   	return;
 
-  if (noCut && myOSZ){
-  //if((my_X_addr == LOCAL_RH_X_addr) && (my_Y_addr == LOCAL_RH_Y_addr)){   
-      	  right_high_corner = ((get_net_address() >> 4)& 0XF0) | (get_net_address() &  0X0F);
-          Seek(SECURE_ZONE_CLOSED_SERVICE, get_net_address(), master_PE, LOCAL_right_high_corner);
-          //puts("ENDSZ RH:");puts(itoh(LOCAL_right_high_corner));puts("\n"); 
-          // seek_puts("Without CUT - wrapper: ");seek_puts(itoh(isolated_ports));seek_puts("\n");
-          // seek_puts("RH address: ");seek_puts(itoh(right_high_corner));seek_puts("\n");
-          return;
-  }
+  // if (noCut && myOSZ){
+  // //if((my_X_addr == LOCAL_RH_X_addr) && (my_Y_addr == LOCAL_RH_Y_addr)){   
+  //     	  right_high_corner = ((get_net_address() >> 4)& 0XF0) | (get_net_address() &  0X0F);
+  //         Seek(SECURE_ZONE_CLOSED_SERVICE, get_net_address(), master_PE, LOCAL_right_high_corner);
+  //         //puts("ENDSZ RH:");puts(itoh(LOCAL_right_high_corner));puts("\n"); 
+  //         // seek_puts("Without CUT - wrapper: ");seek_puts(itoh(isolated_ports));seek_puts("\n");
+  //         // seek_puts("RH address: ");seek_puts(itoh(right_high_corner));seek_puts("\n");
+  //         return;
+  // }
 
 // This is to uncut at RH position
 //  // set wrapper port EAST
