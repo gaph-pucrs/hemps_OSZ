@@ -161,7 +161,7 @@ void send_packet(ServiceHeader *p, unsigned int initial_address, unsigned int dm
 	p->payload_size = (CONSTANT_PKT_SIZE - 2) + dmni_msg_size;
 	//NEW/
 
-	p->transaction = 0x1234;
+	p->transaction = 0;
 
 	p->source_PE = get_net_address();
 	
@@ -292,6 +292,7 @@ void send_packet_io(ServiceHeader *p, unsigned int initial_address, unsigned int
 
 	unsigned int slot;
 	int i, port_io;
+	enum {DISTRIBUTED_ROUTING, SOURCE_ROUTING} packet_type;
 
     char SepKey[16] = {0,1,2,3,4,5,6,7,8,9,0xa,0xb,0xc,0xd,0xe,0xf};
 
@@ -327,6 +328,49 @@ void send_packet_io(ServiceHeader *p, unsigned int initial_address, unsigned int
 	p->header[MAX_SOURCE_ROUTING_PATH_SIZE-2] = ((port_io & 0xF)<<28)|((((p->source_PE & 0x3F00) >> 2) | (p->source_PE & 0x003F)) << 16) | p->header[MAX_SOURCE_ROUTING_PATH_SIZE-1];
 	p->header[MAX_SOURCE_ROUTING_PATH_SIZE-1] = ((port_io & 0xF)<<28)|((((p->source_PE & 0x3F00) >> 2) | (p->source_PE & 0x003F)) << 16) | p->header[MAX_SOURCE_ROUTING_PATH_SIZE-1];
 
+	//get slot
+	slot = SearchSourceRoutingDestination(p->header[MAX_SOURCE_ROUTING_PATH_SIZE-1]&0xffff);
+	//verify if path is a source routing destination
+	if(slot != -1){
+
+		//move XY header to before SR header
+		p->header[MAX_SOURCE_ROUTING_PATH_SIZE-SR_Table[slot].path_size-1] = ((port_io & 0xF)<<28)|((((p->source_PE & 0x3F00) >> 2) | (p->source_PE & 0x003F)) << 16) | p->header[MAX_SOURCE_ROUTING_PATH_SIZE-1];
+
+		//if it is stored, must fulfill header with SR path
+		for(i=0;i<SR_Table[slot].path_size;i++){
+			p->header[MAX_SOURCE_ROUTING_PATH_SIZE-SR_Table[slot].path_size+i] = SR_Table[slot].path[i];
+			// puts("p->header:");puts(itoh(p->header[MAX_SOURCE_ROUTING_PATH_SIZE-SR_Table[slot].path_size+i]));puts("\n");
+		}
+		packet_type = SOURCE_ROUTING;
+	}
+	else{
+		
+		p->header[MAX_SOURCE_ROUTING_PATH_SIZE-2] = ((port_io & 0xF)<<28)|((((p->source_PE & 0x3F00) >> 2) | (p->source_PE & 0x003F)) << 16) | p->header[MAX_SOURCE_ROUTING_PATH_SIZE-1];
+	
+		p->header[MAX_SOURCE_ROUTING_PATH_SIZE-1] = ((port_io & 0xF)<<28)|((((p->source_PE & 0x3F00) >> 2) | (p->source_PE & 0x003F)) << 16) | p->header[MAX_SOURCE_ROUTING_PATH_SIZE-1];
+
+		packet_type = DISTRIBUTED_ROUTING;
+	}
+
+
+		//Waits the DMNI send process be released
+	while (MemoryRead(DMNI_SEND_ACTIVE));
+
+	p->timestamp = MemoryRead(TICK_COUNTER);
+
+
+	if(packet_type == SOURCE_ROUTING){
+		MemoryWrite(DMNI_SIZE, CONSTANT_PKT_SIZE + SR_Table[slot].path_size-1);
+		// puts("sizehPKT:");puts(itoh(SR_Table[slot].path_size));puts("\n");
+		MemoryWrite(DMNI_ADDRESS, (unsigned int) &p->header[MAX_SOURCE_ROUTING_PATH_SIZE-SR_Table[slot].path_size-1]);
+	}else{
+		MemoryWrite(DMNI_SIZE, CONSTANT_PKT_SIZE);
+		//NEW
+		// MemoryWrite(DMNI_ADDRESS, (unsigned int) &p->header[MAX_SOURCE_ROUTING_PATH_SIZE-1]);
+		MemoryWrite(DMNI_ADDRESS, (unsigned int) &p->header[MAX_SOURCE_ROUTING_PATH_SIZE-2]);
+		//NEW/
+	}
+
 
     //putsv("length - ", 14*4); 
     //putsv("Init header MAC - ", MemoryRead(TICK_COUNTER)); 
@@ -334,14 +378,11 @@ void send_packet_io(ServiceHeader *p, unsigned int initial_address, unsigned int
     //putsv("End header MAC - ", MemoryRead(TICK_COUNTER)); 
 
 
-        //Waits the DMNI send process be released
-    while (MemoryRead(DMNI_SEND_ACTIVE));
-    
-	p->timestamp = MemoryRead(TICK_COUNTER);
-
-
-	MemoryWrite(DMNI_SIZE, CONSTANT_PKT_SIZE);
-	MemoryWrite(DMNI_ADDRESS, (unsigned int) &p->header[MAX_SOURCE_ROUTING_PATH_SIZE-2]);
+	//Waits the DMNI send process be released
+    // while (MemoryRead(DMNI_SEND_ACTIVE)); 
+	// p->timestamp = MemoryRead(TICK_COUNTER);
+	// MemoryWrite(DMNI_SIZE, CONSTANT_PKT_SIZE);
+	// MemoryWrite(DMNI_ADDRESS, (unsigned int) &p->header[MAX_SOURCE_ROUTING_PATH_SIZE-2]);
 
 	if (dmni_msg_size > 0){
 		MemoryWrite(DMNI_SIZE_2, dmni_msg_size);

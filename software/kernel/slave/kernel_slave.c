@@ -1337,12 +1337,12 @@ int SeekInterruptHandler(){
 
 	switch(service){
 		case TARGET_UNREACHABLE_SERVICE:
-			// puts("TUS\n");
+			puts("TUS\n");
 			//perform clear
 			//Seek(CLEAR_SERVICE, source, target, 0);
 			//global variable for finding seek
 
-			seek_puts("unr: "); seek_puts(itoh(source)); seek_puts("\n");
+			puts("unr: "); puts(itoh(source)); puts("\n");
 			slot_seek = GetFreeSlotSourceRouting(source>>16);
 			
 			if(slot_seek != -1){
@@ -1375,9 +1375,7 @@ int SeekInterruptHandler(){
 			// seek_puts("slot: "); seek_puts(itoa(slot_seek)); seek_puts("\n");
 			Seek(CLEAR_SERVICE, ((SR_Table[slot_seek].target<<16) | (get_net_address()&0xffff)), 0,0);
 			aux = resend_messages(SR_Table[slot_seek].target);
-  			// puts("resend_messages: "); puts(itoa(aux)); puts("\n");
 			aux = aux + resend_msg_request(SR_Table[slot_seek].target);
-			// puts("resend_msg_request: "); puts(itoa(aux)); puts("\n");
 
 			if(aux == 0){
 				aux =  search_Target(source>>16);
