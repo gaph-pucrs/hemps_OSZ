@@ -1371,6 +1371,7 @@ int SeekInterruptHandler(){
 			// puts("backtrack1: "); puts(itoh(backtrack1)); puts("\n");
 			// puts("backtrack2: "); puts(itoh(backtrack2)); puts("\n");
 
+			
 			slot_seek = ProcessTurns(backtrack, backtrack1, backtrack2);
 			// seek_puts("slot: "); seek_puts(itoa(slot_seek)); seek_puts("\n");
 			Seek(CLEAR_SERVICE, ((SR_Table[slot_seek].target<<16) | (get_net_address()&0xffff)), 0,0);

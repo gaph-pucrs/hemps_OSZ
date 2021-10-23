@@ -80,19 +80,19 @@ typedef struct {
 } SourceRoutingTableSlot;
 
 
-void savePrev(SourceRoutingTableSlot* sr){
-	for (int i=0; i<MAX_TRIES; i++){
-		if (sr->prevPath == 0){
-			for (int j=0; j<MAX_SOURCE_ROUTING_PATH_SIZE; j++){
-				sr->prevPath[i][j] = sr->path[j];
-			}
-			return;
-		}
-	}
+// void savePrev(SourceRoutingTableSlot* sr){
+// 	for (int i=0; i<MAX_TRIES; i++){
+// 		if (sr->prevPath == 0){
+// 			for (int j=0; j<MAX_SOURCE_ROUTING_PATH_SIZE; j++){
+// 				sr->prevPath[i][j] = sr->path[j];
+// 			}
+// 			return;
+// 		}
+// 	}
 	puts("ERRO - Máximo de tentativas de SR alcançadas");
-}
+// }
 
-savePrev(&SR_Table[slot])
+// savePrev(&SR_Table[slot])
 
 struct{
 	enum {FIFO_F, FIFO_U} status;
