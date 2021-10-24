@@ -63,7 +63,7 @@
 
  //#define seek_puts(argument) puts(argument)
 #define seek_puts(argument) 
-
+#define MAX_TRIES 5
 
 
 //used for seek purposes
@@ -75,8 +75,24 @@ typedef struct {
 	enum {SR_LIVRE, SR_USADO} tableSlotStatus;
 	unsigned int target;
 	unsigned int path_size;
+	unsigned int prevPath[MAX_TRIES][MAX_SOURCE_ROUTING_PATH_SIZE];
 	//unsigned char port[64];
 } SourceRoutingTableSlot;
+
+
+// void savePrev(SourceRoutingTableSlot* sr){
+// 	for (int i=0; i<MAX_TRIES; i++){
+// 		if (sr->prevPath == 0){
+// 			for (int j=0; j<MAX_SOURCE_ROUTING_PATH_SIZE; j++){
+// 				sr->prevPath[i][j] = sr->path[j];
+// 			}
+// 			return;
+// 		}
+// 	}
+	puts("ERRO - Máximo de tentativas de SR alcançadas");
+// }
+
+// savePrev(&SR_Table[slot])
 
 struct{
 	enum {FIFO_F, FIFO_U} status;
