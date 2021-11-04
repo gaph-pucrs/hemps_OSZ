@@ -20,7 +20,7 @@ elif len(argv) == 4:
 	MAX_Y=int(MAX_Y)
 	MAX_CLUSTER_X=0
 	MAX_CLUSTER_Y=0
-	master_pe=int(master_posX, posY)
+	master_pe=int(master_pe)
 elif len(argv) == 3:
 	scriptname,MAX_X,MAX_Y = argv
 	MAX_X=int(MAX_X)
@@ -428,6 +428,37 @@ print "add wave -noupdate -group IO_PERIPHERAL /test_bench/IO_PERIPHERAL/credit_
 print "add wave -noupdate -group IO_PERIPHERAL /test_bench/IO_PERIPHERAL/eop_out_primary"
 print "add wave -noupdate -group IO_PERIPHERAL /test_bench/IO_PERIPHERAL/EA_in"
 print "add wave -noupdate -group IO_PERIPHERAL /test_bench/IO_PERIPHERAL/EA_out"
+#IO_PERIPHERAL2 SIGNALS
+print "add wave -noupdate -group IO_PERIPHERAL2 /test_bench/IO_PERIPHERAL2/clock"
+print "add wave -noupdate -group IO_PERIPHERAL2 /test_bench/IO_PERIPHERAL2/reset"
+print "add wave -noupdate -group IO_PERIPHERAL2 /test_bench/IO_PERIPHERAL2/in_source_router_seek_primary"
+print "add wave -noupdate -group IO_PERIPHERAL2 /test_bench/IO_PERIPHERAL2/in_target_router_seek_primary"
+print "add wave -noupdate -group IO_PERIPHERAL2 /test_bench/IO_PERIPHERAL2/in_payload_router_seek_primary"
+print "add wave -noupdate -group IO_PERIPHERAL2 /test_bench/IO_PERIPHERAL2/in_service_router_seek_primary"
+print "add wave -noupdate -group IO_PERIPHERAL2 /test_bench/IO_PERIPHERAL2/in_req_router_seek_primary"
+print "add wave -noupdate -group IO_PERIPHERAL2 /test_bench/IO_PERIPHERAL2/in_ack_router_seek_primary"
+print "add wave -noupdate -group IO_PERIPHERAL2 /test_bench/IO_PERIPHERAL2/in_opmode_router_seek_primary"
+print "add wave -noupdate -group IO_PERIPHERAL2 /test_bench/IO_PERIPHERAL2/out_service_router_seek_primary"
+print "add wave -noupdate -group IO_PERIPHERAL2 /test_bench/IO_PERIPHERAL2/out_source_router_seek_primary"
+print "add wave -noupdate -group IO_PERIPHERAL2 /test_bench/IO_PERIPHERAL2/out_target_router_seek_primary"
+print "add wave -noupdate -group IO_PERIPHERAL2 /test_bench/IO_PERIPHERAL2/out_payload_router_seek_primary"
+print "add wave -noupdate -group IO_PERIPHERAL2 /test_bench/IO_PERIPHERAL2/out_ack_router_seek_primary"
+print "add wave -noupdate -group IO_PERIPHERAL2 /test_bench/IO_PERIPHERAL2/out_req_router_seek_primary"
+print "add wave -noupdate -group IO_PERIPHERAL2 /test_bench/IO_PERIPHERAL2/out_nack_router_seek_primary"
+print "add wave -noupdate -group IO_PERIPHERAL2 /test_bench/IO_PERIPHERAL2/out_opmode_router_seek_primary"
+print "add wave -noupdate -group IO_PERIPHERAL2 /test_bench/IO_PERIPHERAL2/clock_tx_primary"
+print "add wave -noupdate -group IO_PERIPHERAL2 /test_bench/IO_PERIPHERAL2/tx_primary"
+print "add wave -noupdate -group IO_PERIPHERAL2 /test_bench/IO_PERIPHERAL2/data_out_primary"
+print "add wave -noupdate -group IO_PERIPHERAL2 /test_bench/IO_PERIPHERAL2/credit_i_primary"
+print "add wave -noupdate -group IO_PERIPHERAL2 /test_bench/IO_PERIPHERAL2/eop_in_primary"
+print "add wave -noupdate -group IO_PERIPHERAL2 /test_bench/IO_PERIPHERAL2/clock_rx_primary"
+print "add wave -noupdate -group IO_PERIPHERAL2 /test_bench/IO_PERIPHERAL2/rx_primary"
+print "add wave -noupdate -group IO_PERIPHERAL2 /test_bench/IO_PERIPHERAL2/data_in_primary"
+print "add wave -noupdate -group IO_PERIPHERAL2 /test_bench/IO_PERIPHERAL2/credit_o_primary"
+print "add wave -noupdate -group IO_PERIPHERAL2 /test_bench/IO_PERIPHERAL2/eop_out_primary"
+print "add wave -noupdate -group IO_PERIPHERAL2 /test_bench/IO_PERIPHERAL2/EA_in"
+print "add wave -noupdate -group IO_PERIPHERAL2 /test_bench/IO_PERIPHERAL2/EA_out"
+
 	
 
 
@@ -446,4 +477,4 @@ configure wave -gridoffset 0\n\
 configure wave -gridperiod 1\n\
 configure wave -griddelta 40\n\
 configure wave -timeline 0\n\
-configure wave -timelineunits ps\n"
+configure wave -timelineunits ns\n"

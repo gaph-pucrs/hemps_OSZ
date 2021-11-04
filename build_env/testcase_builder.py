@@ -89,8 +89,11 @@ def main():
     copy_makefiles_and_waves( HEMPS_PATH,  TESTCASE_NAME, page_size_KB, memory_size_KB, model_description, apps_name_list, simul_time)
     copy_testcase_file( TESTCASE_NAME, INPUT_TESTCASE_FILE_PATH)
 
+    # if not (os.path.isfile(TESTCASE_NAME + "/wave.do")) :
+    #     os.system("python "+ HEMPS_PATH+"/build_env/waves/wavegen.py "+ str(mpsocXsize) + " " + str(mpsocYsize) + " " + str(clusterXsize) + " " + str(clusterYsize) + " > " + TESTCASE_NAME + "/wave.do")
+
     if not (os.path.isfile(TESTCASE_NAME + "/wave.do")) :
-        os.system("python "+ HEMPS_PATH+"/build_env/waves/wavegen.py "+ str(mpsocXsize) + " " + str(mpsocYsize) + " " + str(clusterXsize) + " " + str(clusterYsize) + " > " + TESTCASE_NAME + "/wave.do")
+        os.system("python "+ HEMPS_PATH+"/build_env/waves/wavegen.py "+ str(mpsocXsize) + " " + str(mpsocYsize) + " " + str(get_master_address(yaml_reader)) + " > " + TESTCASE_NAME + "/wave.do")
     
     #Create other importatants dirs
     create_ifn_exists(TESTCASE_NAME+"/include")

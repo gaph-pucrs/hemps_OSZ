@@ -146,9 +146,21 @@ int create_valid_shapes(int PEs, int cont)
        if  (shapes[cont+ix1].Y_size == shapes[cont+ix1+1].Y_size)  shapes[cont+ix1+1].valid=0;
 
   // suppress invalid shapes -  that are larger than the cluster size //ADD - LARGER THAN SecureArea
+
+  // suppress invalid shapes -  that are larger than the cluster size //ADD - LARGER THAN SecureArea
+  #ifdef GRAY_AREA
+  if ((ga.cols[MAX_GRAY_COLS-1] == XCLUSTER -1) || (ga.cols[0] == 0)){ // If GrayArea at the sides 
+    for( ix1=0; ix1<PEs; ix1++)
+        if( shapes[cont+ix1].X_size>XCLUSTER - MAX_GRAY_COLS || shapes[cont+ix1].Y_size>YCLUSTER - MAX_GRAY_ROWS)
+            shapes[cont+ix1].valid=0; 
+  }
+//   else{ //TODO: Caso GrayArea for no meio 
+//   }
+  #else
   for( ix1=0; ix1<PEs; ix1++)
-       if( shapes[cont+ix1].X_size>XCLUSTER || shapes[cont+ix1].Y_size>YCLUSTER)
-                    shapes[cont+ix1].valid=0; 
+    if( shapes[cont+ix1].X_size>XCLUSTER || shapes[cont+ix1].Y_size>YCLUSTER)
+        shapes[cont+ix1].valid=0; 
+  #endif
   
   // recreate the list and the correct number of shapes
   for( contador=x=0; x<PEs; x++)
@@ -273,8 +285,10 @@ int shape_recog(int X_size, int Y_size, int X_init, int Y_init){
             return  100;
         if(PE_belong_SZ(x,y) == 1)
             return 100;
+        #ifdef GRAY_AREA
         if(PE_belong_GA(x,y) == 1)
             return 100;
+        #endif
     }
   }
   return used;
@@ -429,19 +443,21 @@ void free_Secure_Zone(int RH_address){ // falta implementar
     }    
 }
 
+#ifdef GRAY_AREA 
 //////////////////////////////////////////////////////////////////////////////////////
 int PE_belong_GA(int PE_x, int PE_y){
 
-    for (int i = 0; i < MAX_GRAY_ROWS; i++)
+    for (int i = 0; i < MAX_GRAY_COLS; i++)
         if (PE_x == ga.cols[i])
             return 1;
         
-    for (int i = 0; i < MAX_GRAY_COLS; i++)
+    for (int i = 0; i < MAX_GRAY_ROWS; i++)
         if (PE_y == ga.rows[i])
             return 1;
 
     return 0;
 }
+#endif
 
 //////////////////////////////////////////////////////////////////////////////////////
 int PE_belong_SZ(int PE_x, int PE_y){

@@ -98,8 +98,11 @@ def generate_sw_pkg( yaml_r ):
     file_lines.append("#define MAX_STATIC_TASKS            "+static_lenght+"      //max number of tasks mapped statically \n\n")
     file_lines.append("#define IO_NUMBER                   "+str(io_number)+"\n")
 
-    file_lines.append("#define MAX_GRAY_ROWS               "+str(len(gray_area_rows))+"\n")
-    file_lines.append("#define MAX_GRAY_COLS               "+str(len(gray_area_cols))+"\n")
+    if gray_area_rows:
+        file_lines.append("\n//Gray Area enabled\n")
+        file_lines.append("#define GRAY_AREA\n")
+        file_lines.append("#define MAX_GRAY_ROWS               "+str(len(gray_area_rows))+"\n")
+        file_lines.append("#define MAX_GRAY_COLS               "+str(len(gray_area_cols))+"\n\n")
 
 
     for port in open_ports:
@@ -108,6 +111,7 @@ def generate_sw_pkg( yaml_r ):
     if session:
         file_lines.append("\n//Comunication Session protocol is Enabled\n")
         file_lines.append("#define SESSION_MANAGER\n")
+
 
 
     file_lines.append("\n")
@@ -143,15 +147,15 @@ def generate_sw_pkg( yaml_r ):
 
     file_lines.append("extern IO_Info io_info[IO_NUMBER];\n\n")
     
-    file_lines.append("//This struct stores the gray area information\n")
-    file_lines.append("typedef struct {\n")
-    file_lines.append("    int rows[MAX_GRAY_ROWS];\n")
-    file_lines.append("    int cols[MAX_GRAY_COLS];\n")
-    file_lines.append("    int IOside;\n")
-    file_lines.append("} GrayArea;\n")
+    if gray_area_rows:
+        file_lines.append("//This struct stores the gray area information\n")
+        file_lines.append("typedef struct {\n")
+        file_lines.append("    int rows[MAX_GRAY_ROWS];\n")
+        file_lines.append("    int cols[MAX_GRAY_COLS];\n")
+        file_lines.append("    int IOside;\n")
+        file_lines.append("} GrayArea;\n")
 
-    file_lines.append(" extern GrayArea ga;\n")
-
+        file_lines.append(" extern GrayArea ga;\n")
 
     #Check if the list is not emply
     if static_mapping_list:
@@ -225,26 +229,18 @@ def generate_sw_pkg( yaml_r ):
                            ", "+ str(0)+"},")
     file_lines.append("\n};\n\n")
     
-    file_lines.append("GrayArea ga = {\n")
-    file_lines.append("\t{")
-    for rows in gray_area_rows:
-        file_lines.append(str(rows)+",")
-    file_lines[-1] = file_lines[-1][:-1] #erasing last comma
-    file_lines.append("}, {")
-    for cols in gray_area_cols:
-        file_lines.append(str(cols)+",")
-    file_lines[-1] = file_lines[-1][:-1] #erasing last comma
-    file_lines.append("}, " + str(aux_port))
-    # if port[4] == "N":
-    #         aux_port = 5
-    #     if port[4] == "S":
-    #         aux_port = 2
-    #     if port[4] == "E":
-    #         aux_port = 4
-    #     if port[4] == "W":
-    #         aux_port = 3
-        
-    file_lines.append("};\n")
+    if gray_area_rows:
+        file_lines.append("GrayArea ga = {\n")
+        file_lines.append("\t{")
+        for rows in gray_area_rows:
+            file_lines.append(str(rows)+",")
+        file_lines[-1] = file_lines[-1][:-1] #erasing last comma
+        file_lines.append("}, {")
+        for cols in gray_area_cols:
+            file_lines.append(str(cols)+",")
+        file_lines[-1] = file_lines[-1][:-1] #erasing last comma
+        file_lines.append("}, " + str(aux_port))
+        file_lines.append("};\n")
 
     if static_mapping_list:
         

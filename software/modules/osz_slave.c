@@ -25,7 +25,9 @@ int LOCAL_right_high_corner = -1;
 unsigned int address_go, address_back;
 unsigned int port_go, port_back;  // 0-EAST; 1 - WEST ; 2 - NORTH; 3 - SOUTH
 
+#ifdef GRAY_AREA
 extern GrayArea ga;
+#endif
 
 //////////////////////////////////////////////////////////////////////////////////////
 void Set_Secure_Zone(unsigned int left_low_corner, unsigned int right_high_corner, unsigned int master_PE){
@@ -793,7 +795,7 @@ int find_SZ_position_and_direction_to_IO(int peripheral_id){
     // puts("port_back: ");puts(itoa(port_back));puts("\n");  
     return 1;
 }
-
+#ifdef GRAY_AREA
 int find_AccessPoint(int peripheral_id){
     unsigned int my_X_addr, my_Y_addr;
     unsigned int PER_X_addr, PER_Y_addr, port_io, i;
@@ -848,16 +850,18 @@ int find_AccessPoint(int peripheral_id){
     // puts("port_back: ");puts(itoa(port_back));puts("\n");  
     return 1;
 }
-
+#endif
 
 void open_wrapper_IO_SZ(int peripheral_id, int io_service){ // io_service: 0 - request; 1 - delivery
 	int aux;
 
 	ServiceHeader *p = get_service_header_slot();
 
-	// aux = find_SZ_position_and_direction_to_IO(peripheral_id);
+  #ifdef GRAY_AREA
   aux = find_AccessPoint(peripheral_id);
-
+  #else
+	aux = find_SZ_position_and_direction_to_IO(peripheral_id);
+  #endif
 
 	if(aux == -1)
 		return;
@@ -913,8 +917,12 @@ void send_wrapper_close_back__open_forward(int CM_index){ //Tentar inverter a or
 	peripheral_ID = get_CM_peripheral_ID(CM_index);
 	io_service = get_CM_IO_service(CM_index); // 0 - REQUEST; 1 - DELIVERY
 
-	// aux = find_SZ_position_and_direction_to_IO(peripheral_ID);
+  #ifdef GRAY_AREA
   aux = find_AccessPoint(peripheral_ID);
+  #else
+	aux = find_SZ_position_and_direction_to_IO(peripheral_ID);
+  #endif
+
 
 	if(aux == -1)
 		return;
@@ -976,8 +984,12 @@ void send_wrapper_close_forward(int CM_index){
     peripheral_ID = get_CM_peripheral_ID(CM_index);
     io_service = get_CM_IO_service(CM_index); // 0 - REQUEST; 1 - DELIVERY
 
-    // aux = find_SZ_position_and_direction_to_IO(peripheral_ID);
+    #ifdef GRAY_AREA
     aux = find_AccessPoint(peripheral_ID);
+    #else
+	  aux = find_SZ_position_and_direction_to_IO(peripheral_ID);
+    #endif
+
 
     if(aux == -1)
         return;
