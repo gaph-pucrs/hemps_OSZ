@@ -6,6 +6,9 @@ SourceRoutingTableSlot SR_Table[MAX_SOURCE_ROUTING_DESTINATIONS];
 int net_addr;
 extern unsigned int 	net_address;
 
+// GrayArea ga = {
+// 	{3}, {0,1}, 2
+// };
 //int LOCAL_left_low_corner = -1;
 //int LOCAL_right_high_corner = -1;
 //int wrapper_value = 0;
@@ -246,7 +249,6 @@ int ProcessTurns(unsigned int backtrack, unsigned int backtrack1, unsigned int b
 	}
 	//gets target address
 	seek_puts("Target: ");seek_puts(itoh((((net_address>>8) + addrX)<<8) | ((net_address + addrY)&0xff)));seek_puts("\n");
-	puts("Target: ");puts(itoh((((net_address>>8) + addrX)<<8) | ((net_address + addrY)&0xff)));puts("\n");
 
 	//gets index in SR_Table
 	slot_seek = SearchSourceRoutingDestination( (((net_address>>8) + addrX)<<8) | ((net_address + addrY)&0xff) );
@@ -477,3 +479,15 @@ void adjust_wrapper(int io_direction, int io_port){
 }
 */
 
+void printGray(){
+	// puts("Rows:");
+	// for (int i = 0; i < MAX_GRAY_ROWS; i++){
+	// 	puts(itoa(ga.rows[i]));
+	// }
+	// puts("\n Cols:");
+	// for (int j = 0; j < MAX_GRAY_COLS; j++)
+	// {
+	// 	puts(itoa(ga.cols[j]));	puts("--");
+	// }
+	return;
+}

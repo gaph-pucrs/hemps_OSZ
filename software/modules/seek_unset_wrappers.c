@@ -9,6 +9,7 @@ extern unsigned int 	net_address;
 int LOCAL_left_low_corner = -1;
 int LOCAL_right_high_corner = -1;
 
+
 /*--------------------------------------------------------------------
 * initSRstructs
 *

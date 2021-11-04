@@ -241,6 +241,7 @@ int resend_control_message(unsigned int backtrack, unsigned int backtrack1, unsi
 		}
 		else{ // ajustar backtrack para o IO
 			//puts("SR IO message\n");
+			puts("target: "); puts(itoh(SR_Table[slot_seek].target)); puts("\n");			
 			adjust_backtrack_IO(backtrack, backtrack1, backtrack2, target);
 			// service_header.cluster_ID contains the peripheral_ID; service_header.task_ID contains the io_service;
 			open_wrapper_IO_SZ(CMFifo[CMFifo_index].service_header.cluster_ID, CMFifo[CMFifo_index].service_header.task_ID);

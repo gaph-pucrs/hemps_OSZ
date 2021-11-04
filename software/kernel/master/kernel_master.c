@@ -776,7 +776,7 @@ void handle_new_app(int app_ID, volatile unsigned int *ref_address, unsigned int
 
 		if( shape_location == 0 ){
   			PEs_number = create_shapes(MAX_LOCAL_TASKS, application->tasks_number);
-  			//print_shapes_found(PEs_number);
+  			print_shapes_found(PEs_number);
   			shape_location = search_shape(PEs_number);
   		}
 
@@ -1133,6 +1133,7 @@ int main() {
 
 		is_global_master = 0;
 	}
+
 
 	initialize_applications();
 

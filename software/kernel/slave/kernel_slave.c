@@ -1334,15 +1334,19 @@ int SeekInterruptHandler(){
 	PipeSlot* tmpSlot;
 	ServiceHeader* auxService = 0;
 	int task_loc;
-
+	static prevTUS = 0;
+	
 	switch(service){
 		case TARGET_UNREACHABLE_SERVICE:
-			puts("TUS\n");
+			puts("Received TARGET_UNREACHABLE_SERVICE\n");
 			//perform clear
 			//Seek(CLEAR_SERVICE, source, target, 0);
 			//global variable for finding seek
-
-			puts("unr: "); puts(itoh(source)); puts("\n");
+			if ((payload == prevTUS)){ //TUS agora vem com o timestamp no payload para evitar reverberação
+				puts("----repetido\n");
+				break;
+			}
+			seek_puts("unr: "); seek_puts(itoh(source)); seek_puts("\n");
 			slot_seek = GetFreeSlotSourceRouting(source>>16);
 			
 			if(slot_seek != -1){
@@ -1350,19 +1354,16 @@ int SeekInterruptHandler(){
 				SR_Table[slot_seek].target = source>>16;
 				SR_Table[slot_seek].tableSlotStatus = SR_USADO;
 			}	
-			
 			if(seek_unr_count == (source>>16)){
 				seek_unr_count++;
 			}
 			aux =  search_Target(source>>16);
-
 			if(((aux == search_Service(IO_REQUEST)) || (aux == search_Service(IO_DELIVERY))) && (aux != -1)){
 				send_wrapper_close_back__open_forward(aux);
 			}
-
 			Seek(SEARCHPATH_SERVICE, ((seek_unr_count<<16) | (get_net_address()&0xffff)), source>>16, 0);
 			seek_unr_count++;
-
+			prevTUS = payload;
 		break;
 
 		case BACKTRACK_SERVICE:
@@ -1382,7 +1383,8 @@ int SeekInterruptHandler(){
 				aux =  search_Target(source>>16);
 				if(((aux == search_Service(IO_REQUEST)) || (aux == search_Service(IO_DELIVERY))) && (aux != -1)){
 					send_wrapper_close_forward(aux);
-				}				
+				}	
+				puts("target: "); puts(itoh(SR_Table[slot_seek].target)); puts("\n");			
             	aux = resend_control_message(backtrack, backtrack1, backtrack2, SR_Table[slot_seek].target);
         	}
 
@@ -1391,7 +1393,7 @@ int SeekInterruptHandler(){
 				peripheral_id = find_io_peripheral(get_net_address());
 				if(peripheral_id){
 					send_peripheral_SR_path(slot_seek, peripheral_id, target);
-					// puts(" SR Peripheral\n"); 
+					puts(" SR Peripheral\n"); 
 				}
 			}
 		break;
@@ -1875,6 +1877,8 @@ int main(){
 	puts("Initializing PE: "); puts(itoh(net_address)); puts("\n");
 
 	init_communication();
+
+	printGray();
 
 
 	initFTStructs();

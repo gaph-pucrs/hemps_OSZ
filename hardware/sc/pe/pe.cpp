@@ -570,6 +570,7 @@ void pe::seek_send(){
 							in_service_router_seek_local.write(2);//2 is the TARGET_UNREACHABLE_SERVICE
 							in_source_router_seek_local.write((MEM_target[i].read() << 16) | MEM_source[i].read());
 							in_target_router_seek_local.write(MEM_source[i].read());
+							in_payload_router_seek_local.write(tick_counter_local.read());
 							MEM_index_forwarded.write(i);
 							// (MEM_target[i].range(11,8) << 4) | MEM_target[i].range(3,0);
 							in_payload_router_seek_local.write((MEM_target[i].read()(11,8) << 4) | MEM_target[i].read()(3,0));

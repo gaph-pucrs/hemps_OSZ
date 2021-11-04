@@ -76,12 +76,8 @@ int main()
 
 	for(i=0; i<PROD_CONS_ITERATIONS; i++){
 		Echo(itoa(i));
+		IOReceive(&msg, IO_PERIPHERAL2);		// caimi test Working :-)
 		Send(&msg, cons);
-		IOSend(&msg, IO_PERIPHERAL2);		// caimi test Working :-)
-<<<<<<< HEAD
-=======
-		//IOReceive(&msg, IO_PERIPHERAL);  	//
->>>>>>> teste
 		//Echo(itoa(msg.msg[0]));
 		//Echo(itoa(msg.msg[1]));
 		//Echo(itoa(GetTick()));

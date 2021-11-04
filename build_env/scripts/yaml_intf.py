@@ -151,7 +151,13 @@ def get_session(yaml_reader):
         session = yaml_reader["hw"]["session"]
     except:
         session = 0  
-    return session    
+    return session   
+
+def get_gray_area_rows(yaml_reader):
+    return yaml_reader["hw"]["gray_area"]["rows"]
+
+def get_gray_area_cols(yaml_reader):
+    return yaml_reader["hw"]["gray_area"]["cols"]
 
 #------- Repository Generation Scope ------------------- 
 #ATTENTION: STATIC MAPPING ONLY WORKS IF THE APPS START TIME ARE ORDERED

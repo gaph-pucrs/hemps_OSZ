@@ -95,16 +95,27 @@ int create_valid_shapes(int PEs, int cont)
 {
   int x, y, ix1, ix2, delta1, delta2, swap, contador;
 
-  // create all possible the shapes
+//   // create all possible shapes
+//   //printf("\ncall:");
+//   for( x = 1 ; x<= PEs; x++)
+//     {   y = PEs/x;
+//         while (x*y < PEs)   y++;
+//         shapes[cont+x-1].X_size = x;
+//         shapes[cont+x-1].Y_size = y;
+//         shapes[cont+x-1].valid = 1;   // all shapes are valid
+//         //printf("\nShape: (%2d x %2d)", x, y);
+//     }
+//   create all possible shapes
   //printf("\ncall:");
-  for( x = 1 ; x<= PEs; x++)
-    {   y = PEs/x;
-        while (x*y < PEs)   y++;
-        shapes[cont+x-1].X_size = x;
-        shapes[cont+x-1].Y_size = y;
-        shapes[cont+x-1].valid = 1;   // all shapes are valid
+  for( y = 1 ; y<= PEs; y++)
+    {   x = PEs/y;
+        while (x*y < PEs)   x++;
+        shapes[cont+y-1].X_size = x;
+        shapes[cont+y-1].Y_size = y;
+        shapes[cont+y-1].valid = 1;   // all shapes are valid
         //printf("\nShape: (%2d x %2d)", x, y);
     }
+
 
   // simple bubble sort according to the delta - we want a rectangular shape
    for (ix1 = 0 ; ix1 < PEs-1 ; ix1++)
@@ -134,7 +145,7 @@ int create_valid_shapes(int PEs, int cont)
   for( ix1= 0; ix1<PEs-1; ix1++)
        if  (shapes[cont+ix1].Y_size == shapes[cont+ix1+1].Y_size)  shapes[cont+ix1+1].valid=0;
 
-  // suppress invalid shapes -  that are larger than the cluster size
+  // suppress invalid shapes -  that are larger than the cluster size //ADD - LARGER THAN SecureArea
   for( ix1=0; ix1<PEs; ix1++)
        if( shapes[cont+ix1].X_size>XCLUSTER || shapes[cont+ix1].Y_size>YCLUSTER)
                     shapes[cont+ix1].valid=0; 
@@ -150,7 +161,6 @@ int create_valid_shapes(int PEs, int cont)
 
           contador++;
         }
-
   return( cont+contador );
 }
 
@@ -262,6 +272,8 @@ int shape_recog(int X_size, int Y_size, int X_init, int Y_init){
         if((x == XMASTER) && (y == YMASTER))
             return  100;
         if(PE_belong_SZ(x,y) == 1)
+            return 100;
+        if(PE_belong_GA(x,y) == 1)
             return 100;
     }
   }
@@ -418,6 +430,20 @@ void free_Secure_Zone(int RH_address){ // falta implementar
 }
 
 //////////////////////////////////////////////////////////////////////////////////////
+int PE_belong_GA(int PE_x, int PE_y){
+
+    for (int i = 0; i < MAX_GRAY_ROWS; i++)
+        if (PE_x == ga.cols[i])
+            return 1;
+        
+    for (int i = 0; i < MAX_GRAY_COLS; i++)
+        if (PE_y == ga.rows[i])
+            return 1;
+
+    return 0;
+}
+
+//////////////////////////////////////////////////////////////////////////////////////
 int PE_belong_SZ(int PE_x, int PE_y){
 
         int i,  xi_cut, xf_cut, yi_cut, yf_cut;
@@ -449,6 +475,7 @@ int PE_belong_SZ(int PE_x, int PE_y){
     return 0;
 }
 
+//////////////////////////////////////////////////////////////////////////////////////
 void open_wrapper_IO_SZ(int peripheral_id, int io_service){ // io_service: 0 - request; 1 - delivery
 	int aux;
 

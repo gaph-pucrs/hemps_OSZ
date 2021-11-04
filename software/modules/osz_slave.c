@@ -25,6 +25,7 @@ int LOCAL_right_high_corner = -1;
 unsigned int address_go, address_back;
 unsigned int port_go, port_back;  // 0-EAST; 1 - WEST ; 2 - NORTH; 3 - SOUTH
 
+extern GrayArea ga;
 
 //////////////////////////////////////////////////////////////////////////////////////
 void Set_Secure_Zone(unsigned int left_low_corner, unsigned int right_high_corner, unsigned int master_PE){
@@ -693,16 +694,9 @@ int find_SZ_position_and_direction_to_IO(int peripheral_id){
     port_io = -1;
     for(i = 0; i < IO_NUMBER; i++){
         if(io_info[i].peripheral_id == peripheral_id){
-//            if(io_info[i].active_connection == 0){
                 PER_X_addr = io_info[i].default_address_x ;
                 PER_Y_addr = io_info[i].default_address_y;
                 port_io = io_info[i].default_port;
-//            }
-//            else{
-//                PER_X_addr = io_info[i].alternative_address_x ;
-//                PER_Y_addr = io_info[i].alternative_address_y;
-//                port_io = io_info[i].alternative_port;
-//            }
             break;
         }
     }
@@ -800,13 +794,70 @@ int find_SZ_position_and_direction_to_IO(int peripheral_id){
     return 1;
 }
 
+int find_AccessPoint(int peripheral_id){
+    unsigned int my_X_addr, my_Y_addr;
+    unsigned int PER_X_addr, PER_Y_addr, port_io, i;
+    unsigned int RH_X_addr, RH_Y_addr;
+    unsigned int LL_X_addr, LL_Y_addr;
+
+
+    RH_X_addr = (LOCAL_right_high_corner & 0xF0) >> 4;
+    RH_Y_addr = LOCAL_right_high_corner & 0x0F;
+
+    LL_X_addr = (LOCAL_left_low_corner & 0xF0) >> 4;
+    LL_Y_addr = LOCAL_left_low_corner & 0x0F;
+
+    my_X_addr = (get_net_address() & 0xF00) >> 8;
+    my_Y_addr = get_net_address() & 0x00F;
+
+    port_io = -1;
+    for(i = 0; i < IO_NUMBER; i++){
+        if(io_info[i].peripheral_id == peripheral_id){
+                PER_X_addr = io_info[i].default_address_x ;
+                PER_Y_addr = io_info[i].default_address_y;
+                port_io = io_info[i].default_port;
+            break;
+        }
+    }
+    if (port_io == -1) {
+        puts("ERROR: peripheral_id not found!\n");
+        return -1;
+    }
+
+    // puts("IOs conectados NORTH\n");
+    if(ga.cols[MAX_GRAY_COLS-1] < LL_X_addr){    
+      // puts("--Gray Area a esquerda\n");
+      address_go   = ( LL_X_addr << 8 ) | my_Y_addr;
+      address_back = ( LL_X_addr << 8 ) | my_Y_addr;
+      port_go = WEST;
+      port_back = WEST;
+    }
+    else if(ga.cols[0] > RH_X_addr){
+      // puts("--Gray Area a direita\n");
+      address_go   = ( RH_X_addr << 8 ) | my_Y_addr;
+      address_back = ( RH_X_addr << 8 ) | my_Y_addr;
+      port_go = EAST;
+      port_back = EAST;            
+    }
+    else{
+      puts("--Gray Area nao encontrada\n");
+    }
+    // puts("address_go: ");puts(itoa(address_go));puts("\n");
+    // puts("address_back: ");puts(itoa(address_back));puts("\n");
+    // puts("port_go: ");puts(itoa(port_go));puts("\n");
+    // puts("port_back: ");puts(itoa(port_back));puts("\n");  
+    return 1;
+}
+
 
 void open_wrapper_IO_SZ(int peripheral_id, int io_service){ // io_service: 0 - request; 1 - delivery
 	int aux;
 
 	ServiceHeader *p = get_service_header_slot();
 
-	aux = find_SZ_position_and_direction_to_IO(peripheral_id);
+	// aux = find_SZ_position_and_direction_to_IO(peripheral_id);
+  aux = find_AccessPoint(peripheral_id);
+
 
 	if(aux == -1)
 		return;
@@ -862,7 +913,8 @@ void send_wrapper_close_back__open_forward(int CM_index){ //Tentar inverter a or
 	peripheral_ID = get_CM_peripheral_ID(CM_index);
 	io_service = get_CM_IO_service(CM_index); // 0 - REQUEST; 1 - DELIVERY
 
-	aux = find_SZ_position_and_direction_to_IO(peripheral_ID);
+	// aux = find_SZ_position_and_direction_to_IO(peripheral_ID);
+  aux = find_AccessPoint(peripheral_ID);
 
 	if(aux == -1)
 		return;
@@ -870,7 +922,7 @@ void send_wrapper_close_back__open_forward(int CM_index){ //Tentar inverter a or
   // puts("peripheral_ID: "); puts(itoa(peripheral_ID)); puts("\n");
   // puts("io_service: "); puts(itoa(io_service)); puts("\n");
 
-    //-----------------------------------------------------------------------------
+  //-----------------------------------------------------------------------------
 	p->header[MAX_SOURCE_ROUTING_PATH_SIZE-2] = (0x1 << 28) | ((0X3F00 & address_go) << 14) | ((0X003F & address_go) << 16)| address_go;
 	p->header[MAX_SOURCE_ROUTING_PATH_SIZE-1] = (0x1 << 28) | ((0X3F00 & address_go) << 14) | ((0X003F & address_go) << 16)| address_go;
 
@@ -924,7 +976,8 @@ void send_wrapper_close_forward(int CM_index){
     peripheral_ID = get_CM_peripheral_ID(CM_index);
     io_service = get_CM_IO_service(CM_index); // 0 - REQUEST; 1 - DELIVERY
 
-    aux = find_SZ_position_and_direction_to_IO(peripheral_ID);
+    // aux = find_SZ_position_and_direction_to_IO(peripheral_ID);
+    aux = find_AccessPoint(peripheral_ID);
 
     if(aux == -1)
         return;
