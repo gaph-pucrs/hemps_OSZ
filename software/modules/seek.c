@@ -140,15 +140,15 @@ void print_SR_Table(slot_seek){
 
 void print_port(unsigned int port){
 	switch(port){
-		case 0x0: seek_puts("E0"); break;	//0000
-		case 0x4: seek_puts("E1"); break;	//0100	
-		case 0x1: seek_puts("W0"); break;	//0001
-		case 0x5: seek_puts("W1"); break;	//0101
-		case 0x2: seek_puts("N0"); break;	//0010
-		case 0x6: seek_puts("N1"); break;	//0110
-		case 0x3: seek_puts("S0"); break;	//0011
-		case 0x7: seek_puts("S1"); break;	//0111
-		default: seek_puts("-"); break;
+		case 0x0: puts("E0"); break;	//0000
+		case 0x4: puts("E1"); break;	//0100	
+		case 0x1: puts("W0"); break;	//0001
+		case 0x5: puts("W1"); break;	//0101
+		case 0x2: puts("N0"); break;	//0010
+		case 0x6: puts("N1"); break;	//0110
+		case 0x3: puts("S0"); break;	//0011
+		case 0x7: puts("S1"); break;	//0111
+		default: puts("-"); break;
 	}
 }
 
@@ -252,6 +252,10 @@ int ProcessTurns(unsigned int backtrack, unsigned int backtrack1, unsigned int b
 
 	//gets index in SR_Table
 	slot_seek = SearchSourceRoutingDestination( (((net_address>>8) + addrX)<<8) | ((net_address + addrY)&0xff) );
+	if (slot_seek == -1){
+		puts("Calculando pro IO\n");
+		slot_seek = SearchSourceRoutingDestination( (((net_address>>8))<<8) | ((net_address)&0xff) );
+	}
 	// seek_puts("PATH to ");
 	// seek_puts(itoh(SR_Table[slot_seek].target));seek_puts(" = ");
 	//SR_Table[slot_seek].path_size = ((i)/7)+1;//path size per hop(32 bits) = 7
@@ -297,7 +301,7 @@ int ProcessTurns(unsigned int backtrack, unsigned int backtrack1, unsigned int b
 			break;
 		}
 	}
-	//print_SR_Table(slot_seek);
+	// print_SR_Table(slot_seek);
 	return slot_seek;
 }
 int adjust_backtrack_IO(unsigned int backtrack, unsigned int backtrack1, unsigned int backtrack2, unsigned int target){
@@ -329,8 +333,6 @@ int adjust_backtrack_IO(unsigned int backtrack, unsigned int backtrack1, unsigne
 
 //	addrX=1;
 //	addrY=0;
-
-	SR_Table[slot_seek].path_size = ((i)/6)+1;
 
 	last_hop = get_last_hop((target >> 8), target & 0XFF);
 	if(last_hop == -1){
@@ -369,10 +371,13 @@ int adjust_backtrack_IO(unsigned int backtrack, unsigned int backtrack1, unsigne
 		}
 	}
 
-	//for (j=0; j<=i; j++){
-	//	print_port(port[j]);
-	//}
-	//puts("\n");
+	// puts("Backtrack Montado:");
+	// for (j=0; j<=i; j++){
+	// 	print_port(port[j]);
+	// }
+	// puts("\n");
+
+	port[i-1] = port[i-1] & 0x3;
 
 	shift=24;
 
@@ -491,3 +496,4 @@ void printGray(){
 	// }
 	return;
 }
+

@@ -34,7 +34,8 @@ port(
     req_routing     : in  regNport;
 	eop_in          : in  regNport;
     ack_routing     : out regNport;     
-    io_mask_wrapper : out regNport;		
+    io_mask_wrapper : out std_logic;
+	ke				: out std_logic_vector(11 downto 0);
     data_in_header  : in  arrayNport_regflit_32;
     data_in_header_fixed  : in  arrayNport_regflit_32;
     sender 		    : in  regNport;	
@@ -79,6 +80,10 @@ signal target_internal : regflit;
 signal shift_counter	: std_logic_vector(3 downto 0);
 signal aux_cont    : integer range 15 downto 0;
 
+--access point soft verification
+signal ke_reg	:  std_logic_vector(11 downto 0);
+
+signal header_ke	:	std_logic_vector(11 downto 0);
 --alias target:regmetadeflit                      is header(METADEFLIT-1 downto 0);
 
 alias Xsource:std_logic_vector(5 downto 0)		is header_fixed(FLIT16+11 downto FLIT16+6);
@@ -99,7 +104,8 @@ begin
 	source <= "00" & Xsource & "00" & Ysource;
 	target <= header_fixed(FLIT16-1 downto 0);
 	target_internal	<= "000" & header(12 downto 8) & "000" & header(4 downto 0);
-
+	header_ke <= header_fixed(27 downto 16);
+	ke <= ke_reg;
 	--input port
 	--w_addr <= std_logic_vector(to_unsigned(sel, 4));
 
@@ -131,7 +137,9 @@ begin
 
     dirx <= WEST0 when lx > tx else EAST0;
     diry <= NORTH0 when ly < ty else SOUTH0;
-    
+
+	io_mask_wrapper <= '1' when ke_reg = x"000" else '0';
+
     -- Round Robin: seleciona uma das portas de entrada para o roteamento (prox).	
 	process(sel,req_routing)
     begin
@@ -267,9 +275,10 @@ begin
 		if reset = '1' then
 			sel             <= LOCAL0;
             ack_routing     <= (others => '0');
-            io_mask_wrapper <= (others => '0');
+            -- io_mask_wrapper <= (others => '0');
 			rot_table       <= (others=>(others=>'0'));	
 			next_flit       <= (others => '0');
+			ke_reg			<= (others=> '0');
             counter        := 0;
 			try_again       <= false;
 			EA              <= S0;
@@ -300,16 +309,7 @@ begin
                         mask_local_tx_output <= '1';
                     end if;
 
-                    -- Disable IO_mask after eop_in is received
-                    if io_mask_wrapper(sel)  = '1' and  eop_in(sel) = '1' then
-                        counter := 0;
-                    end if;
 
-                    if io_mask_wrapper(sel)  = '1' and  counter = 4 then
-                        io_mask_wrapper(sel) <= '0';
-                    end if;
-
-                    counter := counter + 1;
                     
 					-- Updates the switch table.
 					for i in 0 to NPORT-1 loop
@@ -322,16 +322,8 @@ begin
                     shift_counter 		<= (others=>'0');
 
 				when S1 =>
-                	
-                    -- Enable IO packets inside SZ                    
-                    if header(TAM_FLIT_32-1 downto TAM_FLIT_32-4) /= IO_PACKET then
-                    --if header(TAM_FLIT_32-1 downto TAM_FLIT_32-4) /= IO_PACKET and header(TAM_FLIT_32-1 downto TAM_FLIT_32-4) /= "0111" then
-                        io_mask_wrapper(sel) <= '1';
-                        counter := 6;
-                    end if;
 
                 	-- Executes the source routing algorithm
-
 					if header(TAM_FLIT_32-1 downto TAM_FLIT_32-4) = PACKET_SWITCHING_SR then
                         if sr_valid_0 = '0' then --this is a valid flit
                             --if sel (input port) is the same that sr_port_0 (output port) means that it should be routed to local port
@@ -382,6 +374,7 @@ begin
                                     EA <= S3;
                                     w_source_target <= '1';
                                     mask_local_tx_output <= '0';
+									ke_reg <= header_ke;
                                 else
                                     EA <= S0;
                                 end if;

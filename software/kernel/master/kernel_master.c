@@ -729,6 +729,25 @@ void initialize_slaves(){
 
 }
 
+#ifdef GRAY_AREA
+void initialize_IO(int peripheralID){
+
+	ServiceHeader *p = get_service_header_slot();
+
+	p->service = IO_INIT;
+
+	p->requesting_processor = get_net_address();
+
+	// p->task_ID = consumer_task;
+
+	p->peripheral_ID = peripheralID;
+
+	//add_msg_request(p->header[MAX_SOURCE_ROUTING_PATH_SIZE-1], consumer_task, peripheral_ID); //caimi: arrumar header
+
+	send_packet_io(p, 0, 0, peripheralID);
+}
+#endif
+
 /** Initializes all local managers by sending a INITIALIZE_CLUSTER packet to each one
  */
 void initialize_clusters(){
@@ -797,6 +816,12 @@ void handle_new_app(int app_ID, volatile unsigned int *ref_address, unsigned int
 	//Fills the cluster load
 	for(int k=0; k < application->tasks_number; k++){
 		cluster_load[clusterID] += application->tasks[k].computation_load;
+		#ifdef GRAY_AREA
+		for (int i = 0; i < application->tasks[k].dependences_number; i++){
+			initialize_IO(application->tasks[k].dependences[i].flits);
+	    	puts("Enviado INITIALIZE para IO: ");  puts(itoa(application->tasks[k].dependences[i].flits)); puts("\n");
+		}
+		#endif
 	}
 
 	pending_app_to_map++;
@@ -951,7 +976,7 @@ int SeekInterruptHandler(){
 			aux = get_Secure_Zone_index(payload);
 			app_id = get_AppID_with_RH_Address(payload);
 			if(aux != -1){
-				puts(itoh(Secure_Zone[aux].cut));
+				// puts(itoh(Secure_Zone[aux].cut));
 				RH_addr = Secure_Zone[aux].cut >> 16;
 				LL_addr = Secure_Zone[aux].cut & 0XFFFF;
 

@@ -23,7 +23,8 @@ SC_MODULE(RouterCCwrapped) {
 		sc_out<bool >  fail_out[NPORT];
 
 		sc_out<bool> 		mask_local_tx_output;
-    	sc_out<bool > 		io_packet_mask[NPORT];
+    	sc_out<bool > 		io_packet_mask;
+    	sc_out<sc_uint<12>> 		ke;
 
 		sc_out<regflit> 			source;
 		sc_out<regflit> 			target;
@@ -44,7 +45,7 @@ SC_MODULE(RouterCCwrapped) {
 		sc_signal<regNport > fail_in_internal;
 		sc_signal<regNport > fail_out_internal;
 
-		sc_signal<regNport > io_packet_mask_internal;
+		sc_signal<bool > io_packet_mask_internal;
 
 
 		RouterCC *router;
@@ -160,6 +161,8 @@ SC_MODULE(RouterCCwrapped) {
 				router->credit_i(credit_i_internal);
 			#endif
 
+				router->io_packet_mask(io_packet_mask_internal);
+				router->ke(ke);
 				router->mask_local_tx_output(mask_local_tx_output);
 				router->target(target);
 				router->source(source);

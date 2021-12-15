@@ -74,7 +74,7 @@ SC_MODULE(fail_WRAPPER_module){
   sc_in<regflit > 		data_in_from_router_local;
   sc_in<bool >			eop_out_router_ports[NPORT-2];
   sc_in<bool >			eop_in_router_ports[NPORT-2];
-  sc_in<bool >			io_packet_mask[NPORT-2];
+  sc_in<bool >			io_packet_mask;
 
   sc_in<sc_uint<10> >	wrapper_mask_go_from_CPU;
   sc_in<sc_uint<10> >	wrapper_mask_back_from_CPU;

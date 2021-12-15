@@ -136,14 +136,18 @@ void RouterCCwrapped::upd_eop_out(){
 }
 
 void RouterCCwrapped::upd_io_packet_mask(){
-	int i;
-	sc_uint<NPORT > l_io_packet_mask_internal;
+	// int i;
+	// sc_signal<bool> l_io_packet_mask_internal;
 
-	l_io_packet_mask_internal = io_packet_mask_internal.read();
+	io_packet_mask.write(io_packet_mask_internal.read());
+	
+	// l_io_packet_mask_internal = io_packet_mask_internal.read();
 
-	for(i=0;i<NPORT;i++){
-		io_packet_mask[i].write(l_io_packet_mask_internal[i]);
-	}
+	// io_packet_mask.write(l_io_packet_mask_internal);
+
+	// for(i=0;i<NPORT;i++){
+	// 	io_packet_mask[i].write(l_io_packet_mask_internal[i]);
+	// }
 }
 
 

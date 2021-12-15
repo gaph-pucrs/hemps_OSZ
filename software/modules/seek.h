@@ -65,10 +65,6 @@
 #define seek_puts(argument) 
 #define MAX_TRIES 5
 
-#define MAX_GRAY_ROWS 1
-#define MAX_GRAY_COLS 2
-
-
 //used for seek purposes
 int slot_seek;
 
@@ -112,5 +108,6 @@ int ProcessTurns(unsigned int backtrack, unsigned int backtrack1, unsigned int b
 //void Unset_Secure_Zone(unsigned int left_low_corner, unsigned int right_high_corner, unsigned int master_PE);
 
 void Start_App_Secure_Zone(unsigned int appID);
+
 
 #endif

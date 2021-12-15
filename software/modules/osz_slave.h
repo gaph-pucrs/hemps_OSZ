@@ -46,6 +46,7 @@ void Unset_Secure_Zone(unsigned int left_low_corner, unsigned int right_high_cor
 
 #define LAT_THRESHOLD 1000
 #define TIMEOUT_SLEEP 2000
+#define KE_OSZ 0x021
 
 // Array Sizes
 #define WAITING_MSG_QUEUE 10 
@@ -83,6 +84,8 @@ int tInit, tEnd;
 int auxCode;
 int auxSlot;
 Session* auxSession;
+
+void config_AP_SZ();
 //ServiceHeader* auxService;
 
 // int findBlankSession(Session* sessions);

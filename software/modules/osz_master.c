@@ -113,46 +113,46 @@ int create_valid_shapes(int PEs, int cont)
         shapes[cont+y-1].X_size = x;
         shapes[cont+y-1].Y_size = y;
         shapes[cont+y-1].valid = 1;   // all shapes are valid
-        //printf("\nShape: (%2d x %2d)", x, y);
+        // puts("\nShape:(");puts(itoa(x));puts(" x ");puts(itoa(y));puts(")\n");
     }
 
 
-  // simple bubble sort according to the delta - we want a rectangular shape
-   for (ix1 = 0 ; ix1 < PEs-1 ; ix1++)
-    for (ix2 = 0 ; ix2 < PEs - ix1 - 1; ix2++)
-       {
-         if ( shapes[cont+ix2].X_size > shapes[cont+ix2].Y_size) 
-              delta1 = shapes[cont+ix2].X_size - shapes[cont+ix2].Y_size;
-         else delta1 = shapes[cont+ix2].Y_size - shapes[cont+ix2].X_size;
+//   // simple bubble sort according to the delta - we want a rectangular shape
+//    for (ix1 = 0 ; ix1 < PEs-1 ; ix1++)
+//     for (ix2 = 0 ; ix2 < PEs - ix1 - 1; ix2++)
+//        {
+//          if ( shapes[cont+ix2].X_size > shapes[cont+ix2].Y_size) 
+//               delta1 = shapes[cont+ix2].X_size - shapes[cont+ix2].Y_size;
+//          else delta1 = shapes[cont+ix2].Y_size - shapes[cont+ix2].X_size;
 
-         if ( shapes[cont+ix2+1].X_size > shapes[cont+ix2+1].Y_size) 
-              delta2 = shapes[cont+ix2+1].X_size - shapes[cont+ix2+1].Y_size;
-         else delta2 = shapes[cont+ix2+1].Y_size - shapes[cont+ix2+1].X_size;
+//          if ( shapes[cont+ix2+1].X_size > shapes[cont+ix2+1].Y_size) 
+//               delta2 = shapes[cont+ix2+1].X_size - shapes[cont+ix2+1].Y_size;
+//          else delta2 = shapes[cont+ix2+1].Y_size - shapes[cont+ix2+1].X_size;
 
-         if ( delta1 > delta2 )
-         {
-           swap            = shapes[cont+ix2].X_size;
-           shapes[cont+ix2].X_size   = shapes[cont+ix2+1].X_size;
-           shapes[cont+ix2+1].X_size = swap;
+//          if ( delta1 > delta2 )
+//          {
+//            swap            = shapes[cont+ix2].X_size;
+//            shapes[cont+ix2].X_size   = shapes[cont+ix2+1].X_size;
+//            shapes[cont+ix2+1].X_size = swap;
 
-           swap            = shapes[cont+ix2].Y_size;
-           shapes[cont+ix2].Y_size   = shapes[cont+ix2+1].Y_size;
-           shapes[cont+ix2+1].Y_size = swap;
-         }
-      } 
+//            swap            = shapes[cont+ix2].Y_size;
+//            shapes[cont+ix2].Y_size   = shapes[cont+ix2+1].Y_size;
+//            shapes[cont+ix2+1].Y_size = swap;
+//          }
+//       } 
 
   // suppress invalid shapes -  those that are enclosed in other shapes 
   for( ix1= 0; ix1<PEs-1; ix1++)
        if  (shapes[cont+ix1].Y_size == shapes[cont+ix1+1].Y_size)  shapes[cont+ix1+1].valid=0;
 
   // suppress invalid shapes -  that are larger than the cluster size //ADD - LARGER THAN SecureArea
-
-  // suppress invalid shapes -  that are larger than the cluster size //ADD - LARGER THAN SecureArea
   #ifdef GRAY_AREA
   if ((ga.cols[MAX_GRAY_COLS-1] == XCLUSTER -1) || (ga.cols[0] == 0)){ // If GrayArea at the sides 
-    for( ix1=0; ix1<PEs; ix1++)
-        if( shapes[cont+ix1].X_size>XCLUSTER - MAX_GRAY_COLS || shapes[cont+ix1].Y_size>YCLUSTER - MAX_GRAY_ROWS)
-            shapes[cont+ix1].valid=0; 
+    for( ix1=0; ix1<PEs; ix1++){
+        if( (shapes[cont+ix1].X_size > (XCLUSTER - MAX_GRAY_COLS)) || (shapes[cont+ix1].Y_size > (YCLUSTER - MAX_GRAY_ROWS))){
+            shapes[cont+ix1].valid=0;
+        }
+    }
   }
 //   else{ //TODO: Caso GrayArea for no meio 
 //   }
@@ -243,7 +243,8 @@ int search_shape_in_cluster(int X_size, int Y_size, Shapes shape[], int cont, in
     //  for(x = 0; x<=XCLUSTER-X_size; x++){
 
     for(y = YCLUSTER-Y_size; y >= 0; y--){
-      for(x = XCLUSTER-X_size; x >= 0; x--){
+    //   for(x = XCLUSTER-X_size; x >= 0; x--){
+        for(x = 0; x<=XCLUSTER-X_size; x++){
         used_in_SWS = shape_recog(X_size, Y_size, x, y);
   
         //discart strip shapes using all column or all line at the middle of cluster

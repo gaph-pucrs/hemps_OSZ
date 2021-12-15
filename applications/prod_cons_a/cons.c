@@ -72,8 +72,8 @@ int main()
 
 	for(i=0; i<PROD_CONS_ITERATIONS; i++){
 		Echo(itoa(i));
-		// Echo("Send IO");  	
-		Receive(&msg, prod);  	
+		Receive(&msg, prod);
+		Echo("Recv Prod");  	 	
 		IOSend(&msg, IO_PERIPHERAL);		// caimi test Working :-)
 		// Echo("Receive IO");  	
 		Echo(itoa(GetTick()));

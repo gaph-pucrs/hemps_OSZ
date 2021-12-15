@@ -142,6 +142,15 @@ def generate_repository(yaml_r, secure_apps_list):
         #app tasks code can be inserted
         initial_address = initial_address + ( (TASK_DESCRIPTOR_SIZE * app_tasks_number) * 4) + 4#plus 4 because the first word is the app task number
         
+
+        io_list = get_open_ports(yaml_r)
+
+        # for io in io_list:
+        #     for port in open_ports:
+        #         if io[1] in port[0]:
+        #             print "IO " + io[1] + " encontrado com ID " + str(port[1])
+        #             break
+
         task_id = 0
         
         #Walk for all app tasks into /applications/app dir to fills the task headers
@@ -163,21 +172,25 @@ def generate_repository(yaml_r, secure_apps_list):
 
             repo_lines.append( RepoLine(toX(get_task_comp_load(app_name[0], task_name)), "computational load") )
             
-            dependenc_list = get_task_dependence_list(app_name[0], task_name)
-            
+            # dependenc_list = get_task_dependence_list(app_name[0], task_name)
+            dependenc_list = get_task_IO_list(app_name[0], task_name, io_list)
+
             #Fills the task dependences according with MAX_DEPENDENCES size
             comment = "communication load {task id, comm load in flits}"
             for i in range(0, MAX_DEPENDENCES):
                 
-                if ((i+1) < len(dependenc_list)):
-                    repo_lines.append( RepoLine(toX(dependenc_list[i]), comment) )
+                if (i < len(dependenc_list)):
+                    repo_lines.append( RepoLine(toX(task_id), comment) )
                     comment = ""
-                    repo_lines.append( RepoLine(toX(dependenc_list[i+1]), comment) )
+                    repo_lines.append( RepoLine(toX(dependenc_list[i][1]), comment) )                
+                # if ((i+1) < len(dependenc_list)):
+                #     repo_lines.append( RepoLine(toX(dependenc_list[i]), comment) )
+                #     comment = ""
+                #     repo_lines.append( RepoLine(toX(dependenc_list[i+1]), comment) )
                 else:
                     repo_lines.append( RepoLine("ffffffff", comment) )
                     comment = ""
                     repo_lines.append( RepoLine("ffffffff", comment) )
-                    
                     
             task_id = task_id + 1
             
@@ -315,6 +328,37 @@ def get_task_comp_load(app_name, task_name):
 
 def get_task_dependence_list(app_name, task_name):
     return [] #TO DO
+
+def get_task_IO_list(app_name, task_name, io_list):
+
+    source_file = "applications/" + app_name + "/" + app_name + ".cfg"
+    f = open(source_file)
+    
+    aux_task_io_list = []
+    task_io_list = []
+
+    for line in f:
+        if "<task>" in line:
+            task = f.next()[:-2] # Cleaning the "\r\n" at the end
+            if task_name == task:
+                while "<end task>" not in line:
+                    if "<IO>" in line:
+                        line = f.next()
+                        while "<" not in line:
+                            aux_task_io_list.append((task,line[:-2])) # Cleaning the "\r\n" at the end
+                            line = f.next()
+                        break
+                    line = f.next()
+    
+    for io in aux_task_io_list:
+        for port in io_list:
+            if io[1] == port[0]:
+                task_io_list.append((io[0],port[1]))
+                print task_io_list[-1]
+
+    f.close()
+
+    return task_io_list
 
 def check_repo_size(yaml_repo_size, repo_path):
     

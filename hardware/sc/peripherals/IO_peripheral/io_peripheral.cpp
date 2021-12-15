@@ -13,6 +13,8 @@
 //---------------------------------------------------------------------------------------
 
 #include "io_peripheral.h"
+#define KE_OSZ 0x021 // Reg mapeado em memória
+
 
 void io_peripheral::SR_path_FSM(){
     int i;
@@ -276,9 +278,11 @@ void io_peripheral::out_proc_FSM(){
                     payload_size = 2;
                     header_size = 26;
 
-                    buffer_out_flit[0] = ( 0x6 << 12) | ((reg_header  & 0XFF00) >> 2) | ((reg_header  & 0XFF) )  ; //header
-                    buffer_out_flit[1] = reg_source_PE;                                            //header
-                    buffer_out_flit[2] = ( 0x6 << 12) | ((reg_header  & 0XFF00) >> 2) | ((reg_header  & 0XFF) )  ; //header
+                    // buffer_out_flit[0] = ( 0x6 << 12) | ((reg_header  & 0XFF00) >> 2) | ((reg_header  & 0XFF) )  ; //header
+                    buffer_out_flit[0] = ( 0x6 << 12) | (KE_OSZ)  ; //header
+                    buffer_out_flit[1] =  reg_source_PE;                                            //header
+                    // buffer_out_flit[2] = ( 0x6 << 12) | ((reg_header  & 0XFF00) >> 2) | ((reg_header  & 0XFF) )  ; //header
+                    buffer_out_flit[2] = ( 0x6 << 12) | (KE_OSZ); //header
                     buffer_out_flit[3] = reg_source_PE;                         
 	                buffer_out_flit[4] = 0;                     //size
 	                buffer_out_flit[5] = (11+payload_size);                //header size + 2 de"payload"
@@ -312,9 +316,11 @@ void io_peripheral::out_proc_FSM(){
                     payload_size = 0;
                     header_size = 26;
 
-                    buffer_out_flit[0] = ( 0x6 << 12) | ((reg_header  & 0XFF00) >> 2) | ((reg_header  & 0XFF) )  ; //header
+                    // buffer_out_flit[0] = ( 0x6 << 12) | ((reg_header  & 0XFF00) >> 2) | ((reg_header  & 0XFF) )  ; //header
+                    buffer_out_flit[0] = ( 0x6 << 12) | (KE_OSZ)  ; //header
                     buffer_out_flit[1] =  reg_source_PE;                                            //header
-                    buffer_out_flit[2] = ( 0x6 << 12) | ((reg_header  & 0XFF00) >> 2) | ((reg_header  & 0XFF) )  ; //header
+                    // buffer_out_flit[2] = ( 0x6 << 12) | ((reg_header  & 0XFF00) >> 2) | ((reg_header  & 0XFF) )  ; //header
+                    buffer_out_flit[2] = ( 0x6 << 12) | (KE_OSZ); //header
                     buffer_out_flit[3] =  reg_source_PE;          //header
                     buffer_out_flit[4] = 0;                     //size
                     buffer_out_flit[5] = 11;                    //header size + 2 de"payload"
@@ -349,8 +355,8 @@ void io_peripheral::out_proc_FSM(){
                     payload_size = 2;
                     header_size = 24+SR_size[SR_PATH_index];
 
-                    //buffer_out_flit[0] = ( 0x7 << 12) | ((reg_header  & 0XFF00) >> 2) | ((reg_header  & 0XFF) )  ; //header
-                    buffer_out_flit[0] = ( 0x6 << 12) | ((reg_header  & 0XFF00) >> 2) | ((reg_header  & 0XFF) )  ; //header
+                    //buffer_out_flit[0] = ( 0x6 << 12) | ((reg_header  & 0XFF00) >> 2) | ((reg_header  & 0XFF) )  ; //header
+                    buffer_out_flit[0] = ( 0x6 << 12) | (KE_OSZ); //header
                     buffer_out_flit[1] = reg_source_PE;                                            //header
                     for(i = 0; i < SR_size[SR_PATH_index]; i++){
                          buffer_out_flit[i+2] = SR_path[SR_PATH_index][i];
@@ -389,7 +395,8 @@ void io_peripheral::out_proc_FSM(){
                     payload_size = 0;
                     header_size = 24+SR_size[SR_PATH_index];
 
-                    buffer_out_flit[0] = ( 0x7 << 12) | ((reg_header  & 0XFF00) >> 2) | ((reg_header  & 0XFF) )  ; //header
+                    // buffer_out_flit[0] = ( 0x6 << 12) | ((reg_header  & 0XFF00) >> 2) | ((reg_header  & 0XFF) )  ; //header
+                    buffer_out_flit[0] = ( 0x6 << 12) | (KE_OSZ); //header
                     buffer_out_flit[1] = reg_source_PE; 
                     for(i = 0; i < SR_size[SR_PATH_index]; i++){
                          buffer_out_flit[i+2] = SR_path[SR_PATH_index][i];

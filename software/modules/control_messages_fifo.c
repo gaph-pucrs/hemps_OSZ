@@ -38,6 +38,7 @@ void insert_CM_FIFO(ServiceHeader *p, unsigned int initial_address, unsigned int
 		// services without payload but only one copy in FIFO
 		case LOAN_PROCESSOR_REQUEST:
 		case INITIALIZE_CLUSTER:
+		case IO_INIT:
 		case INITIALIZE_SLAVE:
 				if( search_Service(p->service) == -1 )
 					return; 								// @suppress("No break at end of case")
@@ -244,7 +245,10 @@ int resend_control_message(unsigned int backtrack, unsigned int backtrack1, unsi
 			puts("target: "); puts(itoh(SR_Table[slot_seek].target)); puts("\n");			
 			adjust_backtrack_IO(backtrack, backtrack1, backtrack2, target);
 			// service_header.cluster_ID contains the peripheral_ID; service_header.task_ID contains the io_service;
+			#ifndef GRAY_AREA
 			open_wrapper_IO_SZ(CMFifo[CMFifo_index].service_header.cluster_ID, CMFifo[CMFifo_index].service_header.task_ID);
+			#endif 
+
 			send_packet(&CMFifo[CMFifo_index].service_header, CMFifo[CMFifo_index].ptr_payload , CMFifo[CMFifo_index].payload_length);
 			CMFifo[CMFifo_index].used = YES;
 			//puts("\nenviou message\n");

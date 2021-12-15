@@ -200,6 +200,10 @@ SC_MODULE(pe) {
 	sc_signal <	bool> 			cpu_repo_acess;
 	sc_signal <	bool> 			dmni_timeout_ni;
 
+	//ke
+	sc_signal <bool >			pass[NPORT];
+	sc_signal <	sc_uint <12 >> 	ke;
+	
 	//pending service signal
 	sc_signal < bool > 			pending_service;
 
@@ -252,7 +256,7 @@ SC_MODULE(pe) {
 	sc_signal <sc_uint <10 > >				wrapper_mask_router_in;
 	sc_signal <sc_uint <10 > >				wrapper_mask_router_out;
 
-	sc_signal <bool >						io_packet_mask[NPORT];
+	sc_signal <bool >						io_packet_mask;
 
 	unsigned char shift_mem_page;
 
@@ -421,8 +425,10 @@ SC_MODULE(pe) {
 				router->data_in[i](data_in[i]);
 				fail_wrapper_module->eop_out_router_ports[i](eop_out[i]);
 				fail_wrapper_module->eop_in_router_ports[i](eop_in[i]);
-				fail_wrapper_module->io_packet_mask[i](io_packet_mask[i]);
 			}
+			fail_wrapper_module->io_packet_mask(io_packet_mask);
+			router->ke		(ke);
+
 			router->fail_in			[LOCAL0](router_fail_in[LOCAL0]);
 			router->fail_in			[LOCAL1](router_fail_in[LOCAL1]);
 			router->fail_out		[LOCAL0](router_fail_out[LOCAL0]);
@@ -460,11 +466,11 @@ SC_MODULE(pe) {
 			router->w_source_target(w_source_target);
 			router->mask_local_tx_output(mask_local_tx_output_local);
 			router->w_addr(w_addr);
+			router->io_packet_mask(io_packet_mask);
 			fail_wrapper_module->wrapper_mask_go_from_CPU(wrapper_mask_go_reg);
 			fail_wrapper_module->wrapper_mask_back_from_CPU(wrapper_mask_back_reg);
 			for(i=0;i<NPORT;i++){
 				router->rot_table[i](rot_table[i]);
-				router->io_packet_mask[i](io_packet_mask[i]);
 			}
 			seek->clock(clock);
 			seek->reset(reset);
@@ -658,10 +664,12 @@ SC_MODULE(pe) {
 		// sensitive << MEM_waiting[10];
 		SC_METHOD(fail_out_generation);
 		for(i=0;i<NPORT-1;i++){
+			sensitive << pass[i];
+			sensitive << data_in[i];
 			sensitive << router_fail_out[i];
 			sensitive << external_fail_out[i];
 			sensitive << wrapper_reg[i];
-			sensitive << io_packet_mask[i];
+			sensitive << io_packet_mask;
 			sensitive << wrapper_mask_router_out;
 		}
 		SC_METHOD(fail_in_generation);

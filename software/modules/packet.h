@@ -144,5 +144,9 @@ void send_wrapper_close_forward(int );
 
 int read_packet(ServiceHeader *);
 
+int pathToIO(int );
+
+int pathFromIO(long unsigned int);
+
 
 #endif /* SOFTWARE_INCLUDE_PACKET_PACKET_H_ */

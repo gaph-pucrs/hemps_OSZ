@@ -79,6 +79,8 @@ for pe in xrange(0,max_pe):
 
 	#pe signals
 	print "add wave -noupdate -group {%s %dx%d - %d} -group pe /test_bench/HeMPS/%s%dx%d/int_seek" % 		(pe_type_str, posX, posY, pe, pe_type_str, posX, posY)
+	print "add wave -noupdate -group {%s %dx%d - %d} -group pe /test_bench/HeMPS/%s%dx%d/ke" % 				(pe_type_str, posX, posY, pe, pe_type_str, posX, posY)
+	print "add wave -noupdate -group {%s %dx%d - %d} -group pe /test_bench/HeMPS/%s%dx%d/pass" % 			(pe_type_str, posX, posY, pe, pe_type_str, posX, posY)
 	print "add wave -noupdate -group {%s %dx%d - %d} -group pe /test_bench/HeMPS/%s%dx%d/irq" % 			(pe_type_str, posX, posY, pe, pe_type_str, posX, posY)
 	print "add wave -noupdate -group {%s %dx%d - %d} -group pe /test_bench/HeMPS/%s%dx%d/irq_mask_reg" % 	(pe_type_str, posX, posY, pe, pe_type_str, posX, posY)
 	print "add wave -noupdate -group {%s %dx%d - %d} -group pe /test_bench/HeMPS/%s%dx%d/irq_status" % 		(pe_type_str, posX, posY, pe, pe_type_str, posX, posY)
@@ -310,6 +312,8 @@ for pe in xrange(0,max_pe):
 	print "add wave -noupdate -group {%s %dx%d - %d} -group {switch control} /test_bench/HeMPS/%s%dx%d/RouterCCwrapped/RouterCC/SwitchControl_SR_write/ty" % 					(pe_type_str, posX, posY, pe, pe_type_str, posX, posY)
 	print "add wave -noupdate -group {%s %dx%d - %d} -group {switch control} /test_bench/HeMPS/%s%dx%d/RouterCCwrapped/RouterCC/SwitchControl_SR_write/w_addr" % 				(pe_type_str, posX, posY, pe, pe_type_str, posX, posY)
 	print "add wave -noupdate -group {%s %dx%d - %d} -group {switch control} /test_bench/HeMPS/%s%dx%d/RouterCCwrapped/RouterCC/SwitchControl_SR_write/w_source_target" % 		(pe_type_str, posX, posY, pe, pe_type_str, posX, posY)
+	print "add wave -noupdate -group {%s %dx%d - %d} -group {switch control} /test_bench/HeMPS/%s%dx%d/RouterCCwrapped/RouterCC/SwitchControl_SR_write/ke_reg" % 		(pe_type_str, posX, posY, pe, pe_type_str, posX, posY)
+	print "add wave -noupdate -group {%s %dx%d - %d} -group {switch control} /test_bench/HeMPS/%s%dx%d/RouterCCwrapped/RouterCC/SwitchControl_SR_write/io_mask_wrapper" % 		(pe_type_str, posX, posY, pe, pe_type_str, posX, posY)
 
 	# for port in xrange(0,8):
 	for port in xrange(0,10):
@@ -323,6 +327,10 @@ for pe in xrange(0,max_pe):
 				print "add wave -noupdate -group {%s %dx%d - %d} -group LOCAL -group {router %dx%d output %s} -radix hexadecimal /test_bench/HeMPS/%s%dx%d/RouterCCwrapped/tx(%d)" % 		(pe_type_str, posX, posY, pe, posX, posY, portname[port], pe_type_str, posX, posY, port)
 				print "add wave -noupdate -group {%s %dx%d - %d} -group LOCAL -group {router %dx%d output %s} -radix hexadecimal /test_bench/HeMPS/%s%dx%d/RouterCCwrapped/data_out(%d)" % 	(pe_type_str, posX, posY, pe, posX, posY, portname[port], pe_type_str, posX, posY, port)
 				print "add wave -noupdate -group {%s %dx%d - %d} -group LOCAL -group {router %dx%d output %s} -radix hexadecimal /test_bench/HeMPS/%s%dx%d/RouterCCwrapped/eop_out(%d)" % 	(pe_type_str, posX, posY, pe, posX, posY, portname[port], pe_type_str, posX, posY, port)
+				print "add wave -noupdate -group {%s %dx%d - %d} -group LOCAL -group {router %dx%d output %s} -radix hexadecimal /test_bench/HeMPS/%s%dx%d/pass(%d)" % 						(pe_type_str, posX, posY, pe, posX, posY, portname[port], pe_type_str, posX, posY, port)
+				print "add wave -noupdate -group {%s %dx%d - %d} -group LOCAL -group {router %dx%d output %s} -radix hexadecimal /test_bench/HeMPS/%s%dx%d/io_packet_mask(%d)" % 						(pe_type_str, posX, posY, pe, posX, posY, portname[port], pe_type_str, posX, posY, port)
+
+
 			else:
 				print "add wave -noupdate -group {%s %dx%d - %d} -group ports -group {router %dx%d input %s} -radix hexadecimal /test_bench/HeMPS/%s%dx%d/RouterCCwrapped/credit_o(%d)" % 	(pe_type_str, posX, posY, pe, posX, posY, portname[port], pe_type_str, posX, posY, port)
 				print "add wave -noupdate -group {%s %dx%d - %d} -group ports -group {router %dx%d input %s} -radix hexadecimal /test_bench/HeMPS/%s%dx%d/RouterCCwrapped/rx(%d)" % 			(pe_type_str, posX, posY, pe, posX, posY, portname[port], pe_type_str, posX, posY, port)
@@ -332,6 +340,9 @@ for pe in xrange(0,max_pe):
 				print "add wave -noupdate -group {%s %dx%d - %d} -group ports -group {router %dx%d output %s} -radix hexadecimal /test_bench/HeMPS/%s%dx%d/RouterCCwrapped/tx(%d)" % 		(pe_type_str, posX, posY, pe, posX, posY, portname[port], pe_type_str, posX, posY, port)
 				print "add wave -noupdate -group {%s %dx%d - %d} -group ports -group {router %dx%d output %s} -radix hexadecimal /test_bench/HeMPS/%s%dx%d/RouterCCwrapped/data_out(%d)" % 	(pe_type_str, posX, posY, pe, posX, posY, portname[port], pe_type_str, posX, posY, port)
 				print "add wave -noupdate -group {%s %dx%d - %d} -group ports -group {router %dx%d output %s} -radix hexadecimal /test_bench/HeMPS/%s%dx%d/RouterCCwrapped/eop_out(%d)" % 	(pe_type_str, posX, posY, pe, posX, posY, portname[port], pe_type_str, posX, posY, port)
+				print "add wave -noupdate -group {%s %dx%d - %d} -group ports -group {router %dx%d output %s} -radix hexadecimal /test_bench/HeMPS/%s%dx%d/pass(%d)" % 						(pe_type_str, posX, posY, pe, posX, posY, portname[port], pe_type_str, posX, posY, port)
+				print "add wave -noupdate -group {%s %dx%d - %d} -group ports -group {router %dx%d output %s} -radix hexadecimal /test_bench/HeMPS/%s%dx%d/io_packet_mask(%d)" % 						(pe_type_str, posX, posY, pe, posX, posY, portname[port], pe_type_str, posX, posY, port)
+
 	
 
 	if pe%MAX_X==MAX_X-1:

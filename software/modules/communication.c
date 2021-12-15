@@ -747,13 +747,15 @@ void send_message_io(int producer_task, int peripheral_ID, Message * msg_ptr, in
 	ServiceHeader *p = get_service_header_slot();
 
 	//p->header[MAX_SOURCE_ROUTING_PATH_SIZE-1] = get_task_location(consumer_task);
-
+	
+	#ifndef GRAY_AREA
 	if(secure){
 		open_wrapper_IO_SZ(peripheral_ID, 1);  // IO_service: 0 - request; 1 - delivery
 		//puts("atrasando o envio do pacote"); puts("\n");
 		//get_net_address();
 		//puts("atrasando mais um pouco o envio do pacote"); puts("\n");
 	}
+	#endif
 
 	p->service = IO_DELIVERY;
 
@@ -774,9 +776,12 @@ void send_message_io(int producer_task, int peripheral_ID, Message * msg_ptr, in
 void send_io_request(int peripheral_ID, int consumer_task, unsigned int sourcePE, int secure){
 
 	ServiceHeader *p = get_service_header_slot();
+
+	#ifndef GRAY_AREA
 	if(secure){
 		open_wrapper_IO_SZ(peripheral_ID, 0);  // IO_service: 0 - request; 1 - delivery
 	}
+	#endif
 
 	p->service = IO_REQUEST;
 
@@ -791,9 +796,15 @@ void send_io_request(int peripheral_ID, int consumer_task, unsigned int sourcePE
 	send_packet_io(p, 0, 0, peripheral_ID);
 }
 
-void send_peripheral_SR_path(int slot_seek, int peripheral_ID, int target){
+void send_peripheral_SR_path(int slot_seek, int peripheral_ID, int secure){
 	int i;
 	ServiceHeader *p = get_service_header_slot();
+
+	#ifndef GRAY_AREA
+	if(secure){
+		send_wrapper_open_forward(peripheral_ID, 1);  // IO_service: 0 - request; 1 - delivery
+	}
+	#endif
 
 	p->service = IO_SR_PATH;
 

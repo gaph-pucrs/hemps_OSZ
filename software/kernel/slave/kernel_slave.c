@@ -75,6 +75,7 @@ Message waitingMessages[10];
 	extern u8 keys[PRESENT_KEY_SIZE_128/8*(PRESENT_ROUNDS+1)];
 #endif 
 
+
 /** Assembles and sends a TASK_TERMINATED packet to the master kernel
  *  \param terminated_task Terminated task TCB pointer
  */
@@ -257,9 +258,11 @@ int Syscall(unsigned int service, unsigned int arg0, unsigned int arg1, unsigned
 	int producer_task;
 	int producer_PE;
 	int consumer_PE;
-	int appID;
+	int appID, slotSR;
 	int i,j, port_io;
-	
+
+	unsigned int auxSlot, PER_X_addr, PER_Y_addr;
+	long int auxBT;
 
 	schedule_after_syscall = 0;
 
@@ -532,7 +535,42 @@ int Syscall(unsigned int service, unsigned int arg0, unsigned int arg1, unsigned
 			//	schedule_after_syscall = 1;
 			//	return 0;
 			//}
-
+			for(i = 0; i < IO_NUMBER; i++){
+				if(io_info[i].peripheral_id == arg1){
+					PER_X_addr = io_info[i].default_address_x ;
+          			PER_Y_addr = io_info[i].default_address_y;
+					auxSlot = SearchSourceRoutingDestination((PER_X_addr << 8) | PER_Y_addr);
+					if (auxSlot == -1){
+						puts("Configurando novo IO:");puts(itoa(arg1)); puts("\n");
+						auxBT = pathToIO(arg1);
+						puts("--path: ");puts(itoh(auxBT)); puts("\n");
+						slotSR = GetFreeSlotSourceRouting((PER_X_addr << 8) | PER_Y_addr);
+						// puts("--slot: ");puts(itoa(slotSR)); puts("\n");
+						SR_Table[slotSR].target = (PER_X_addr << 8) | PER_Y_addr;
+    					SR_Table[slotSR].tableSlotStatus = SR_USADO;
+						slotSR = adjust_backtrack_IO(
+							auxBT & 0xffffFFFF,
+  							auxBT >> 32 & 0xffffFFFF,
+  							auxBT >> 64 & 0xffffFFFF,
+							(PER_X_addr << 8) | PER_Y_addr);
+						// puts("--slot_adjust: ");puts(itoa(slotSR)); puts("\n");
+						auxBT = pathFromIO(auxBT);
+						puts("-- enviando caminho:");puts(itoh(auxBT)); puts("\n");
+						slotSR = GetFreeSlotSourceRouting(get_net_address());
+						// puts("--slot: ");puts(itoa(slotSR)); puts("\n");
+						SR_Table[slotSR].target = get_net_address();
+    					SR_Table[slotSR].tableSlotStatus = SR_USADO;
+						slotSR = ProcessTurns(
+							auxBT & 0xffffFFFF,
+  							auxBT >> 32 & 0xffffFFFF,
+  							auxBT >> 64 & 0xffffFFFF);
+						send_peripheral_SR_path(slotSR, arg1, current->secure);
+						// puts("--slot_adjust: ");puts(itoa(slotSR)); puts("\n");
+						ClearSlotSourceRouting(get_net_address());
+					}
+				break;
+				}
+			}
 			send_message_io(producer_task, arg1, msg_read, current->secure);
 
 			current->scheduling_ptr->status = WAITING;
@@ -553,6 +591,42 @@ int Syscall(unsigned int service, unsigned int arg0, unsigned int arg1, unsigned
 			consumer_task =  current->id;
 			//producer_task = (int) arg1;
 
+			for(i = 0; i < IO_NUMBER; i++){
+				if(io_info[i].peripheral_id == arg1){
+					PER_X_addr = io_info[i].default_address_x ;
+          			PER_Y_addr = io_info[i].default_address_y;
+					auxSlot = SearchSourceRoutingDestination((PER_X_addr << 8) | PER_Y_addr);
+					if (auxSlot == -1){
+						puts("Configurando novo IO:");puts(itoa(arg1)); puts("\n");
+						auxBT = pathToIO(arg1);
+						puts("--path: ");puts(itoh(auxBT)); puts("\n");
+						slotSR = GetFreeSlotSourceRouting((PER_X_addr << 8) | PER_Y_addr);
+						// puts("--slot: ");puts(itoa(slotSR)); puts("\n");
+						SR_Table[slotSR].target = (PER_X_addr << 8) | PER_Y_addr;
+    					SR_Table[slotSR].tableSlotStatus = SR_USADO;
+						slotSR = adjust_backtrack_IO(
+							auxBT & 0xffffFFFF,
+  							auxBT >> 32 & 0xffffFFFF,
+  							auxBT >> 64 & 0xffffFFFF,
+							(PER_X_addr << 8) | PER_Y_addr);
+						// puts("--slot_adjust: ");puts(itoa(slotSR)); puts("\n");
+						auxBT = pathFromIO(auxBT);
+						puts("-- enviando caminho:");puts(itoh(auxBT)); puts("\n");
+						slotSR = GetFreeSlotSourceRouting(get_net_address());
+						// puts("--slot: ");puts(itoa(slotSR)); puts("\n");
+						SR_Table[slotSR].target = get_net_address();
+    					SR_Table[slotSR].tableSlotStatus = SR_USADO;
+						slotSR = ProcessTurns(
+							auxBT & 0xffffFFFF,
+  							auxBT >> 32 & 0xffffFFFF,
+  							auxBT >> 64 & 0xffffFFFF);
+						send_peripheral_SR_path(slotSR, arg1, current->secure);
+						// puts("--slot_adjust: ");puts(itoa(slotSR)); puts("\n");
+						ClearSlotSourceRouting(get_net_address());
+					}
+				break;
+				}
+			}
 
 			send_io_request(arg1, consumer_task, net_address, current->secure);
 
@@ -898,6 +972,7 @@ int handle_packet(volatile ServiceHeader * p) {
 			// puts("**MD Check:");puts(itoa(p->arrival_time - auxSession->time));puts("\n");
 			
 			auxSession->time = 0;
+			//calcula o avg baseado no p->arrival_time
 			//Escreve direto na TAREFA
 			session_puts("DATA: -->> Mensagem validada\n");
 			tcb_ptr = searchTCB(p->consumer_task);
@@ -1346,7 +1421,7 @@ int SeekInterruptHandler(){
 				puts("----repetido\n");
 				break;
 			}
-			seek_puts("unr: "); seek_puts(itoh(source)); seek_puts("\n");
+			puts("Source: "); puts(itoh(source)); puts("\n");
 			slot_seek = GetFreeSlotSourceRouting(source>>16);
 			
 			if(slot_seek != -1){
@@ -1358,9 +1433,13 @@ int SeekInterruptHandler(){
 				seek_unr_count++;
 			}
 			aux =  search_Target(source>>16);
+
+			#ifndef GRAY_AREA
 			if(((aux == search_Service(IO_REQUEST)) || (aux == search_Service(IO_DELIVERY))) && (aux != -1)){
 				send_wrapper_close_back__open_forward(aux);
 			}
+			#endif
+
 			Seek(SEARCHPATH_SERVICE, ((seek_unr_count<<16) | (get_net_address()&0xffff)), source>>16, 0);
 			seek_unr_count++;
 			prevTUS = payload;
@@ -1381,10 +1460,12 @@ int SeekInterruptHandler(){
 
 			if(aux == 0){
 				aux =  search_Target(source>>16);
+				#ifndef GRAY_AREA
 				if(((aux == search_Service(IO_REQUEST)) || (aux == search_Service(IO_DELIVERY))) && (aux != -1)){
 					send_wrapper_close_forward(aux);
 				}	
-				puts("target: "); puts(itoh(SR_Table[slot_seek].target)); puts("\n");			
+				#endif
+				// puts("target: "); puts(itoh(SR_Table[slot_seek].target)); puts("\n");			
             	aux = resend_control_message(backtrack, backtrack1, backtrack2, SR_Table[slot_seek].target);
         	}
 
@@ -1878,7 +1959,7 @@ int main(){
 
 	init_communication();
 
-	printGray();
+	// printGray();
 
 
 	initFTStructs();

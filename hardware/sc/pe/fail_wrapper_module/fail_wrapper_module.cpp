@@ -132,30 +132,30 @@ void fail_WRAPPER_module::write_mask(){
 	else{
 		int i;
 // EOP out received -- UNSET MASK  -- ACTIVE WRAPPER
-		if((eop_out_router_ports[0] == 1) | (eop_out_router_ports[1] == 1)){
-			if((aux_wrapper_mask_go & 0x03) == 0){
-				aux_wrapper_mask_go = aux_wrapper_mask_go | 0X003;
-				count_delay = 0;
-			}
-		}
-		if((eop_out_router_ports[2] == 1) | (eop_out_router_ports[3] == 1)){
-			if((aux_wrapper_mask_go & 0x0C) == 0){
-				aux_wrapper_mask_go = aux_wrapper_mask_go | 0X00C;
-				count_delay = 0;
-			}
-		}
-		if((eop_out_router_ports[4] == 1) | (eop_out_router_ports[5] == 1)){
-			if((aux_wrapper_mask_go & 0x30) == 0){
-				aux_wrapper_mask_go = aux_wrapper_mask_go | 0X030;
-				count_delay = 0;
-			}
-		}
-		if((eop_out_router_ports[6] == 1) | (eop_out_router_ports[7] == 1)){
-			if((aux_wrapper_mask_go & 0xC0) == 0){
-				aux_wrapper_mask_go = aux_wrapper_mask_go | 0X0C0;
-				count_delay = 0;
-			}
-		}		
+		// if((eop_out_router_ports[0] == 1) | (eop_out_router_ports[1] == 1)){
+		// 	if((aux_wrapper_mask_go & 0x03) == 0){
+		// 		aux_wrapper_mask_go = aux_wrapper_mask_go | 0X003;
+		// 		count_delay = 0;
+		// 	}
+		// }
+		// if((eop_out_router_ports[2] == 1) | (eop_out_router_ports[3] == 1)){
+		// 	if((aux_wrapper_mask_go & 0x0C) == 0){
+		// 		aux_wrapper_mask_go = aux_wrapper_mask_go | 0X00C;
+		// 		count_delay = 0;
+		// 	}
+		// }
+		// if((eop_out_router_ports[4] == 1) | (eop_out_router_ports[5] == 1)){
+		// 	if((aux_wrapper_mask_go & 0x30) == 0){
+		// 		aux_wrapper_mask_go = aux_wrapper_mask_go | 0X030;
+		// 		count_delay = 0;
+		// 	}
+		// }
+		// if((eop_out_router_ports[6] == 1) | (eop_out_router_ports[7] == 1)){
+		// 	if((aux_wrapper_mask_go & 0xC0) == 0){
+		// 		aux_wrapper_mask_go = aux_wrapper_mask_go | 0X0C0;
+		// 		count_delay = 0;
+		// 	}
+		// }		
 	
 //		if(((eop_out_router_ports[0] == 1) & (io_packet_mask[0] == 0)) | ((eop_out_router_ports[1] == 1) & (io_packet_mask[1] == 0))) {
 //			if((aux_wrapper_mask_go & 0x03) == 0){
@@ -183,35 +183,35 @@ void fail_WRAPPER_module::write_mask(){
 //		}
 //
 
-// EOP in received -- UNSET MASK  -- ACTIVE WRAPPER
-		if(((eop_in_router_ports[0] == 1) & (io_packet_mask[0] == 0)) | ((eop_in_router_ports[1] == 1) & (io_packet_mask[1] == 0))) {		
-		//if((eop_in_router_ports[0]) == 1 | (eop_in_router_ports[1] == 1)){
-			if((aux_wrapper_mask_back & 0x03) == 0){
-				aux_wrapper_mask_back = aux_wrapper_mask_back | 0X003;
-				count_delay = 0;
-			}
-		}
-		if(((eop_in_router_ports[2] == 1) & (io_packet_mask[2] == 0)) | ((eop_in_router_ports[3] == 1) & (io_packet_mask[3] == 0))) {
-		//if((eop_in_router_ports[2]) == 1 | (eop_in_router_ports[3] == 1)){
-			if((aux_wrapper_mask_back & 0x0C) == 0){
-				aux_wrapper_mask_back = aux_wrapper_mask_back | 0X00C;
-				count_delay = 0;
-			}
-		}
-		if(((eop_in_router_ports[4] == 1) & (io_packet_mask[4] == 0)) | ((eop_in_router_ports[5] == 1) & (io_packet_mask[5] == 0))) {
-		//if((eop_in_router_ports[4]) == 1 | (eop_in_router_ports[5] == 1)){
-			if((aux_wrapper_mask_back & 0x30) == 0){
-				aux_wrapper_mask_back = aux_wrapper_mask_back | 0X030;
-				count_delay = 0;
-			}
-		}
-		if(((eop_in_router_ports[6] == 1) & (io_packet_mask[6] == 0)) | ((eop_in_router_ports[7] == 1) & (io_packet_mask[7] == 0))) {
-		//if((eop_in_router_ports[6]) == 1 | (eop_in_router_ports[7] == 1)){
-			if((aux_wrapper_mask_back & 0xC0) == 0){
-				aux_wrapper_mask_back = aux_wrapper_mask_back | 0X0C0;
-				count_delay = 0;
-			}
-		}
+// // EOP in received -- UNSET MASK  -- ACTIVE WRAPPER
+// 		if(((eop_in_router_ports[0] == 1) & (io_packet_mask[0] == 0)) | ((eop_in_router_ports[1] == 1) & (io_packet_mask[1] == 0))) {		
+// 		//if((eop_in_router_ports[0]) == 1 | (eop_in_router_ports[1] == 1)){
+// 			if((aux_wrapper_mask_back & 0x03) == 0){
+// 				aux_wrapper_mask_back = aux_wrapper_mask_back | 0X003;
+// 				count_delay = 0;
+// 			}
+// 		}
+// 		if(((eop_in_router_ports[2] == 1) & (io_packet_mask[2] == 0)) | ((eop_in_router_ports[3] == 1) & (io_packet_mask[3] == 0))) {
+// 		//if((eop_in_router_ports[2]) == 1 | (eop_in_router_ports[3] == 1)){
+// 			if((aux_wrapper_mask_back & 0x0C) == 0){
+// 				aux_wrapper_mask_back = aux_wrapper_mask_back | 0X00C;
+// 				count_delay = 0;
+// 			}
+// 		}
+// 		if(((eop_in_router_ports[4] == 1) & (io_packet_mask[4] == 0)) | ((eop_in_router_ports[5] == 1) & (io_packet_mask[5] == 0))) {
+// 		//if((eop_in_router_ports[4]) == 1 | (eop_in_router_ports[5] == 1)){
+// 			if((aux_wrapper_mask_back & 0x30) == 0){
+// 				aux_wrapper_mask_back = aux_wrapper_mask_back | 0X030;
+// 				count_delay = 0;
+// 			}
+// 		}
+// 		if(((eop_in_router_ports[6] == 1) & (io_packet_mask[6] == 0)) | ((eop_in_router_ports[7] == 1) & (io_packet_mask[7] == 0))) {
+// 		//if((eop_in_router_ports[6]) == 1 | (eop_in_router_ports[7] == 1)){
+// 			if((aux_wrapper_mask_back & 0xC0) == 0){
+// 				aux_wrapper_mask_back = aux_wrapper_mask_back | 0X0C0;
+// 				count_delay = 0;
+// 			}
+// 		}
 
 //////  IO_WRAPPER_MESSAGE RECEIVED	
 		if(change_mask == 1 && reg_direction == 1){

@@ -9,7 +9,7 @@ from time import sleep
 #3. Simulate the system, if sc(gcc) it execute ./HeMPS, is scmod or vhdl it open ModelSim/Questa
 
 
-ENABLE_GUI=1
+ENABLE_GUI=0
 
 def call_debugger(testacase_path):
     tarffic_router_path = testacase_path+"/debug/traffic_router.txt"
