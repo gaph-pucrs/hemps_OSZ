@@ -1,0 +1,48 @@
+#dot -Tpng fsm2.gv -ofsm2.png
+digraph finite_state_machine {
+    rankdir=LR;
+    size="16,10"
+
+    node [shape = circle, label="SINIT_INPUT", fontsize=14] s_init_input;
+
+    node [shape = circle, label="ARBITRATION_INPUT", fontsize=12] arbitration_input;
+
+    node [shape = circle, label="LOOKTABLE_INPUT", fontsize=12] look_table_input;
+
+    node [shape = circle, label="TEST_SPACE_AVAIL", fontsize=14] test_space_avail;
+
+    node [shape = circle, label="WRITE_BTCK", fontsize=12] write_backtrack;
+    node [shape = circle, label="SVC_INPUT", fontsize=12] service_input;    
+    node [shape = circle, label="WRITE_CLAR", fontsize=12] write_clear;  
+
+
+    node [shape = circle, label="WAIT_REQ_DOWN", fontsize=12] wait_req_down;
+    node [shape = circle, label="TABLE_WRITE", fontsize=12] table_write;
+    node [shape = circle, label="SEND_NACK", fontsize=12] send_nack;
+
+
+    node [shape = point ] qi;
+
+    qi                  -> s_init_input;
+
+    s_init_input        -> arbitration_input  [ label = "" ];
+    arbitration_input   -> look_table_input [ label = "" ];
+    look_table_input    -> test_space_avail  [ label = "" ];
+
+    test_space_avail    -> write_backtrack  [ label = "" ];
+    test_space_avail    -> service_input  [ label = "" ];
+    test_space_avail    -> write_clear  [ label = "" ];
+
+    write_backtrack     -> wait_req_down  [ label = "" ];
+    service_input       -> table_write  [ label = "" ];
+    service_input       -> send_nack  [ label = "" ];
+    service_input       -> write_clear  [ label = "" ];
+
+    service_input       -> wait_req_down  [ label = "" ];
+    table_write         -> wait_req_down  [ label = "" ];
+    send_nack           -> wait_req_down  [ label = "" ];
+    write_clear         -> wait_req_down  [ label = "" ];
+
+    wait_req_down       -> s_init_input  [ label = "" ];
+
+}

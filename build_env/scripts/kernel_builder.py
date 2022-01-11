@@ -23,12 +23,12 @@ def main():
     if exit_status != 0:
         sys.exit("\nError compiling kernel source code\n");
         
-    print "\n***************** kernel page size report ***********************"
+    print ("\n***************** kernel page size report ***********************")
     check_page_size("software/kernel_slave.txt", get_page_size_KB(yaml_r) )
     
     check_page_size("software/kernel_master.txt", get_page_size_KB(yaml_r) )
         
-    print "***************** end kernel page size report *********************\n"
+    print ("***************** end kernel page size report *********************\n")
     
     generate_memory( yaml_r )
 

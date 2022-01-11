@@ -2,7 +2,8 @@
 import sys
 import math
 import os
-import commands
+#import commands
+import subprocess
 import re
 from yaml_intf import *
 from build_utils import *
@@ -114,7 +115,7 @@ def generate_repository(yaml_r, secure_apps_list):
     #Used for point the next free address to fill with a given task code (task.txt file)
     initial_address = 0 
     
-    print "\n***************** task page size report ***********************"
+    print ("\n***************** task page size report ***********************")
     
     #Walk for all apps into /applications dir
     for app_name in secure_apps_list:
@@ -190,7 +191,7 @@ def generate_repository(yaml_r, secure_apps_list):
                 exit_status = os.system("./build/siphash " + source_file )          
     
                 if exit_status == 0 :
-                    print "ERROR: MAC generation failed"
+                    print ("ERROR: MAC generation failed")
                     sys.exit(0)
           
             check_page_size(source_file, get_page_size_KB(yaml_r) )
@@ -200,26 +201,27 @@ def generate_repository(yaml_r, secure_apps_list):
             task_txt_file = open(source_file, "r")
             
             for line in task_txt_file:
-				file_line = line[0:len(line)-1] # removes the \n from end of file
-				repo_lines.append( RepoLine(file_line  , comment) )
-				comment = ""
+                file_line = line[0:len(line)-1] # removes the \n from end of file
+                repo_lines.append( RepoLine(file_line  , comment) )
+                comment = ""
                     
             task_txt_file.close()
     
     ################Finally, generates the repository file (main and debug files) ##########################
-    print "***************** end task page size report *********************\n"
+    print ("***************** end task page size report *********************\n")
 
     generate_repository_file(repo_lines, get_model_description(yaml_r))
 
-    print "\n***************** repository size report ***********************"
+    print ("\n***************** repository size report ***********************")
     check_repo_size(get_repository_size_MB(yaml_r), "repository.txt")
-    print "***************** end repository size report ***********************\n"
+    print ("***************** end repository size report ***********************\n")
     
     return apps_repo_addr_list
     
 #Receives a int, convert to string and fills to a 32 bits word
 def toX(input):
-    hex_string = "%x" % input
+    hex_string = "%x" % int(input)
+    
     #http://stackoverflow.com/questions/339007/nicest-way-to-pad-zeroes-to-string
     return hex_string.zfill(8) # 8 is the lenght of chars to represent 32 bits (repo word) in hexa
 
@@ -287,7 +289,8 @@ def get_task_DATA_size(app_name, task_name):
     source_file = "applications/" + app_name + "/" + task_name + ".bin"
     
     #https://www.quora.com/What-is-a-convenient-way-to-execute-a-shell-command-in-Python-and-retrieve-its-output
-    data_size = int (commands.getoutput("mips-elf-size "+source_file+" | tail -1 | sed 's/ //g' | sed 's/\t/:/g' | cut -d':' -f2"))
+    #data_size = int (commands.getoutput("mips-elf-size "+source_file+" | tail -1 | sed 's/ //g' | sed 's/\t/:/g' | cut -d':' -f2"))
+    data_size = int (subprocess.getoutput("mips-elf-size "+source_file+" | tail -1 | sed 's/ //g' | sed 's/\t/:/g' | cut -d':' -f2"))
     
     while data_size % 4 != 0:
         data_size = data_size + 1
@@ -301,7 +304,8 @@ def get_task_BSS_size(app_name, task_name):
     source_file = "applications/" + app_name + "/" + task_name + ".bin"
     
     #https://www.quora.com/What-is-a-convenient-way-to-execute-a-shell-command-in-Python-and-retrieve-its-output
-    bss_size = int(commands.getoutput("mips-elf-size "+source_file+" | tail -1 | sed 's/ //g' | sed 's/\t/:/g' | cut -d':' -f3"))
+    #bss_size = int(commands.getoutput("mips-elf-size "+source_file+" | tail -1 | sed 's/ //g' | sed 's/\t/:/g' | cut -d':' -f3"))
+    bss_size = int(subprocess.getoutput("mips-elf-size "+source_file+" | tail -1 | sed 's/ //g' | sed 's/\t/:/g' | cut -d':' -f3"))
     
     while bss_size % 4 != 0:
         bss_size = bss_size + 1

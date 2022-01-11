@@ -93,10 +93,14 @@ void fail_WRAPPER_module::brNoC_monitor(){
 	reg_seek_service auxService;
 	//Store in aux the C's string way
 	sprintf(aux, "debug/traffic_brnoc.txt");
-
-
+	char jsonf[255];
+	sprintf(jsonf, "debug/router_seek/wrapper_%x%xx%x%x.json",(address&0xf<<12)>>12,(address&0xf<<8)>>8,(address&0xf<<4)>>4,address&0xf);
+	bool first=true;
 	if(reset.read() == true){
 		//prevService = 0;
+		fp = fopen (jsonf, "w");
+		fprintf(fp,"{\"entradas\":[\n");
+		fclose(fp);
 	}else{
 		// Open a file called "aux" deferred on append mode
 		fp = fopen (aux, "a");
@@ -112,6 +116,31 @@ void fail_WRAPPER_module::brNoC_monitor(){
 
 		}*/
 		fclose (fp);
+
+		fp = fopen (jsonf, "a");
+		if(!first){
+			fprintf(fp,",\n");
+		}else
+			first=false;
+		fprintf(fp,"{\n");
+		fprintf(fp," \"tick\":%d\n",(unsigned int)tick_counter.read());
+// sc_in< bool >					in_fail_cpu_local;
+// sc_in<bool>						in_fail_cpu_config;
+// sc_in 	<sc_uint<32> >	  	 	mem_address_service_fail_cpu;
+// sc_in   <bool >					in_req_wrapper_local;
+// sc_in   <bool >					in_opmode_wrapper_local;
+		fprintf(fp," \"in_fail_wrapper_local\":%d\n",(unsigned int)in_fail_wrapper_local.read());// sc_in <bool > in_fail_wrapper_local;
+// sc_out   <bool > 				out_ack_wrapper_local;
+// sc_out   <bool > 				out_nack_wrapper_local;
+// sc_out   <bool >				out_req_wrapper_local;
+// sc_out   <bool >				out_opmode_wrapper_local;
+// sc_out   <bool >				out_fail_wrapper_local;
+// sc_in   <bool > 				in_ack_wrapper_local;
+// sc_in   <bool > 				in_nack_wrapper_local;
+		fprintf(fp," \"in_source_router\":%d\n",(unsigned int)(in_source_router.read()&0xffff<<16)>>16);// sc_signal <reg_seek_source > in_source_router;
+// sc_signal 	<reg_seek_target > 				in_target_router;
+		fprintf(fp,"}");
+		fclose(fp);
 	}
 }
 /*-- PDN services

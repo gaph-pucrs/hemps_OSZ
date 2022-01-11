@@ -59,8 +59,14 @@ SC_MODULE(fail_WRAPPER_module){
 	sc_in<sc_uint<32 > > tick_counter;
 	void brNoC_monitor();
 
-
-	SC_CTOR(fail_WRAPPER_module){
+	#ifdef SEEK_LOG
+	SC_HAS_PROCESS(fail_WRAPPER_module);
+	fail_WRAPPER_module(sc_module_name name_, regaddress address_ = 0x0000) :
+	sc_module(name_), address(address_)
+	#else
+	SC_CTOR(fail_WRAPPER_module)
+	#endif
+	{
     	SC_METHOD(in_proc_FSM);
     	sensitive << reset;
     	sensitive << clock.pos();
@@ -70,6 +76,8 @@ SC_MODULE(fail_WRAPPER_module){
     	//sensitive << clock.pos();
 		sensitive << out_req_wrapper_local.pos();
 	}
+	public:
+	regaddress address;
 };
 
 #endif

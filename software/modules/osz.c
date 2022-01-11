@@ -453,7 +453,7 @@ void Unset_Secure_Zone(unsigned int left_low_corner, unsigned int right_high_cor
           //puts("ENDSZ RH:");puts(itoh(LOCAL_right_high_corner));puts("\n"); 
           seek_puts("Without CUT - wrapper: ");seek_puts(itoh(isolated_ports));seek_puts("\n");
           seek_puts("RH address: ");seek_puts(itoh(right_high_corner));seek_puts("\n");
-          return;
+        //   return;
     }
   }
 
