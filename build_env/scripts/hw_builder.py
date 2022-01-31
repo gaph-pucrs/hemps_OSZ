@@ -60,14 +60,14 @@ def generate_testbench_h( yaml_r ):
         if file_name in peripheral_files:
             file_lines.append("#include \"./peripherals/IO_peripheral/"+ str(file_name) + "\"\n")
         else:
-            print "FATAL ERROR: peripheral file " + str(file_name) + " not found in /hardware/sc/peripherals/IO_peripheral/ directory\n"
-            print "\'testbench.h\'' automatic generation requeriments: "
-            print "     - the peripheral file name and hardware module MUST have same write, using lowercase letters"
-            print "       e.g.: \'injector.h\' to the file and \'injector\' to the name of hardware module "
-            print "     - the peripheral name in yaml testcase file MUST start with the hardware module name (but not the same):"
-            print "       e.g.: [injector1, 2, 0, S, 0, 1, W]"
-            print "             [injector_1, 2, 0, S, 0, 1, W]"
-            print "             [Injector, 2, 0, S, 0, 1, W]"
+            print ("FATAL ERROR: peripheral file " + str(file_name) + " not found in /hardware/sc/peripherals/IO_peripheral/ directory\n")
+            print ("\'testbench.h\'' automatic generation requeriments: ")
+            print ("     - the peripheral file name and hardware module MUST have same write, using lowercase letters")
+            print ("       e.g.: \'injector.h\' to the file and \'injector\' to the name of hardware module ")
+            print ("     - the peripheral name in yaml testcase file MUST start with the hardware module name (but not the same):")
+            print ("       e.g.: [injector1, 2, 0, S, 0, 1, W]")
+            print ("             [injector_1, 2, 0, S, 0, 1, W]")
+            print ("             [Injector, 2, 0, S, 0, 1, W]")
             sys.exit( )
 
 
@@ -85,14 +85,14 @@ def generate_testbench_h( yaml_r ):
                     #print "Achou"
                     break
             if flag == 0:
-                print "FATAL ERROR: hardware module not found in /hardware/sc/peripherals/IO_peripheral/" + str(item)
-                print "\'testbench.h\'' automatic generation requeriments: "
-                print "     - the peripheral file name and hardware module MUST have same write, using lowercase letters"
-                print "       e.g.: \'injector.h\' to the file and \'injector\' to the name of hardware module "
-                print "     - the peripheral name in yaml testcase file MUST start with the hardware module name:"
-                print "       e.g.: [injector1, 2, 0, S, 0, 1, W]"
-                print "             [injector_1, 2, 0, S, 0, 1, W]"
-                print "             [Injector, 2, 0, S, 0, 1, W]"
+                print ("FATAL ERROR: hardware module not found in /hardware/sc/peripherals/IO_peripheral/" + str(item))
+                print ("\'testbench.h\'' automatic generation requeriments: ")
+                print ("     - the peripheral file name and hardware module MUST have same write, using lowercase letters")
+                print ("       e.g.: \'injector.h\' to the file and \'injector\' to the name of hardware module ")
+                print ("     - the peripheral name in yaml testcase file MUST start with the hardware module name:")
+                print ("       e.g.: [injector1, 2, 0, S, 0, 1, W]")
+                print ("             [injector_1, 2, 0, S, 0, 1, W]")
+                print ("             [Injector, 2, 0, S, 0, 1, W]")
                 sys.exit( )
 
     file_lines.append("\n")

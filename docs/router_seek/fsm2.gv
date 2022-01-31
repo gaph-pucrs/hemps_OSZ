@@ -1,0 +1,68 @@
+#dot -Tpng fsm2.gv -ofsm2.png
+digraph finite_state_machine {
+    rankdir=LR;
+    size="16,10"
+
+    node [shape = circle, label="SINIT", fontsize=14] s_init;
+
+    node [shape = circle, label="ARBITRATION", fontsize=12] arbitration;
+
+    node [shape = circle, label="TESTSERVICE", fontsize=12] test_service;
+
+    node [shape = circle, label="PROPAGATE", fontsize=14] propagate;
+    node [shape = circle, label="COMPARETGT", fontsize=12] compare_target;
+    node [shape = circle, label="SERVICEBTCK", fontsize=12] service_backtrack; 
+
+    node [shape = circle, label="WAITACKPORTS", fontsize=12] wait_ack_ports;  
+    node [shape = circle, label="INITBTCK", fontsize=12] init_backtrack;
+    node [shape = circle, label="SENDLOCAL", fontsize=12] send_local;
+    node [shape = circle, label="BTCKMOUNT", fontsize=12] backtrack_mount;
+    node [shape = circle, label="BTCKPROPAGATE", fontsize=12] backtrack_propagate;
+
+    node [shape = circle, label="CLEARTABLE", fontsize=12] clear_table;
+    node [shape = circle, label="INITCLEAR", fontsize=12] init_clear;
+    node [shape = circle, label="ENDBTCK", fontsize=12] end_backtrack;
+    node [shape = circle, label="PREPARENEXT", fontsize=12] prepare_next;
+
+    node [shape = point ] qi;
+
+    qi                  -> s_init;
+
+    s_init              -> arbitration  [ label = "" ];
+    s_init              -> s_init  [ label = "" ];
+    arbitration         -> test_service [ label = "" ];
+
+    test_service        -> propagate  [ label = "" ];
+    test_service        -> compare_target  [ label = "" ];
+    test_service        -> service_backtrack  [ label = "" ];
+
+    propagate           -> wait_ack_ports  [ label = "" ];
+    compare_target      -> init_backtrack  [ label = "" ];
+    compare_target      -> send_local  [ label = "" ];
+
+    service_backtrack   -> backtrack_mount  [ label = "" ];
+    service_backtrack   -> backtrack_propagate  [ label = "" ];
+    service_backtrack   -> s_init  [ label = "" ];
+
+    wait_ack_ports      -> s_init  [ label = "" ];
+    wait_ack_ports      -> wait_ack_ports  [ label = "" ];
+    wait_ack_ports      -> clear_table  [ label = "" ];
+    init_backtrack      -> s_init  [ label = "" ];
+    send_local          -> send_local  [ label = "" ];
+    send_local          -> init_clear  [ label = "" ];
+    send_local          -> s_init  [ label = "" ];
+    backtrack_mount     -> end_backtrack  [ label = "" ];
+    backtrack_mount     -> s_init  [ label = "" ];
+    backtrack_propagate -> backtrack_propagate  [ label = "" ];
+    backtrack_propagate -> s_init  [ label = "" ];
+    backtrack_propagate -> prepare_next  [ label = "" ];
+
+    clear_table         -> s_init  [ label = "" ];
+    clear_table         -> clear_table  [ label = "" ];
+    init_clear          -> s_init  [ label = "" ];
+
+    end_backtrack       -> send_local  [ label = "" ];
+    end_backtrack       -> s_init  [ label = "" ];
+    prepare_next        -> s_init  [ label = "" ];
+
+}

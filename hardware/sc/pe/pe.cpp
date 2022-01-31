@@ -84,6 +84,10 @@ void pe::mem_mapped_registers(){
 			// 	cpu_mem_data_read.write(out_reg_backtrack_seek_local.read());
 				// in_sel_reg_backtrack_seek_local.write(1);
 			// break;
+			// case SEEK_CAM_READ: // log artur - seek CAM
+			// 	cpu_mem_data_read.write(0xffffffff); //ler nada só para teste
+			// 	// in_sel_reg_backtrack_seek_local.write(0);
+			// break;
 			case DMNI_TIMEOUT_SIGNAL:
 				cpu_mem_data_read.write(dmni_timeout_ni.read());
 			break;

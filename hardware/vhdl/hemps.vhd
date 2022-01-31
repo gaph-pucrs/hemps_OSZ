@@ -21,25 +21,25 @@ use work.hemps_pkg.all;
 
 entity HeMPS is
         port(
-        	clock              : in  std_logic;
-        	reset              : in  std_logic;
+                clock              : in  std_logic;
+                reset              : in  std_logic;
 
-        	-- Tasks repository interface
-        	repo_address       : out std_logic_vector(29 downto 0);
-        	repo_data          : in  std_logic_vector(31 downto 0);
-        	ack_app            : out std_logic;
-        	req_app            : in  std_logic_vector(31 downto 0);
+                -- Tasks repository interface
+                repo_address       : out std_logic_vector(29 downto 0);
+                repo_data          : in  std_logic_vector(31 downto 0);
+                ack_app            : out std_logic;
+                req_app            : in  std_logic_vector(31 downto 0);
 
-             --NoC Interface (IO)
-            tx_io       : out std_logic_vector((IO_NUMBER-1) downto 0);
-            data_out_io : out arrayNio_regflit;
-            credit_i_io : in  std_logic_vector((IO_NUMBER-1) downto 0);
-            clock_tx_io : out std_logic_vector((IO_NUMBER-1) downto 0);
-            rx_io       : in  std_logic_vector((IO_NUMBER-1) downto 0);
-            data_in_io  : in  arrayNio_regflit;
-            credit_o_io : out std_logic_vector((IO_NUMBER-1) downto 0);
-            clock_rx_io : in  std_logic_vector((IO_NUMBER-1) downto 0)
-        	
+                --NoC Interface (IO)
+                tx_io       : out std_logic_vector((IO_NUMBER-1) downto 0);
+                data_out_io : out arrayNio_regflit;
+                credit_i_io : in  std_logic_vector((IO_NUMBER-1) downto 0);
+                clock_tx_io : out std_logic_vector((IO_NUMBER-1) downto 0);
+                rx_io       : in  std_logic_vector((IO_NUMBER-1) downto 0);
+                data_in_io  : in  arrayNio_regflit;
+                credit_o_io : out std_logic_vector((IO_NUMBER-1) downto 0);
+                clock_rx_io : in  std_logic_vector((IO_NUMBER-1) downto 0)
+                
         );
 end;
 
@@ -83,9 +83,9 @@ architecture HeMPS of HeMPS is
                 
                 PE: entity work.pe
                 generic map (
-                        router_address    	=> RouterAddress(i),
+                        router_address          	=> RouterAddress(i),
                         kernel_type			=> pe_type(i),
-                        log_file            => log_filename(i)
+                        log_filename                    => log_filename(i)
                         )
                 port map(
                         clock 				=> clock,
@@ -100,14 +100,14 @@ architecture HeMPS of HeMPS is
                         data_in 			=> data_in(i),
                         credit_o 			=> credit_o(i),
                         -- External Memory
-                        repo_address 		=> repo_address_sig(i),
-                        repo_data_read 		=> repo_data_sig(i),
+                        repo_address 	        	=> repo_address_sig(i),
+                        repo_data_read 	        	=> repo_data_sig(i),
                         ack_app 			=> ack_app_sig(i),
                         req_app 			=> req_app_sig(i)
                         -- External Debug interface
---                        write_enable_debug 	=> write_enable_debug_sig(i),
---                        data_out_debug 		=> data_out_debug_sig(i),
---                        busy_debug 			=> busy_debug_sig(i)
+-- write_enable_debug 	=> write_enable_debug_sig(i),
+-- data_out_debug 		=> data_out_debug_sig(i),
+-- busy_debug 			=> busy_debug_sig(i)
                         
                 );
                 

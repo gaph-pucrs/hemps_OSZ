@@ -167,8 +167,8 @@ SC_MODULE(hemps) {
 		for (j = 0; j < N_PE; j++) {
 
 			r_addr = RouterAddress(j);
-			x_addr = ((int) r_addr) >> 8;
-			y_addr = ((int) r_addr) & 0xFF;
+			x_addr = ((int) r_addr) >> 8; //get 2 most signaficative bytes
+			y_addr = ((int) r_addr) & 0xFF;//get 2 least signaficative bytes
 
 			switch (pe_type[j]) {
 			case 0: //Slave
@@ -212,7 +212,7 @@ SC_MODULE(hemps) {
 			for(i=0;i<NPORT_SEEK-1;i++){
 				PE[j]->in_source_router_seek	[i]	(in_source_router_seek		[j][i]);
 				PE[j]->in_target_router_seek	[i]	(in_target_router_seek		[j][i]);
-				PE[j]->in_payload_router_seek		[i]	(in_payload_router_seek			[j][i]);
+				PE[j]->in_payload_router_seek	[i]	(in_payload_router_seek			[j][i]);
 				PE[j]->in_service_router_seek	[i]	(in_service_router_seek		[j][i]);
 				PE[j]->in_req_router_seek		[i]	(in_req_router_seek			[j][i]);
 				PE[j]->in_ack_router_seek		[i]	(in_ack_router_seek			[j][i]);
@@ -225,7 +225,7 @@ SC_MODULE(hemps) {
 				PE[j]->out_service_router_seek	[i]	(out_service_router_seek	[j][i]);
 				PE[j]->out_source_router_seek	[i]	(out_source_router_seek		[j][i]);
 				PE[j]->out_target_router_seek	[i]	(out_target_router_seek		[j][i]);
-				PE[j]->out_payload_router_seek		[i]	(out_payload_router_seek		[j][i]);
+				PE[j]->out_payload_router_seek	[i]	(out_payload_router_seek		[j][i]);
 			}
 		}
  		SC_THREAD(fault_injection);

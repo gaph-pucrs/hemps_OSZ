@@ -4,14 +4,14 @@ import sys
 if len(sys.argv) == 2:
 	scriptname,backtrack_word = sys.argv
 	# backtrack_word = str(backtrack_word)
-	print "backtrack_word: " + backtrack_word
+	print ("backtrack_word: " + backtrack_word)
 else:
-	print "usage:"
-	print "	read_bactrack.py <backtrack word in hexa>"
-	print "	ex: read_bactrack.py 157F157F"
+	print ("usage:")
+	print ("	read_bactrack.py <backtrack word in hexa>")
+	print ("	ex: read_bactrack.py 157F157F")
 	exit();
 
-print "backtrack lenght: %d" % len(backtrack_word)
+print ("backtrack lenght: %d" % len(backtrack_word))
 
 for i in xrange(0,len(backtrack_word)):
 # for i in range(len(backtrack_word)-1,0,-1):

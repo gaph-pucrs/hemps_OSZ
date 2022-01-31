@@ -8,7 +8,7 @@
 //
 //  Source name:  RouterCCwrapped2.cpp
 //
-//  Brief description: wrapper for teh RouterCC module described in VHDL
+//  Brief description: wrapper for the RouterCC module described in VHDL
 //
 //------------------------------------------------------------------------------------------------
 
@@ -164,13 +164,13 @@ void RouterCCwrapped::traffic_monitor(){
 				//from header untill the last packet piece
 				bandwidth_allocation[i]++;
 
-		if( (( address == 260 || address == 516) && SM_traffic_monitor[i] != SM_traffic_monitor_old[i]) && i==9){
-				aux2 = SM_traffic_monitor[i]; 
-		//		cout<<"SM_traffic_monitor[" << i << "]: " << aux2 << endl;
-		//		cout<<"    target:" << target_router[i] << endl;
-		//		cout<<"   service: " << service[i] << endl;
-		//		cout<<"    length: " << payload[i] << endl;
-			}
+				if( (( address == 260 || address == 516) && SM_traffic_monitor[i] != SM_traffic_monitor_old[i]) && i==9){
+					aux2 = SM_traffic_monitor[i]; 
+					//		cout<<"SM_traffic_monitor[" << i << "]: " << aux2 << endl;
+					//		cout<<"    target:" << target_router[i] << endl;
+					//		cout<<"   service: " << service[i] << endl;
+					//		cout<<"    length: " << payload[i] << endl;
+				}
 				
 
 				switch(SM_traffic_monitor[i])
@@ -323,54 +323,52 @@ void RouterCCwrapped::traffic_monitor(){
 						}
 
 						if (payload_counter[i] == 0 ){
-							
-						//Store in aux the C's string way
-						sprintf(aux, "debug/traffic_router.txt");
+								
+							//Store in aux the C's string way
+							sprintf(aux, "debug/traffic_router.txt");
 
-						//unsigned int aux2 = (unsigned int)address;
-						//unsigned int newAdress = ((aux2 >> 8) << 4) | (aux2 & 0xFF);
-						unsigned int newAdress = (unsigned int)address;
-						//aux2 = target_router[i];
-						//unsigned int targetRouter = ((aux2 >> 8) << 4) | (aux2 & 0xFF);
-						unsigned int targetRouter = target_router[i];
-																							
-						// Open a file called "aux" deferred on append mode
-						fp = fopen (aux, "a");
+							//unsigned int aux2 = (unsigned int)address;
+							//unsigned int newAdress = ((aux2 >> 8) << 4) | (aux2 & 0xFF);
+							unsigned int newAdress = (unsigned int)address;
+							//aux2 = target_router[i];
+							//unsigned int targetRouter = ((aux2 >> 8) << 4) | (aux2 & 0xFF);
+							unsigned int targetRouter = target_router[i];
+																								
+							// Open a file called "aux" deferred on append mode
+							fp = fopen (aux, "a");
 
-							if (service[i] != 0x40 && service[i] != 0x70 && service[i] != 0x221 && service[i] != 0x10 && service[i] != 0x20 ){
-								sprintf(aux, "%d\t%d\t%x\t%d\t%d\t%d\t%d\n", header_time[i], newAdress, service[i], payload[i], bandwidth_allocation[i], i, targetRouter);
-								// sprintf(aux, "%8d\t%5d\t%3x\t%5d\t%5d\t%5d\t%5d\n", header_time[i], newAdress, service[i], payload[i], bandwidth_allocation[i], i, targetRouter);
-							} else {
-								if (service[i] == 0x10 || service[i] == 0x20 )
-									sprintf(aux, "%d\t%d\t%x\t%d\t%d\t%d\t%d\t%d\t%d\n", header_time[i], newAdress, service[i], payload[i], bandwidth_allocation[i], i, targetRouter, task_id[i], consumer_id[i]);
-									// sprintf(aux, "%8d\t%5d\t%3x\t%5d\t%5d\t%5d\t%5d\t%5d\t%5d\n", header_time[i], newAdress, service[i], payload[i], bandwidth_allocation[i], i, targetRouter, task_id[i], consumer_id[i]);
-								else
-									sprintf(aux, "%d\t%d\t%x\t%d\t%d\t%d\t%d\t%d\n", header_time[i], newAdress, service[i], payload[i], bandwidth_allocation[i], i, targetRouter, task_id[i]);
-									// sprintf(aux, "%8d\t%5d\t%3x\t%5d\t%5d\t%5d\t%5d\t%5d\n", header_time[i], newAdress, service[i], payload[i], bandwidth_allocation[i], i, targetRouter, task_id[i]);
+								if (service[i] != 0x40 && service[i] != 0x70 && service[i] != 0x221 && service[i] != 0x10 && service[i] != 0x20 ){
+									sprintf(aux, "%d\t%d\t%x\t%d\t%d\t%d\t%d\n", header_time[i], newAdress, service[i], payload[i], bandwidth_allocation[i], i, targetRouter);
+									// sprintf(aux, "%8d\t%5d\t%3x\t%5d\t%5d\t%5d\t%5d\n", header_time[i], newAdress, service[i], payload[i], bandwidth_allocation[i], i, targetRouter);
+								} else {
+									if (service[i] == 0x10 || service[i] == 0x20 )
+										sprintf(aux, "%d\t%d\t%x\t%d\t%d\t%d\t%d\t%d\t%d\n", header_time[i], newAdress, service[i], payload[i], bandwidth_allocation[i], i, targetRouter, task_id[i], consumer_id[i]);
+										// sprintf(aux, "%8d\t%5d\t%3x\t%5d\t%5d\t%5d\t%5d\t%5d\t%5d\n", header_time[i], newAdress, service[i], payload[i], bandwidth_allocation[i], i, targetRouter, task_id[i], consumer_id[i]);
+									else
+										sprintf(aux, "%d\t%d\t%x\t%d\t%d\t%d\t%d\t%d\n", header_time[i], newAdress, service[i], payload[i], bandwidth_allocation[i], i, targetRouter, task_id[i]);
+										// sprintf(aux, "%8d\t%5d\t%3x\t%5d\t%5d\t%5d\t%5d\t%5d\n", header_time[i], newAdress, service[i], payload[i], bandwidth_allocation[i], i, targetRouter, task_id[i]);
 
-							}
+								}
 
-						fprintf(fp,"%s",aux);
-						fclose (fp);
-						target_router[i] = 0;
-						counter_target[i] = 0;
-						SR_found[i] = 0;
-						payload[i] = 0;
-						payload_counter[i] = 0; 
-						bandwidth_allocation[i] = 0;
-						SM_traffic_monitor[i] = 11;
-					}
-
-					break;
-			
-					}
-				}else if(bandwidth_allocation[i] > 0)
-					bandwidth_allocation[i]++;  
+								fprintf(fp,"%s",aux);
+								fclose (fp);
+								target_router[i] = 0;
+								counter_target[i] = 0;
+								SR_found[i] = 0;
+								payload[i] = 0;
+								payload_counter[i] = 0; 
+								bandwidth_allocation[i] = 0;
+								SM_traffic_monitor[i] = 11;
+						}
+						break;
+				}
+			}else if(bandwidth_allocation[i] > 0){
+				bandwidth_allocation[i]++;
 			}
-
 		}
 
 	}
+}
 
 
 

@@ -1,0 +1,90 @@
+Serviços
+	START_APP_SERVICE						00001
+	TARGET_UNREACHABLE_SERVICE				00010
+	CLEAR_SERVICE							00011
+	BACKTRACK_SERVICE						00100
+	SEARCHPATH_SERVICE						00101
+	END_TASK_SERVICE						00110
+	SET_SECURE_ZONE_SERVICE					00111 -- adiciona a zona segura linha e coluna do canto inferior esquerdo até linha e coluna canto superior direito
+	PACKET_RESEND_SERVICE					01000
+	WARD_SERVICE							01001
+	OPEN_SECURE_ZONE_SERVICE				01010 -- libera a zona segura: mesma logica, canto inferior esquerdo até superior direito
+	SECURE_ZONE_CLOSED_SERVICE				01011 -- confirma que a zona segura está fechada(wrappers fechados)
+	SECURE_ZONE_OPENED_SERVICE				01100 -- confirma que a zona segura não está mais ativa
+	FREEZE_TASK_SERVICE						01101
+	UNFREEZE_TASK_SERVICE					01110
+	MASTER_CANDIDATE_SERVICE				01111
+	TASK_ALLOCATED_SERVICE					10000
+	INITIALIZE_SLAVE_SERVICE				10001
+	INITIALIZE_CLUSTER_SERVICE				10010
+	LOAN_PROCESSOR_REQUEST_SERVICE			10011
+	LOAN_PROCESSOR_RELEASE_SERVICE			10100
+	END_TASK_OTHER_CLUSTER_SERVICE			10101
+	WAIT_KERNEL_SERVICE						10110
+	SEND_KERNEL_SERVICE						10111
+	WAIT_KERNEL_SERVICE_ACK					11000
+	FAIL_KERNEL_SERVICE						11001
+	NEW_APP_SERVICE							11010
+	NEW_APP_ACK_SERVICE						11011
+	GMV_READY_SERVICE						11100
+	SET_SZ_RECEIVED_SERVICE					11101
+	SET_EXCESS_SZ_SERVICE					11110 -- elimina da zona segura linha e coluna inferior esquerda até a superior direita
+	RCV_FREEZE_TASK_SERVICE					11111
+------------------------------------------------------------------------------------------------------------------
+-- Service                      type                        	Operation Mode      Payload     Target
+-- START_APP_SERVICE            Broadcast to all local ports   	Global              AppID       RH_corner
+-- TARGET_UNREACHABLE_SERVICE   Broadcast With Target       	Global              --          TaskID Address
+-- CLEAR_SERVICE                Broadcast Without Target    	Global              --          --
+-- BACKTRACK_SERVICE            Unicast                     	Restrict            Hop number  --
+-- SEARCHPATH_SERVICE           Broadcast With Target          	Restrict            Hop number  Target Unreachable Address
+-- END_TASK_SERVICE             Broadcast With Target       	Global              TaskID      CMP Address
+-- PACKET_RESEND_SERVICE        Broadcast With Target       	Global              --          TaskID Address
+-- WARD_SERVICE                 Broadcast With Target       	Global              --          CMP WARD Address
+-- SET_SECURE_ZONE              Broadcast to all local ports    Global              RH_corner   LL_corner
+-- OPEN_SECURE_ZONE             Broadcast to all local ports    Global              RH_corner   AppID
+-- SECURE_ZONE_CLOSED           Broadcast With Target           Global              RH_corner   CMP Address -- cluster manager pe (target)
+-- SECURE_ZONE_OPENED           Broadcast With Target           Global              AppID       CMP Address
+-- FREEZE_TASK_SERVICE          Broadcast to all local ports    Global              0           CMP WARD Address
+-- UNFREEZE_TASK_SERVICE        Broadcast to all local ports    Global              0           CMP WARD Address
+-- MASTER_CANDIDATE_SERVICE     Broadcast With Target           Global              0           CMP WARD Address
+-- TASK_ALLOCATED_SERVICE       Broadcast With Target           Global              TaskID      CMP Address
+-- INITIALIZE_SLAVE_SERVICE     Broadcast to all local ports    Global              RH_corner   LL_corner
+-- WAIT_KERNEL_SERVICE          Broadcast With Target           Global              ?           Next master of cluster
+-- SEND_KERNEL_SERVICE          Broadcast With Target           Global              ?           Master fail of cluster
+-- FAIL_KERNEL_SERVICE          Broadcast With Target           Global              ?           CMP WARD Address
+-- NEW_APP_SERVICE              Broadcast to all local ports    Global              Nr,task     Global master virtual
+-- NEW_APP_ACK_SERVICE          Broadcast With Target           Global              Nr,task     Address of the LMP
+-- GMV_READY_SERVICE            Broadcast Without Target        Global              --          Injection Entity 
+
+Estados:
+    i-FSM
+        S_INIT_INPUT                "0000" -- 0
+		ARBITRATION_INPUT           "0001" -- 1
+		LOOK_TABLE_INPUT            "0010" -- 2
+		TEST_SPACE_AVAIL            "0011" -- 3
+		SERVICE_INPUT               "0100" -- 4
+		TABLE_WRITE_INPUT           "0101" -- 5
+		WRITE_BACKTRACK_INPUT       "0110" -- 6
+		TEST_SEND_LOCAL             "0111" -- 7
+		WRITE_CLEAR_INPUT           "1000" -- 8
+		WAIT_REQ_DOWN               "1001" -- 9
+		WAIT_REQ_DOWN_NACK          "1010" --10
+		SEND_NACK                   "1011" --11
+
+    o-FSM
+        S_INIT                      "0000" -- 0
+		ARBITRATION                 "0001" -- 1
+		TEST_SERVICE                "0010" -- 2
+		SERVICE_BACKTRACK           "0011" -- 3
+		BACKTRACK_PROPAGATE         "0100" -- 4
+		INIT_BACKTRACK              "0101" -- 5
+		PREPARE_NEXT                "0110" -- 6
+		BACKTRACK_MOUNT             "0111" -- 7
+		CLEAR_TABLE                 "1000" -- 8
+		COMPARE_TARGET              "1001" -- 9
+		SEND_LOCAL                  "1010" --10
+		PROPAGATE                   "1011" --11
+		WAIT_ACK_PORTS              "1100" --12
+		INIT_CLEAR                  "1101" --13
+		END_BACKTRACK               "1110" --14
+		COUNT                       "1111" --15

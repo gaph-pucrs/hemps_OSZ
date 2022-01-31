@@ -1,7 +1,7 @@
 #ifndef _SCGENMOD_routerCCWrapped_
 #define _SCGENMOD_routerCCWrapped_
 
-#include "systemc.h"
+#include <systemc.h>
 
 #include "../../standards.h"
 #include "RouterCCwrapped.h"

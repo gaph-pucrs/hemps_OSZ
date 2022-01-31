@@ -7,7 +7,7 @@
 #include "processor/plasma/mlite_cpu.h"
 #include "dmni/dmni.h"
 #include "dmni/plasma_sender.h"
-#include "router/router_cc.h"
+// #include "router/router_cc.h"
 #include "memory/ram.h"
 
 
@@ -118,7 +118,7 @@ SC_MODULE(pe) {
 	sc_signal<bool >					out_req_send_kernel_seek_local;
 	sc_signal<bool >					in_ack_send_kernel_seek_local;		
 
-	//signals
+	//signals mem and cpu
 	sc_signal < sc_uint <32 > > cpu_mem_address_reg;
 	sc_signal < sc_uint <32 > > cpu_mem_data_write_reg;
 	sc_signal < sc_uint <4 > > 	cpu_mem_write_byte_enable_reg;
@@ -200,6 +200,8 @@ SC_MODULE(pe) {
 
 	sc_signal < sc_uint <32 > > end_sim_reg;
 
+
+
 	sc_signal < sc_uint <32 > > slack_update_timer;
 
 	sc_signal < bool> 			dummy_tx;
@@ -248,10 +250,10 @@ SC_MODULE(pe) {
 	dmni 			*	dm_ni;
 	plasma_sender 	*	ser;
 
-	RouterCCwrapped *router;
-	router_seek_wrapped *seek;
-	fifo_PDN *fifo_pdn;
-	fail_WRAPPER_module *fail_wrapper_module;
+	RouterCCwrapped *router;	// wrapper para o roteador principal
+	router_seek_wrapped *seek;	// wrapper para o roteador QoS
+	fifo_PDN *fifo_pdn;			
+	fail_WRAPPER_module *fail_wrapper_module; //wrapper para o modulo de falhas
 
 
 	unsigned long int log_interaction;
@@ -386,8 +388,11 @@ SC_MODULE(pe) {
 		router = new RouterCCwrapped("RouterCCwrapped",router_address);
 		seek = new router_seek_wrapped("router_seek_wrapped", router_address);
 		fifo_pdn = new fifo_PDN("fifo_PDN");
+		#ifdef SEEK_LOG
+		fail_wrapper_module = new fail_WRAPPER_module("fail_WRAPPER_module", router_address);
+		#else
 		fail_wrapper_module = new fail_WRAPPER_module("fail_WRAPPER_module");
-		
+		#endif		
 
 		router->clock(clock);
 		router->reset(reset);
@@ -568,7 +573,9 @@ SC_MODULE(pe) {
 		#endif
 		router->tick_counter(tick_counter);
 		fail_wrapper_module->tick_counter(tick_counter);
-		
+		#ifdef SEEK_LOG
+			seek->in_tick_counter(tick_counter);
+		#endif
 		SC_METHOD(sequential_attr);
 		sensitive << clock.pos() << reset.pos();
 		
