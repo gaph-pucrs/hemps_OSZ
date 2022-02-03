@@ -47,9 +47,9 @@ print ("onerror {resume}\n\
 quietly WaveActivateNextPane {} 0\n")
 
 # print "printing MPSOC %dx%d master on %d" % (MAX_X,MAX_Y,master_posX, posY)
-print (f"MAX_X = {MAX_X:d}\n"
-+ f"MAX_Y = {MAX_Y:d}\n"
-+ f"MAX_CLUSTER_X = {MAX_CLUSTER_X:d}\n"
+print (f"MAX_X = {MAX_X:d} \n"
++ f"MAX_Y = {MAX_Y:d} \n"
++ f"MAX_CLUSTER_X = {MAX_CLUSTER_X:d} \n"
 + f"MAX_CLUSTER_Y = {MAX_CLUSTER_Y:d}")
 
 for pe in range(0,max_pe):

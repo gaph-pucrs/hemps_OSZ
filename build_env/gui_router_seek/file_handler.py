@@ -34,7 +34,8 @@ class TESTCASE_EXCEPTION (Exception):
         super().__init__(self.msg)
 
 
-HEMPS_PATH = os.environ.get('HEMPS_PATH')
+# HEMPS_PATH = os.environ.get('HEMPS_PATH')
+HEMPS_PATH = "E:/hemps_OSZ"
 
 def load_json(json_files,log_folder):
     logs=dict()

@@ -52,12 +52,12 @@ def main():
     #     width=canvas_size[0]
     # if(canvas_size[1] < height):
     #     height=canvas_size[1]
-    (box_size) = x,y #ajusta espaço para cada router
+    (box_size) = x,y #ajusta espaco para cada router
     rede=NetworkView(canvas_size,width,height)
     for j in range(dim[0]): #linha
         for i in range(dim[1]): #coluna
-            # calcula coordenadas na caixa baseado na posição
-            coord = rede.draw_boxes((i,dim[1]-j-1),box_size) # desenho começa por baixo, por isso a coordenada J é decrementada
+            # calcula coordenadas na caixa baseado na posicao
+            coord = rede.draw_boxes((i,dim[1]-j-1),box_size) # desenho comeca por baixo, por isso a coordenada J eh decrementada
 
             bordas=28
             draw_box(rede.getCanvas(),*soma_tup(coord,(bordas,bordas,-bordas,-bordas)))
@@ -69,7 +69,7 @@ def main():
             for u in range (0,5):
             # u = 0
                 for port in range(0,6):
-                    if rede.test_limits(dim,u,i,j) : # não desenha as bordas
+                    if rede.test_limits(dim,u,i,j) : # nao desenha as bordas
                         nr.portas[port][u].draw() # mandar desenhar
 
     rede.draw(dim,canvas_size,routers)

@@ -24,7 +24,8 @@ from build_utils import *
 #When defined, a main function must be called in the last line of the script, take a look at the end of file
 def main():
     #HEMPS_PATH - must to point to the root directory of hemps
-    HEMPS_PATH = os.getenv("HEMPS_PATH", 0)
+    HEMPS_PATH = "E:/hemps_OSZ"
+    # HEMPS_PATH = os.getenv("HEMPS_PATH", 0)
 
     #Test if testcase file HEMPS_PATH is valid
     if HEMPS_PATH == 0:
@@ -90,7 +91,7 @@ def main():
     copy_testcase_file( TESTCASE_NAME, INPUT_TESTCASE_FILE_PATH)
 
     if not (os.path.isfile(TESTCASE_NAME + "/wave.do")) :
-        os.system("python "+ HEMPS_PATH+"/build_env/waves/wavegen.py "+ str(mpsocXsize) + " " + str(mpsocYsize) + " " + str(clusterXsize) + " " + str(clusterYsize) + " > " + TESTCASE_NAME + "/wave.do")
+        os.system("python3 "+ HEMPS_PATH+"/build_env/waves/wavegen.py "+ str(mpsocXsize) + " " + str(mpsocYsize) + " " + str(clusterXsize) + " " + str(clusterYsize) + " > " + TESTCASE_NAME + "/wave.do")
 
     #Create other importatants dirs
     create_ifn_exists(TESTCASE_NAME+"/include")
@@ -328,11 +329,11 @@ def append_peripherals_at_end_api_h(testcase_path, testcase_yaml_file):
     open_ports =        get_open_ports(yaml_r)
 
     include_dir = testcase_path+"/software/include/api.h"
-    print(f"Testcase path: {testcase_path}, dir: {subprocess.getoutput('pwd')}",file=sys.stderr)
+    # print(f"Testcase path: {testcase_path}, dir: {subprocess.getoutput('pwd')}",file=sys.stderr)
     f = open(include_dir, "r+")
 
 
-    # f.seek(-25, 2) python3 não permite seek negativo em arquivos de texto, somente binários, por exemplo: open(...,'rb')
+    # f.seek(-25, 2) python3 n permite seek negativo em arquivos de texto, somente binarios, por exemplo: open(...,'rb')
     f.seek(0,2)
     f.seek(f.tell()-25)
     file_lines = []

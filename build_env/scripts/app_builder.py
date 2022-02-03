@@ -2,8 +2,8 @@
 import sys
 import math
 import os
-#import commands
-import subprocess
+import commands
+#import subprocess
 import re
 from yaml_intf import *
 from build_utils import *
@@ -289,8 +289,8 @@ def get_task_DATA_size(app_name, task_name):
     source_file = "applications/" + app_name + "/" + task_name + ".bin"
     
     #https://www.quora.com/What-is-a-convenient-way-to-execute-a-shell-command-in-Python-and-retrieve-its-output
-    #data_size = int (commands.getoutput("mips-elf-size "+source_file+" | tail -1 | sed 's/ //g' | sed 's/\t/:/g' | cut -d':' -f2"))
-    data_size = int (subprocess.getoutput("mips-elf-size "+source_file+" | tail -1 | sed 's/ //g' | sed 's/\t/:/g' | cut -d':' -f2"))
+    data_size = int (commands.getoutput("mips-elf-size "+source_file+" | tail -1 | sed 's/ //g' | sed 's/\t/:/g' | cut -d':' -f2"))
+    #data_size = int (subprocess.getoutput("mips-elf-size "+source_file+" | tail -1 | sed 's/ //g' | sed 's/\t/:/g' | cut -d':' -f2"))
     
     while data_size % 4 != 0:
         data_size = data_size + 1
@@ -304,8 +304,8 @@ def get_task_BSS_size(app_name, task_name):
     source_file = "applications/" + app_name + "/" + task_name + ".bin"
     
     #https://www.quora.com/What-is-a-convenient-way-to-execute-a-shell-command-in-Python-and-retrieve-its-output
-    #bss_size = int(commands.getoutput("mips-elf-size "+source_file+" | tail -1 | sed 's/ //g' | sed 's/\t/:/g' | cut -d':' -f3"))
-    bss_size = int(subprocess.getoutput("mips-elf-size "+source_file+" | tail -1 | sed 's/ //g' | sed 's/\t/:/g' | cut -d':' -f3"))
+    bss_size = int(commands.getoutput("mips-elf-size "+source_file+" | tail -1 | sed 's/ //g' | sed 's/\t/:/g' | cut -d':' -f3"))
+    #bss_size = int(subprocess.getoutput("mips-elf-size "+source_file+" | tail -1 | sed 's/ //g' | sed 's/\t/:/g' | cut -d':' -f3"))
     
     while bss_size % 4 != 0:
         bss_size = bss_size + 1
