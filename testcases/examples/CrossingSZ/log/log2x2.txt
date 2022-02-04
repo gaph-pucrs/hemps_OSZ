@@ -1,0 +1,82 @@
+Initializing PE: 0x00000202
+Cluster Master Address: 0x00000000
+Task id: 0 released at 13111
+Task id 0xffffffff proc 0xffffffff
+Add task location - task id 0 proc 0x00000202
+Task id 0x00000000 proc 0x00000202
+Task id 0xffffffff proc 0xffffffff
+Add task location - task id 1 proc 0x00000101
+Task id: 0 allocated at 16897
+Task Allocated SEGURA: 0x00000000
+Send Task Allocated (TA): 0
+SET SZ RH: 0x00000022
+wrapper: 0x00000033
+Received SET_EXCESS_SZ_SERVICE
+Não tem corte
+Não tem corte e é minha zona segura
+Without CUT - wrapper: 0x00000033
+RH address: 0x00000022
+Received START_APP
+source: 0x009b0000
+target: 0x00000022
+payload: 0x00000000
+Tasks Unbloqued: 0x00000001
+time - 36848
+clear START_APP service!
+37704_2x2_0_0_Inicio da aplicacao prod
+38829_2x2_0_0_38549
+39649_2x2_0_0_0
+41639_2x2_0_0_1
+42812_2x2_0_0_2
+44010_2x2_0_0_3
+46010_2x2_0_0_4
+47231_2x2_0_0_5
+49336_2x2_0_0_6
+50563_2x2_0_0_7
+51832_2x2_0_0_8
+54343_2x2_0_0_9
+57951_2x2_0_0_10
+62102_2x2_0_0_11
+66267_2x2_0_0_12
+70392_2x2_0_0_13
+74572_2x2_0_0_14
+78704_2x2_0_0_15
+82809_2x2_0_0_16
+86960_2x2_0_0_17
+91125_2x2_0_0_18
+95250_2x2_0_0_19
+99430_2x2_0_0_20
+103562_2x2_0_0_21
+107702_2x2_0_0_22
+111888_2x2_0_0_23
+116088_2x2_0_0_24
+120248_2x2_0_0_25
+124463_2x2_0_0_26
+128630_2x2_0_0_27
+132770_2x2_0_0_28
+136956_2x2_0_0_29
+141156_2x2_0_0_30
+145316_2x2_0_0_31
+149531_2x2_0_0_32
+153698_2x2_0_0_33
+157838_2x2_0_0_34
+162024_2x2_0_0_35
+166224_2x2_0_0_36
+170384_2x2_0_0_37
+174599_2x2_0_0_38
+178766_2x2_0_0_39
+182906_2x2_0_0_40
+187092_2x2_0_0_41
+191292_2x2_0_0_42
+195452_2x2_0_0_43
+199667_2x2_0_0_44
+203834_2x2_0_0_45
+207974_2x2_0_0_46
+212160_2x2_0_0_47
+216360_2x2_0_0_48
+220520_2x2_0_0_49
+224654_2x2_0_0_Fim da aplicacao prod
+225824_2x2_0_0_225514
+Task id: 0 terminated at 226817
+Received OPEN_SECURE_ZONE
+Open wrappers

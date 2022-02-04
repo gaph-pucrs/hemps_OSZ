@@ -1,0 +1,58 @@
+{"entradas":[
+{
+ "tick":0
+ "in_fail_wrapper_local":0
+ "in_source_router":0
+}{
+ "tick":308
+ "in_fail_wrapper_local":0
+ "in_source_router":18
+}{
+ "tick":627
+ "in_fail_wrapper_local":0
+ "in_source_router":18
+}{
+ "tick":3347
+ "in_fail_wrapper_local":0
+ "in_source_router":17
+}{
+ "tick":4044
+ "in_fail_wrapper_local":0
+ "in_source_router":0
+}{
+ "tick":4085
+ "in_fail_wrapper_local":0
+ "in_source_router":0
+}{
+ "tick":4474
+ "in_fail_wrapper_local":0
+ "in_source_router":0
+}{
+ "tick":4614
+ "in_fail_wrapper_local":0
+ "in_source_router":0
+}{
+ "tick":20139
+ "in_fail_wrapper_local":0
+ "in_source_router":0
+}{
+ "tick":20279
+ "in_fail_wrapper_local":0
+ "in_source_router":0
+}{
+ "tick":31759
+ "in_fail_wrapper_local":0
+ "in_source_router":224
+}{
+ "tick":32513
+ "in_fail_wrapper_local":0
+ "in_source_router":210
+}{
+ "tick":35274
+ "in_fail_wrapper_local":0
+ "in_source_router":155
+}{
+ "tick":250262
+ "in_fail_wrapper_local":0
+ "in_source_router":0
+}

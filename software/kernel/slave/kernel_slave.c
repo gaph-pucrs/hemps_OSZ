@@ -535,6 +535,7 @@ int Syscall(unsigned int service, unsigned int arg0, unsigned int arg1, unsigned
 			//	schedule_after_syscall = 1;
 			//	return 0;
 			//}
+			#ifdef GRAY_AREA
 			for(i = 0; i < IO_NUMBER; i++){
 				if(io_info[i].peripheral_id == arg1){
 					PER_X_addr = io_info[i].default_address_x ;
@@ -571,6 +572,7 @@ int Syscall(unsigned int service, unsigned int arg0, unsigned int arg1, unsigned
 				break;
 				}
 			}
+			#endif
 			send_message_io(producer_task, arg1, msg_read, current->secure);
 
 			current->scheduling_ptr->status = WAITING;
@@ -591,6 +593,7 @@ int Syscall(unsigned int service, unsigned int arg0, unsigned int arg1, unsigned
 			consumer_task =  current->id;
 			//producer_task = (int) arg1;
 
+			#ifdef GRAY_AREA
 			for(i = 0; i < IO_NUMBER; i++){
 				if(io_info[i].peripheral_id == arg1){
 					PER_X_addr = io_info[i].default_address_x ;
@@ -627,6 +630,7 @@ int Syscall(unsigned int service, unsigned int arg0, unsigned int arg1, unsigned
 				break;
 				}
 			}
+			#endif
 
 			send_io_request(arg1, consumer_task, net_address, current->secure);
 

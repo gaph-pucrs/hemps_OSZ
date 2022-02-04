@@ -1,0 +1,805 @@
+
+Allocating common symbols
+Common symbol       size              file
+
+CMFifo              0xbc0             modules/control_messages_fifo.o
+glfsr_c0            0x18              kernel_master.o
+is_global_master    0x1               kernel_master.o
+ward_pairs          0x320             modules/processors.o
+shapes              0x1a0             kernel_master.o
+processors          0x140             kernel_master.o
+applications        0xfb4             kernel_master.o
+net_addr            0x4               modules/seek.o
+terminated_task_master
+                    0x8               kernel_master.o
+reclustering        0x1c              modules/reclustering.o
+fifo_seek           0x50              kernel_master.o
+glfsr_d0            0x18              kernel_master.o
+net_address         0x4               modules/utils.o
+starting_y_cluster_size
+                    0x4               modules/reclustering.o
+slave_candidate_other_cluster
+                    0x10              modules/processors.o
+SR_Table            0xaf0             modules/seek.o
+Secure_Zone         0x1a0             kernel_master.o
+sh_slot2            0xb4              modules/packet.o
+slave_candidate_my_cluster
+                    0x4               modules/processors.o
+migration_list      0xa0              kernel_master.o
+global_master_address
+                    0x4               kernel_master.o
+slot_seek           0x4               kernel_master.o
+pending_new_task    0x4               kernel_master.o
+ward_master         0x8               modules/processors.o
+sh_slot1            0xb4              modules/packet.o
+master_other_cluster
+                    0x8               modules/processors.o
+cluster_load        0x4               kernel_master.o
+shape_index         0x4               kernel_master.o
+starting_x_cluster_size
+                    0x4               modules/reclustering.o
+clusterID           0x4               modules/reclustering.o
+new_task_list       0x3c              modules/new_task.o
+
+Discarded input sections
+
+ .reginfo       0x0000000000000000        0x0 kernel_master.o
+ .reginfo       0x0000000000000000        0x0 modules/utils.o
+ .reginfo       0x0000000000000000        0x0 modules/packet.o
+ .reginfo       0x0000000000000000        0x0 modules/applications.o
+ .reginfo       0x0000000000000000        0x0 modules/reclustering.o
+ .reginfo       0x0000000000000000        0x0 modules/new_task.o
+ .reginfo       0x0000000000000000        0x0 modules/processors.o
+ .reginfo       0x0000000000000000        0x0 modules/cluster_scheduler.o
+ .reginfo       0x0000000000000000        0x0 modules/seek.o
+ .reginfo       0x0000000000000000        0x0 modules/define_pairs.o
+ .reginfo       0x0000000000000000        0x0 modules/control_messages_fifo.o
+ .reginfo       0x0000000000000000        0x0 modules/csiphash.o
+ .reginfo       0x0000000000000000        0x0 modules/lfsr.o
+ .reginfo       0x0000000000000000        0x0 modules/osz_master.o
+ .got           0x0000000000000000        0x0 modules/osz_master.o
+ .reginfo       0x0000000000000000        0x0 ../include/kernel_pkg.o
+
+Memory Configuration
+
+Name             Origin             Length             Attributes
+*default*        0x0000000000000000 0xffffffffffffffff
+
+Linker script and memory map
+
+Address of section .text set to 0x0
+LOAD boot_master.o
+LOAD kernel_master.o
+LOAD modules/utils.o
+LOAD modules/packet.o
+LOAD modules/applications.o
+LOAD modules/reclustering.o
+LOAD modules/new_task.o
+LOAD modules/processors.o
+LOAD modules/cluster_scheduler.o
+LOAD modules/seek.o
+LOAD modules/define_pairs.o
+LOAD modules/control_messages_fifo.o
+LOAD modules/csiphash.o
+LOAD modules/lfsr.o
+LOAD modules/osz_master.o
+LOAD ../include/kernel_pkg.o
+                0x0000000000400000                PROVIDE (__executable_start, 0x400000)
+                0x0000000000400000                . = 0x400000
+
+.interp
+ *(.interp)
+
+.reginfo        0x0000000000400000       0x18
+ *(.reginfo)
+ .reginfo       0x0000000000400000       0x18 boot_master.o
+
+.dynamic
+ *(.dynamic)
+
+.hash
+ *(.hash)
+
+.dynsym
+ *(.dynsym)
+
+.dynstr
+ *(.dynstr)
+
+.gnu.version
+ *(.gnu.version)
+
+.gnu.version_d
+ *(.gnu.version_d)
+
+.gnu.version_r
+ *(.gnu.version_r)
+
+.rel.dyn        0x0000000000400018        0x0
+ .rel.dyn       0x0000000000000000        0x0 modules/osz_master.o
+
+.rel.init
+ *(.rel.init)
+
+.rela.init
+ *(.rela.init)
+
+.rel.text
+ *(.rel.text .rel.text.* .rel.gnu.linkonce.t.*)
+
+.rela.text
+ *(.rela.text .rela.text.* .rela.gnu.linkonce.t.*)
+
+.rel.fini
+ *(.rel.fini)
+
+.rela.fini
+ *(.rela.fini)
+
+.rel.rodata
+ *(.rel.rodata .rel.rodata.* .rel.gnu.linkonce.r.*)
+
+.rela.rodata
+ *(.rela.rodata .rela.rodata.* .rela.gnu.linkonce.r.*)
+
+.rel.data.rel.ro
+ *(.rel.data.rel.ro* .rel.gnu.linkonce.d.rel.ro.*)
+
+.rela.data.rel.ro
+ *(.rela.data.rel.ro* .rela.gnu.linkonce.d.rel.ro.*)
+
+.rel.data
+ *(.rel.data .rel.data.* .rel.gnu.linkonce.d.*)
+
+.rela.data
+ *(.rela.data .rela.data.* .rela.gnu.linkonce.d.*)
+
+.rel.tdata
+ *(.rel.tdata .rel.tdata.* .rel.gnu.linkonce.td.*)
+
+.rela.tdata
+ *(.rela.tdata .rela.tdata.* .rela.gnu.linkonce.td.*)
+
+.rel.tbss
+ *(.rel.tbss .rel.tbss.* .rel.gnu.linkonce.tb.*)
+
+.rela.tbss
+ *(.rela.tbss .rela.tbss.* .rela.gnu.linkonce.tb.*)
+
+.rel.ctors
+ *(.rel.ctors)
+
+.rela.ctors
+ *(.rela.ctors)
+
+.rel.dtors
+ *(.rel.dtors)
+
+.rela.dtors
+ *(.rela.dtors)
+
+.rel.got
+ *(.rel.got)
+
+.rela.got
+ *(.rela.got)
+
+.rel.sdata
+ *(.rel.sdata .rel.sdata.* .rel.gnu.linkonce.s.*)
+
+.rela.sdata
+ *(.rela.sdata .rela.sdata.* .rela.gnu.linkonce.s.*)
+
+.rel.sbss
+ *(.rel.sbss .rel.sbss.* .rel.gnu.linkonce.sb.*)
+
+.rela.sbss
+ *(.rela.sbss .rela.sbss.* .rela.gnu.linkonce.sb.*)
+
+.rel.sdata2
+ *(.rel.sdata2 .rel.sdata2.* .rel.gnu.linkonce.s2.*)
+
+.rela.sdata2
+ *(.rela.sdata2 .rela.sdata2.* .rela.gnu.linkonce.s2.*)
+
+.rel.sbss2
+ *(.rel.sbss2 .rel.sbss2.* .rel.gnu.linkonce.sb2.*)
+
+.rela.sbss2
+ *(.rela.sbss2 .rela.sbss2.* .rela.gnu.linkonce.sb2.*)
+
+.rel.bss
+ *(.rel.bss .rel.bss.* .rel.gnu.linkonce.b.*)
+
+.rela.bss
+ *(.rela.bss .rela.bss.* .rela.gnu.linkonce.b.*)
+
+.rel.plt
+ *(.rel.plt)
+
+.rela.plt
+ *(.rela.plt)
+
+.init
+ *(.init)
+
+.plt
+ *(.plt)
+
+.text           0x0000000000000000     0x80e8
+                0x0000000000000000                _ftext = .
+ *(.text .stub .text.* .gnu.linkonce.t.*)
+ .text          0x0000000000000000       0x18 boot_master.o
+                0x0000000000000000                entry
+ .text          0x0000000000000018     0x24f4 kernel_master.o
+                0x00000000000014c8                send_full_task_migration
+                0x0000000000001abc                handle_new_app
+                0x0000000000001d4c                handle_packet
+                0x00000000000008a0                SeekInterruptHandler
+                0x0000000000000820                send_app_terminated
+                0x0000000000000018                initialize_cluster_load
+                0x0000000000000024                initialize_clusters
+                0x000000000000061c                send_task_release
+                0x0000000000000320                handle_app_terminated
+                0x00000000000018a4                request_application
+                0x0000000000001654                request_task_of_application
+                0x00000000000022c4                handle_pending_application
+                0x00000000000000a4                initialize_slaves
+                0x0000000000002320                main
+                0x000000000000052c                send_tasks_location
+                0x0000000000000288                Aplly_LSFR
+                0x0000000000001580                send_app_allocation_map
+                0x00000000000007c0                send_task_allocation
+ .text          0x000000000000250c      0x5a4 modules/utils.o
+                0x0000000000002a70                strcpy
+                0x00000000000026f0                itoh
+                0x0000000000002528                puts
+                0x00000000000025d4                itoa
+                0x0000000000002518                get_net_address
+                0x00000000000027c0                add
+                0x00000000000027fc                fixetoa
+                0x0000000000002794                rand
+                0x00000000000027d0                memset
+                0x000000000000250c                set_net_address
+                0x0000000000002a90                strlen
+                0x000000000000277c                abs
+                0x00000000000027c8                sub
+ .text          0x0000000000002ab0      0x528 modules/packet.o
+                0x0000000000002b5c                read_packet
+                0x0000000000002de8                send_packet
+                0x0000000000002afc                init_service_header_slots
+                0x0000000000002c88                send_packet_io
+                0x0000000000002ab0                get_service_header_slot
+                0x0000000000002b14                DMNI_send_data
+                0x0000000000002c04                DMNI_read_data
+ .text          0x0000000000002fd8      0x70c modules/applications.o
+                0x00000000000031cc                get_task_ptr
+                0x0000000000003060                initialize_applications
+                0x00000000000032c0                get_application_ptr
+                0x000000000000334c                remove_application
+                0x00000000000030e8                sub_migrations
+                0x0000000000003384                read_and_create_application
+                0x0000000000003624                print_tasks_location
+                0x00000000000035e8                set_task_migrating
+                0x0000000000003518                change_task_location_TCB
+                0x000000000000359c                set_task_migrated
+                0x0000000000002fd8                set_task_allocated
+                0x0000000000003130                get_next_pending_app
+                0x00000000000030a0                add_migrations
+                0x0000000000003274                set_task_terminated
+ .text          0x00000000000036e4      0x8b4 modules/reclustering.o
+                0x0000000000003f18                send_loan_proc_request
+                0x0000000000003748                is_reclustering_NOT_active
+                0x0000000000003acc                handle_reclustering
+                0x0000000000003864                reclustering_next_task
+                0x0000000000003910                handle_reclustering_release_from_seek
+                0x00000000000036e4                reclustering_setup
+                0x0000000000003758                fires_reclustering_protocol
+                0x0000000000003db4                handle_reclustering_request_from_seek
+                0x0000000000003a60                send_loan_proc_delivery
+                0x0000000000003a04                send_loan_proc_release
+ .text          0x0000000000003f98      0x120 modules/new_task.o
+                0x0000000000003fb4                get_next_new_task
+                0x000000000000400c                add_new_task
+                0x0000000000003f98                init_new_task_list
+ .text          0x00000000000040b8      0xb0c modules/processors.o
+                0x0000000000004124                init_procesors
+                0x0000000000004238                proc_is_migrating
+                0x0000000000004630                manage_SZ_migration
+                0x0000000000004798                search_processor
+                0x0000000000004b40                get_proc_slack_time
+                0x00000000000041d8                set_migration_list_status
+                0x00000000000040b8                get_proc_address
+                0x0000000000004288                print_migrating_list
+                0x0000000000004b88                update_proc_slack_time
+                0x0000000000004948                change_task
+                0x000000000000454c                get_free_processor
+                0x0000000000004ae8                add_procesor
+                0x0000000000004380                remove_from_migration_list
+                0x0000000000004878                remove_task
+                0x0000000000004180                get_task_id_FREEZING_in_migration_list
+                0x0000000000004158                initialize_migration_list
+                0x0000000000004488                freeze_application
+                0x0000000000004854                get_proc_free_pages
+                0x00000000000046f8                get_task_location
+                0x00000000000040dc                clear_free_page_processor
+                0x000000000000482c                get_task_id_processor
+                0x00000000000049dc                add_task
+ .text          0x0000000000004bc4      0x81c modules/cluster_scheduler.o
+                0x0000000000004d30                get_cluster_ID
+                0x0000000000004e94                map_task
+                0x0000000000004d7c                SearchCluster
+                0x0000000000004c30                new_master_candidate
+                0x0000000000004bc4                allocate_cluster_resource
+                0x0000000000004ca0                get_master_address
+                0x000000000000522c                application_mapping
+                0x00000000000051c0                page_used
+                0x0000000000004c04                release_cluster_resources
+                0x000000000000538c                page_released
+ .text          0x00000000000053e0      0x754 modules/seek.o
+                0x00000000000056d4                ProcessTurns
+                0x00000000000053e0                initSRstructs
+                0x000000000000541c                SearchSourceRoutingDestination
+                0x0000000000005468                ClearSlotSourceRouting
+                0x0000000000005638                GetFreeSlotSourceRouting
+                0x00000000000055a4                print_port
+                0x0000000000005518                Seek
+                0x00000000000054cc                ClearAllSourceRouting
+ .text          0x0000000000005b34      0x1e4 modules/define_pairs.o
+                0x0000000000005c5c                get_slave_candidate_my_cluster
+                0x0000000000005c98                get_task0_candidate_other_cluster
+                0x0000000000005b34                initialize_struct_pairs
+                0x0000000000005d08                get_master_other_cluster
+                0x0000000000005c88                get_task_candidate_other_cluster
+                0x0000000000005cfc                set_master_other_cluster
+                0x0000000000005c78                get_slave_candidate_other_cluster
+                0x0000000000005ca8                get_task1_candidate_other_cluster
+                0x0000000000005ba4                define_pairs
+                0x0000000000005c6c                set_slave_candidate_my_cluster
+                0x0000000000005cb8                set_slave_candidate_other_cluster
+ .text          0x0000000000005d18      0x568 modules/control_messages_fifo.o
+                0x0000000000005ef0                insert_CM_FIFO
+                0x0000000000005e44                initialize_CM_FIFO
+                0x0000000000005d18                search_Service
+                0x0000000000005e6c                resend_control_message
+                0x00000000000061ac                print_CM_FIFO
+                0x0000000000005d98                search_Target
+ .text          0x0000000000006280      0xd70 modules/csiphash.o
+                0x000000000000636c                siphash24
+                0x0000000000006280                le64toh
+ .text          0x0000000000006ff0       0xdc modules/lfsr.o
+                0x0000000000007068                GLFSR_next
+                0x0000000000006ff0                GLFSR_init
+ .text          0x00000000000070cc     0x101c modules/osz_master.o
+                0x00000000000075f0                set_RH_Address
+                0x00000000000070f4                get_static_SZ
+                0x0000000000007638                get_AppID_with_RH_Address
+                0x00000000000078d4                set_SZ_migrations
+                0x00000000000074c0                create_shapes
+                0x00000000000071fc                create_valid_shapes
+                0x0000000000007d50                search_shape_in_cluster
+                0x0000000000007be8                shape_recog
+                0x00000000000077c0                free_Secure_Zone
+                0x00000000000070cc                init_Secure_Zone
+                0x00000000000076e0                PE_belong_SZ
+                0x0000000000007fc8                print_shapes_found
+                0x000000000000767c                get_Secure_Zone_index
+                0x0000000000007ec0                search_shape
+                0x0000000000007578                shapes_invert_order
+                0x0000000000007b3c                alloc_Secure_Zone
+ .text          0x00000000000080e8        0x0 ../include/kernel_pkg.o
+ *(.text.*personality*)
+ *(.gnu.warning)
+ *(.mips16.fn.*)
+ *(.mips16.call.*)
+
+.fini
+ *(.fini)
+                0x00000000000080e8                PROVIDE (__etext, .)
+                0x00000000000080e8                PROVIDE (_etext, .)
+                0x00000000000080e8                PROVIDE (etext, .)
+
+.rodata         0x00000000000080e8      0xccc
+ *(.rodata .rodata.* .gnu.linkonce.r.*)
+ .rodata.str1.4
+                0x00000000000080e8      0x65b kernel_master.o
+                                        0x660 (size before relaxing)
+ *fill*         0x0000000000008743        0x1 00
+ .rodata        0x0000000000008744       0x80 kernel_master.o
+ .rodata.str1.4
+                0x00000000000087c4       0x53 modules/packet.o
+                                         0x54 (size before relaxing)
+ *fill*         0x0000000000008817        0x1 00
+ .rodata.str1.4
+                0x0000000000008818       0x8b modules/applications.o
+                                         0x90 (size before relaxing)
+ *fill*         0x00000000000088a3        0x1 00
+ .rodata.str1.4
+                0x00000000000088a4       0x67 modules/reclustering.o
+                                         0x6c (size before relaxing)
+ *fill*         0x000000000000890b        0x1 00
+ .rodata.str1.4
+                0x000000000000890c       0x1a modules/new_task.o
+                                         0x1c (size before relaxing)
+ *fill*         0x0000000000008926        0x2 00
+ .rodata.str1.4
+                0x0000000000008928      0x1b9 modules/processors.o
+                                        0x1d8 (size before relaxing)
+ *fill*         0x0000000000008ae1        0x3 00
+ .rodata.str1.4
+                0x0000000000008ae4      0x13e modules/cluster_scheduler.o
+                                        0x144 (size before relaxing)
+ *fill*         0x0000000000008c22        0x2 00
+ .rodata.str1.4
+                0x0000000000008c24       0x69 modules/seek.o
+                                         0x70 (size before relaxing)
+ *fill*         0x0000000000008c8d        0x3 00
+ .rodata        0x0000000000008c90       0x20 modules/seek.o
+ .rodata.str1.4
+                0x0000000000008cb0       0x77 modules/control_messages_fifo.o
+                                         0x84 (size before relaxing)
+ *fill*         0x0000000000008d27        0x1 00
+ .rodata        0x0000000000008d28       0x20 modules/csiphash.o
+ .rodata.str1.4
+                0x0000000000008d48       0x68 modules/osz_master.o
+                                         0x70 (size before relaxing)
+ .rodata.cst4   0x0000000000008db0        0x4 modules/osz_master.o
+
+.rodata1
+ *(.rodata1)
+
+.sdata2
+ *(.sdata2 .sdata2.* .gnu.linkonce.s2.*)
+
+.sbss2
+ *(.sbss2 .sbss2.* .gnu.linkonce.sb2.*)
+
+.eh_frame_hdr
+ *(.eh_frame_hdr)
+
+.eh_frame
+ *(.eh_frame)
+
+.gcc_except_table
+ *(.gcc_except_table .gcc_except_table.*)
+                0x0000000000008db4                . = .
+
+.eh_frame
+ *(.eh_frame)
+
+.gcc_except_table
+ *(.gcc_except_table .gcc_except_table.*)
+
+.tdata
+ *(.tdata .tdata.* .gnu.linkonce.td.*)
+
+.tbss
+ *(.tbss .tbss.* .gnu.linkonce.tb.*)
+ *(.tcommon)
+
+.preinit_array  0x0000000000008db4        0x0
+                0x0000000000008db4                PROVIDE (__preinit_array_start, .)
+ *(.preinit_array)
+                0x0000000000008db4                PROVIDE (__preinit_array_end, .)
+
+.init_array     0x0000000000008db4        0x0
+                0x0000000000008db4                PROVIDE (__init_array_start, .)
+ *(SORT(.init_array.*))
+ *(.init_array)
+                0x0000000000008db4                PROVIDE (__init_array_end, .)
+
+.fini_array     0x0000000000008db4        0x0
+                0x0000000000008db4                PROVIDE (__fini_array_start, .)
+ *(.fini_array)
+ *(SORT(.fini_array.*))
+                0x0000000000008db4                PROVIDE (__fini_array_end, .)
+
+.ctors
+ *crtbegin*.o(.ctors)
+ *(EXCLUDE_FILE(*crtend*.o) .ctors)
+ *(SORT(.ctors.*))
+ *(.ctors)
+
+.dtors
+ *crtbegin*.o(.dtors)
+ *(EXCLUDE_FILE(*crtend*.o) .dtors)
+ *(SORT(.dtors.*))
+ *(.dtors)
+
+.jcr
+ *(.jcr)
+
+.data.rel.ro
+ *(.data.rel.ro.local* .gnu.linkonce.d.rel.ro.local.*)
+ *(.data.rel.ro* .gnu.linkonce.d.rel.ro.*)
+
+.data           0x0000000000008db4       0x60
+                0x0000000000008db4                _fdata = .
+ *(.data .data.* .gnu.linkonce.d.*)
+ .data          0x0000000000008db4        0x0 boot_master.o
+ .data          0x0000000000008db4        0x4 kernel_master.o
+                0x0000000000008db4                total_mpsoc_resources
+ .data          0x0000000000008db8        0x0 modules/utils.o
+ .data          0x0000000000008db8        0x0 modules/packet.o
+ .data          0x0000000000008db8        0x0 modules/applications.o
+ .data          0x0000000000008db8        0x0 modules/reclustering.o
+ .data          0x0000000000008db8        0x0 modules/new_task.o
+ .data          0x0000000000008db8        0x0 modules/processors.o
+ .data          0x0000000000008db8        0x0 modules/cluster_scheduler.o
+ .data          0x0000000000008db8        0x0 modules/seek.o
+ .data          0x0000000000008db8        0x0 modules/define_pairs.o
+ .data          0x0000000000008db8        0x0 modules/control_messages_fifo.o
+ .data          0x0000000000008db8        0x0 modules/csiphash.o
+ .data          0x0000000000008db8        0x0 modules/lfsr.o
+ .data          0x0000000000008db8        0x0 modules/osz_master.o
+ .data          0x0000000000008db8       0x5c ../include/kernel_pkg.o
+                0x0000000000008df4                static_map
+                0x0000000000008db8                cluster_info
+                0x0000000000008dd4                io_info
+ *(.gnu.linkonce.d.*personality*)
+
+.data1
+ *(.data1)
+                0x0000000000008e14                . = .
+                0x0000000000010e10                _gp = (ALIGN (0x10) + 0x7ff0)
+
+.got
+ *(.got.plt)
+ *(.got)
+
+.sdata
+ *(.sdata .sdata.* .gnu.linkonce.s.*)
+
+.lit8
+ *(.lit8)
+
+.lit4
+ *(.lit4)
+                0x0000000000008e14                _edata = .
+                0x0000000000008e14                PROVIDE (edata, .)
+                0x0000000000008e14                __bss_start = .
+                0x0000000000008e14                _fbss = .
+
+.sbss           0x0000000000008e14       0x48
+ *(.dynsbss)
+ *(.sbss .sbss.* .gnu.linkonce.sb.*)
+ *(.scommon)
+ .scommon       0x0000000000008e14       0x20 kernel_master.o
+                0x0000000000008e14                is_global_master
+                0x0000000000008e18                terminated_task_master
+                0x0000000000008e20                global_master_address
+                0x0000000000008e24                slot_seek
+                0x0000000000008e28                pending_new_task
+                0x0000000000008e2c                cluster_load
+                0x0000000000008e30                shape_index
+ .scommon       0x0000000000008e34        0x4 modules/utils.o
+                0x0000000000008e34                net_address
+ .scommon       0x0000000000008e38        0x0 modules/packet.o
+ .scommon       0x0000000000008e38        0xc modules/reclustering.o
+                0x0000000000008e38                starting_y_cluster_size
+                0x0000000000008e3c                starting_x_cluster_size
+                0x0000000000008e40                clusterID
+ .scommon       0x0000000000008e44       0x14 modules/processors.o
+                0x0000000000008e44                slave_candidate_my_cluster
+                0x0000000000008e48                ward_master
+                0x0000000000008e50                master_other_cluster
+ .scommon       0x0000000000008e58        0x0 modules/cluster_scheduler.o
+ .scommon       0x0000000000008e58        0x4 modules/seek.o
+                0x0000000000008e58                net_addr
+ .scommon       0x0000000000008e5c        0x0 modules/define_pairs.o
+ .scommon       0x0000000000008e5c        0x0 modules/control_messages_fifo.o
+ .scommon       0x0000000000008e5c        0x0 modules/osz_master.o
+
+.bss            0x0000000000008e60     0x3168
+ *(.dynbss)
+ *(.bss .bss.* .gnu.linkonce.b.*)
+ .bss           0x0000000000008e60        0x0 boot_master.o
+ .bss           0x0000000000008e60       0x14 kernel_master.o
+                0x0000000000008e64                terminated_app_count
+                0x0000000000008e6c                app_id_counter
+                0x0000000000008e60                pending_app_to_map
+                0x0000000000008e68                waiting_app_allocation
+ .bss           0x0000000000008e74       0x44 modules/utils.o
+ .bss           0x0000000000008eb8        0x4 modules/packet.o
+                0x0000000000008eb8                global_inst
+ .bss           0x0000000000008ebc        0x0 modules/applications.o
+ .bss           0x0000000000008ebc        0x4 modules/reclustering.o
+                0x0000000000008ebc                max_neighbors_level
+ .bss           0x0000000000008ec0        0xc modules/new_task.o
+                0x0000000000008ec4                last
+                0x0000000000008ec8                size_new_app
+                0x0000000000008ec0                first
+ .bss           0x0000000000008ecc        0x0 modules/processors.o
+ .bss           0x0000000000008ecc        0x0 modules/cluster_scheduler.o
+ .bss           0x0000000000008ecc        0x0 modules/seek.o
+ .bss           0x0000000000008ecc        0x0 modules/define_pairs.o
+ .bss           0x0000000000008ecc        0x4 modules/control_messages_fifo.o
+ .bss           0x0000000000008ed0        0x0 modules/csiphash.o
+ .bss           0x0000000000008ed0        0x0 modules/lfsr.o
+ .bss           0x0000000000008ed0        0x0 modules/osz_master.o
+ .bss           0x0000000000008ed0        0x0 ../include/kernel_pkg.o
+ *(COMMON)
+ COMMON         0x0000000000008ed0     0x1558 kernel_master.o
+                0x0000000000008ed0                glfsr_c0
+                0x0000000000008ee8                shapes
+                0x0000000000009088                processors
+                0x00000000000091c8                applications
+                0x000000000000a17c                fifo_seek
+                0x000000000000a1d0                glfsr_d0
+                0x000000000000a1e8                Secure_Zone
+                0x000000000000a388                migration_list
+ COMMON         0x000000000000a428      0x168 modules/packet.o
+                0x000000000000a428                sh_slot2
+                0x000000000000a4dc                sh_slot1
+ COMMON         0x000000000000a590       0x1c modules/reclustering.o
+                0x000000000000a590                reclustering
+ COMMON         0x000000000000a5ac       0x3c modules/new_task.o
+                0x000000000000a5ac                new_task_list
+ COMMON         0x000000000000a5e8      0x330 modules/processors.o
+                0x000000000000a5e8                ward_pairs
+                0x000000000000a908                slave_candidate_other_cluster
+ COMMON         0x000000000000a918      0xaf0 modules/seek.o
+                0x000000000000a918                SR_Table
+ COMMON         0x000000000000b408      0xbc0 modules/control_messages_fifo.o
+                0x000000000000b408                CMFifo
+                0x000000000000bfc8                . = ALIGN ((. != 0x0)?0x4:0x1)
+                0x000000000000bfc8                . = ALIGN (0x4)
+                0x000000000000bfc8                . = ALIGN (0x4)
+                0x000000000000bfc8                _end = .
+                0x000000000000bfc8                PROVIDE (end, .)
+
+.stab
+ *(.stab)
+
+.stabstr
+ *(.stabstr)
+
+.stab.excl
+ *(.stab.excl)
+
+.stab.exclstr
+ *(.stab.exclstr)
+
+.stab.index
+ *(.stab.index)
+
+.stab.indexstr
+ *(.stab.indexstr)
+
+.comment        0x0000000000000000      0x10e
+ *(.comment)
+ .comment       0x0000000000000000       0x12 kernel_master.o
+ .comment       0x0000000000000012       0x12 modules/utils.o
+ .comment       0x0000000000000024       0x12 modules/packet.o
+ .comment       0x0000000000000036       0x12 modules/applications.o
+ .comment       0x0000000000000048       0x12 modules/reclustering.o
+ .comment       0x000000000000005a       0x12 modules/new_task.o
+ .comment       0x000000000000006c       0x12 modules/processors.o
+ .comment       0x000000000000007e       0x12 modules/cluster_scheduler.o
+ .comment       0x0000000000000090       0x12 modules/seek.o
+ .comment       0x00000000000000a2       0x12 modules/define_pairs.o
+ .comment       0x00000000000000b4       0x12 modules/control_messages_fifo.o
+ .comment       0x00000000000000c6       0x12 modules/csiphash.o
+ .comment       0x00000000000000d8       0x12 modules/lfsr.o
+ .comment       0x00000000000000ea       0x12 modules/osz_master.o
+ .comment       0x00000000000000fc       0x12 ../include/kernel_pkg.o
+
+.debug
+ *(.debug)
+
+.line
+ *(.line)
+
+.debug_srcinfo
+ *(.debug_srcinfo)
+
+.debug_sfnames
+ *(.debug_sfnames)
+
+.debug_aranges
+ *(.debug_aranges)
+
+.debug_pubnames
+ *(.debug_pubnames)
+
+.debug_info
+ *(.debug_info .gnu.linkonce.wi.*)
+
+.debug_abbrev
+ *(.debug_abbrev)
+
+.debug_line
+ *(.debug_line)
+
+.debug_frame
+ *(.debug_frame)
+
+.debug_str
+ *(.debug_str)
+
+.debug_loc
+ *(.debug_loc)
+
+.debug_macinfo
+ *(.debug_macinfo)
+
+.debug_weaknames
+ *(.debug_weaknames)
+
+.debug_funcnames
+ *(.debug_funcnames)
+
+.debug_typenames
+ *(.debug_typenames)
+
+.debug_varnames
+ *(.debug_varnames)
+
+.gptab.sdata
+ *(.gptab.data)
+ *(.gptab.sdata)
+
+.gptab.sbss
+ *(.gptab.bss)
+ *(.gptab.sbss)
+
+.mdebug.abi32   0x000000000000010e        0x0
+ *(.mdebug.abi32)
+ .mdebug.abi32  0x000000000000010e        0x0 kernel_master.o
+ .mdebug.abi32  0x000000000000010e        0x0 modules/utils.o
+ .mdebug.abi32  0x000000000000010e        0x0 modules/packet.o
+ .mdebug.abi32  0x000000000000010e        0x0 modules/applications.o
+ .mdebug.abi32  0x000000000000010e        0x0 modules/reclustering.o
+ .mdebug.abi32  0x000000000000010e        0x0 modules/new_task.o
+ .mdebug.abi32  0x000000000000010e        0x0 modules/processors.o
+ .mdebug.abi32  0x000000000000010e        0x0 modules/cluster_scheduler.o
+ .mdebug.abi32  0x000000000000010e        0x0 modules/seek.o
+ .mdebug.abi32  0x000000000000010e        0x0 modules/define_pairs.o
+ .mdebug.abi32  0x000000000000010e        0x0 modules/control_messages_fifo.o
+ .mdebug.abi32  0x000000000000010e        0x0 modules/csiphash.o
+ .mdebug.abi32  0x000000000000010e        0x0 modules/lfsr.o
+ .mdebug.abi32  0x000000000000010e        0x0 modules/osz_master.o
+ .mdebug.abi32  0x000000000000010e        0x0 ../include/kernel_pkg.o
+
+.mdebug.abiN32
+ *(.mdebug.abiN32)
+
+.mdebug.abi64
+ *(.mdebug.abi64)
+
+.mdebug.abiO64
+ *(.mdebug.abiO64)
+
+.mdebug.eabi32
+ *(.mdebug.eabi32)
+
+.mdebug.eabi64
+ *(.mdebug.eabi64)
+
+.gcc_compiled_long32
+ *(.gcc_compiled_long32)
+
+.gcc_compiled_long64
+ *(.gcc_compiled_long64)
+
+/DISCARD/
+ *(.note.GNU-stack)
+OUTPUT(kernel_master.bin elf32-bigmips)
+
+.pdr            0x0000000000000000     0x11e0
+ .pdr           0x0000000000000000       0x20 boot_master.o
+ .pdr           0x0000000000000020      0x240 kernel_master.o
+ .pdr           0x0000000000000260      0x1a0 modules/utils.o
+ .pdr           0x0000000000000400       0xe0 modules/packet.o
+ .pdr           0x00000000000004e0      0x1c0 modules/applications.o
+ .pdr           0x00000000000006a0      0x140 modules/reclustering.o
+ .pdr           0x00000000000007e0       0x60 modules/new_task.o
+ .pdr           0x0000000000000840      0x2c0 modules/processors.o
+ .pdr           0x0000000000000b00      0x140 modules/cluster_scheduler.o
+ .pdr           0x0000000000000c40      0x100 modules/seek.o
+ .pdr           0x0000000000000d40      0x160 modules/define_pairs.o
+ .pdr           0x0000000000000ea0       0xc0 modules/control_messages_fifo.o
+ .pdr           0x0000000000000f60       0x40 modules/csiphash.o
+ .pdr           0x0000000000000fa0       0x40 modules/lfsr.o
+ .pdr           0x0000000000000fe0      0x200 modules/osz_master.o
+ .pdr           0x00000000000011e0        0x0 ../include/kernel_pkg.o

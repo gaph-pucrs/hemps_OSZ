@@ -800,11 +800,11 @@ void send_peripheral_SR_path(int slot_seek, int peripheral_ID, int secure){
 	int i;
 	ServiceHeader *p = get_service_header_slot();
 
-	#ifndef GRAY_AREA
-	if(secure){
-		send_wrapper_open_forward(peripheral_ID, 1);  // IO_service: 0 - request; 1 - delivery
-	}
-	#endif
+	// #ifndef GRAY_AREA
+	// if(secure){
+	// 	send_wrapper_open_forward(peripheral_ID, 1);  // IO_service: 0 - request; 1 - delivery
+	// }
+	// #endif
 
 	p->service = IO_SR_PATH;
 

@@ -1,0 +1,151 @@
+COR  =\033[0;32m
+NC   =\033[0m
+
+LIB=work
+
+#Se for rodar na kriti tirar o -B/usr/bin das linhas onde tem SC_C = @ sccom
+#SC_C = @ sccom -nologo -work $(LIB) -fpermissive -g -Wno-write-strings -DDUPLICATED_CHANNEL -DWARD_MODULE -B/usr/bin
+SC_C = @ sccom -nologo -work $(LIB) -fpermissive -g -Wno-write-strings -DDUPLICATED_CHANNEL -B/usr/bin
+
+VHD_C = @ vcom -quiet -2008 -work $(LIB) 
+
+#SystemC files
+TOP 					=hemps test_bench
+PE	 					=pe
+DMNI 					=dmni plasma_sender
+MEMORY 					=ram
+PROCESSOR 				=mlite_cpu
+ROUTER_SC 				=RouterCCwrapped2
+SEEK_SC  				=router_seek_wrapped2
+FIFO_PDN_SC 			=fifo_pdn
+FAIL_WRAPPER_MODULE_SC 	=fail_wrapper_module
+IO_PERIPHERAL_SC 		=io_peripheral
+INJECTOR_SC 			=injector
+
+
+#vhdl files
+HEMPS_PKG	=hemps_pkg
+STAND		=standards
+SEEK_VHD 	=seek_pkg logging router_seek
+#SEEK_VHD 	=seek_pkg router_seek
+ROUTER_VHD 	=Hermes_buffer Hermes_crossbar Hermes_switchcontrol_SR mux_control RouterCC_SR
+
+TOP_SRC	    			= $(addprefix sc/, 									$(TOP:=.cpp)  $(TOP:=.h) 			)
+PE_SRC					= $(addprefix sc/pe/, 								$(PE:=.cpp) $(PE:=.h)  				)
+DMNI_SRC				= $(addprefix sc/pe/dmni/, 							$(DMNI:=.cpp) $(DMNI:=.h)			)
+MEMORY_SRC				= $(addprefix sc/pe/memory/,						$(MEMORY:=.cpp) $(MEMORY:=.h)		) 
+PROCESSOR_SRC			= $(addprefix sc/pe/processor/plasma/, 				$(PROCESSOR:=.cpp) $(PROCESSOR:=.h)	)
+ROUTER_SC_SRC			= $(addprefix sc/pe/router/, 						$(ROUTER_SC:=.cpp) 					)
+SEEK_SC_SRC				= $(addprefix sc/pe/router/seek/, 					$(SEEK_SC:=.cpp) $(SEEK_SC:=.h)		)
+FIFO_PDN_SRC			= $(addprefix sc/pe/fifo_pdn/, 						$(FIFO_PDN_SC:=.cpp) $(FIFO_PDN_SC:=.h)		)
+FAIL_WRAPPER_MODULE_SRC	= $(addprefix sc/pe/fail_wrapper_module/, 			$(FAIL_WRAPPER_MODULE_SC:=.cpp) $(FAIL_WRAPPER_MODULE_SC:=.h)	)
+IO_PERIPHERAL_SRC		= $(addprefix sc/peripherals/IO_peripheral/, 	$(IO_PERIPHERAL_SC:=.cpp) $(IO_PERIPHERAL_SC:=.h)		)
+INJECTOR_SRC			= $(addprefix sc/peripherals/IO_peripheral/, 	$(INJECTOR_SC:=.cpp) $(INJECTOR_SC:=.h)		)
+
+#vhdl files
+HEMPS_PKG_SRC	= $(addprefix ../include/, 				$(HEMPS_PKG:=.vhd) 					)
+STAND_SRC	    = $(addprefix vhdl/, 					$(STAND:=.vhd) 						)
+ROUTER_VHD_SRC	= $(addprefix vhdl/pe/router/, 			$(ROUTER_VHD:=.vhd)					)
+SEEK_VHD_SRC	= $(addprefix vhdl/pe/router/seek/, 	$(SEEK_VHD:=.vhd)					)
+
+#This target dir $(TGT_SCCOM_PATH) is created automatically by questa or modelsim, please ensures taht your path math it the following 
+#TGT_SCCOM_PATH = $(LIB)/_sc/linux_x86_64_gcc-4.7.4/
+
+TOP_TGT 				=$(addprefix $(TGT_SCCOM_PATH), $(TOP:=.o))
+PE_TGT	 				=$(addprefix $(TGT_SCCOM_PATH), $(PE:=.o))
+DMNI_TGT 				=$(addprefix $(TGT_SCCOM_PATH), $(DMNI:=.o))
+MEMORY_TGT 				=$(addprefix $(TGT_SCCOM_PATH), $(MEMORY:=.o))
+PROCESSOR_TGT 			=$(addprefix $(TGT_SCCOM_PATH), $(PROCESSOR:=.o))
+ROUTER_TGT	 			=$(addprefix $(TGT_SCCOM_PATH), $(ROUTER_SC:=.o))
+SEEK_TGT				=$(addprefix $(TGT_SCCOM_PATH), $(SEEK_SC:=.o))
+FIFO_PDN_TGT			=$(addprefix $(TGT_SCCOM_PATH), $(FIFO_PDN_SC:=.o))
+FAIL_WRAPPER_MODULE_TGT	=$(addprefix $(TGT_SCCOM_PATH), $(FAIL_WRAPPER_MODULE_SC:=.o))
+IO_PERIPHERAL_TGT		=$(addprefix $(TGT_SCCOM_PATH), $(IO_PERIPHERAL_SC:=.o))
+INJECTOR_TGT			=$(addprefix $(TGT_SCCOM_PATH), $(INJECTOR_SC:=.o))
+
+default: lib $(HEMPS_PKG) $(STAND) $(ROUTER_VHD) $(SEEK_VHD) $(ROUTER_TGT) $(SEEK_TGT) $(FIFO_PDN_TGT) $(FAIL_WRAPPER_MODULE_TGT) $(PROCESSOR_TGT) $(DMNI_TGT) $(MEMORY_TGT) $(PE_TGT) $(IO_PERIPHERAL_TGT) $(INJECTOR_TGT)  $(TOP_TGT)
+	@sccom -B/usr/bin -link
+
+lib:
+	@vlib $(LIB)
+	@vmap $(LIB) $(LIB)
+
+$(HEMPS_PKG): $(HEMPS_PKG_SRC)
+	@printf "${COR}Compiling VHDL source: %s ...${NC}\n" "$(dir $<)$@.vhd"
+	$(VHD_C) $(dir $<)$@.vhd
+
+$(STAND): $(STAND_SRC)
+	@printf "${COR}Compiling VHDL source: %s ...${NC}\n" "$(dir $<)$@.vhd"
+	$(VHD_C) $(dir $<)$@.vhd
+
+$(TOP_TGT): $(TOP_SRC)
+	@printf "${COR}Compiling SystemC source: %s ...${NC}\n" "$(dir $<)$(notdir $*).cpp"
+	$(SC_C) $(dir $<)$(notdir $*).cpp
+
+$(PE_TGT): $(PE_SRC)
+	@printf "${COR}Compiling SystemC source: %s ...${NC}\n" "$(dir $<)$(notdir $*).cpp"
+	$(SC_C) $(dir $<)$(notdir $*).cpp
+
+$(DMNI_TGT): $(DMNI_SRC)
+	@printf "${COR}Compiling SystemC source: %s ...${NC}\n" "$(dir $<)$(notdir $*).cpp"
+	$(SC_C) $(dir $<)$(notdir $*).cpp
+
+$(MEMORY_TGT): $(MEMORY_SRC)
+	@printf "${COR}Compiling SystemC source: %s ...${NC}\n" "$(dir $<)$(notdir $*).cpp"
+	$(SC_C) $(dir $<)$(notdir $*).cpp
+
+$(PROCESSOR_TGT): $(PROCESSOR_SRC)
+	@printf "${COR}Compiling SystemC source: %s ...${NC}\n" "$(dir $<)$(notdir $*).cpp"
+	$(SC_C) $(dir $<)$(notdir $*).cpp
+
+$(ROUTER_TGT): $(ROUTER_SC_SRC)
+	@printf "${COR}Compiling SystemC source: %s ...${NC}\n" "$(dir $<)$(notdir $*).cpp"
+	$(SC_C) $(dir $<)$(notdir $*).cpp
+
+$(SEEK_TGT): $(SEEK_SC_SRC)
+	@printf "${COR}Compiling SystemC source: %s ...${NC}\n" "$(dir $<)$(notdir $*).cpp"
+	$(SC_C) $(dir $<)$(notdir $*).cpp
+
+$(FIFO_PDN_TGT): $(FIFO_PDN_SRC)
+$(FIFO_PDN_TGT): $(FIFO_PDN_SRC)
+	@printf "${COR}Compiling SystemC source: %s ...${NC}\n" "$(dir $<)$(notdir $*).cpp"
+	$(SC_C) $(dir $<)$(notdir $*).cpp
+
+$(FAIL_WRAPPER_MODULE_TGT): $(FAIL_WRAPPER_MODULE_SRC)
+$(FAIL_WRAPPER_MODULE_TGT): $(FAIL_WRAPPER_MODULE_SRC)
+	@printf "${COR}Compiling SystemC source: %s ...${NC}\n" "$(dir $<)$(notdir $*).cpp"
+	$(SC_C) $(dir $<)$(notdir $*).cpp	
+
+$(IO_PERIPHERAL_TGT): $(IO_PERIPHERAL_SRC)
+$(IO_PERIPHERAL_TGT): $(IO_PERIPHERAL_SRC)
+	@printf "${COR}Compiling SystemC source: %s ...${NC}\n" "$(dir $<)$(notdir $*).cpp"
+	$(SC_C) $(dir $<)$(notdir $*).cpp
+
+$(INJECTOR_TGT): $(INJECTOR_SRC)
+$(INJECTOR_TGT): $(INJECTOR_SRC)
+	@printf "${COR}Compiling SystemC source: %s ...${NC}\n" "$(dir $<)$(notdir $*).cpp"
+	$(SC_C) $(dir $<)$(notdir $*).cpp	
+
+
+#vhdl sources
+$(ROUTER_VHD): $(ROUTER_VHD_SRC)
+	@printf "${COR}Compiling VHDL source: %s ...${NC}\n" "$(dir $<)$@.vhd"
+	$(VHD_C) $(dir $<)$@.vhd
+
+$(SEEK_VHD): $(SEEK_VHD_SRC)
+	@printf "${COR}Compiling VHDL source: %s ...${NC}\n" "$(dir $<)$@.vhd"
+	$(VHD_C) $(dir $<)$@.vhd
+
+clean:
+	@printf "Cleaning up\n"
+	@rm -f *~
+	@rm -f *.o
+	@rm -f *.exe
+	@rm -f HeMPS
+	@rm -f Injector*
+	@rm -f ../modelsim.ini
+	@rm -rf ../work
+	@rm -rf work
+	@rm -rf ../transcript
+	@rm -rf ../log/*
+	@rm -rf ../debug/*.txt

@@ -1,0 +1,16 @@
+Initializing PE: 0x00000201
+Cluster Master Address: 0x00000000
+wrapper: 0x000000c3
+Received SET_EXCESS_SZ_SERVICE
+Não tem corte
+write wrapper: 0x000000c3
+RH address: 0x00000022
+LOCAL RH address: 0x00000022
+Received START_APP
+source: 0x009b0000
+target: 0x00000022
+payload: 0x00000000
+Tasks Unbloqued: 0x00000000
+time - 36754
+Received OPEN_SECURE_ZONE
+Open wrappers

@@ -327,10 +327,7 @@ int map_task(int last_proc_address, int task_id, int AppSec){
 
 				//puts("Task mapping for task "), puts(itoa(task_id)); puts(" maped at proc "); puts(itoh(proc_address)); puts("\n");
 		
-				if (get_proc_free_pages(proc_address) > 0)
-					return proc_address;
-				else
-					continue;
+				return proc_address;
 			}
 			x = xi;
 		}
@@ -344,9 +341,9 @@ int map_task(int last_proc_address, int task_id, int AppSec){
 			proc_address = get_proc_address(i);
 	
 		#ifdef GRAY_AREA
-			if ((get_proc_free_pages(proc_address) > 0) && (PE_belong_SZ(proc_address>>8, proc_address&0XFF) != 1) && (PE_belong_GA(proc_address>>8, proc_address&0XFF) == 1))
+			if ((get_proc_free_pages(proc_address) > 0) && (PE_belong_SZ(proc_address>>8, proc_address&0XFF) != 1) && (PE_belong_GA(proc_address>>8, proc_address&0XFF) == 1)){
 		#else
-			if ((get_proc_free_pages(proc_address) > 0) && (PE_belong_SZ(proc_address>>8, proc_address&0XFF) != 1))
+			if ((get_proc_free_pages(proc_address) > 0) & (PE_belong_SZ(proc_address>>8, proc_address&0XFF) != 1)){
 		#endif
 			{
 				slack_time = get_proc_slack_time(proc_address);
@@ -356,16 +353,17 @@ int map_task(int last_proc_address, int task_id, int AppSec){
 					max_slack_time = slack_time;
 				}
 			}
+		}
 	
-			if (canditate_proc != -1){
+		if (canditate_proc != -1){
 	
-				puts("Task mapping for task "); puts(itoa(task_id)); puts(" maped at proc "); puts(itoh(canditate_proc)); puts("\n");
+			puts("Task mapping for task "); puts(itoa(task_id)); puts(" maped at proc "); puts(itoh(canditate_proc)); puts("\n");
 	
 				return canditate_proc;
 			}
 		}
 	}
-	putsv("WARNING: no resources available in cluster to map task ", task_id);
+	puts("WARNING: no resources available in cluster to map task ");
 	return -1;
 }
 
@@ -575,4 +573,3 @@ void new_master_candidate(){
 	//}
 
 }
-

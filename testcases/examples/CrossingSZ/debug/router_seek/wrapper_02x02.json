@@ -1,0 +1,42 @@
+{"entradas":[
+{
+ "tick":0
+ "in_fail_wrapper_local":0
+ "in_source_router":0
+}{
+ "tick":18408
+ "in_fail_wrapper_local":0
+ "in_source_router":256
+}{
+ "tick":32113
+ "in_fail_wrapper_local":0
+ "in_source_router":224
+}{
+ "tick":32185
+ "in_fail_wrapper_local":0
+ "in_source_router":0
+}{
+ "tick":33669
+ "in_fail_wrapper_local":0
+ "in_source_router":210
+}{
+ "tick":33998
+ "in_fail_wrapper_local":0
+ "in_source_router":0
+}{
+ "tick":37333
+ "in_fail_wrapper_local":0
+ "in_source_router":155
+}{
+ "tick":227149
+ "in_fail_wrapper_local":0
+ "in_source_router":0
+}{
+ "tick":250775
+ "in_fail_wrapper_local":0
+ "in_source_router":0
+}{
+ "tick":256355
+ "in_fail_wrapper_local":0
+ "in_source_router":0
+}

@@ -1,0 +1,5 @@
+0x0		0x00000000	repo address		[prod_cons]
+0x4		0x00000000	start time in ms	[prod_cons]
+0x8		0x00000e2c	repo address		[prod_cons]
+0xc		0x00000000	start time in ms	[prod_cons]
+0x10		0xdeadc0de	end of file indicator
