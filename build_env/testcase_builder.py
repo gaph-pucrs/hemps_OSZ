@@ -24,8 +24,8 @@ from build_utils import *
 #When defined, a main function must be called in the last line of the script, take a look at the end of file
 def main():
     #HEMPS_PATH - must to point to the root directory of hemps
-    HEMPS_PATH = "E:/hemps_OSZ"
-    # HEMPS_PATH = os.getenv("HEMPS_PATH", 0)
+    # HEMPS_PATH = "E:/hemps_OSZ"
+    HEMPS_PATH = os.getenv("HEMPS_PATH", 0)
 
     #Test if testcase file HEMPS_PATH is valid
     if HEMPS_PATH == 0:

@@ -25,7 +25,7 @@ use work.seek_pkg.all;
 
 entity logging is
 	generic (
-		router_address        			: regflit -- tamanho dos endereçamentos é de 16bits, ou seja 2 bytes ou 4 nibbles podendo ser representado como 4 hexadecimais
+		router_address        			: regflit -- tamanho dos endereï¿½amentos ï¿½ de 16bits, ou seja 2 bytes ou 4 nibbles podendo ser representado como 4 hexadecimais
 	);
 	port(
 
@@ -47,7 +47,7 @@ entity logging is
 		in_fail_router_seek												: in std_logic_vector(NPORT_SEEK-1 downto 0);
 		in_opmode_router_seek											: in std_logic_vector(NPORT_SEEK-1 downto 0);
 
-		in_sel_reg_backtrack_seek										: in std_logic_vector(1 downto 0);	-- 2 bits de seleção de registrador do backtrack
+		in_sel_reg_backtrack_seek										: in std_logic_vector(1 downto 0);	-- 2 bits de seleï¿½ï¿½o de registrador do backtrack
 		in_ack_send_kernel_seek											: in std_logic;
 		------------------------------------------------------out-------------------------------------------
 		out_req_router_seek												: in std_logic_vector(NPORT_SEEK-1 downto 0);
@@ -99,15 +99,15 @@ entity logging is
 			
 	signal output_state	: std_logic_vector(3 downto 0);
 	signal input_state	: std_logic_vector(3 downto 0);
-	signal seek_cycles	: natural range 0 to 2**16;
+	signal seek_cycles	: integer range 0 to 2**16;
 
-	-- converter o endereço em string
+	-- converter o endereï¿½o em string
 	function print_router (	vec :std_logic_vector) -- valor de 16 bits
 	return string is
 		-- variable str1,str2: string(1 to 2);
 		variable output_str: string(1 to 5);
 	begin
-		-- este tipo de concatenação deve ser feito através de recursão
+		-- este tipo de concatenaï¿½ï¿½o deve ser feito atravï¿½s de recursï¿½o
 		output_str := CONV_STRING_8BITS(vec(15 downto 8)) & "x" & CONV_STRING_8BITS(vec(7 downto 0));
 		return output_str;
 	end function;
@@ -120,14 +120,14 @@ entity logging is
 		return "0";
 	end function;
 	
-	-- converter o vetor binário para string
+	-- converter o vetor binï¿½rio para string
 	function print_port (	vec :std_logic_vector;
 							size:natural) -- valor de 16 bits
 	return string is
 		-- variable val: string(1 to 1);
 		variable output_str: string(1 to size);
 	begin
-		-- este tipo de concatenação deve ser feito através de recursão.
+		-- este tipo de concatenaï¿½ï¿½o deve ser feito atravï¿½s de recursï¿½o.
 		-- report "porta:" & integer'image(size) & " bit: " & bit'image(to_bit(vec(size-1))) & "str: " & val;
 		if(size > 1 ) then
 			output_str := bit_to_string(vec(size-1))&print_port(vec(size-1 downto 0),size-1); -- LOCAL SOUTH NORTH WEST EAST
@@ -139,7 +139,7 @@ entity logging is
 	end function;
 
 
-	-- conveção de std_logic_vector para string
+	-- conveï¿½ï¿½o de std_logic_vector para string
 	function vec_to_string (vec :std_logic_vector) return string is
 	begin
 		return integer'image(to_integer(unsigned(vec)));
@@ -302,7 +302,7 @@ begin
 		variable past_in_fail_router_seek											: std_logic_vector(NPORT_SEEK-1 downto 0);
 		variable past_in_opmode_router_seek											: std_logic_vector(NPORT_SEEK-1 downto 0);
 
-		variable past_in_sel_reg_backtrack_seek										: std_logic_vector(1 downto 0);	-- 2 bits de seleção de registrador do backtrack
+		variable past_in_sel_reg_backtrack_seek										: std_logic_vector(1 downto 0);	-- 2 bits de seleï¿½ï¿½o de registrador do backtrack
 		variable past_in_ack_send_kernel_seek										: std_logic;
 		------------------------------------------------------out-------------------------------------------
 		variable past_out_req_router_seek											: std_logic_vector(NPORT_SEEK-1 downto 0);
@@ -458,7 +458,7 @@ begin
 					file_close(arquivo);
 				-- limpeza do buffer
 				else
-					file_open(devnullstatus, devnull, "/dev/null", append_mode); -- para limpar o buffer quando não houver escrita em arquivo
+					file_open(devnullstatus, devnull, "/dev/null", append_mode); -- para limpar o buffer quando nï¿½o houver escrita em arquivo
 				 	writeline(devnull,linha);
 					file_close(devnull);
 				end if;

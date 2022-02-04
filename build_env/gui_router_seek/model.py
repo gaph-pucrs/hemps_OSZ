@@ -108,7 +108,7 @@ class RouterModel():
 
 
                     elif val[1] == '01011': # SECURE_ZONE_CLOSED_SERVICE = 2
-                        print(f"habilitação da zona segura em {self.router_address} sz {self.get_value_at(at_tick,'sec_zone_ID')[1]} payload {self.payload_port_to_int(payload[1])}")
+                        print(f"habilitacao da zona segura em {self.router_address} sz {self.get_value_at(at_tick,'sec_zone_ID')[1]} payload {self.payload_port_to_int(payload[1])}")
                         if self.get_value_at(at_tick,'sec_zone_ID')[1] == self.payload_port_to_int(payload[1]):
                             print("ativou")
                             self.historico_sinal['sec_zone'].update({at_tick:2})

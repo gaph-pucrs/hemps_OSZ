@@ -104,4 +104,4 @@ real_to_int = lambda x,y,w,h: (int(w*x), int(h*y))
 
 
 global stds
-stds:ValPadrao=ValPadrao()
+stds=ValPadrao()
