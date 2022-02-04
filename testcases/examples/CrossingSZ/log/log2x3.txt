@@ -1,9 +1,0 @@
-Initializing PE: 0x00000203
-Cluster Master Address: 0x00000000
-Received SET_EXCESS_SZ_SERVICE
-Received START_APP
-source: 0x009b0000
-target: 0x00000022
-payload: 0x00000000
-Tasks Unbloqued: 0x00000000
-time - 36768
