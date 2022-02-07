@@ -101,24 +101,24 @@ class Arrow(SignalRepresentation):
 class ArrowInput (Arrow):
     def __init__(self, C:tkk.CallWrapper, coords:tuple, direction:int) -> None:
         if (direction==stds.EAST):
-            super().__init__(C, coords, "images/red_left.gif","images/left.gif","images/green_left.gif")
+            super().__init__(C, coords, "images/red_left.png","images/left.png","images/green_left.png")
         if (direction==stds.WEST):
-            super().__init__(C, coords, "images/red_right.gif","images/right.gif","images/green_right.gif")
+            super().__init__(C, coords, "images/red_right.png","images/right.png","images/green_right.png")
         if (direction==stds.NORTH):
-            super().__init__(C, coords, "images/red_down.gif","images/down.gif","images/green_down.gif")
+            super().__init__(C, coords, "images/red_down.png","images/down.png","images/green_down.png")
         if (direction==stds.SOUTH):
-            super().__init__(C, coords, "images/red_up.gif","images/up.gif","images/green_up.gif")
+            super().__init__(C, coords, "images/red_up.png","images/up.png","images/green_up.png")
         if (direction==stds.LOCAL):
-            super().__init__(C, coords, "images/red_local_in.gif","images/local_in.gif","images/green_local_in.gif")
+            super().__init__(C, coords, "images/red_local_in.png","images/local_in.png","images/green_local_in.png")
 
 class ArrowOutput (Arrow):
     def __init__(self, C:tkk.CallWrapper, coords:tuple, direction:int,canvas_id1=-1,canvas_id2=-1) -> None:
         if (direction==stds.EAST or direction==stds.WEST):
-            super().__init__(C, coords, "images/red_undirected_h.gif","images/undirected_h.gif","images/green_undirected_h.gif")
+            super().__init__(C, coords, "images/red_undirected_h.png","images/undirected_h.png","images/green_undirected_h.png")
         if (direction==stds.NORTH or direction==stds.SOUTH):
-            super().__init__(C, coords, "images/red_undirected_v.gif","images/undirected_v.gif","images/green_undirected_v.gif")
+            super().__init__(C, coords, "images/red_undirected_v.png","images/undirected_v.png","images/green_undirected_v.png")
         if (direction==stds.LOCAL):
-            super().__init__(C, coords, "images/red_local_out.gif", "images/local_out.gif", "images/green_local_out.gif")
+            super().__init__(C, coords, "images/red_local_out.png", "images/local_out.png", "images/green_local_out.png")
 
 class Box(SignalRepresentation):
     def __init__(   self, C:tkk.CallWrapper, coords: tuple,size:tuple,color="red",alpha=False, state='normal') -> None:
@@ -392,7 +392,7 @@ class NetworkView():
     def setup_screen(self,c_width,c_height,width,height):
         # global self.top,self.frame_principal,C,hbar,vbar
         self.top = tkk.Tk(className="BrNoC Debugger")
-        img = load_image("images/icon.gif")
+        img = load_image("images/icon.png")
         self.top.iconphoto(False,img)
         self.frame_principal = tkk.Frame(self.top,background="white")#,width=c_width,height=c_height)
         self.C = tkk.Canvas(self.frame_principal,background="black", width=c_width, height=c_height,scrollregion=(0,0,c_width,c_height))
@@ -471,7 +471,7 @@ class NetworkView():
         tkk.Label(under_bar2,text="tick").pack(side=LEFT)
         tkk.Button(under_bar2,text=">",command=lambda :self.set_tick(self.tick+1)).pack(side=LEFT,fill=X)
         # side_bar=tkk.Frame(control_frame)
-        img = load_image("images/icon.gif")
+        img = load_image("images/icon.png")
         self.selections=[]
         tkk.Button(control_frame,text="Events\nfilter",command=lambda a = routers:self.filter_window(a)).pack(side=LEFT,anchor=N)
         # tkk.Label(control_frame,text="BrNoC",image=img).pack(side=RIGHT,expand=2,anchor=E)
