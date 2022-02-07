@@ -192,9 +192,15 @@ void Unset_Secure_Zone(unsigned int left_low_corner, unsigned int right_high_cor
   //     	  right_high_corner = ((get_net_address() >> 4)& 0XF0) | (get_net_address() &  0X0F);
   //         Seek(SECURE_ZONE_CLOSED_SERVICE, get_net_address(), master_PE, LOCAL_right_high_corner);
   //         //puts("ENDSZ RH:");puts(itoh(LOCAL_right_high_corner));puts("\n"); 
+<<<<<<< HEAD
   //         // seek_puts("Without CUT - wrapper: ");seek_puts(itoh(isolated_ports));seek_puts("\n");
   //         // seek_puts("RH address: ");seek_puts(itoh(right_high_corner));seek_puts("\n");
   //         //return;
+=======
+  //         seek_puts("Without CUT - wrapper: ");seek_puts(itoh(isolated_ports));seek_puts("\n");
+  //         seek_puts("RH address: ");seek_puts(itoh(right_high_corner));seek_puts("\n");
+  //         // return;
+>>>>>>> 0f22003... Bug RH fixed
   // }
 
 // This is to uncut at RH position
@@ -214,7 +220,11 @@ void Unset_Secure_Zone(unsigned int left_low_corner, unsigned int right_high_cor
 //  if( (my_Y_addr == RH_Y_addr) && (my_X_addr == RH_X_addr ))
 //      isolated_ports = isolated_ports - 0x30;    
 
+<<<<<<< HEAD
 if(noCut == 0){
+=======
+if(!noCut){
+>>>>>>> 0f22003... Bug RH fixed
 // This is to uncut at LL position
 // set wrapper port WEST
   if( (my_X_addr == LL_X_addr + 1) && (my_Y_addr >=  LL_Y_addr) &&  (my_Y_addr <=  RH_Y_addr) )
@@ -233,9 +243,17 @@ if(noCut == 0){
       isolated_ports = isolated_ports - 0xC0;    
 }
 
+<<<<<<< HEAD
   puts("write wrapper: ");puts(itoh(isolated_ports));puts("\n");
   MemoryWrite(WRAPPER_REGISTER,isolated_ports);
   if(myOSZ){
+=======
+}
+  //if(isolated_ports != previous_isolated){
+  	seek_puts("write wrapper: ");seek_puts(itoh(isolated_ports));seek_puts("\n");
+    MemoryWrite(WRAPPER_REGISTER,isolated_ports);
+    if(myOSZ){
+>>>>>>> 0f22003... Bug RH fixed
     //if((my_X_addr == LOCAL_RH_X_addr) && (my_Y_addr == LOCAL_RH_Y_addr)){
       Seek(SECURE_ZONE_CLOSED_SERVICE, get_net_address(), master_PE, LOCAL_right_high_corner);
       #ifdef GRAY_AREA
