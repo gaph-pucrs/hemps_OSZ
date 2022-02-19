@@ -29,6 +29,7 @@ void randPattern(int in[SIZE][SIZE]){
 
 
 Message msg;
+Message msgIO;
 
 int main(){
 
@@ -43,6 +44,7 @@ int main(){
 	for(j=0; j<PATTERN_PER_TASK; j++){
 		Echo("Iteration");
 		for(i=0; i<TOTAL_TASKS; i++){
+			IOReceive(&msgIO, IO_PERIPHERAL);
 			randPattern(pattern); //gera uma matriz de valores aleatorios, poderiam ser coeficientes MFCC
 			memcpy(msg.msg, pattern, sizeof(pattern));
 			msg.length = SIZE * SIZE;

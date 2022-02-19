@@ -182,7 +182,7 @@ int pow(int x,int y)
 
 
 
-Message msg1,msg2;
+Message msg1,msg2,msgIO;
 
 int main()
 {
@@ -205,6 +205,8 @@ int main()
    	Echo("la distance XYZ est : ");
    	Echo(fixetoa(distance));
 
+	msgIO.length = 128;
+	IOSend(&msgIO, IO_PERIPHERAL);
 
     Echo(itoa(GetTick()));
     Echo("Communication dis_XYZ finished.");

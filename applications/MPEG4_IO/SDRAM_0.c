@@ -5,13 +5,17 @@ int main()
 {
 
 int j;
-Message msg;
+Message msg,msgIO;
 
 Echo("b,SDRAM0");
 Echo(itoa(GetTick()));
 
 
 	for(j=0;j<128;j++) msg.msg[j]=j;
+
+	/*Comm Peripheral*/
+	msgIO.length = 128;
+	IOReceive(&msgIO,IO_PERIPHERAL);
 
 	/*Comm BAB 1280*/
 	msg.length=128;

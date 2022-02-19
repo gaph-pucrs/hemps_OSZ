@@ -50,7 +50,7 @@ int execute() {
 	int tasks = NUM_NODES*(NUM_NODES-1)/2;
 	int end_task[5] = {0, 0, 0, 0, 0};
 
-	Message msg;
+	Message msg, msgIO;
 	msg.length = 33;
 	while (1) {
 
@@ -98,6 +98,11 @@ int execute() {
 		//Echo(itoa(GetTick()));
 
 		if (ended == (NPROC)) {
+
+			//IO: send result
+			msgIO.length = 33;
+			IOSend(&msgIO, IO_PERIPHERAL);
+
 			return 0;
 		}
 	}

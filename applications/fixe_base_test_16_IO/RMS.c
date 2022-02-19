@@ -168,7 +168,7 @@ int div(int a, int b)
 
 
 
-Message msg1,msg2;
+Message msg1,msg2,msgIO;
 
 
 int main()
@@ -192,6 +192,9 @@ int main()
     dis_rms= div(sqrt(sum),size_val);
     Echo("distance RMS : ");
     Echo(fixetoa(dis_rms));
+
+	msgIO.length = 128;
+	IOSend(&msgIO, IO_PERIPHERAL);
 
     Echo(itoa(GetTick()));
     Echo("Communication RMS finished.");

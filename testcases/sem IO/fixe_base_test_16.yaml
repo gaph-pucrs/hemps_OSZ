@@ -1,0 +1,22 @@
+hw:
+  page_size_KB:  64
+  tasks_per_PE: 1     
+  repository_size_MB:  1
+  physical_channels: 2
+  model_description: hybrid    # sc (gcc) | scmod (questa) | vhdl | hybrid (top module sc, internal vhdl)
+  noc_buffer_size: 8       # must be power of 2 
+  mpsoc_dimension: [5,5]     # for while, must be a square shape
+  cluster_dimension: [5,5] # for while, must be a square shape
+  master_location: LT     # LB
+  gray_area:
+    rows: [4]
+    cols: [0]
+  open_port:
+    - port: [Injector,90,0,4,N,0,2,W] 
+   # - port: [io_peripheral,80,3,3,N]
+   # - port: [io_peripheral2,70,2,3,N] 
+   # - port: [sabotage,70,3,3,E] 
+apps:                
+  - name: fixe_base_test_16
+    start_time_ms: 0 #any unsigned integer number
+    secure: yes

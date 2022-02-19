@@ -3,6 +3,7 @@
 #include "dtw.h"
 
 Message msg;
+Message msgIO;
 
 /*int test[SIZE][SIZE] = {
 		{7200, 4600},
@@ -48,6 +49,7 @@ int main(){
 
 		for(i=0; i<TOTAL_TASKS; i++){
 			Receive(&msg, P[i]);
+			IOSend(&msgIO, IO_PERIPHERAL2);
 			distances[d_count] = msg.msg[0];
 			//sprintf(d, "DTW entre amostra de teste e o padrão %d = %d  TICK = %d", d_count, distances[d_count], GetTick());
 			//d_count++;
