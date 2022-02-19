@@ -37,6 +37,7 @@ end mux_control;
 architecture mux_control of mux_control is
 
 signal internal_enable_shift    : regNport;
+signal credit_back              : regNport;
 
 begin
 
@@ -50,14 +51,20 @@ begin
             process(clock,reset)
             begin
                 if reset = '1' then
-                    internal_enable_shift(i)                <= '0';
+                    internal_enable_shift(i)    <= '0';
+                    credit_back(i)              <= '0';
                 elsif rising_edge(clock) then
                         if credit_i(i) = '0' then
                             if enable_shift(i) = '1' then
-                                internal_enable_shift(i)   <= '1';
+                                credit_back(i) <= '1';  
                             end if;
-                        else 
-                            internal_enable_shift(i)       <= enable_shift(i);
+                        else
+                            if credit_back(i) = '1' then
+                                internal_enable_shift(i) <= '1';
+                                credit_back(i) <= '0';
+                            else
+                                internal_enable_shift(i) <= enable_shift(i);
+                            end if;
                         end if;
                 end if ;
             end process;

@@ -453,7 +453,7 @@ void io_peripheral::out_proc_FSM(){
                         if(flit_out_counter == (payload_size*2)){
                             EA_out.write(S_SEND_EOP);
                             eop_out_primary.write(true);
-                            flit_out_counter = 0;   
+                            //flit_out_counter = 0;   
                         }                       
                     }
                     else{
@@ -476,7 +476,7 @@ void io_peripheral::out_proc_FSM(){
             case S_WAIT_CREDIT_PAYLOAD:
                 if(credit_i_primary.read() == true){
                     flit_out_counter = flit_out_counter-3 ;
-                    data_out_primary.write(buffer_out_flit[flit_out_counter]);
+                    data_out_primary.write(buffer_out_flit[flit_out_counter+26]);
                     tx_primary.write(true);
                     if(flit_out_counter == (payload_size*2)-1){
                         EA_out.write(S_SEND_EOP);
@@ -490,10 +490,17 @@ void io_peripheral::out_proc_FSM(){
             break;	
 
 			case S_SEND_EOP: //FAZER O ESTADO WAIT EOP ACK DOWN
-				tx_primary.write(false);
-				eop_out_primary.write(false);
-				flit_out_counter = 0;
-				EA_out.write(S_WAIT_REQ);
+                if(credit_i_primary.read() == true){
+                    tx_primary.write(false);
+                    eop_out_primary.write(false);
+                    flit_out_counter = 0;
+                    EA_out.write(S_WAIT_REQ);
+                }
+                else{
+                    EA_out.write(S_WAIT_CREDIT_PAYLOAD);
+                    tx_primary.write(false);
+                    eop_out_primary.write(false);
+                }
 			break;			
 			  
 		}

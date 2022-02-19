@@ -225,7 +225,7 @@ int map_task(int last_proc_address, int task_id, int AppSec){
 				else
 					continue;
 			}
-			x = xf;
+			x = xf-1;
 		}
 	}
 	
