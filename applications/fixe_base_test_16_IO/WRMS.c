@@ -167,7 +167,7 @@ int sqrt(int x)
 }
 
 
-Message msg1,msg2;
+Message msg1,msg2,msgIO;
 
 
 
@@ -194,6 +194,9 @@ int main()
 	dis_wrms=sqrt(div(sum,size_val));
     Echo("distance WRMS : ");
     Echo(fixetoa(dis_wrms));
+
+	msgIO.length = 128;
+	IOSend(&msgIO, IO_PERIPHERAL);
 
     Echo(itoa(GetTick()));
     Echo("Communication WRMS finished.");

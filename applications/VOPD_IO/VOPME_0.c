@@ -4,7 +4,7 @@
 int main()
 {
 
-Message msg;
+Message msg,msgIO;
 int j;
 
 	Echo("VOPME");
@@ -18,6 +18,15 @@ int j;
 	msg.length=66;
 	Receive(&msg,PAD_0);
 	Echo("Recebeu PAD_0");
+
+	/*Comm Peripheral*/
+	msgIO.length = 128;
+	IOSend(&msgIO,IO_PERIPHERAL);
+	
+	/*Comm Peripheral*/
+	msgIO.length = 128;
+	IOReceive(&msgIO,IO_PERIPHERAL);
+
 	msg.length=128;
 	for(j=0;j<2;j++) Send(&msg,PAD_0);
 	Echo("Enviou 3 PAD_0");

@@ -5,7 +5,7 @@ int main()
 {
 
 int j;
-Message msg;
+Message msg,msgIO;
 
 Echo( "b,RISC," );
 
@@ -18,6 +18,15 @@ Echo( "b,RISC," );
 	msg.length=120;
 	Receive(&msg,SRAM2_0);
 	Echo( "r,MPEG_m(8440)," );
+
+	/*Comm Peripheral*/
+	msgIO.length = 128;
+	IOSend(&msgIO,IO_PERIPHERAL6);
+	
+	/*Comm Peripheral*/
+	msgIO.length = 128;
+	IOReceive(&msgIO,IO_PERIPHERAL6);
+
 	/*Comm SRAM2 8440*/
 	msg.length=128;
 	for(j=0;j<65;j++) Send(&msg,SRAM2_0);

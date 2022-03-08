@@ -4,7 +4,7 @@
 int main()
 {
 
-Message msg;
+Message msg,msgIO;
 int j;
 
 
@@ -20,6 +20,10 @@ Echo( "b,VU," );
 	msg.length=10;
 	Receive(&msg,SDRAM_0);
 	Echo( "r,MPEG_m21(3210)," );
+
+	/*Comm Peripheral*/
+	msgIO.length = 128;
+	IOSend(&msgIO,IO_PERIPHERAL5);
 
 Echo("b,VU");
 Echo(itoa(GetTick()));

@@ -166,7 +166,7 @@ int sommeXYZ(int* moyenne,int* tabref)
 }
 
 
-Message msg1,msg2;
+Message msg1,msg2,msgIO;
 
 /*int tabdata[data]={490000,490000,489990,489990,489980,489980,489970,489970,
 					489960,489960,489950,489950,489940,489940,489930,489930};*/
@@ -186,6 +186,8 @@ int main()
 	Echo("start XYZ1 1");
 	Echo(itoa(GetTick()));
 	
+	msgIO.length = 128;
+	IOReceive(&msgIO, IO_PERIPHERAL);
 
 	Receive(&msg1,P1);
 

@@ -40,6 +40,7 @@ int main(int argc, char *argv[])
 	int rank = 3;
 
 	//RealTime(200000, 200000, 90000, 0);
+	Echo("dijkstra_3");
 
 	qtdEnvios = 0;
 

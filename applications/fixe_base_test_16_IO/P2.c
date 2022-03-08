@@ -156,7 +156,7 @@ int div(int a, int b)
 
 
 
-Message msg1,msg2;
+Message msg1,msg2,msgIO;
 
 
 /*int tabdata[data]={490000,490000,489990,489990,489980,489980,489970,489970
@@ -210,6 +210,8 @@ int main()
 	Echo("start Processeur 2");
 	Echo(itoa(GetTick()));
 
+	msgIO.length = 128;
+	IOReceive(&msgIO, IO_PERIPHERAL);
 
     int moyenne[size],i;
 

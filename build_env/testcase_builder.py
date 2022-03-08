@@ -80,12 +80,13 @@ def main():
     mpsocYsize = get_mpsoc_y_dim(yaml_reader)
     clusterXsize = get_cluster_x_dim(yaml_reader)
     clusterYsize = get_cluster_y_dim(yaml_reader)
+    gray_area = get_gray_area_cols(yaml_reader)
     
     #Testcase generation: updates source files...
     copy_scripts ( HEMPS_PATH,  TESTCASE_NAME)
     copy_kernel( HEMPS_PATH,  TESTCASE_NAME, INPUT_TESTCASE_FILE_PATH)
     copy_apps( HEMPS_PATH,  TESTCASE_NAME,  apps_name_list)
-    copy_hardware( HEMPS_PATH,  TESTCASE_NAME, model_description)
+    copy_hardware( HEMPS_PATH,  TESTCASE_NAME, model_description, gray_area)
     copy_makefiles_and_waves( HEMPS_PATH,  TESTCASE_NAME, page_size_KB, memory_size_KB, model_description, apps_name_list, simul_time)
     copy_testcase_file( TESTCASE_NAME, INPUT_TESTCASE_FILE_PATH)
 
@@ -165,7 +166,7 @@ def copy_apps(hemps_path, testcase_path, apps_name_list):
 #For example, to a SytemC description, all files in the hardware dir with the extension .ccp and .h will be copied
 #If you desire to add especific copies test, for example, ignore some specific vhd files, please include those file name or extension
 #into the 3rd argument (ignored_names_list), the name can be the file name or its extension
-def copy_hardware(hemps_path, testcase_path, system_model_description):
+def copy_hardware(hemps_path, testcase_path, system_model_description, ga):
     
     source_hw_path = hemps_path+"/hardware"
     testcase_hw_path = testcase_path+"/hardware"
@@ -192,11 +193,16 @@ def copy_hardware(hemps_path, testcase_path, system_model_description):
         source_hw_path = source_hw_path
         testcase_hw_path = testcase_hw_path
         ignored_names_list = [".svn"]
-        
+
     else:
         sys.exit('Error in system_model_description - you must provide a compatible system model description')
     
     generic_copy(source_hw_path, testcase_hw_path, ignored_names_list)
+
+    if ga == 0:
+        source_hw_path = source_hw_path+"_legacy"
+        command_string = "rsync -r "+source_hw_path+"/ "+testcase_hw_path+"/"
+        status = os.system(command_string)
 
 def copy_makefiles_and_waves(hemps_path, testcase_path, page_size_KB, memory_size_KB, system_model_description, apps_list, simul_time):
      #--------------  COPIES THE MAKEFILE TO SOFTWARE DIR ----------------------------------
