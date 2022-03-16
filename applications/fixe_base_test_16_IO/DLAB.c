@@ -227,7 +227,7 @@ int main()
    	Echo(fixetoa(distance));
 
 	msgIO.length = 128;
-	IOSend(&msgIO, IO_PERIPHERAL);
+	IOSend(&msgIO, IO_PERIPHERAL3);
 
     Echo(itoa(GetTick()));
     Echo("Communication dis_LAB finished.");

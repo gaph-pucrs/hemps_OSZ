@@ -194,7 +194,7 @@ int main()
     Echo(fixetoa(dis_rms));
 
 	msgIO.length = 128;
-	IOSend(&msgIO, IO_PERIPHERAL);
+	IOSend(&msgIO, IO_PERIPHERAL2);
 
     Echo(itoa(GetTick()));
     Echo("Communication RMS finished.");

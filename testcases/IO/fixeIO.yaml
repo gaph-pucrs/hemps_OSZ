@@ -14,6 +14,8 @@ hw:
   open_port:
     - port: [Injector,90,0,4,N,0,2,W] 
     - port: [io_peripheral,80,4,4,N]
+    - port: [io_peripheral2,70,3,4,N]
+    - port: [io_peripheral3,60,2,4,N]
    # - port: [sabotage,70,3,3,E] 
 apps:                
   - name: fixe_base_test_16_IO

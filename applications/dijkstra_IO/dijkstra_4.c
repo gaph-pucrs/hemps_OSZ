@@ -40,7 +40,6 @@ int main(int argc, char *argv[])
 	int rank = 4;
 
 	//RealTime(200000, 200000, 90000, 0); //RealTime(200000, 200000, 90000, 0); - 45% nos primeiros 2s
-	Echo("dijkstra_4");
 
 	qtdEnvios = 0;
 

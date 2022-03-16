@@ -39,7 +39,6 @@ int main(int argc, char *argv[])
 	Message msg;
 
 	//RealTime(200000, 200000, 90000, 0);
-	Echo("dijkstra_1");
 
 	int rank = 1;
 	qtdEnvios = 0;

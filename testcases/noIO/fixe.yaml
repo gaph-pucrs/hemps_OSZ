@@ -13,8 +13,6 @@ hw:
     cols: [0]
   open_port:
     - port: [Injector,90,0,4,N,0,2,W] 
-   # - port: [io_peripheral,80,3,3,N]
-   # - port: [io_peripheral2,70,2,3,N] 
    # - port: [sabotage,70,3,3,E] 
 apps:                
   - name: fixe_base_test_16

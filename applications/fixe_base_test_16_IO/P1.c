@@ -207,7 +207,7 @@ int main()
 
     int moyenne[size],i,j;
 
-	msgIO.length = 128;
+	msgIO.length = 16;
 	IOReceive(&msgIO, IO_PERIPHERAL);
 
 	calcul_moyenne(moyenne);

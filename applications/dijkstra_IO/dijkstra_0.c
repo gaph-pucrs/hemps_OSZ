@@ -41,8 +41,6 @@ int main(int argc, char *argv[])
 
 	//RealTime(200000, 200000, 90000, 0);
 
-	Echo("dijkstra_0");
-
 	qtdEnvios = 0;
 
 	msg.length = NUM_NODES*(NUM_NODES-1)/2;
