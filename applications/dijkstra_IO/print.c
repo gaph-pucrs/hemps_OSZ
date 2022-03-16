@@ -22,7 +22,6 @@ int main(int argc, char *argv[])
 	ended = 0;
 
 	//RealTime(103349, 103349, 87835, 0);
-	Echo("dijkstra_print");
 
 	pthread_n_workers = NPROC;
 

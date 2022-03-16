@@ -58,6 +58,8 @@ void Set_Secure_Zone(unsigned int left_low_corner, unsigned int right_high_corne
   if ((my_X_addr < LL_X_addr) || (my_Y_addr < LL_Y_addr))
     return;
   
+  LOCAL_left_low_corner = left_low_corner;
+	LOCAL_right_high_corner = right_high_corner;
 
 	// puts("X");puts(itoh(my_X_addr));puts(" ");
 	// puts("Y");puts(itoh(my_Y_addr));puts("\n");
@@ -97,8 +99,7 @@ void Set_Secure_Zone(unsigned int left_low_corner, unsigned int right_high_corne
 	if(isolated_ports != 0){
 		wrapper_value = isolated_ports;
 		//MemoryWrite(WRAPPER_REGISTER,isolated_ports);
-		LOCAL_left_low_corner = left_low_corner;
-		LOCAL_right_high_corner = right_high_corner;
+    seek_puts("[Set Secure Zone] LOCAL_right_high_corner = "); seek_puts(itoa(LOCAL_right_high_corner)); puts("\n");
 		if((my_X_addr == RH_X_addr) && (my_Y_addr == RH_Y_addr)){
 			Seek(SET_SZ_RECEIVED_SERVICE, get_net_address(), master_PE, right_high_corner);
 			seek_puts("SET SZ RH: ");seek_puts(itoh(LOCAL_right_high_corner));seek_puts("\n");	
@@ -237,9 +238,8 @@ if(noCut == 0){
   if(myOSZ){
     //if((my_X_addr == LOCAL_RH_X_addr) && (my_Y_addr == LOCAL_RH_Y_addr)){
       Seek(SECURE_ZONE_CLOSED_SERVICE, get_net_address(), master_PE, LOCAL_right_high_corner);
-      puts("ENDSZ RH:");puts(itoh(LOCAL_right_high_corner));puts("\n");
-
       #ifdef GRAY_AREA
+      puts("ENDSZ RH:");puts(itoh(LOCAL_right_high_corner));puts("\n"); 
       config_AP_SZ();
       #endif
   }
@@ -710,7 +710,7 @@ int find_SZ_position_and_direction_to_IO(int peripheral_id){
         }
     }
     if (port_io == -1) {
-        puts("ERROR: peripheral_id not found!\n");
+        puts("[OSZ2]ERROR: peripheral_id not found!\n");
         return -1;
         //while(1){};
 
@@ -796,6 +796,10 @@ int find_SZ_position_and_direction_to_IO(int peripheral_id){
             port_back = 0;                 
         }
     }
+    // puts("address_go: ");puts(itoa(address_go));puts("\n");
+    // puts("address_back: ");puts(itoa(address_back));puts("\n");
+    // puts("port_go: ");puts(itoa(port_go));puts("\n");
+    // puts("port_back: ");puts(itoa(port_back));puts("\n");  
     return 1;
 }
 #ifdef GRAY_AREA
@@ -976,13 +980,16 @@ void send_wrapper_close_back__open_forward(int CM_index){ //Tentar inverter a or
 
 	send_packet(p, 0, 0);
 
- //---------------------------------------------------------------------------------
+  puts("Mandou1: "); puts("\n");
+
+    ---------------------------------------------------------------------------------
 	p->header[MAX_SOURCE_ROUTING_PATH_SIZE-2] = (0x1 << 28) | ((0X3F00 & address_back) << 14)| ((0X003F & address_back) << 16)| address_back;
 	p->header[MAX_SOURCE_ROUTING_PATH_SIZE-1] = (0x1 << 28) | ((0X3F00 & address_back) << 14)| ((0X003F & address_back) << 16)| address_back;
 
 	p->io_port = port_go;
 
 	p->io_direction = CLEAR_INPUT_DIRECTION;
+  // p->io_direction = OUTPUT_DIRECTION;
 
 	if(io_service == 0)  //io_service: 0 - REQUEST   1 - DELIVERY
 		p->io_service = IO_DELIVERY;
@@ -990,6 +997,9 @@ void send_wrapper_close_back__open_forward(int CM_index){ //Tentar inverter a or
 		p->io_service = IO_ACK;
 
 	send_packet(p, 0, 0);
+
+  puts("Mandou2: "); puts("\n");
+  return;
 }
 
 void send_wrapper_close_forward(int CM_index){

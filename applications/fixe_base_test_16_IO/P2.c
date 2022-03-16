@@ -210,7 +210,7 @@ int main()
 	Echo("start Processeur 2");
 	Echo(itoa(GetTick()));
 
-	msgIO.length = 128;
+	msgIO.length = 16;
 	IOReceive(&msgIO, IO_PERIPHERAL);
 
     int moyenne[size],i;

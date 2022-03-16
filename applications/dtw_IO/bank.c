@@ -22,7 +22,7 @@ void randPattern(int in[SIZE][SIZE]){
 
 	for(i=0; i<SIZE; i++){
 		for(j=0; j<SIZE; j++){
-			in[i][j] = abs(rand(23, 2, 100)%5000);
+			in[i][j] = abs(rand(23, 1, 100));
 		}
 	}
 }

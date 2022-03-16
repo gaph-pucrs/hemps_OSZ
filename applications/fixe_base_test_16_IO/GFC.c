@@ -201,7 +201,7 @@ int main()
     Echo(fixetoa(gfc));
 
 	msgIO.length = 128;
-	IOSend(&msgIO, IO_PERIPHERAL);
+	IOSend(&msgIO, IO_PERIPHERAL2);
 
     Echo(itoa(GetTick()));
     Echo("Communication GFC finished.");

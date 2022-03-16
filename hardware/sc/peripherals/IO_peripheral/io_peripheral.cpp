@@ -453,7 +453,7 @@ void io_peripheral::out_proc_FSM(){
                         if(flit_out_counter == (payload_size*2)){
                             EA_out.write(S_SEND_EOP);
                             eop_out_primary.write(true);
-                            flit_out_counter = 0;   
+                            //flit_out_counter = 0;   
                         }                       
                     }
                     else{
@@ -476,7 +476,7 @@ void io_peripheral::out_proc_FSM(){
             case S_WAIT_CREDIT_PAYLOAD:
                 if(credit_i_primary.read() == true){
                     flit_out_counter = flit_out_counter-3 ;
-                    data_out_primary.write(buffer_out_flit[flit_out_counter]);
+                    data_out_primary.write(buffer_out_flit[flit_out_counter+26]);
                     tx_primary.write(true);
                     if(flit_out_counter == (payload_size*2)-1){
                         EA_out.write(S_SEND_EOP);
@@ -490,12 +490,37 @@ void io_peripheral::out_proc_FSM(){
             break;	
 
 			case S_SEND_EOP: //FAZER O ESTADO WAIT EOP ACK DOWN
-				tx_primary.write(false);
-				eop_out_primary.write(false);
-				flit_out_counter = 0;
-				EA_out.write(S_WAIT_REQ);
-			break;			
-			  
+                if(credit_i_primary.read() == true){
+                    flit_out_counter = flit_out_counter + 1; 
+                    tx_primary.write(false);
+                    eop_out_primary.write(false);
+                    EA_out.write(S_WAIT_RX_OF_EOP);
+                }
+                else{
+                    EA_out.write(S_WAIT_CREDIT_PAYLOAD);
+                    tx_primary.write(false);
+                    eop_out_primary.write(false);
+                }
+			break;
+
+            //There is a delay between the sending of a flit in the peripheral
+            //and the reception of the flit in the router. This state waits the
+            //arrival of the eop in the router, asserting credit_i is high, before
+            //ending the transmission by transitioning to the state S_WAIT_REQ
+            case S_WAIT_RX_OF_EOP:
+                if(credit_i_primary.read() == false){
+                    EA_out.write(S_WAIT_CREDIT_PAYLOAD);
+                }
+                else if(flit_out_counter == (payload_size*2)+2){ //wait two cycles after sending eop
+                    flit_out_counter = 0;
+                    EA_out.write(S_WAIT_REQ);
+                }
+                else{
+                    flit_out_counter = flit_out_counter + 1;
+                    EA_out.write(S_WAIT_RX_OF_EOP);
+                }
+            break;
+
 		}
 	}
 }

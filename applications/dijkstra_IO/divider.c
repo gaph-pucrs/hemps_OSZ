@@ -33,14 +33,14 @@ int main(int argc, char *argv[])
 	Message msgIO;
 	
 	//IO: get num nodes
-	// msgIO.length = 1;
+	msgIO.length = 1;
 	IOReceive(&msgIO, IO_PERIPHERAL);
 
 	//IO: get graph
 	int num_weights = NUM_NODES * NUM_NODES;
 	for(int x = 0; x < num_weights; x += MSG_SIZE)
 	{
-		// msgIO.length = (num_weights - x > MSG_SIZE) ? MSG_SIZE : num_weights - x;
+		msgIO.length = (num_weights - x > MSG_SIZE) ? MSG_SIZE : num_weights - x;
 		IOReceive(&msgIO, IO_PERIPHERAL);
 		Echo(".");
 	}

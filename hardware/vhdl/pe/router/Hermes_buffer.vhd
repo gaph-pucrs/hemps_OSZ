@@ -26,17 +26,17 @@
 --                         --------------
 --
 --  Quando o algoritmo de chaveamento resulta no bloqueio dos flits de um pacote,
---  ocorre uma perda de desempenho em toda rede de interconexão, porque os flits são
---  bloqueados não somente na chave atual, mas em todas as intermediárias.
+--  ocorre uma perda de desempenho em toda rede de interconexï¿½o, porque os flits sï¿½o
+--  bloqueados nï¿½o somente na chave atual, mas em todas as intermediï¿½rias.
 --  Para diminuir a perda de desempenho foi adicionada uma fila em cada porta de
 --  entrada da chave, reduzindo as chaves afetadas com o bloqueio dos flits de um
---  pacote. É importante observar que quanto maior for o tamanho da fila menor será o
---  número de chaves intermediárias afetadas.
---  As filas usadas contêm dimensão e largura de flit parametrizáveis, para alterá-las
+--  pacote. ï¿½ importante observar que quanto maior for o tamanho da fila menor serï¿½ o
+--  nï¿½mero de chaves intermediï¿½rias afetadas.
+--  As filas usadas contï¿½m dimensï¿½o e largura de flit parametrizï¿½veis, para alterï¿½-las
 --  modifique as constantes TAM_BUFFER e TAM_FLIT no arquivo "packet.vhd".
 --  As filas funcionam como FIFOs circulares. Cada fila possui dois ponteiros: first e
---  last. First aponta para a posição da fila onde se encontra o flit a ser consumido.
---  Last aponta para a posição onde deve ser inserido o próximo flit.
+--  last. First aponta para a posiï¿½ï¿½o da fila onde se encontra o flit a ser consumido.
+--  Last aponta para a posiï¿½ï¿½o onde deve ser inserido o prï¿½ximo flit.
 ---------------------------------------------------------------------------------------
 library IEEE;
 use IEEE.std_logic_1164.all;  
@@ -194,9 +194,9 @@ begin
 
 
 
-			elsif fail_in = '1' then
-				eop(CONV_INTEGER(last-1)) <= '1';
-				flit_counter <= (others=>'0');
+			-- elsif fail_in = '1' and available_slot = '1' then
+			-- 	eop(CONV_INTEGER(last-1)) <= '1';
+			-- 	flit_counter <= (others=>'0');
 			end if;
 
 			-- Verifies if a flit is transmited.

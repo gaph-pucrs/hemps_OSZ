@@ -592,7 +592,6 @@ int Syscall(unsigned int service, unsigned int arg0, unsigned int arg1, unsigned
 
 			consumer_task =  current->id;
 			//producer_task = (int) arg1;
-
 			#ifdef GRAY_AREA
 			for(i = 0; i < IO_NUMBER; i++){
 				if(io_info[i].peripheral_id == arg1){
@@ -631,7 +630,6 @@ int Syscall(unsigned int service, unsigned int arg0, unsigned int arg1, unsigned
 				}
 			}
 			#endif
-
 			send_io_request(arg1, consumer_task, net_address, current->secure);
 
 
