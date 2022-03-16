@@ -138,8 +138,7 @@ begin
     dirx <= WEST0 when lx > tx else EAST0;
     diry <= NORTH0 when ly < ty else SOUTH0;
 
-	-- io_mask_wrapper <= '1' when ke_reg = x"000" else '0';
-	io_mask_wrapper <= '0';
+	io_mask_wrapper <= '1' when ke_reg = x"000" else '0';
 
     -- Round Robin: seleciona uma das portas de entrada para o roteamento (prox).	
 	process(sel,req_routing)

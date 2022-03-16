@@ -58,6 +58,8 @@ void Set_Secure_Zone(unsigned int left_low_corner, unsigned int right_high_corne
   if ((my_X_addr < LL_X_addr) || (my_Y_addr < LL_Y_addr))
     return;
   
+  LOCAL_left_low_corner = left_low_corner;
+	LOCAL_right_high_corner = right_high_corner;
 
 	// puts("X");puts(itoh(my_X_addr));puts(" ");
 	// puts("Y");puts(itoh(my_Y_addr));puts("\n");
@@ -97,8 +99,7 @@ void Set_Secure_Zone(unsigned int left_low_corner, unsigned int right_high_corne
 	if(isolated_ports != 0){
 		wrapper_value = isolated_ports;
 		//MemoryWrite(WRAPPER_REGISTER,isolated_ports);
-		LOCAL_left_low_corner = left_low_corner;
-		LOCAL_right_high_corner = right_high_corner;
+    seek_puts("[Set Secure Zone] LOCAL_right_high_corner = "); seek_puts(itoa(LOCAL_right_high_corner)); puts("\n");
 		if((my_X_addr == RH_X_addr) && (my_Y_addr == RH_Y_addr)){
 			Seek(SET_SZ_RECEIVED_SERVICE, get_net_address(), master_PE, right_high_corner);
 			seek_puts("SET SZ RH: ");seek_puts(itoh(LOCAL_right_high_corner));seek_puts("\n");	
@@ -237,8 +238,10 @@ if(noCut == 0){
   if(myOSZ){
     //if((my_X_addr == LOCAL_RH_X_addr) && (my_Y_addr == LOCAL_RH_Y_addr)){
       Seek(SECURE_ZONE_CLOSED_SERVICE, get_net_address(), master_PE, LOCAL_right_high_corner);
+      #ifdef GRAY_AREA
       puts("ENDSZ RH:");puts(itoh(LOCAL_right_high_corner));puts("\n"); 
       config_AP_SZ();
+      #endif
   }
     //seek_puts("wrapper:");seek_puts(itoh(isolated_ports));seek_puts("\n");
   wrapper_value = isolated_ports;
@@ -919,7 +922,7 @@ void open_wrapper_IO_SZ(int peripheral_id, int io_service){ // io_service: 0 - r
 	else
 		p->io_service = IO_DELIVERY;
 
-	// send_packet(p, 0, 0);
+	send_packet(p, 0, 0);
 
     //------------------------------------------------------------------------------
     //IN_WRAPPER
@@ -934,7 +937,7 @@ void open_wrapper_IO_SZ(int peripheral_id, int io_service){ // io_service: 0 - r
 	else
 		p->io_service = IO_ACK;
 
-	// send_packet(p, 0, 0);
+	send_packet(p, 0, 0);
 
 }
 
@@ -985,8 +988,8 @@ void send_wrapper_close_back__open_forward(int CM_index){ //Tentar inverter a or
 
 	p->io_port = port_go;
 
-	// p->io_direction = CLEAR_INPUT_DIRECTION;
-  ///p->io_direction = OUTPUT_DIRECTION;
+	p->io_direction = CLEAR_INPUT_DIRECTION;
+  // p->io_direction = OUTPUT_DIRECTION;
 
 	if(io_service == 0)  //io_service: 0 - REQUEST   1 - DELIVERY
 		p->io_service = IO_DELIVERY;
