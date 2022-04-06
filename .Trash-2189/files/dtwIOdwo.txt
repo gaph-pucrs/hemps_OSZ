@@ -1,2 +1,0 @@
-ERROR: Invalid testcase file path passed as 1st argument, e.g: hemps-run <my_testcase>.yaml <time_in_ms>
-ERROR: Invalid testcase file path passed as 1st argument, e.g: hemps-run <my_testcase>.yaml <time_in_ms>
