@@ -165,10 +165,6 @@ void Seek(unsigned int service, unsigned int source, unsigned int target, unsign
 			case END_TASK_OTHER_CLUSTER_SERVICE:
 			case START_APP_SERVICE:
 			case TASK_ALLOCATED_SERVICE:
-			case SET_SECURE_ZONE_SERVICE:
-			case SET_SZ_RECEIVED_SERVICE:
-			case SET_EXCESS_SZ_SERVICE:
-			case OPEN_SECURE_ZONE_SERVICE:
 			case SECURE_ZONE_CLOSED_SERVICE:
 			case SECURE_ZONE_OPENED_SERVICE:
 			case UNFREEZE_TASK_SERVICE:
@@ -182,6 +178,10 @@ void Seek(unsigned int service, unsigned int source, unsigned int target, unsign
 				 MemoryWrite(SEEK_OPMODE_REGISTER,GLOBAL_MODE);
 			break;
 
+			case SET_SZ_RECEIVED_SERVICE:
+			case OPEN_SECURE_ZONE_SERVICE:
+			case SET_SECURE_ZONE_SERVICE:
+			case SET_EXCESS_SZ_SERVICE:
 			case TARGET_UNREACHABLE_SERVICE:
 			case BACKTRACK_SERVICE:
 			case SEARCHPATH_SERVICE:

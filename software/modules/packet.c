@@ -196,9 +196,9 @@ void send_packet(ServiceHeader *p, unsigned int initial_address, unsigned int dm
 			// p->header[MAX_SOURCE_ROUTING_PATH_SIZE-1] = p->header[MAX_SOURCE_ROUTING_PATH_SIZE-2];
 			p->header[MAX_SOURCE_ROUTING_PATH_SIZE-1] = p->header[MAX_SOURCE_ROUTING_PATH_SIZE-1];
 
-			puts("Header OPEN WRAPPER\n")
-			puts("p->header1:");puts(itoh(p->header[MAX_SOURCE_ROUTING_PATH_SIZE-2]));puts("\n");
-			puts("p->header2:");puts(itoh(p->header[MAX_SOURCE_ROUTING_PATH_SIZE-1]));puts("\n");
+			// puts("Header OPEN WRAPPER\n")
+			// puts("p->header1:");puts(itoh(p->header[MAX_SOURCE_ROUTING_PATH_SIZE-2]));puts("\n");
+			// puts("p->header2:");puts(itoh(p->header[MAX_SOURCE_ROUTING_PATH_SIZE-1]));puts("\n");
 
 			packet_type = DISTRIBUTED_ROUTING;
 		}

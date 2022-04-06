@@ -624,7 +624,7 @@ void pe::seek_receive(){
 	}
 	else{
 		if (out_req_router_seek_local.read() == 1){
-			if (in_ack_router_seek_local.read() == 0 && int_seek.read()==0 && int_dmni_seek.read() == 0){
+			if (in_ack_router_seek_local.read() == 0 && int_seek.read()==0 && int_dmni_seek.read() == 0 && out_service_router_seek_local.read() != 0x3){
 				cout << "router ";
 				cout << hex << router_address;
 				cout << ": received service ";

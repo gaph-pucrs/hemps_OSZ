@@ -325,7 +325,7 @@ begin
 				when S1 =>
                 	
                     -- Enable IO packets inside SZ                    
-                    if header(TAM_FLIT_32-1 downto TAM_FLIT_32-4) /= IO_PACKET then
+                    if header_fixed(TAM_FLIT_32-1 downto TAM_FLIT_32-4) /= IO_PACKET then
                     --if header(TAM_FLIT_32-1 downto TAM_FLIT_32-4) /= IO_PACKET and header(TAM_FLIT_32-1 downto TAM_FLIT_32-4) /= "0111" then
                         io_mask_wrapper(sel) <= '1';
                         counter := 6;

@@ -822,21 +822,21 @@ int find_AccessPoint(){
 
     if (ga.rows[0]-1 == RH_Y_addr)
     {
-      // puts("Colocando AP no topo\n");
+      puts("Colocando AP no topo\n");
       medium_X = LL_X_addr + ((RH_X_addr - LL_X_addr)/2);
       address_go   = ( medium_X << 8 ) | RH_Y_addr;
       address_back = ( medium_X << 8 ) | RH_Y_addr;
       port_go = NORTH;
       port_back = NORTH;
     } else if(ga.cols[MAX_GRAY_COLS-1] < LL_X_addr){        
-      // puts("--Gray Area a esquerda\n");
+      puts("--Gray Area a esquerda\n");
       address_go   = ( LL_X_addr << 8 ) | RH_Y_addr;
       address_back = ( LL_X_addr << 8 ) | RH_Y_addr;
       port_go = WEST;
       port_back = WEST;
     }
     else if(ga.cols[0] > RH_X_addr){
-      // puts("--Gray Area a direita\n");
+      puts("--Gray Area a direita\n");
       address_go   = ( RH_X_addr << 8 ) | RH_Y_addr;
       address_back = ( RH_X_addr << 8 ) | RH_Y_addr;
       port_go = EAST;
@@ -980,16 +980,13 @@ void send_wrapper_close_back__open_forward(int CM_index){ //Tentar inverter a or
 
 	send_packet(p, 0, 0);
 
-  puts("Mandou1: "); puts("\n");
-
-    ---------------------------------------------------------------------------------
+    //---------------------------------------------------------------------------------
 	p->header[MAX_SOURCE_ROUTING_PATH_SIZE-2] = (0x1 << 28) | ((0X3F00 & address_back) << 14)| ((0X003F & address_back) << 16)| address_back;
 	p->header[MAX_SOURCE_ROUTING_PATH_SIZE-1] = (0x1 << 28) | ((0X3F00 & address_back) << 14)| ((0X003F & address_back) << 16)| address_back;
 
 	p->io_port = port_go;
 
 	p->io_direction = CLEAR_INPUT_DIRECTION;
-  // p->io_direction = OUTPUT_DIRECTION;
 
 	if(io_service == 0)  //io_service: 0 - REQUEST   1 - DELIVERY
 		p->io_service = IO_DELIVERY;
@@ -998,8 +995,6 @@ void send_wrapper_close_back__open_forward(int CM_index){ //Tentar inverter a or
 
 	send_packet(p, 0, 0);
 
-  puts("Mandou2: "); puts("\n");
-  return;
 }
 
 void send_wrapper_close_forward(int CM_index){

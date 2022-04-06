@@ -1116,8 +1116,8 @@ int SeekInterruptHandler(){
 				allocate_cluster_resource(selected_cluster, payload);
 				waiting_app_allocation = 1; //flag para evitar que outra aplicação seja alocada junto
 				selected_cluster_proc = get_cluster_proc(selected_cluster); //Pega o endereço do mestre local
-				Seek(NEW_APP_ACK_SERVICE, app_id_counter, selected_cluster_proc, source); 
-				puts("\n");
+				Seek(NEW_APP_ACK_SERVICE, ((MemoryRead(TICK_COUNTER) << 16) & 0xFFFF0000) | app_id_counter, selected_cluster_proc, source); 
+				puts("Sent NEW APP ACK\n");
 				app_id_counter++;	
 			}
 		break;

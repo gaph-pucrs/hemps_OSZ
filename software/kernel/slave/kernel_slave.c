@@ -566,7 +566,7 @@ int Syscall(unsigned int service, unsigned int arg0, unsigned int arg1, unsigned
   							auxBT >> 32 & 0xffffFFFF,
   							auxBT >> 64 & 0xffffFFFF);
 						send_peripheral_SR_path(slotSR, arg1, current->secure);
-						// puts("--slot_adjust: ");puts(itoa(slotSR)); puts("\n");
+						puts("--slot_adjust: ");puts(itoa(slotSR)); puts("\n");
 						ClearSlotSourceRouting(get_net_address());
 					}
 				break;
@@ -1411,7 +1411,7 @@ int SeekInterruptHandler(){
 	PipeSlot* tmpSlot;
 	ServiceHeader* auxService = 0;
 	int task_loc;
-	static prevTUS = 0;
+	static prevTUS = -1;
 	
 	switch(service){
 		case TARGET_UNREACHABLE_SERVICE:
@@ -1458,7 +1458,10 @@ int SeekInterruptHandler(){
 			// seek_puts("slot: "); seek_puts(itoa(slot_seek)); seek_puts("\n");
 			Seek(CLEAR_SERVICE, ((SR_Table[slot_seek].target<<16) | (get_net_address()&0xffff)), 0,0);
 			aux = resend_messages(SR_Table[slot_seek].target);
+			puts("resend 1:"); puts(itoa(aux)); puts("\n");
 			aux = aux + resend_msg_request(SR_Table[slot_seek].target);
+			puts("resend 2:"); puts(itoa(aux)); puts("\n");
+
 
 			if(aux == 0){
 				aux =  search_Target(source>>16);
@@ -1475,8 +1478,8 @@ int SeekInterruptHandler(){
 				int peripheral_id;
 				peripheral_id = find_io_peripheral(get_net_address());
 				if(peripheral_id){
-					send_peripheral_SR_path(slot_seek, peripheral_id, target);
 					puts(" SR Peripheral\n"); 
+					send_peripheral_SR_path(slot_seek, peripheral_id, target);
 				}
 			}
 		break;

@@ -805,7 +805,7 @@ void send_peripheral_SR_path(int slot_seek, int peripheral_ID, int secure){
 		send_wrapper_open_forward(peripheral_ID, 1);  // IO_service: 0 - request; 1 - delivery
 	}
 	#endif
-
+	
 	p->service = IO_SR_PATH;
 
 	p->SR_target = SR_Table[slot_seek].target;
@@ -822,7 +822,4 @@ void send_peripheral_SR_path(int slot_seek, int peripheral_ID, int secure){
 	//add_msg_request(p->header[MAX_SOURCE_ROUTING_PATH_SIZE-1], consumer_task, peripheral_ID); //caimi: arrumar header
 
 	send_packet_io(p, &SR_Table[slot_seek].path[0], SR_Table[slot_seek].path_size, peripheral_ID);
-
-
-
 }

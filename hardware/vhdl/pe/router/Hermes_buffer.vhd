@@ -194,9 +194,9 @@ begin
 
 
 
-			-- elsif fail_in = '1' and available_slot = '1' then
-			-- 	eop(CONV_INTEGER(last-1)) <= '1';
-			-- 	flit_counter <= (others=>'0');
+			--   elsif fail_in = '1' and available_slot = '1' then
+			--  	eop(CONV_INTEGER(last-1)) <= '1';
+			--  	flit_counter <= (others=>'0');
 			end if;
 
 			-- Verifies if a flit is transmited.

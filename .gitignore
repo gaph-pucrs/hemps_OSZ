@@ -2,3 +2,4 @@
 testcases/*
 
 !testcases/examples
+.trash

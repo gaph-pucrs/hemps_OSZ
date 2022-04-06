@@ -6,7 +6,7 @@
 #define PATTERN_PER_TASK	NUM_PATTERNS/TOTAL_TASKS
 
 
-#define NUM_PATTERNS			40//40
+#define NUM_PATTERNS			200//40
 
 
 int P[TOTAL_TASKS] = {p1,p2,p3,p4};

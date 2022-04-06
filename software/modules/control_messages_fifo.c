@@ -179,7 +179,7 @@ int search_Target(unsigned int target){
 	unsigned int aux_header;
 	int  x, i;
 	
-	//puts("Target: "); puts(itoh(target)); puts("\n");
+	// puts("Target: "); puts(itoh(target)); puts("\n");
 	if(cmfifo_ptr>0)
 		i = cmfifo_ptr-1;
 	else
@@ -191,10 +191,10 @@ int search_Target(unsigned int target){
 		x = MAX_SOURCE_ROUTING_PATH_SIZE-1;
 		while((x >= 0) && aux_header != 0){
 		     aux_header = CMFifo[i].service_header.header[x] & 0xffff;
-			 //puts("aux_header: "); puts(itoh(aux_header)); puts("\n");
-			 //puts("teste: "); puts(itoh((aux_header & 0xffff) == target)); puts("\n");
+			//  puts("aux_header: "); puts(itoh(aux_header)); puts("\n");
+			//  puts("teste: "); puts(itoh((aux_header & 0xffff) == target)); puts("\n");
 			 if(aux_header == target ){
-			 		//puts("found: "); puts(itoh(target)); puts("\n");
+			 		// puts("found: "); puts(itoh(target)); puts("\n");
 					return i;
 			 }
 			 x--;
@@ -230,9 +230,9 @@ void print_CM_FIFO(){
 int resend_control_message(unsigned int backtrack, unsigned int backtrack1, unsigned int backtrack2, unsigned int target){
 	int CMFifo_index;
 
-	//print_CM_FIFO();
+	// print_CM_FIFO();
 	CMFifo_index = search_Target(target);
-	//puts("CMFifo_index: "); puts(itoh(CMFifo_index)); puts("\n");
+	// puts("CMFifo_index: "); puts(itoh(CMFifo_index)); puts("\n");
 	if(CMFifo_index != -1){
 		if((CMFifo[CMFifo_index].service_header.service != IO_DELIVERY) && (CMFifo[CMFifo_index].service_header.service != IO_REQUEST)){
 			//puts("\nSR control message\n");
@@ -242,7 +242,7 @@ int resend_control_message(unsigned int backtrack, unsigned int backtrack1, unsi
 		}
 		else{ // ajustar backtrack para o IO
 			//puts("SR IO message\n");
-			puts("target: "); puts(itoh(SR_Table[slot_seek].target)); puts("\n");			
+			// puts("target: "); puts(itoh(SR_Table[slot_seek].target)); puts("\n");			
 			adjust_backtrack_IO(backtrack, backtrack1, backtrack2, target);
 			// service_header.cluster_ID contains the peripheral_ID; service_header.task_ID contains the io_service;
 			#ifndef GRAY_AREA
