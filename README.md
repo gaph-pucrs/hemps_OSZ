@@ -1,4 +1,4 @@
-# hemps_OSZ - Golden
+# hemps_OSZ - Gold 1.0
 
 Versão da HeMPS com mecanismos de segurança:
 * Opaque Secure Zones (OSZ)
