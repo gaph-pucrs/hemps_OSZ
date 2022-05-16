@@ -53,34 +53,28 @@ def generate_testbench_h( yaml_r ):
     ############################# verify if peripheral file exists in /hardware/sc/peripherals/IO_peripheral/ directory
     ############################# to include the respective .h file in testbench
     for port in open_ports:
-	foo = re.compile(r'\d\d*\w*', flags=re.IGNORECASE)
-        module_name = foo.sub ('',  port[0])
-       ## module_name = re.sub (r'\d\d*\w*', '',  port[0], flags=re.IGNORECASE)
-	foo = re.compile(r'_(?![a-z])', flags=re.IGNORECASE)
-        module_name = foo.sub ( '', module_name)        
-	#module_name = re.sub (r'_(?![a-z])', '', module_name, flags=re.IGNORECASE)
+        module_name = re.sub (r'\d\d*\w*', '',  port[0], flags=re.IGNORECASE)
+        module_name = re.sub (r'_(?![a-z])', '', module_name, flags=re.IGNORECASE)
 
         file_name = str.lower(module_name + ".h")
         if file_name in peripheral_files:
             file_lines.append("#include \"./peripherals/IO_peripheral/"+ str(file_name) + "\"\n")
         else:
-            print "FATAL ERROR: peripheral file " + str(file_name) + " not found in /hardware/sc/peripherals/IO_peripheral/ directory\n"
-            print "\'testbench.h\'' automatic generation requeriments: "
-            print "     - the peripheral file name and hardware module MUST have same write, using lowercase letters"
-            print "       e.g.: \'injector.h\' to the file and \'injector\' to the name of hardware module "
-            print "     - the peripheral name in yaml testcase file MUST start with the hardware module name (but not the same):"
-            print "       e.g.: [injector1, 2, 0, S, 0, 1, W]"
-            print "             [injector_1, 2, 0, S, 0, 1, W]"
-            print "             [Injector, 2, 0, S, 0, 1, W]"
+            print ("FATAL ERROR: peripheral file " + str(file_name) + " not found in /hardware/sc/peripherals/IO_peripheral/ directory\n")
+            print ("\'testbench.h\'' automatic generation requeriments: ")
+            print ("     - the peripheral file name and hardware module MUST have same write, using lowercase letters")
+            print ("       e.g.: \'injector.h\' to the file and \'injector\' to the name of hardware module ")
+            print ("     - the peripheral name in yaml testcase file MUST start with the hardware module name (but not the same):")
+            print ("       e.g.: [injector1, 2, 0, S, 0, 1, W]")
+            print ("             [injector_1, 2, 0, S, 0, 1, W]")
+            print ("             [Injector, 2, 0, S, 0, 1, W]")
             sys.exit( )
 
 
         ############################# verify if hardware module is defined in .h file of respective peripheral
         file_to_open = "hardware/sc/peripherals/IO_peripheral/"+str(file_name)
 
-      #  with open(file_to_open, "r") as openfileobject:
-	openfileobject = open(file_to_open);
-	try:
+        with open(file_to_open) as openfileobject:
             flag = 0
             string_to_search = "SC_MODULE("+str.lower(module_name)
             #print string_to_search
@@ -91,18 +85,16 @@ def generate_testbench_h( yaml_r ):
                     #print "Achou"
                     break
             if flag == 0:
-                print "FATAL ERROR: hardware module not found in /hardware/sc/peripherals/IO_peripheral/" + str(item)
-                print "\'testbench.h\'' automatic generation requeriments: "
-                print "     - the peripheral file name and hardware module MUST have same write, using lowercase letters"
-                print "       e.g.: \'injector.h\' to the file and \'injector\' to the name of hardware module "
-                print "     - the peripheral name in yaml testcase file MUST start with the hardware module name:"
-                print "       e.g.: [injector1, 2, 0, S, 0, 1, W]"
-                print "             [injector_1, 2, 0, S, 0, 1, W]"
-                print "             [Injector, 2, 0, S, 0, 1, W]"
+                print ("FATAL ERROR: hardware module not found in /hardware/sc/peripherals/IO_peripheral/" + str(item))
+                print ("\'testbench.h\'' automatic generation requeriments: ")
+                print ("     - the peripheral file name and hardware module MUST have same write, using lowercase letters")
+                print ("       e.g.: \'injector.h\' to the file and \'injector\' to the name of hardware module ")
+                print ("     - the peripheral name in yaml testcase file MUST start with the hardware module name:")
+                print ("       e.g.: [injector1, 2, 0, S, 0, 1, W]")
+                print ("             [injector_1, 2, 0, S, 0, 1, W]")
+                print ("             [Injector, 2, 0, S, 0, 1, W]")
                 sys.exit( )
-	finally:
-		openfileobject.close()
-	
+
     file_lines.append("\n")
     file_lines.append("SC_MODULE(test_bench) {\n")
     file_lines.append("    \n")
@@ -121,12 +113,8 @@ def generate_testbench_h( yaml_r ):
     ############################# and change the pointer name if equal (module and pointer equal result in compilation error)
     ############################# then declare the peripheral hardware pointer
     for port in open_ports:
-	foo = re.compile(r'\d\d*\w*', flags=re.IGNORECASE)
-        module_name = foo.sub ('',  port[0])
-	foo = re.compile(r'_(?![a-z])', flags=re.IGNORECASE)
-        module_name = foo.sub ( '', module_name)
-       	#module_name = re.sub (r'\d\d*\w*', '',  port[0], flags=re.IGNORECASE)        
-	#module_name = re.sub (r'_(?![a-z])', '', module_name, flags=re.IGNORECASE)        
+        module_name = re.sub (r'\d\d*\w*', '',  port[0], flags=re.IGNORECASE)
+        module_name = re.sub (r'_(?![a-z])', '', module_name, flags=re.IGNORECASE)        
         file_name = str.lower(module_name + ".h")
         if file_name in peripheral_files:
             if port[0] == str.lower(module_name):
@@ -200,12 +188,8 @@ def generate_testbench_h( yaml_r ):
     ############################# and change the pointer name if equal (module and pointer equal result in compilation error)
     ############################# then instance the peripheral hardware module
     for port in open_ports:
-	foo = re.compile(r'\d\d*\w*', flags=re.IGNORECASE)
-        module_name = foo.sub ('',  port[0])
-	foo = re.compile(r'_(?![a-z])', flags=re.IGNORECASE)
-        module_name = foo.sub ( '', module_name)
-       	#module_name = re.sub (r'\d\d*\w*', '',  port[0], flags=re.IGNORECASE)        
-	#module_name = re.sub (r'_(?![a-z])', '', module_name, flags=re.IGNORECASE)
+        module_name = re.sub (r'\d\d*\w*', '',  port[0], flags=re.IGNORECASE)
+        module_name = re.sub (r'_(?![a-z])', '', module_name, flags=re.IGNORECASE)
         file_name = str.lower(module_name + ".h")
         if file_name in peripheral_files:
             if port[0] == str.lower(module_name):
@@ -233,12 +217,8 @@ def generate_testbench_h( yaml_r ):
             bisect.insort(list_index, pe_number)
 
     for port in open_ports:
-	    foo = re.compile(r'\d\d*\w*', flags=re.IGNORECASE)
-            module_name = foo.sub ('',  port[0])
-	    foo = re.compile(r'_(?![a-z])', flags=re.IGNORECASE)
-            module_name = foo.sub ( '', module_name)
-            #module_name = re.sub (r'\d\d*\w*', '',  port[0], flags=re.IGNORECASE)
-            #module_name = re.sub (r'_(?![a-z])', '', module_name, flags=re.IGNORECASE)
+            module_name = re.sub (r'\d\d*\w*', '',  port[0], flags=re.IGNORECASE)
+            module_name = re.sub (r'_(?![a-z])', '', module_name, flags=re.IGNORECASE)
             if port[0] == str.lower(module_name): 
                 module_name = "ptr_" + port[0]
             else:

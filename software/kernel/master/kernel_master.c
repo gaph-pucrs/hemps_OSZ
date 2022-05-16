@@ -775,9 +775,10 @@ void handle_new_app(int app_ID, volatile unsigned int *ref_address, unsigned int
 	Application *application;
 	int mapping_completed = 0;
 
-	int PEs_number, shape_location;
+	int PEs_number;
 	int xi_initial=0, yi_initial=0, xf_initial=0, yf_initial=0;
 
+	int  shape_location = 0;
 	//INICIO DO PROTOCOLO
 	putsv("#### BEGIN PROTOCOL OVERHEAD - ", MemoryRead(TICK_COUNTER));
 

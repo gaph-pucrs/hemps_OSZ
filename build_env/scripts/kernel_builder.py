@@ -23,12 +23,12 @@ def main():
     if exit_status != 0:
         sys.exit("\nError compiling kernel source code\n");
         
-    print "\n***************** kernel page size report ***********************"
+    print ("\n***************** kernel page size report ***********************")
     check_page_size("software/kernel_slave.txt", get_page_size_KB(yaml_r) )
     
     check_page_size("software/kernel_master.txt", get_page_size_KB(yaml_r) )
         
-    print "***************** end kernel page size report *********************\n"
+    print ("***************** end kernel page size report *********************\n")
     
     generate_memory( yaml_r )
 
@@ -47,9 +47,6 @@ def generate_sw_pkg( yaml_r ):
     static_mapping_list = get_static_mapping_list(yaml_r)
     io_number =         get_io_number(yaml_r)
     open_ports =        get_open_ports(yaml_r)
-    session =           get_session(yaml_r)
-    gray_area_rows =    get_gray_area_rows(yaml_r)
-    gray_area_cols =    get_gray_area_cols(yaml_r)
 
     
     cluster_list = create_cluster_list(x_mpsoc_dim, y_mpsoc_dim, x_cluster_dim, y_cluster_dim, master_location)
@@ -98,22 +95,9 @@ def generate_sw_pkg( yaml_r ):
     file_lines.append("#define MAX_STATIC_TASKS            "+static_lenght+"      //max number of tasks mapped statically \n\n")
     file_lines.append("#define IO_NUMBER                   "+str(io_number)+"\n")
 
-    if gray_area_rows:
-        file_lines.append("\n//Gray Area enabled\n")
-        file_lines.append("#define GRAY_AREA\n")
-        file_lines.append("#define MAX_GRAY_ROWS               "+str(len(gray_area_rows))+"\n")
-        file_lines.append("#define MAX_GRAY_COLS               "+str(len(gray_area_cols))+"\n\n")
-
-
     for port in open_ports:
         file_lines.append("#define "+str.upper(port[0])+"\t\t\t\t\t"+str(port[1])+"\n")
     
-    if session:
-        file_lines.append("\n//Comunication Session protocol is Enabled\n")
-        file_lines.append("#define SESSION_MANAGER\n")
-
-
-
     file_lines.append("\n")
     #file_lines.append("#ifdef IS_MASTER\n")
     file_lines.append("//This struct stores the cluster information\n")
@@ -147,16 +131,6 @@ def generate_sw_pkg( yaml_r ):
 
     file_lines.append("extern IO_Info io_info[IO_NUMBER];\n\n")
     
-    if gray_area_rows:
-        file_lines.append("//This struct stores the gray area information\n")
-        file_lines.append("typedef struct {\n")
-        file_lines.append("    int rows[MAX_GRAY_ROWS];\n")
-        file_lines.append("    int cols[MAX_GRAY_COLS];\n")
-        file_lines.append("    int IOside;\n")
-        file_lines.append("} GrayArea;\n")
-
-        file_lines.append(" extern GrayArea ga;\n")
-
     #Check if the list is not emply
     if static_mapping_list:
         file_lines.append("//Stores the task static mapping. It is a list of tuple = {task_id, mapped_proc}\n")
@@ -229,19 +203,6 @@ def generate_sw_pkg( yaml_r ):
                            ", "+ str(0)+"},")
     file_lines.append("\n};\n\n")
     
-    if gray_area_rows:
-        file_lines.append("GrayArea ga = {\n")
-        file_lines.append("\t{")
-        for rows in gray_area_rows:
-            file_lines.append(str(rows)+",")
-        file_lines[-1] = file_lines[-1][:-1] #erasing last comma
-        file_lines.append("}, {")
-        for cols in gray_area_cols:
-            file_lines.append(str(cols)+",")
-        file_lines[-1] = file_lines[-1][:-1] #erasing last comma
-        file_lines.append("}, " + str(aux_port))
-        file_lines.append("};\n")
-
     if static_mapping_list:
         
         static_table_string = ""

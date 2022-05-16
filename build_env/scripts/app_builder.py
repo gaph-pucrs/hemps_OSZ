@@ -3,6 +3,7 @@ import sys
 import math
 import os
 import commands
+#import subprocess
 import re
 from yaml_intf import *
 from build_utils import *
@@ -114,7 +115,7 @@ def generate_repository(yaml_r, secure_apps_list):
     #Used for point the next free address to fill with a given task code (task.txt file)
     initial_address = 0 
     
-    print "\n***************** task page size report ***********************"
+    print ("\n***************** task page size report ***********************")
     
     #Walk for all apps into /applications dir
     for app_name in secure_apps_list:
@@ -142,15 +143,6 @@ def generate_repository(yaml_r, secure_apps_list):
         #app tasks code can be inserted
         initial_address = initial_address + ( (TASK_DESCRIPTOR_SIZE * app_tasks_number) * 4) + 4#plus 4 because the first word is the app task number
         
-
-        io_list = get_open_ports(yaml_r)
-
-        # for io in io_list:
-        #     for port in open_ports:
-        #         if io[1] in port[0]:
-        #             print "IO " + io[1] + " encontrado com ID " + str(port[1])
-        #             break
-
         task_id = 0
         
         #Walk for all app tasks into /applications/app dir to fills the task headers
@@ -172,25 +164,21 @@ def generate_repository(yaml_r, secure_apps_list):
 
             repo_lines.append( RepoLine(toX(get_task_comp_load(app_name[0], task_name)), "computational load") )
             
-            # dependenc_list = get_task_dependence_list(app_name[0], task_name)
-            dependenc_list = get_task_IO_list(app_name[0], task_name, io_list)
-
+            dependenc_list = get_task_dependence_list(app_name[0], task_name)
+            
             #Fills the task dependences according with MAX_DEPENDENCES size
             comment = "communication load {task id, comm load in flits}"
             for i in range(0, MAX_DEPENDENCES):
                 
-                if (i < len(dependenc_list)):
-                    repo_lines.append( RepoLine(toX(task_id), comment) )
+                if ((i+1) < len(dependenc_list)):
+                    repo_lines.append( RepoLine(toX(dependenc_list[i]), comment) )
                     comment = ""
-                    repo_lines.append( RepoLine(toX(dependenc_list[i][1]), comment) )                
-                # if ((i+1) < len(dependenc_list)):
-                #     repo_lines.append( RepoLine(toX(dependenc_list[i]), comment) )
-                #     comment = ""
-                #     repo_lines.append( RepoLine(toX(dependenc_list[i+1]), comment) )
+                    repo_lines.append( RepoLine(toX(dependenc_list[i+1]), comment) )
                 else:
                     repo_lines.append( RepoLine("ffffffff", comment) )
                     comment = ""
                     repo_lines.append( RepoLine("ffffffff", comment) )
+                    
                     
             task_id = task_id + 1
             
@@ -203,7 +191,7 @@ def generate_repository(yaml_r, secure_apps_list):
                 exit_status = os.system("./build/siphash " + source_file )          
     
                 if exit_status == 0 :
-                    print "ERROR: MAC generation failed"
+                    print ("ERROR: MAC generation failed")
                     sys.exit(0)
           
             check_page_size(source_file, get_page_size_KB(yaml_r) )
@@ -213,26 +201,27 @@ def generate_repository(yaml_r, secure_apps_list):
             task_txt_file = open(source_file, "r")
             
             for line in task_txt_file:
-				file_line = line[0:len(line)-1] # removes the \n from end of file
-				repo_lines.append( RepoLine(file_line  , comment) )
-				comment = ""
+                file_line = line[0:len(line)-1] # removes the \n from end of file
+                repo_lines.append( RepoLine(file_line  , comment) )
+                comment = ""
                     
             task_txt_file.close()
     
     ################Finally, generates the repository file (main and debug files) ##########################
-    print "***************** end task page size report *********************\n"
+    print ("***************** end task page size report *********************\n")
 
     generate_repository_file(repo_lines, get_model_description(yaml_r))
 
-    print "\n***************** repository size report ***********************"
+    print ("\n***************** repository size report ***********************")
     check_repo_size(get_repository_size_MB(yaml_r), "repository.txt")
-    print "***************** end repository size report ***********************\n"
+    print ("***************** end repository size report ***********************\n")
     
     return apps_repo_addr_list
     
 #Receives a int, convert to string and fills to a 32 bits word
 def toX(input):
-    hex_string = "%x" % input
+    hex_string = "%x" % int(input)
+    
     #http://stackoverflow.com/questions/339007/nicest-way-to-pad-zeroes-to-string
     return hex_string.zfill(8) # 8 is the lenght of chars to represent 32 bits (repo word) in hexa
 
@@ -301,6 +290,7 @@ def get_task_DATA_size(app_name, task_name):
     
     #https://www.quora.com/What-is-a-convenient-way-to-execute-a-shell-command-in-Python-and-retrieve-its-output
     data_size = int (commands.getoutput("mips-elf-size "+source_file+" | tail -1 | sed 's/ //g' | sed 's/\t/:/g' | cut -d':' -f2"))
+    #data_size = int (subprocess.getoutput("mips-elf-size "+source_file+" | tail -1 | sed 's/ //g' | sed 's/\t/:/g' | cut -d':' -f2"))
     
     while data_size % 4 != 0:
         data_size = data_size + 1
@@ -315,6 +305,7 @@ def get_task_BSS_size(app_name, task_name):
     
     #https://www.quora.com/What-is-a-convenient-way-to-execute-a-shell-command-in-Python-and-retrieve-its-output
     bss_size = int(commands.getoutput("mips-elf-size "+source_file+" | tail -1 | sed 's/ //g' | sed 's/\t/:/g' | cut -d':' -f3"))
+    #bss_size = int(subprocess.getoutput("mips-elf-size "+source_file+" | tail -1 | sed 's/ //g' | sed 's/\t/:/g' | cut -d':' -f3"))
     
     while bss_size % 4 != 0:
         bss_size = bss_size + 1
@@ -328,37 +319,6 @@ def get_task_comp_load(app_name, task_name):
 
 def get_task_dependence_list(app_name, task_name):
     return [] #TO DO
-
-def get_task_IO_list(app_name, task_name, io_list):
-
-    source_file = "applications/" + app_name + "/" + app_name + ".cfg"
-    f = open(source_file)
-    
-    aux_task_io_list = []
-    task_io_list = []
-
-    for line in f:
-        if "<task>" in line:
-            task = f.next()[:-2] # Cleaning the "\r\n" at the end
-            if task_name == task:
-                while "<end task>" not in line:
-                    if "<IO>" in line:
-                        line = f.next()
-                        while "<" not in line:
-                            aux_task_io_list.append((task,line[:-2])) # Cleaning the "\r\n" at the end
-                            line = f.next()
-                        break
-                    line = f.next()
-    
-    for io in aux_task_io_list:
-        for port in io_list:
-            if io[1] == port[0]:
-                task_io_list.append((io[0],port[1]))
-                print task_io_list[-1]
-
-    f.close()
-
-    return task_io_list
 
 def check_repo_size(yaml_repo_size, repo_path):
     

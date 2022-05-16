@@ -17,8 +17,8 @@ elif len(argv) > 1 and len(argv) < 5:
 	X=int(X)
 	Y=int(Y)
 else:
-	print "usage:"
-	print "MC_generator.py X_size Y_size <outputname.png>"
+	print ("usage:")
+	print ("MC_generator.py X_size Y_size <outputname.png>")
 	X=5
 	Y=4
 	filename="output.png"

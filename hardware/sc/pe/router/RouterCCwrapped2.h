@@ -22,9 +22,9 @@ SC_MODULE(RouterCCwrapped) {
 		sc_in<bool >  fail_in[NPORT];
 		sc_out<bool >  fail_out[NPORT];
 
-		sc_out<bool> 		mask_local_tx_output;
+		// sc_out<bool> 		mask_local_tx_output;
     	sc_out<bool > 		io_packet_mask;
-    	sc_out<sc_uint<12>> 		ke;
+    	sc_out< sc_uint<12> > 		ke;
 
 		sc_out<regflit> 			source;
 		sc_out<regflit> 			target;
@@ -87,7 +87,7 @@ SC_MODULE(RouterCCwrapped) {
 
 			const char* generic_list[1];
 			generic_list[0] = strdup("address=x\"AAAA\"");
-			sprintf((char*) generic_list[0],"address=x\"%x\"",(int)address);
+			sprintf((char*) generic_list[0],"address=x\"%.4x\"",(int)address);
 
 			router = new RouterCC("RouterCC", "RouterCC", 1, generic_list);
 
@@ -163,7 +163,7 @@ SC_MODULE(RouterCCwrapped) {
 
 				router->io_packet_mask(io_packet_mask_internal);
 				router->ke(ke);
-				router->mask_local_tx_output(mask_local_tx_output);
+				// router->mask_local_tx_output(mask_local_tx_output);
 				router->target(target);
 				router->source(source);
 				router->w_source_target(w_source_target);

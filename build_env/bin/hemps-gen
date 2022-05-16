@@ -25,6 +25,6 @@ except:
 exit_status = os.system("python "+ HEMPS_PATH+"/build_env/testcase_builder.py "+ testcase_file_path + " " + str(simul_time))
 
 if exit_status == 0:
-    print "Testcase directory " +(testcase_file_path[:-5])+ " from "+testcase_file_path+ " generated successfully"
+    print ("Testcase directory " +(testcase_file_path[:-5])+ " from "+testcase_file_path+ " generated successfully")
 else:
-    print sys.exit("*** Error in the testcase generation")
+    print (sys.exit("*** Error in the testcase generation"))

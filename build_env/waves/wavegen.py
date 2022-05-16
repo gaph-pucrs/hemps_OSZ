@@ -5,14 +5,14 @@ if len(argv) == 6:
 	MAX_X=int(MAX_X)
 	MAX_Y=int(MAX_Y)
 	MAX_CLUSTER_X=int(MAX_CLUSTER_X)
-	MAX_CLUSTER_Y=int(MAX_CLUSTER_Y)	
+	MAX_CLUSTER_Y=int(MAX_CLUSTER_Y)
 	master_pe=int(master_posX, posY)
 elif len(argv) == 5:
 	scriptname,MAX_X,MAX_Y,MAX_CLUSTER_X,MAX_CLUSTER_Y = argv
 	MAX_X=int(MAX_X)
 	MAX_Y=int(MAX_Y)
 	MAX_CLUSTER_X=int(MAX_CLUSTER_X)
-	MAX_CLUSTER_Y=int(MAX_CLUSTER_Y)	
+	MAX_CLUSTER_Y=int(MAX_CLUSTER_Y)
 	master_pe=0
 elif len(argv) == 4:
 	scriptname,MAX_X,MAX_Y,master_pe = argv
@@ -20,7 +20,7 @@ elif len(argv) == 4:
 	MAX_Y=int(MAX_Y)
 	MAX_CLUSTER_X=0
 	MAX_CLUSTER_Y=0
-	master_pe=int(master_pe)
+	master_pe=int(master_posX, posY)
 elif len(argv) == 3:
 	scriptname,MAX_X,MAX_Y = argv
 	MAX_X=int(MAX_X)
@@ -29,10 +29,10 @@ elif len(argv) == 3:
 	MAX_CLUSTER_Y=0
 	master_pe=0
 else:
-	print "usage:"
-	print "wavegen.py [MAX_X] [MAX_Y] [MAX_CLUSTER_X] [MAX_CLUSTER_Y] [master position]"
-	print "	wavegen.py 4 4 2 2 0: 4x4 MPSOC with master on 0x0"
-	print "wavegen.py [MAX_X] [MAX_Y] : assumes master on 0 and just one cluster"
+	print ("usage:\n"
+	+ "wavegen.py [MAX_X] [MAX_Y] [MAX_CLUSTER_X] [MAX_CLUSTER_Y] [master position]\n"
+	+ "	wavegen.py 4 4 2 2 0: 4x4 MPSOC with master on 0x0\n"
+	+ "wavegen.py [MAX_X] [MAX_Y] : assumes master on 0 and just one cluster")
 	#print "argv[0] %s \nargv[1] %s \nargv[2] %s \nargv[3] %s \nargv[4] %s \n" % (scriptname, MAX_X, MAX_Y, MAX_CLUSTER_X, MAX_CLUSTER_Y)
 	exit();
 
@@ -43,16 +43,16 @@ portseek=["E","W","N","S","L"]
 posX=0
 posY=0
 
-print "onerror {resume}\n\
-quietly WaveActivateNextPane {} 0\n"
+print ("onerror {resume}\n\
+quietly WaveActivateNextPane {} 0\n")
 
 # print "printing MPSOC %dx%d master on %d" % (MAX_X,MAX_Y,master_posX, posY)
-print "MAX_X = %d" % (MAX_X)
-print "MAX_Y = %d" % (MAX_Y)
-print "MAX_CLUSTER_X = %d" % (MAX_CLUSTER_X)
-print "MAX_CLUSTER_Y = %d" % (MAX_CLUSTER_Y)
+print (f"MAX_X = {MAX_X:d} \n"
++ f"MAX_Y = {MAX_Y:d} \n"
++ f"MAX_CLUSTER_X = {MAX_CLUSTER_X:d} \n"
++ f"MAX_CLUSTER_Y = {MAX_CLUSTER_Y:d}")
 
-for pe in xrange(0,max_pe):						
+for pe in range(0,max_pe):
 	if MAX_CLUSTER_X == 0:
 		if master_pe==pe:
 			pe_type_str="local"
@@ -61,7 +61,7 @@ for pe in xrange(0,max_pe):
 	elif(MAX_CLUSTER_X != MAX_CLUSTER_Y or MAX_X != MAX_Y):
 		if pe == master_pe:
 			pe_type_str="local"
-		elif(((posX == MAX_CLUSTER_X) or (posX == 0)) and ((posY == MAX_X*MAX_CLUSTER_Y) or (posY+MAX_CLUSTER_X==MAX_CLUSTER_Y*MAX_X))):	
+		elif(((posX == MAX_CLUSTER_X) or (posX == 0)) and ((posY == MAX_X*MAX_CLUSTER_Y) or (posY+MAX_CLUSTER_X==MAX_CLUSTER_Y*MAX_X))):
 			pe_type_str="local"
 		elif ((posX == MAX_CLUSTER_X or posX == 0) and (posY == 0)):
 			pe_type_str="local"
@@ -74,406 +74,115 @@ for pe in xrange(0,max_pe):
 			pe_type_str="slave"
 
 	# print "PE %dx%d" % (posX,posY)
-	
-	print "add wave -noupdate -group {%s %dx%d - %d} /test_bench/HeMPS/%s%dx%d/clock" % (pe_type_str, posX, posY, pe, pe_type_str, posX, posY)
+
+	print ("add wave -noupdate -group {%s %dx%d - %d} /test_bench/HeMPS/%s%dx%d/clock\n" % (pe_type_str, posX, posY, pe, pe_type_str, posX, posY))
 
 	#pe signals
-	print "add wave -noupdate -group {%s %dx%d - %d} -group pe /test_bench/HeMPS/%s%dx%d/int_seek" % 		(pe_type_str, posX, posY, pe, pe_type_str, posX, posY)
-	print "add wave -noupdate -group {%s %dx%d - %d} -group pe /test_bench/HeMPS/%s%dx%d/ke" % 				(pe_type_str, posX, posY, pe, pe_type_str, posX, posY)
-	print "add wave -noupdate -group {%s %dx%d - %d} -group pe /test_bench/HeMPS/%s%dx%d/pass" % 			(pe_type_str, posX, posY, pe, pe_type_str, posX, posY)
-	print "add wave -noupdate -group {%s %dx%d - %d} -group pe /test_bench/HeMPS/%s%dx%d/irq" % 			(pe_type_str, posX, posY, pe, pe_type_str, posX, posY)
-	print "add wave -noupdate -group {%s %dx%d - %d} -group pe /test_bench/HeMPS/%s%dx%d/irq_mask_reg" % 	(pe_type_str, posX, posY, pe, pe_type_str, posX, posY)
-	print "add wave -noupdate -group {%s %dx%d - %d} -group pe /test_bench/HeMPS/%s%dx%d/irq_status" % 		(pe_type_str, posX, posY, pe, pe_type_str, posX, posY)
-	print "add wave -noupdate -group {%s %dx%d - %d} -group pe /test_bench/HeMPS/%s%dx%d/cpu/mem_address" % (pe_type_str, posX, posY, pe, pe_type_str, posX, posY)
-	print "add wave -noupdate -group {%s %dx%d - %d} -group pe /test_bench/HeMPS/%s%dx%d/cpu/mem_byte_we" % (pe_type_str, posX, posY, pe, pe_type_str, posX, posY)
-	print "add wave -noupdate -group {%s %dx%d - %d} -group pe /test_bench/HeMPS/%s%dx%d/cpu/mem_data_r" % 	(pe_type_str, posX, posY, pe, pe_type_str, posX, posY)
-	print "add wave -noupdate -group {%s %dx%d - %d} -group pe /test_bench/HeMPS/%s%dx%d/cpu/mem_data_w" % 	(pe_type_str, posX, posY, pe, pe_type_str, posX, posY)
-	print "add wave -noupdate -group {%s %dx%d - %d} -group pe /test_bench/HeMPS/%s%dx%d/cpu/page" % 		(pe_type_str, posX, posY, pe, pe_type_str, posX, posY)
-
+	group_pe_signals_pfx = "add wave -noupdate -group {%s %dx%d - %d} -group pe /test_bench/HeMPS/%s%dx%d/" % (pe_type_str, posX, posY, pe, pe_type_str, posX, posY)
+	group_pe_signals_sds = ['irq','int_seek','irq_mask_reg','irq_status','cpu/mem_address','cpu/mem_byte_we','cpu/mem_data_r','cpu/mem_data_w','cpu/page']
+	for it in map(lambda sd: group_pe_signals_pfx + sd,group_pe_signals_sds):
+		print (it)
 	#faults signals
-	print "add wave -noupdate -group {%s %dx%d - %d} -group faults /test_bench/HeMPS/%s%dx%d/clock" % 				(pe_type_str, posX, posY, pe, pe_type_str, posX, posY)
-	print "add wave -noupdate -group {%s %dx%d - %d} -group faults /test_bench/HeMPS/%s%dx%d/external_fail_in"  % 	(pe_type_str, posX, posY, pe, pe_type_str, posX, posY)
-	print "add wave -noupdate -group {%s %dx%d - %d} -group faults /test_bench/HeMPS/%s%dx%d/external_fail_out"  % 	(pe_type_str, posX, posY, pe, pe_type_str, posX, posY)
-	print "add wave -noupdate -group {%s %dx%d - %d} -group faults /test_bench/HeMPS/%s%dx%d/fail_in"  % 			(pe_type_str, posX, posY, pe, pe_type_str, posX, posY)
-	print "add wave -noupdate -group {%s %dx%d - %d} -group faults /test_bench/HeMPS/%s%dx%d/fail_out"  % 			(pe_type_str, posX, posY, pe, pe_type_str, posX, posY)
-	print "add wave -noupdate -group {%s %dx%d - %d} -group faults /test_bench/HeMPS/%s%dx%d/router_fail_in"  % 	(pe_type_str, posX, posY, pe, pe_type_str, posX, posY)
-	print "add wave -noupdate -group {%s %dx%d - %d} -group faults /test_bench/HeMPS/%s%dx%d/router_fail_out"  % 	(pe_type_str, posX, posY, pe, pe_type_str, posX, posY)
-	print "add wave -noupdate -group {%s %dx%d - %d} -group faults /test_bench/HeMPS/%s%dx%d/wrapper_reg"  % 		(pe_type_str, posX, posY, pe, pe_type_str, posX, posY)
+	group_faults_signals_pfx = "add wave -noupdate -group {%s %dx%d - %d} -group faults /test_bench/HeMPS/%s%dx%d/" % (pe_type_str, posX, posY, pe, pe_type_str, posX, posY)
+	group_faults_signals_sds = ['clock','external_fail_in','external_fail_out','fail_in','router_fail_in','router_fail_out','wrapper_reg']
+	for it in map(lambda sd: group_faults_signals_pfx + sd,group_faults_signals_sds):
+		print (it)
 
-	#SEEK signals
+	for port in range(0,5):
+		#SEEK signals
+		seek_input_pfx = "add wave -noupdate -group {%s %dx%d - %d} -group seek -group {input %s} /test_bench/HeMPS/%s%dx%d/router_seek_wrapped/router_seek/" % (pe_type_str, posX, posY, pe, portseek[port], pe_type_str, posX, posY)
+		seek_input_sds = ["out_ack_router_seek", "in_req_router_seek", "out_ack_router_seek", "out_nack_router_seek", "in_service_router_seek", "in_source_router_seek", "in_target_router_seek", "in_payload_router_seek"]
+        
+		seek_output_pfx = "add wave -noupdate -group {%s %dx%d - %d} -group seek -group {output %s} /test_bench/HeMPS/%s%dx%d/router_seek_wrapped/router_seek/" %	(pe_type_str, posX, posY, pe, portseek[port], pe_type_str, posX, posY)
+		seek_output_sds = ["out_req_router_seek", "in_ack_router_seek", "in_nack_router_seek", "out_service_router_seek", "out_source_router_seek", "out_target_router_seek", "out_payload_router_seek"]
+		
+		for it in map(lambda sd: seek_input_pfx+sd+f"({port:d})",seek_input_sds):
+			print(it)
 
-	for port in xrange(0,5):
-		print "add wave -noupdate -group {%s %dx%d - %d} -group seek -group {input %s} /test_bench/HeMPS/%s%dx%d/router_seek_wrapped/router_seek/in_req_router_seek(%d)" % 		(pe_type_str, posX, posY, pe, portseek[port], pe_type_str, posX, posY, port)
-		print "add wave -noupdate -group {%s %dx%d - %d} -group seek -group {input %s} /test_bench/HeMPS/%s%dx%d/router_seek_wrapped/router_seek/out_ack_router_seek(%d)" % 	(pe_type_str, posX, posY, pe, portseek[port], pe_type_str, posX, posY, port)
-		print "add wave -noupdate -group {%s %dx%d - %d} -group seek -group {input %s} /test_bench/HeMPS/%s%dx%d/router_seek_wrapped/router_seek/out_nack_router_seek(%d)" % 	(pe_type_str, posX, posY, pe, portseek[port], pe_type_str, posX, posY, port)
-		print "add wave -noupdate -group {%s %dx%d - %d} -group seek -group {input %s} /test_bench/HeMPS/%s%dx%d/router_seek_wrapped/router_seek/in_service_router_seek(%d)" % 	(pe_type_str, posX, posY, pe, portseek[port], pe_type_str, posX, posY, port)
-		print "add wave -noupdate -group {%s %dx%d - %d} -group seek -group {input %s} /test_bench/HeMPS/%s%dx%d/router_seek_wrapped/router_seek/in_source_router_seek(%d)" % 	(pe_type_str, posX, posY, pe, portseek[port], pe_type_str, posX, posY, port)
-		print "add wave -noupdate -group {%s %dx%d - %d} -group seek -group {input %s} /test_bench/HeMPS/%s%dx%d/router_seek_wrapped/router_seek/in_target_router_seek(%d)" % 	(pe_type_str, posX, posY, pe, portseek[port], pe_type_str, posX, posY, port)
-		print "add wave -noupdate -group {%s %dx%d - %d} -group seek -group {input %s} /test_bench/HeMPS/%s%dx%d/router_seek_wrapped/router_seek/in_payload_router_seek(%d)" % 	(pe_type_str, posX, posY, pe, portseek[port], pe_type_str, posX, posY, port)
+		for it in map(lambda sd: seek_output_pfx+sd+f"({port:d})",seek_output_sds):
+			print(it)
 
-		print "add wave -noupdate -group {%s %dx%d - %d} -group seek -group {output %s} /test_bench/HeMPS/%s%dx%d/router_seek_wrapped/router_seek/out_req_router_seek(%d)" % 		(pe_type_str, posX, posY, pe, portseek[port], pe_type_str, posX, posY, port)
-		print "add wave -noupdate -group {%s %dx%d - %d} -group seek -group {output %s} /test_bench/HeMPS/%s%dx%d/router_seek_wrapped/router_seek/in_ack_router_seek(%d)" % 		(pe_type_str, posX, posY, pe, portseek[port], pe_type_str, posX, posY, port)
-		print "add wave -noupdate -group {%s %dx%d - %d} -group seek -group {output %s} /test_bench/HeMPS/%s%dx%d/router_seek_wrapped/router_seek/in_nack_router_seek(%d)" % 		(pe_type_str, posX, posY, pe, portseek[port], pe_type_str, posX, posY, port)
-		print "add wave -noupdate -group {%s %dx%d - %d} -group seek -group {output %s} /test_bench/HeMPS/%s%dx%d/router_seek_wrapped/router_seek/out_service_router_seek(%d)" %	(pe_type_str, posX, posY, pe, portseek[port], pe_type_str, posX, posY, port)
-		print "add wave -noupdate -group {%s %dx%d - %d} -group seek -group {output %s} /test_bench/HeMPS/%s%dx%d/router_seek_wrapped/router_seek/out_source_router_seek(%d)" % 	(pe_type_str, posX, posY, pe, portseek[port], pe_type_str, posX, posY, port)
-		print "add wave -noupdate -group {%s %dx%d - %d} -group seek -group {output %s} /test_bench/HeMPS/%s%dx%d/router_seek_wrapped/router_seek/out_target_router_seek(%d)" % 	(pe_type_str, posX, posY, pe, portseek[port], pe_type_str, posX, posY, port)
-		print "add wave -noupdate -group {%s %dx%d - %d} -group seek -group {output %s} /test_bench/HeMPS/%s%dx%d/router_seek_wrapped/router_seek/out_payload_router_seek(%d)" % 	(pe_type_str, posX, posY, pe, portseek[port], pe_type_str, posX, posY, port)
-
-	print "add wave -noupdate -group {%s %dx%d - %d} -group seek -group signals /test_bench/HeMPS/%s%dx%d/router_seek_wrapped/router_seek/router_address" % 			(pe_type_str, posX, posY, pe, pe_type_str, posX, posY)
-	print "add wave -noupdate -group {%s %dx%d - %d} -group seek -group signals /test_bench/HeMPS/%s%dx%d/router_seek_wrapped/router_seek/backtrack_id" %  				(pe_type_str, posX, posY, pe, pe_type_str, posX, posY)
-	print "add wave -noupdate -group {%s %dx%d - %d} -group seek -group signals /test_bench/HeMPS/%s%dx%d/router_seek_wrapped/router_seek/EA_manager" %  				(pe_type_str, posX, posY, pe, pe_type_str, posX, posY)
-	print "add wave -noupdate -group {%s %dx%d - %d} -group seek -group signals /test_bench/HeMPS/%s%dx%d/router_seek_wrapped/router_seek/EA_manager_input" %  			(pe_type_str, posX, posY, pe, pe_type_str, posX, posY)
-	print "add wave -noupdate -group {%s %dx%d - %d} -group seek -group signals /test_bench/HeMPS/%s%dx%d/router_seek_wrapped/router_seek/sel_port" %  					(pe_type_str, posX, posY, pe, pe_type_str, posX, posY)
-	print "add wave -noupdate -group {%s %dx%d - %d} -group seek -group signals /test_bench/HeMPS/%s%dx%d/router_seek_wrapped/router_seek/next_port" %  				(pe_type_str, posX, posY, pe, pe_type_str, posX, posY)
-	print "add wave -noupdate -group {%s %dx%d - %d} -group seek -group signals /test_bench/HeMPS/%s%dx%d/router_seek_wrapped/router_seek/req_int" %  					(pe_type_str, posX, posY, pe, pe_type_str, posX, posY)
-	print "add wave -noupdate -group {%s %dx%d - %d} -group seek -group signals /test_bench/HeMPS/%s%dx%d/router_seek_wrapped/router_seek/task" %  						(pe_type_str, posX, posY, pe, pe_type_str, posX, posY)
-	print "add wave -noupdate -group {%s %dx%d - %d} -group seek -group signals /test_bench/HeMPS/%s%dx%d/router_seek_wrapped/router_seek/req_task" %					(pe_type_str, posX, posY, pe, pe_type_str, posX, posY)
-	print "add wave -noupdate -group {%s %dx%d - %d} -group seek -group signals /test_bench/HeMPS/%s%dx%d/router_seek_wrapped/router_seek/sel" %  						(pe_type_str, posX, posY, pe, pe_type_str, posX, posY)
-	print "add wave -noupdate -group {%s %dx%d - %d} -group seek -group signals /test_bench/HeMPS/%s%dx%d/router_seek_wrapped/router_seek/prox" %  						(pe_type_str, posX, posY, pe, pe_type_str, posX, posY)
-	print "add wave -noupdate -group {%s %dx%d - %d} -group seek -group signals /test_bench/HeMPS/%s%dx%d/router_seek_wrapped/router_seek/free_index" %  				(pe_type_str, posX, posY, pe, pe_type_str, posX, posY)
-	print "add wave -noupdate -group {%s %dx%d - %d} -group seek -group signals /test_bench/HeMPS/%s%dx%d/router_seek_wrapped/router_seek/source_index" %  				(pe_type_str, posX, posY, pe, pe_type_str, posX, posY)
-	print "add wave -noupdate -group {%s %dx%d - %d} -group seek -group signals /test_bench/HeMPS/%s%dx%d/router_seek_wrapped/router_seek/source_table" %  				(pe_type_str, posX, posY, pe, pe_type_str, posX, posY)
-	print "add wave -noupdate -group {%s %dx%d - %d} -group seek -group signals /test_bench/HeMPS/%s%dx%d/router_seek_wrapped/router_seek/target_table" %  				(pe_type_str, posX, posY, pe, pe_type_str, posX, posY)
-	print "add wave -noupdate -group {%s %dx%d - %d} -group seek -group signals /test_bench/HeMPS/%s%dx%d/router_seek_wrapped/router_seek/service_table" %  			(pe_type_str, posX, posY, pe, pe_type_str, posX, posY)
-	print "add wave -noupdate -group {%s %dx%d - %d} -group seek -group signals /test_bench/HeMPS/%s%dx%d/router_seek_wrapped/router_seek/payload_table" %  			(pe_type_str, posX, posY, pe, pe_type_str, posX, posY)
-	print "add wave -noupdate -group {%s %dx%d - %d} -group seek -group signals /test_bench/HeMPS/%s%dx%d/router_seek_wrapped/router_seek/opmode_table" %  				(pe_type_str, posX, posY, pe, pe_type_str, posX, posY)
-	print "add wave -noupdate -group {%s %dx%d - %d} -group seek -group signals /test_bench/HeMPS/%s%dx%d/router_seek_wrapped/router_seek/my_payload_table" %  			(pe_type_str, posX, posY, pe, pe_type_str, posX, posY)
-	print "add wave -noupdate -group {%s %dx%d - %d} -group seek -group signals /test_bench/HeMPS/%s%dx%d/router_seek_wrapped/router_seek/backtrack_port_table" %  		(pe_type_str, posX, posY, pe, pe_type_str, posX, posY)
-	print "add wave -noupdate -group {%s %dx%d - %d} -group seek -group signals /test_bench/HeMPS/%s%dx%d/router_seek_wrapped/router_seek/source_router_port_table" %  	(pe_type_str, posX, posY, pe, pe_type_str, posX, posY)
-	print "add wave -noupdate -group {%s %dx%d - %d} -group seek -group signals /test_bench/HeMPS/%s%dx%d/router_seek_wrapped/router_seek/used_table" %  				(pe_type_str, posX, posY, pe, pe_type_str, posX, posY)
-	print "add wave -noupdate -group {%s %dx%d - %d} -group seek -group signals /test_bench/HeMPS/%s%dx%d/router_seek_wrapped/router_seek/pending_table" %  			(pe_type_str, posX, posY, pe, pe_type_str, posX, posY)
-	print "add wave -noupdate -group {%s %dx%d - %d} -group seek -group signals /test_bench/HeMPS/%s%dx%d/router_seek_wrapped/router_seek/pending_local" %  			(pe_type_str, posX, posY, pe, pe_type_str, posX, posY)
-	print "add wave -noupdate -group {%s %dx%d - %d} -group seek -group signals /test_bench/HeMPS/%s%dx%d/router_seek_wrapped/router_seek/int_out_ack_router_seek" %  	(pe_type_str, posX, posY, pe, pe_type_str, posX, posY)
-	print "add wave -noupdate -group {%s %dx%d - %d} -group seek -group signals /test_bench/HeMPS/%s%dx%d/router_seek_wrapped/router_seek/out_nack_router_seek" %  		(pe_type_str, posX, posY, pe, pe_type_str, posX, posY)
-	print "add wave -noupdate -group {%s %dx%d - %d} -group seek -group signals /test_bench/HeMPS/%s%dx%d/router_seek_wrapped/router_seek/out_ack_router_seek" %  		(pe_type_str, posX, posY, pe, pe_type_str, posX, posY)
-	print "add wave -noupdate -group {%s %dx%d - %d} -group seek -group signals /test_bench/HeMPS/%s%dx%d/router_seek_wrapped/router_seek/in_fail_router_seek" %  		(pe_type_str, posX, posY, pe, pe_type_str, posX, posY)
-	print "add wave -noupdate -group {%s %dx%d - %d} -group seek -group signals /test_bench/HeMPS/%s%dx%d/router_seek_wrapped/router_seek/fail_with_mode_in" %  		(pe_type_str, posX, posY, pe, pe_type_str, posX, posY)
-	print "add wave -noupdate -group {%s %dx%d - %d} -group seek -group signals /test_bench/HeMPS/%s%dx%d/router_seek_wrapped/router_seek/fail_with_mode_out" %  		(pe_type_str, posX, posY, pe, pe_type_str, posX, posY)
-	print "add wave -noupdate -group {%s %dx%d - %d} -group seek -group signals /test_bench/HeMPS/%s%dx%d/router_seek_wrapped/router_seek/int_in_req_router_seek" %  	(pe_type_str, posX, posY, pe, pe_type_str, posX, posY)
-	print "add wave -noupdate -group {%s %dx%d - %d} -group seek -group signals /test_bench/HeMPS/%s%dx%d/router_seek_wrapped/router_seek/in_nack_router_seek" %  		(pe_type_str, posX, posY, pe, pe_type_str, posX, posY)
-	print "add wave -noupdate -group {%s %dx%d - %d} -group seek -group signals /test_bench/HeMPS/%s%dx%d/router_seek_wrapped/router_seek/in_ack_router_seek" %  		(pe_type_str, posX, posY, pe, pe_type_str, posX, posY)
-	print "add wave -noupdate -group {%s %dx%d - %d} -group seek -group signals /test_bench/HeMPS/%s%dx%d/router_seek_wrapped/router_seek/int_in_ack_router_seek" %  	(pe_type_str, posX, posY, pe, pe_type_str, posX, posY)
-	print "add wave -noupdate -group {%s %dx%d - %d} -group seek -group signals /test_bench/HeMPS/%s%dx%d/router_seek_wrapped/router_seek/in_source_router_seek" %  	(pe_type_str, posX, posY, pe, pe_type_str, posX, posY)
-	print "add wave -noupdate -group {%s %dx%d - %d} -group seek -group signals /test_bench/HeMPS/%s%dx%d/router_seek_wrapped/router_seek/in_target_router_seek" %  	(pe_type_str, posX, posY, pe, pe_type_str, posX, posY)
-	print "add wave -noupdate -group {%s %dx%d - %d} -group seek -group signals /test_bench/HeMPS/%s%dx%d/router_seek_wrapped/router_seek/in_payload_router_seek" %  	(pe_type_str, posX, posY, pe, pe_type_str, posX, posY)
-	print "add wave -noupdate -group {%s %dx%d - %d} -group seek -group signals /test_bench/HeMPS/%s%dx%d/router_seek_wrapped/router_seek/in_service_router_seek" %  	(pe_type_str, posX, posY, pe, pe_type_str, posX, posY)
-	print "add wave -noupdate -group {%s %dx%d - %d} -group seek -group signals /test_bench/HeMPS/%s%dx%d/router_seek_wrapped/router_seek/in_opmode_router_seek" %  	(pe_type_str, posX, posY, pe, pe_type_str, posX, posY)
-	print "add wave -noupdate -group {%s %dx%d - %d} -group seek -group signals /test_bench/HeMPS/%s%dx%d/router_seek_wrapped/router_seek/int_out_req_router_seek" %  	(pe_type_str, posX, posY, pe, pe_type_str, posX, posY)
-	print "add wave -noupdate -group {%s %dx%d - %d} -group seek -group signals /test_bench/HeMPS/%s%dx%d/router_seek_wrapped/router_seek/out_service_router_seek" %  	(pe_type_str, posX, posY, pe, pe_type_str, posX, posY)
-	print "add wave -noupdate -group {%s %dx%d - %d} -group seek -group signals /test_bench/HeMPS/%s%dx%d/router_seek_wrapped/router_seek/out_source_router_seek" %  	(pe_type_str, posX, posY, pe, pe_type_str, posX, posY)
-	print "add wave -noupdate -group {%s %dx%d - %d} -group seek -group signals /test_bench/HeMPS/%s%dx%d/router_seek_wrapped/router_seek/out_target_router_seek" %  	(pe_type_str, posX, posY, pe, pe_type_str, posX, posY)
-	print "add wave -noupdate -group {%s %dx%d - %d} -group seek -group signals /test_bench/HeMPS/%s%dx%d/router_seek_wrapped/router_seek/out_payload_router_seek" %  	(pe_type_str, posX, posY, pe, pe_type_str, posX, posY)
-	print "add wave -noupdate -group {%s %dx%d - %d} -group seek -group signals /test_bench/HeMPS/%s%dx%d/router_seek_wrapped/router_seek/out_opmode_router_seek" %  	(pe_type_str, posX, posY, pe, pe_type_str, posX, posY)
-	print "add wave -noupdate -group {%s %dx%d - %d} -group seek -group signals /test_bench/HeMPS/%s%dx%d/router_seek_wrapped/router_seek/backtrack_port" %  			(pe_type_str, posX, posY, pe, pe_type_str, posX, posY)
-	print "add wave -noupdate -group {%s %dx%d - %d} -group seek -group signals /test_bench/HeMPS/%s%dx%d/router_seek_wrapped/router_seek/reg_backtrack" %  			(pe_type_str, posX, posY, pe, pe_type_str, posX, posY)
-	print "add wave -noupdate -group {%s %dx%d - %d} -group seek -group signals /test_bench/HeMPS/%s%dx%d/router_seek_wrapped/router_seek/vector_ack_ports" %  			(pe_type_str, posX, posY, pe, pe_type_str, posX, posY)
-	print "add wave -noupdate -group {%s %dx%d - %d} -group seek -group signals /test_bench/HeMPS/%s%dx%d/router_seek_wrapped/router_seek/vector_nack_ports" %  			(pe_type_str, posX, posY, pe, pe_type_str, posX, posY)
-	print "add wave -noupdate -group {%s %dx%d - %d} -group seek -group signals /test_bench/HeMPS/%s%dx%d/router_seek_wrapped/router_seek/in_the_table" %  				(pe_type_str, posX, posY, pe, pe_type_str, posX, posY)
-	print "add wave -noupdate -group {%s %dx%d - %d} -group seek -group signals /test_bench/HeMPS/%s%dx%d/router_seek_wrapped/router_seek/space_aval_in_the_table" %  	(pe_type_str, posX, posY, pe, pe_type_str, posX, posY)
-	print "add wave -noupdate -group {%s %dx%d - %d} -group seek -group signals /test_bench/HeMPS/%s%dx%d/router_seek_wrapped/router_seek/is_my_turn_send_backtrack" % 	(pe_type_str, posX, posY, pe, pe_type_str, posX, posY)
-
+	signals_pfx = "add wave -noupdate -group {%s %dx%d - %d} -group seek -group signals /test_bench/HeMPS/%s%dx%d/router_seek_wrapped/router_seek/" % 			(pe_type_str, posX, posY, pe, pe_type_str, posX, posY)
+	signals_sds = ["router_address", "backtrack_id", "EA_manager", "EA_manager_input", "sel_port", "next_port", "req_int", "task", "req_task", "sel", "prox", "free_index", "source_index", "source_table", "target_table", "service_table", "payload_table", "opmode_table", "my_payload_table", "backtrack_port_table", "source_router_port_table", "used_table", "pending_table", "pending_local", "int_out_ack_router_seek", "out_nack_router_seek", "out_ack_router_seek", "in_fail_router_seek", "fail_with_mode_in", "fail_with_mode_out", "int_in_req_router_seek", "in_nack_router_seek", "in_ack_router_seek", "int_in_ack_router_seek", "in_source_router_seek", "in_target_router_seek", "in_payload_router_seek", "in_service_router_seek", "in_opmode_router_seek", "int_out_req_router_seek", "out_service_router_seek", "out_source_router_seek", "out_target_router_seek", "out_payload_router_seek", "out_opmode_router_seek", "backtrack_port", "reg_backtrack", "vector_ack_ports", "vector_nack_ports", "in_the_table", "space_aval_in_the_table", "is_my_turn_send_backtrack"]
+	for it in map(lambda sd: signals_pfx + sd, signals_sds):
+		print (it)
+		
 	# #fifo_PDN signals
-	print "add wave -noupdate -group {%s %dx%d - %d} -group fifo_PDN /test_bench/HeMPS/%s%dx%d/fifo_PDN/clock" % 	(pe_type_str, posX, posY, pe, pe_type_str, posX, posY)
-	print "add wave -noupdate -group {%s %dx%d - %d} -group fifo_PDN /test_bench/HeMPS/%s%dx%d/fifo_PDN/reset" % 	(pe_type_str, posX, posY, pe, pe_type_str, posX, posY)
-	print "add wave -noupdate -group {%s %dx%d - %d} -group fifo_PDN /test_bench/HeMPS/%s%dx%d/fifo_PDN/EA_in" % 	(pe_type_str, posX, posY, pe, pe_type_str, posX, posY)
-	print "add wave -noupdate -group {%s %dx%d - %d} -group fifo_PDN /test_bench/HeMPS/%s%dx%d/fifo_PDN/EA_out" % 	(pe_type_str, posX, posY, pe, pe_type_str, posX, posY)
-	print "add wave -noupdate -group {%s %dx%d - %d} -group fifo_PDN /test_bench/HeMPS/%s%dx%d/fifo_PDN/last" % 	(pe_type_str, posX, posY, pe, pe_type_str, posX, posY)
-	print "add wave -noupdate -group {%s %dx%d - %d} -group fifo_PDN /test_bench/HeMPS/%s%dx%d/fifo_PDN/first" % 	(pe_type_str, posX, posY, pe, pe_type_str, posX, posY)
-	print "add wave -noupdate -group {%s %dx%d - %d} -group fifo_PDN /test_bench/HeMPS/%s%dx%d/fifo_PDN/tem_espaco_na_fila" % 	(pe_type_str, posX, posY, pe, pe_type_str, posX, posY)
-	print "add wave -noupdate -group {%s %dx%d - %d} -group fifo_PDN /test_bench/HeMPS/%s%dx%d/fifo_PDN/in_source_fifo_seek" % 	(pe_type_str, posX, posY, pe, pe_type_str, posX, posY)
-	print "add wave -noupdate -group {%s %dx%d - %d} -group fifo_PDN /test_bench/HeMPS/%s%dx%d/fifo_PDN/in_target_fifo_seek" % 	(pe_type_str, posX, posY, pe, pe_type_str, posX, posY)
-	print "add wave -noupdate -group {%s %dx%d - %d} -group fifo_PDN /test_bench/HeMPS/%s%dx%d/fifo_PDN/in_payload_fifo_seek" % 	(pe_type_str, posX, posY, pe, pe_type_str, posX, posY)
-	print "add wave -noupdate -group {%s %dx%d - %d} -group fifo_PDN /test_bench/HeMPS/%s%dx%d/fifo_PDN/in_service_fifo_seek" % 	(pe_type_str, posX, posY, pe, pe_type_str, posX, posY)
-	print "add wave -noupdate -group {%s %dx%d - %d} -group fifo_PDN /test_bench/HeMPS/%s%dx%d/fifo_PDN/in_reg_backtrack_seek" % 	(pe_type_str, posX, posY, pe, pe_type_str, posX, posY)
-	print "add wave -noupdate -group {%s %dx%d - %d} -group fifo_PDN /test_bench/HeMPS/%s%dx%d/fifo_PDN/in_sel_reg_backtrack" % 	(pe_type_str, posX, posY, pe, pe_type_str, posX, posY)
-	print "add wave -noupdate -group {%s %dx%d - %d} -group fifo_PDN /test_bench/HeMPS/%s%dx%d/fifo_PDN/in_req_fifo_seek" % 	(pe_type_str, posX, posY, pe, pe_type_str, posX, posY)
-	print "add wave -noupdate -group {%s %dx%d - %d} -group fifo_PDN /test_bench/HeMPS/%s%dx%d/fifo_PDN/in_ack_fifo_seek" % 	(pe_type_str, posX, posY, pe, pe_type_str, posX, posY)
-	print "add wave -noupdate -group {%s %dx%d - %d} -group fifo_PDN /test_bench/HeMPS/%s%dx%d/fifo_PDN/in_opmode_fifo_seek" % 	(pe_type_str, posX, posY, pe, pe_type_str, posX, posY)
-	print "add wave -noupdate -group {%s %dx%d - %d} -group fifo_PDN /test_bench/HeMPS/%s%dx%d/fifo_PDN/out_req_send_kernel_seek_local" % 	(pe_type_str, posX, posY, pe, pe_type_str, posX, posY)
-	print "add wave -noupdate -group {%s %dx%d - %d} -group fifo_PDN /test_bench/HeMPS/%s%dx%d/fifo_PDN/in_ack_send_kernel_seek_local" % 	(pe_type_str, posX, posY, pe, pe_type_str, posX, posY)
-	print "add wave -noupdate -group {%s %dx%d - %d} -group fifo_PDN /test_bench/HeMPS/%s%dx%d/fifo_PDN/out_service_fifo_seek" % 	(pe_type_str, posX, posY, pe, pe_type_str, posX, posY)
-	print "add wave -noupdate -group {%s %dx%d - %d} -group fifo_PDN /test_bench/HeMPS/%s%dx%d/fifo_PDN/out_source_fifo_seek" % 	(pe_type_str, posX, posY, pe, pe_type_str, posX, posY)
-	print "add wave -noupdate -group {%s %dx%d - %d} -group fifo_PDN /test_bench/HeMPS/%s%dx%d/fifo_PDN/out_target_fifo_seek" % 	(pe_type_str, posX, posY, pe, pe_type_str, posX, posY)
-	print "add wave -noupdate -group {%s %dx%d - %d} -group fifo_PDN /test_bench/HeMPS/%s%dx%d/fifo_PDN/out_payload_fifo_seek" % 	(pe_type_str, posX, posY, pe, pe_type_str, posX, posY)
-	print "add wave -noupdate -group {%s %dx%d - %d} -group fifo_PDN /test_bench/HeMPS/%s%dx%d/fifo_PDN/out_sel_reg_backtrack_seek" % 	(pe_type_str, posX, posY, pe, pe_type_str, posX, posY)
-	print "add wave -noupdate -group {%s %dx%d - %d} -group fifo_PDN /test_bench/HeMPS/%s%dx%d/fifo_PDN/out_reg_backtrack" % 	(pe_type_str, posX, posY, pe, pe_type_str, posX, posY)
-	print "add wave -noupdate -group {%s %dx%d - %d} -group fifo_PDN /test_bench/HeMPS/%s%dx%d/fifo_PDN/out_req_pe" % 	(pe_type_str, posX, posY, pe, pe_type_str, posX, posY)
-	print "add wave -noupdate -group {%s %dx%d - %d} -group fifo_PDN /test_bench/HeMPS/%s%dx%d/fifo_PDN/out_ack_fifo_seek" % 	(pe_type_str, posX, posY, pe, pe_type_str, posX, posY)
-	print "add wave -noupdate -group {%s %dx%d - %d} -group fifo_PDN /test_bench/HeMPS/%s%dx%d/fifo_PDN/out_nack_fifo_seek" % 	(pe_type_str, posX, posY, pe, pe_type_str, posX, posY)
-	print "add wave -noupdate -group {%s %dx%d - %d} -group fifo_PDN /test_bench/HeMPS/%s%dx%d/fifo_PDN/out_opmode_fifo_seek" % 	(pe_type_str, posX, posY, pe, pe_type_str, posX, posY)
-	print "add wave -noupdate -group {%s %dx%d - %d} -group fifo_PDN /test_bench/HeMPS/%s%dx%d/fifo_PDN/buffer_source" % 	(pe_type_str, posX, posY, pe, pe_type_str, posX, posY)
-	print "add wave -noupdate -group {%s %dx%d - %d} -group fifo_PDN /test_bench/HeMPS/%s%dx%d/fifo_PDN/buffer_target" % 	(pe_type_str, posX, posY, pe, pe_type_str, posX, posY)
-	print "add wave -noupdate -group {%s %dx%d - %d} -group fifo_PDN /test_bench/HeMPS/%s%dx%d/fifo_PDN/buffer_payload" % 	(pe_type_str, posX, posY, pe, pe_type_str, posX, posY)
-	print "add wave -noupdate -group {%s %dx%d - %d} -group fifo_PDN /test_bench/HeMPS/%s%dx%d/fifo_PDN/buffer_service" % 	(pe_type_str, posX, posY, pe, pe_type_str, posX, posY)
-	print "add wave -noupdate -group {%s %dx%d - %d} -group fifo_PDN /test_bench/HeMPS/%s%dx%d/fifo_PDN/buffer_opmode" % 	(pe_type_str, posX, posY, pe, pe_type_str, posX, posY)
-	print "add wave -noupdate -group {%s %dx%d - %d} -group fifo_PDN /test_bench/HeMPS/%s%dx%d/fifo_PDN/buffer_backtrack1" % 	(pe_type_str, posX, posY, pe, pe_type_str, posX, posY)
-	print "add wave -noupdate -group {%s %dx%d - %d} -group fifo_PDN /test_bench/HeMPS/%s%dx%d/fifo_PDN/buffer_backtrack2" % 	(pe_type_str, posX, posY, pe, pe_type_str, posX, posY)
-	print "add wave -noupdate -group {%s %dx%d - %d} -group fifo_PDN /test_bench/HeMPS/%s%dx%d/fifo_PDN/buffer_backtrack3" % 	(pe_type_str, posX, posY, pe, pe_type_str, posX, posY)
-
+	fifo_signals_pfx = "add wave -noupdate -group {%s %dx%d - %d} -group fifo_PDN /test_bench/HeMPS/%s%dx%d/fifo_PDN/" % 	(pe_type_str, posX, posY, pe, pe_type_str, posX, posY)
+	fifo_signals_sds = ["clock", "reset", "EA_in", "EA_out", "/last", "first", "tem_espaco_na_fila", "in_source_fifo_seek", "in_target_fifo_seek", "in_payload_fifo_seek", "in_service_fifo_seek", "in_reg_backtrack_seek", "in_sel_reg_backtrack", "in_req_fifo_seek", "in_ack_fifo_seek", "in_opmode_fifo_seek", "out_req_send_kernel_seek_local", "in_ack_send_kernel_seek_local", "out_service_fifo_seek", "out_source_fifo_seek", "out_target_fifo_seek", "out_payload_fifo_seek", "out_sel_reg_backtrack_seek", "out_reg_backtrack" , "out_req_pe", "out_ack_fifo_seek", "out_nack_fifo_seek", "out_opmode_fifo_seek", "buffer_source" , "buffer_target", "buffer_payload", "buffer_service", "buffer_opmode", "buffer_backtrack1", "buffer_backtrack2", "buffer_backtrack3"]
+	for it in map(lambda sd: fifo_signals_pfx + sd, fifo_signals_sds):
+		print (it)
+    
 	#fail_wrapper_module signals
-	print "add wave -noupdate -group {%s %dx%d - %d} -group fail_WRAPPER_module /test_bench/HeMPS/%s%dx%d/fail_WRAPPER_module/clock" % (pe_type_str, posX, posY, pe, pe_type_str, posX, posY)
-	print "add wave -noupdate -group {%s %dx%d - %d} -group fail_WRAPPER_module /test_bench/HeMPS/%s%dx%d/fail_WRAPPER_module/reset" % (pe_type_str, posX, posY, pe, pe_type_str, posX, posY)
-	print "add wave -noupdate -group {%s %dx%d - %d} -group fail_WRAPPER_module /test_bench/HeMPS/%s%dx%d/fail_WRAPPER_module/in_fail_cpu_local" % (pe_type_str, posX, posY, pe, pe_type_str, posX, posY)
-	print "add wave -noupdate -group {%s %dx%d - %d} -group fail_WRAPPER_module /test_bench/HeMPS/%s%dx%d/fail_WRAPPER_module/in_fail_cpu_config" % (pe_type_str, posX, posY, pe, pe_type_str, posX, posY)
-	print "add wave -noupdate -group {%s %dx%d - %d} -group fail_WRAPPER_module /test_bench/HeMPS/%s%dx%d/fail_WRAPPER_module/mem_address_service_fail_cpu" % (pe_type_str, posX, posY, pe, pe_type_str, posX, posY)
-	print "add wave -noupdate -group {%s %dx%d - %d} -group fail_WRAPPER_module /test_bench/HeMPS/%s%dx%d/fail_WRAPPER_module/in_source_wrapper_local" % (pe_type_str, posX, posY, pe, pe_type_str, posX, posY)
-	print "add wave -noupdate -group {%s %dx%d - %d} -group fail_WRAPPER_module /test_bench/HeMPS/%s%dx%d/fail_WRAPPER_module/in_target_wrapper_local" % (pe_type_str, posX, posY, pe, pe_type_str, posX, posY)
-	print "add wave -noupdate -group {%s %dx%d - %d} -group fail_WRAPPER_module /test_bench/HeMPS/%s%dx%d/fail_WRAPPER_module/in_payload_wrapper_local" % (pe_type_str, posX, posY, pe, pe_type_str, posX, posY)
-	print "add wave -noupdate -group {%s %dx%d - %d} -group fail_WRAPPER_module /test_bench/HeMPS/%s%dx%d/fail_WRAPPER_module/in_service_wrapper_local" % (pe_type_str, posX, posY, pe, pe_type_str, posX, posY)
-	print "add wave -noupdate -group {%s %dx%d - %d} -group fail_WRAPPER_module /test_bench/HeMPS/%s%dx%d/fail_WRAPPER_module/in_req_wrapper_local" % (pe_type_str, posX, posY, pe, pe_type_str, posX, posY)
-	print "add wave -noupdate -group {%s %dx%d - %d} -group fail_WRAPPER_module /test_bench/HeMPS/%s%dx%d/fail_WRAPPER_module/in_opmode_wrapper_local" % (pe_type_str, posX, posY, pe, pe_type_str, posX, posY)
-	print "add wave -noupdate -group {%s %dx%d - %d} -group fail_WRAPPER_module /test_bench/HeMPS/%s%dx%d/fail_WRAPPER_module/in_fail_wrapper_local" % (pe_type_str, posX, posY, pe, pe_type_str, posX, posY)
-	print "add wave -noupdate -group {%s %dx%d - %d} -group fail_WRAPPER_module /test_bench/HeMPS/%s%dx%d/fail_WRAPPER_module/out_ack_wrapper_local" % (pe_type_str, posX, posY, pe, pe_type_str, posX, posY)
-	print "add wave -noupdate -group {%s %dx%d - %d} -group fail_WRAPPER_module /test_bench/HeMPS/%s%dx%d/fail_WRAPPER_module/out_nack_wrapper_local" % (pe_type_str, posX, posY, pe, pe_type_str, posX, posY)
-	print "add wave -noupdate -group {%s %dx%d - %d} -group fail_WRAPPER_module /test_bench/HeMPS/%s%dx%d/fail_WRAPPER_module/out_source_wrapper_local" % (pe_type_str, posX, posY, pe, pe_type_str, posX, posY)
-	print "add wave -noupdate -group {%s %dx%d - %d} -group fail_WRAPPER_module /test_bench/HeMPS/%s%dx%d/fail_WRAPPER_module/out_target_wrapper_local" % (pe_type_str, posX, posY, pe, pe_type_str, posX, posY)
-	print "add wave -noupdate -group {%s %dx%d - %d} -group fail_WRAPPER_module /test_bench/HeMPS/%s%dx%d/fail_WRAPPER_module/out_payload_wrapper_local" % (pe_type_str, posX, posY, pe, pe_type_str, posX, posY)
-	print "add wave -noupdate -group {%s %dx%d - %d} -group fail_WRAPPER_module /test_bench/HeMPS/%s%dx%d/fail_WRAPPER_module/out_service_wrapper_local" % (pe_type_str, posX, posY, pe, pe_type_str, posX, posY)
-	print "add wave -noupdate -group {%s %dx%d - %d} -group fail_WRAPPER_module /test_bench/HeMPS/%s%dx%d/fail_WRAPPER_module/out_req_wrapper_local" % (pe_type_str, posX, posY, pe, pe_type_str, posX, posY)
-	print "add wave -noupdate -group {%s %dx%d - %d} -group fail_WRAPPER_module /test_bench/HeMPS/%s%dx%d/fail_WRAPPER_module/out_opmode_wrapper_local" % (pe_type_str, posX, posY, pe, pe_type_str, posX, posY)
-	print "add wave -noupdate -group {%s %dx%d - %d} -group fail_WRAPPER_module /test_bench/HeMPS/%s%dx%d/fail_WRAPPER_module/out_fail_wrapper_local" % (pe_type_str, posX, posY, pe, pe_type_str, posX, posY)
-	print "add wave -noupdate -group {%s %dx%d - %d} -group fail_WRAPPER_module /test_bench/HeMPS/%s%dx%d/fail_WRAPPER_module/in_ack_wrapper_local" % (pe_type_str, posX, posY, pe, pe_type_str, posX, posY)
-	print "add wave -noupdate -group {%s %dx%d - %d} -group fail_WRAPPER_module /test_bench/HeMPS/%s%dx%d/fail_WRAPPER_module/in_nack_wrapper_local" % (pe_type_str, posX, posY, pe, pe_type_str, posX, posY)
-	print "add wave -noupdate -group {%s %dx%d - %d} -group fail_WRAPPER_module /test_bench/HeMPS/%s%dx%d/fail_WRAPPER_module/in_source_router" % (pe_type_str, posX, posY, pe, pe_type_str, posX, posY)
-	print "add wave -noupdate -group {%s %dx%d - %d} -group fail_WRAPPER_module /test_bench/HeMPS/%s%dx%d/fail_WRAPPER_module/in_target_router" % (pe_type_str, posX, posY, pe, pe_type_str, posX, posY)
-	print "add wave -noupdate -group {%s %dx%d - %d} -group fail_WRAPPER_module /test_bench/HeMPS/%s%dx%d/fail_WRAPPER_module/EA_in" % (pe_type_str, posX, posY, pe, pe_type_str, posX, posY)
+	fail_wrapper_signals_pfx = "add wave -noupdate -group {%s %dx%d - %d} -group fail_WRAPPER_module /test_bench/HeMPS/%s%dx%d/fail_WRAPPER_module/" % (pe_type_str, posX, posY, pe, pe_type_str, posX, posY)
+	fail_wrapper_signals_sds = ["clock", "reset", "in_fail_cpu_local", "in_fail_cpu_config", "mem_address_service_fail_cpu", "in_source_wrapper_local", "in_target_wrapper_local", "in_payload_wrapper_local", "in_service_wrapper_local", "in_req_wrapper_local", "in_opmode_wrapper_local", "in_fail_wrapper_local", "out_ack_wrapper_local", "out_nack_wrapper_local", "out_source_wrapper_local", "out_target_wrapper_local", "out_payload_wrapper_local", "out_service_wrapper_local", "out_req_wrapper_local", "out_opmode_wrapper_local", "out_fail_wrapper_local", "in_ack_wrapper_local", "in_nack_wrapper_local", "in_source_router", "in_target_router", "EA_in"]
+	for it in map(lambda sd: fail_wrapper_signals_pfx + sd, fail_wrapper_signals_sds):
+		print (it)
 
 	# dmni signals
-	print "add wave -noupdate -group {%s %dx%d - %d} -group dmni /test_bench/HeMPS/%s%dx%d/dmni/dmni_timeout" %  	(pe_type_str, posX, posY, pe, pe_type_str, posX, posY)
-	print "add wave -noupdate -group {%s %dx%d - %d} -group dmni /test_bench/HeMPS/%s%dx%d/dmni/mem_address" %  	(pe_type_str, posX, posY, pe, pe_type_str, posX, posY)
-	print "add wave -noupdate -group {%s %dx%d - %d} -group dmni /test_bench/HeMPS/%s%dx%d/dmni/mem_byte_we" %  	(pe_type_str, posX, posY, pe, pe_type_str, posX, posY)
-	print "add wave -noupdate -group {%s %dx%d - %d} -group dmni /test_bench/HeMPS/%s%dx%d/dmni/mem_data_read" %  	(pe_type_str, posX, posY, pe, pe_type_str, posX, posY)
-	print "add wave -noupdate -group {%s %dx%d - %d} -group dmni /test_bench/HeMPS/%s%dx%d/dmni/mem_data_write" %  	(pe_type_str, posX, posY, pe, pe_type_str, posX, posY)
-	print "add wave -noupdate -group {%s %dx%d - %d} -group dmni /test_bench/HeMPS/%s%dx%d/dmni/config_data" %  	(pe_type_str, posX, posY, pe, pe_type_str, posX, posY)
-	print "add wave -noupdate -group {%s %dx%d - %d} -group dmni /test_bench/HeMPS/%s%dx%d/dmni/receive_active" %  	(pe_type_str, posX, posY, pe, pe_type_str, posX, posY)
-	print "add wave -noupdate -group {%s %dx%d - %d} -group dmni /test_bench/HeMPS/%s%dx%d/dmni/send_active" %  	(pe_type_str, posX, posY, pe, pe_type_str, posX, posY)
-	print "add wave -noupdate -group {%s %dx%d - %d} -group dmni /test_bench/HeMPS/%s%dx%d/dmni/set_address" %  	(pe_type_str, posX, posY, pe, pe_type_str, posX, posY)
-	print "add wave -noupdate -group {%s %dx%d - %d} -group dmni /test_bench/HeMPS/%s%dx%d/dmni/set_address_2" %  	(pe_type_str, posX, posY, pe, pe_type_str, posX, posY)
-	print "add wave -noupdate -group {%s %dx%d - %d} -group dmni /test_bench/HeMPS/%s%dx%d/dmni/set_op" %  			(pe_type_str, posX, posY, pe, pe_type_str, posX, posY)
-	print "add wave -noupdate -group {%s %dx%d - %d} -group dmni /test_bench/HeMPS/%s%dx%d/dmni/set_size" %  		(pe_type_str, posX, posY, pe, pe_type_str, posX, posY)
-	print "add wave -noupdate -group {%s %dx%d - %d} -group dmni /test_bench/HeMPS/%s%dx%d/dmni/set_size_2" %  		(pe_type_str, posX, posY, pe, pe_type_str, posX, posY)
-	print "add wave -noupdate -group {%s %dx%d - %d} -group dmni /test_bench/HeMPS/%s%dx%d/dmni/start" %  			(pe_type_str, posX, posY, pe, pe_type_str, posX, posY)
-	print "add wave -noupdate -group {%s %dx%d - %d} -group dmni /test_bench/HeMPS/%s%dx%d/dmni/intr" %  			(pe_type_str, posX, posY, pe, pe_type_str, posX, posY)
-	print "add wave -noupdate -group {%s %dx%d - %d} -group dmni -divider buffer control" %  								(pe_type_str, posX, posY, pe)
-	print "add wave -noupdate -group {%s %dx%d - %d} -group dmni /test_bench/HeMPS/%s%dx%d/dmni/last" %  			(pe_type_str, posX, posY, pe, pe_type_str, posX, posY)
-	print "add wave -noupdate -group {%s %dx%d - %d} -group dmni /test_bench/HeMPS/%s%dx%d/dmni/buffer_high" %  			(pe_type_str, posX, posY, pe, pe_type_str, posX, posY)
-	print "add wave -noupdate -group {%s %dx%d - %d} -group dmni /test_bench/HeMPS/%s%dx%d/dmni/flag_middle_eop" %  			(pe_type_str, posX, posY, pe, pe_type_str, posX, posY)
-	print "add wave -noupdate -group {%s %dx%d - %d} -group dmni /test_bench/HeMPS/%s%dx%d/dmni/intr_counter_temp" %  			(pe_type_str, posX, posY, pe, pe_type_str, posX, posY)
-	print "add wave -noupdate -group {%s %dx%d - %d} -group dmni -divider SR" %  									(pe_type_str, posX, posY, pe)
-	print "add wave -noupdate -group {%s %dx%d - %d} -group dmni /test_bench/HeMPS/%s%dx%d/dmni/SR" %				(pe_type_str, posX, posY, pe, pe_type_str, posX, posY)
-	print "add wave -noupdate -group {%s %dx%d - %d} -group dmni /test_bench/HeMPS/%s%dx%d/dmni/cont" %  			(pe_type_str, posX, posY, pe, pe_type_str, posX, posY)
-	print "add wave -noupdate -group {%s %dx%d - %d} -group dmni /test_bench/HeMPS/%s%dx%d/dmni/payload_size" %  	(pe_type_str, posX, posY, pe, pe_type_str, posX, posY)
-	print "add wave -noupdate -group {%s %dx%d - %d} -group dmni /test_bench/HeMPS/%s%dx%d/dmni/last" %  			(pe_type_str, posX, posY, pe, pe_type_str, posX, posY)
-	print "add wave -noupdate -group {%s %dx%d - %d} -group dmni -divider DMNI_Receive" %  							(pe_type_str, posX, posY, pe)
-	print "add wave -noupdate -group {%s %dx%d - %d} -group dmni /test_bench/HeMPS/%s%dx%d/dmni/DMNI_Receive" %		(pe_type_str, posX, posY, pe, pe_type_str, posX, posY)
-	print "add wave -noupdate -group {%s %dx%d - %d} -group dmni /test_bench/HeMPS/%s%dx%d/dmni/recv_size" %  		(pe_type_str, posX, posY, pe, pe_type_str, posX, posY)
-	print "add wave -noupdate -group {%s %dx%d - %d} -group dmni /test_bench/HeMPS/%s%dx%d/dmni/first" %  			(pe_type_str, posX, posY, pe, pe_type_str, posX, posY)
-	print "add wave -noupdate -group {%s %dx%d - %d} -group dmni -divider DMNI_Send" %  							(pe_type_str, posX, posY, pe)
-	print "add wave -noupdate -group {%s %dx%d - %d} -group dmni /test_bench/HeMPS/%s%dx%d/dmni/DMNI_Send" %  		(pe_type_str, posX, posY, pe, pe_type_str, posX, posY)
+	dmni_signals_pfx = "add wave -noupdate -group {%s %dx%d - %d} -group dmni /test_bench/HeMPS/%s%dx%d/dmni/" %  	(pe_type_str, posX, posY, pe, pe_type_str, posX, posY)
+	dmni_dividers_pfx = "add wave -noupdate -group {%s %dx%d - %d} -group dmni -divider " % (pe_type_str, posX, posY, pe)
+	dmni_signals_sds = ["dmni_timeout"	,"mem_address", "mem_byte_we", "mem_data_read", "mem_data_write", "config_data", "receive_active", "send_active", "set_address", "set_address_2", "set_op", "set_size", "set_size_2", "start", "intr"]
+	for it in map(lambda sd: dmni_signals_pfx + sd, dmni_signals_sds):
+		print (it)
 
+	print (dmni_dividers_pfx +"SR")
+	dmni_signals_sds2=["SR","cont","payload_size","last"]
+	for it in map(lambda sd: dmni_signals_pfx + sd, dmni_signals_sds2):
+		print (it)
 
-	print "add wave -noupdate -group {%s %dx%d - %d} -group {switch control} /test_bench/HeMPS/%s%dx%d/RouterCCwrapped/RouterCC/SwitchControl_SR_write/EA" % 					(pe_type_str, posX, posY, pe, pe_type_str, posX, posY)
-	print "add wave -noupdate -group {%s %dx%d - %d} -group {switch control} /test_bench/HeMPS/%s%dx%d/RouterCCwrapped/RouterCC/SwitchControl_SR_write/ask" % 					(pe_type_str, posX, posY, pe, pe_type_str, posX, posY)
-	print "add wave -noupdate -group {%s %dx%d - %d} -group {switch control} /test_bench/HeMPS/%s%dx%d/RouterCCwrapped/RouterCC/SwitchControl_SR_write/shift_counter" % 		(pe_type_str, posX, posY, pe, pe_type_str, posX, posY)
-	print "add wave -noupdate -group {%s %dx%d - %d} -group {switch control} /test_bench/HeMPS/%s%dx%d/RouterCCwrapped/RouterCC/SwitchControl_SR_write/Xsource" % 				(pe_type_str, posX, posY, pe, pe_type_str, posX, posY)
-	print "add wave -noupdate -group {%s %dx%d - %d} -group {switch control} /test_bench/HeMPS/%s%dx%d/RouterCCwrapped/RouterCC/SwitchControl_SR_write/Ysource" % 				(pe_type_str, posX, posY, pe, pe_type_str, posX, posY)
-	print "add wave -noupdate -group {%s %dx%d - %d} -group {switch control} /test_bench/HeMPS/%s%dx%d/RouterCCwrapped/RouterCC/SwitchControl_SR_write/ack_routing" % 			(pe_type_str, posX, posY, pe, pe_type_str, posX, posY)
-	print "add wave -noupdate -group {%s %dx%d - %d} -group {switch control} /test_bench/HeMPS/%s%dx%d/RouterCCwrapped/RouterCC/SwitchControl_SR_write/address" % 				(pe_type_str, posX, posY, pe, pe_type_str, posX, posY)
-	print "add wave -noupdate -group {%s %dx%d - %d} -group {switch control} /test_bench/HeMPS/%s%dx%d/RouterCCwrapped/RouterCC/SwitchControl_SR_write/clock" % 				(pe_type_str, posX, posY, pe, pe_type_str, posX, posY)
-	print "add wave -noupdate -group {%s %dx%d - %d} -group {switch control} /test_bench/HeMPS/%s%dx%d/RouterCCwrapped/RouterCC/SwitchControl_SR_write/data_in_header" % 		(pe_type_str, posX, posY, pe, pe_type_str, posX, posY)
-	print "add wave -noupdate -group {%s %dx%d - %d} -group {switch control} /test_bench/HeMPS/%s%dx%d/RouterCCwrapped/RouterCC/SwitchControl_SR_write/data_in_header_fixed" % 	(pe_type_str, posX, posY, pe, pe_type_str, posX, posY)
-	print "add wave -noupdate -group {%s %dx%d - %d} -group {switch control} /test_bench/HeMPS/%s%dx%d/RouterCCwrapped/RouterCC/SwitchControl_SR_write/dirx" % 					(pe_type_str, posX, posY, pe, pe_type_str, posX, posY)
-	print "add wave -noupdate -group {%s %dx%d - %d} -group {switch control} /test_bench/HeMPS/%s%dx%d/RouterCCwrapped/RouterCC/SwitchControl_SR_write/diry" % 					(pe_type_str, posX, posY, pe, pe_type_str, posX, posY)
-	print "add wave -noupdate -group {%s %dx%d - %d} -group {switch control} /test_bench/HeMPS/%s%dx%d/RouterCCwrapped/RouterCC/SwitchControl_SR_write/enable_shift" % 			(pe_type_str, posX, posY, pe, pe_type_str, posX, posY)
-	print "add wave -noupdate -group {%s %dx%d - %d} -group {switch control} /test_bench/HeMPS/%s%dx%d/RouterCCwrapped/RouterCC/SwitchControl_SR_write/flit_type" % 			(pe_type_str, posX, posY, pe, pe_type_str, posX, posY)
-	print "add wave -noupdate -group {%s %dx%d - %d} -group {switch control} /test_bench/HeMPS/%s%dx%d/RouterCCwrapped/RouterCC/SwitchControl_SR_write/even_line" % 			(pe_type_str, posX, posY, pe, pe_type_str, posX, posY)
-	print "add wave -noupdate -group {%s %dx%d - %d} -group {switch control} /test_bench/HeMPS/%s%dx%d/RouterCCwrapped/RouterCC/SwitchControl_SR_write/free_port" % 			(pe_type_str, posX, posY, pe, pe_type_str, posX, posY)
-	print "add wave -noupdate -group {%s %dx%d - %d} -group {switch control} /test_bench/HeMPS/%s%dx%d/RouterCCwrapped/RouterCC/SwitchControl_SR_write/header" % 				(pe_type_str, posX, posY, pe, pe_type_str, posX, posY)
-	print "add wave -noupdate -group {%s %dx%d - %d} -group {switch control} /test_bench/HeMPS/%s%dx%d/RouterCCwrapped/RouterCC/SwitchControl_SR_write/header_fixed" % 			(pe_type_str, posX, posY, pe, pe_type_str, posX, posY)
-	print "add wave -noupdate -group {%s %dx%d - %d} -group {switch control} /test_bench/HeMPS/%s%dx%d/RouterCCwrapped/RouterCC/SwitchControl_SR_write/lx" % 					(pe_type_str, posX, posY, pe, pe_type_str, posX, posY)
-	print "add wave -noupdate -group {%s %dx%d - %d} -group {switch control} /test_bench/HeMPS/%s%dx%d/RouterCCwrapped/RouterCC/SwitchControl_SR_write/ly" % 					(pe_type_str, posX, posY, pe, pe_type_str, posX, posY)
-	print "add wave -noupdate -group {%s %dx%d - %d} -group {switch control} /test_bench/HeMPS/%s%dx%d/RouterCCwrapped/RouterCC/SwitchControl_SR_write/next_flit" % 			(pe_type_str, posX, posY, pe, pe_type_str, posX, posY)
-	print "add wave -noupdate -group {%s %dx%d - %d} -group {switch control} /test_bench/HeMPS/%s%dx%d/RouterCCwrapped/RouterCC/SwitchControl_SR_write/priority" % 				(pe_type_str, posX, posY, pe, pe_type_str, posX, posY)
-	print "add wave -noupdate -group {%s %dx%d - %d} -group {switch control} /test_bench/HeMPS/%s%dx%d/RouterCCwrapped/RouterCC/SwitchControl_SR_write/prox" % 					(pe_type_str, posX, posY, pe, pe_type_str, posX, posY)
-	print "add wave -noupdate -group {%s %dx%d - %d} -group {switch control} /test_bench/HeMPS/%s%dx%d/RouterCCwrapped/RouterCC/SwitchControl_SR_write/req_routing" % 			(pe_type_str, posX, posY, pe, pe_type_str, posX, posY)
-	print "add wave -noupdate -group {%s %dx%d - %d} -group {switch control} /test_bench/HeMPS/%s%dx%d/RouterCCwrapped/RouterCC/SwitchControl_SR_write/reset" % 				(pe_type_str, posX, posY, pe, pe_type_str, posX, posY)
-	print "add wave -noupdate -group {%s %dx%d - %d} -group {switch control} /test_bench/HeMPS/%s%dx%d/RouterCCwrapped/RouterCC/SwitchControl_SR_write/rot_table" % 			(pe_type_str, posX, posY, pe, pe_type_str, posX, posY)
-	print "add wave -noupdate -group {%s %dx%d - %d} -group {switch control} /test_bench/HeMPS/%s%dx%d/RouterCCwrapped/RouterCC/SwitchControl_SR_write/routing" % 				(pe_type_str, posX, posY, pe, pe_type_str, posX, posY)
-	print "add wave -noupdate -group {%s %dx%d - %d} -group {switch control} /test_bench/HeMPS/%s%dx%d/RouterCCwrapped/RouterCC/SwitchControl_SR_write/sel" % 					(pe_type_str, posX, posY, pe, pe_type_str, posX, posY)
-	print "add wave -noupdate -group {%s %dx%d - %d} -group {switch control} /test_bench/HeMPS/%s%dx%d/RouterCCwrapped/RouterCC/SwitchControl_SR_write/sender" % 				(pe_type_str, posX, posY, pe, pe_type_str, posX, posY)
-	print "add wave -noupdate -group {%s %dx%d - %d} -group {switch control} /test_bench/HeMPS/%s%dx%d/RouterCCwrapped/RouterCC/SwitchControl_SR_write/sr_channel_0" % 			(pe_type_str, posX, posY, pe, pe_type_str, posX, posY)
-	print "add wave -noupdate -group {%s %dx%d - %d} -group {switch control} /test_bench/HeMPS/%s%dx%d/RouterCCwrapped/RouterCC/SwitchControl_SR_write/sr_port_0" % 			(pe_type_str, posX, posY, pe, pe_type_str, posX, posY)
-	print "add wave -noupdate -group {%s %dx%d - %d} -group {switch control} /test_bench/HeMPS/%s%dx%d/RouterCCwrapped/RouterCC/SwitchControl_SR_write/sr_valid_0" % 			(pe_type_str, posX, posY, pe, pe_type_str, posX, posY)
-	print "add wave -noupdate -group {%s %dx%d - %d} -group {switch control} /test_bench/HeMPS/%s%dx%d/RouterCCwrapped/RouterCC/SwitchControl_SR_write/source" % 				(pe_type_str, posX, posY, pe, pe_type_str, posX, posY)
-	print "add wave -noupdate -group {%s %dx%d - %d} -group {switch control} /test_bench/HeMPS/%s%dx%d/RouterCCwrapped/RouterCC/SwitchControl_SR_write/target" % 				(pe_type_str, posX, posY, pe, pe_type_str, posX, posY)
-	print "add wave -noupdate -group {%s %dx%d - %d} -group {switch control} /test_bench/HeMPS/%s%dx%d/RouterCCwrapped/RouterCC/SwitchControl_SR_write/target_internal" % 		(pe_type_str, posX, posY, pe, pe_type_str, posX, posY)
-	print "add wave -noupdate -group {%s %dx%d - %d} -group {switch control} /test_bench/HeMPS/%s%dx%d/RouterCCwrapped/RouterCC/SwitchControl_SR_write/try_again" % 			(pe_type_str, posX, posY, pe, pe_type_str, posX, posY)
-	print "add wave -noupdate -group {%s %dx%d - %d} -group {switch control} /test_bench/HeMPS/%s%dx%d/RouterCCwrapped/RouterCC/SwitchControl_SR_write/tx" % 					(pe_type_str, posX, posY, pe, pe_type_str, posX, posY)
-	print "add wave -noupdate -group {%s %dx%d - %d} -group {switch control} /test_bench/HeMPS/%s%dx%d/RouterCCwrapped/RouterCC/SwitchControl_SR_write/ty" % 					(pe_type_str, posX, posY, pe, pe_type_str, posX, posY)
-	print "add wave -noupdate -group {%s %dx%d - %d} -group {switch control} /test_bench/HeMPS/%s%dx%d/RouterCCwrapped/RouterCC/SwitchControl_SR_write/w_addr" % 				(pe_type_str, posX, posY, pe, pe_type_str, posX, posY)
-	print "add wave -noupdate -group {%s %dx%d - %d} -group {switch control} /test_bench/HeMPS/%s%dx%d/RouterCCwrapped/RouterCC/SwitchControl_SR_write/w_source_target" % 		(pe_type_str, posX, posY, pe, pe_type_str, posX, posY)
-	print "add wave -noupdate -group {%s %dx%d - %d} -group {switch control} /test_bench/HeMPS/%s%dx%d/RouterCCwrapped/RouterCC/SwitchControl_SR_write/ke_reg" % 		(pe_type_str, posX, posY, pe, pe_type_str, posX, posY)
-	print "add wave -noupdate -group {%s %dx%d - %d} -group {switch control} /test_bench/HeMPS/%s%dx%d/RouterCCwrapped/RouterCC/SwitchControl_SR_write/io_mask_wrapper" % 		(pe_type_str, posX, posY, pe, pe_type_str, posX, posY)
+	print (dmni_dividers_pfx +"DMNI_Receive")
+	dmni_signals_sds3=["DMNI_Receive","recv_size","first"]
+	for it in map(lambda sd: dmni_signals_pfx + sd, dmni_signals_sds3):
+		print (it)
+		
+	print (dmni_dividers_pfx +"DMNI_Send")
+	print (dmni_signals_pfx+"DMNI_Send")
 
-	# for port in xrange(0,8):
-	for port in xrange(0,10):
-		if port != 8:
+	router_pfx = "add wave -noupdate -group {%s %dx%d - %d} -group {switch control} /test_bench/HeMPS/%s%dx%d/RouterCCwrapped/RouterCC/SwitchControl_SR_write/" % 					(pe_type_str, posX, posY, pe, pe_type_str, posX, posY)
+	router_sds = ["EA","ask","ack_routing","address","clock","data_in_header","data_in_header_fixed","dirx","diry","enable_shift", "free_port","header","header_fixed","lx","next_flit","prox","req_routing" ,"reset","rot_table","sel","sender","source" ,"target","target_internal","try_again","tx","w_addr","w_source_target"]
+	for it in map (lambda sd: router_pfx + sd, router_sds):
+		print (it)
+
+	# for port in range(0,8):
+	for port in range(0,10):
+		if port != 8: 
 			if port == 9:
-				print "add wave -noupdate -group {%s %dx%d - %d} -group LOCAL -group {router %dx%d input %s} -radix hexadecimal /test_bench/HeMPS/%s%dx%d/RouterCCwrapped/credit_o(%d)" % 	(pe_type_str, posX, posY, pe, posX, posY, portname[port], pe_type_str, posX, posY, port)
-				print "add wave -noupdate -group {%s %dx%d - %d} -group LOCAL -group {router %dx%d input %s} -radix hexadecimal /test_bench/HeMPS/%s%dx%d/RouterCCwrapped/rx(%d)" % 			(pe_type_str, posX, posY, pe, posX, posY, portname[port], pe_type_str, posX, posY, port)
-				print "add wave -noupdate -group {%s %dx%d - %d} -group LOCAL -group {router %dx%d input %s} -radix hexadecimal /test_bench/HeMPS/%s%dx%d/RouterCCwrapped/data_in(%d)" % 	(pe_type_str, posX, posY, pe, posX, posY, portname[port], pe_type_str, posX, posY, port)
-				print "add wave -noupdate -group {%s %dx%d - %d} -group LOCAL -group {router %dx%d input %s} -radix hexadecimal /test_bench/HeMPS/%s%dx%d/RouterCCwrapped/eop_in(%d)" % 		(pe_type_str, posX, posY, pe, posX, posY, portname[port], pe_type_str, posX, posY, port)
-				print "add wave -noupdate -group {%s %dx%d - %d} -group LOCAL -group {router %dx%d output %s} -radix hexadecimal /test_bench/HeMPS/%s%dx%d/RouterCCwrapped/credit_i(%d)" % 	(pe_type_str, posX, posY, pe, posX, posY, portname[port], pe_type_str, posX, posY, port)
-				print "add wave -noupdate -group {%s %dx%d - %d} -group LOCAL -group {router %dx%d output %s} -radix hexadecimal /test_bench/HeMPS/%s%dx%d/RouterCCwrapped/tx(%d)" % 		(pe_type_str, posX, posY, pe, posX, posY, portname[port], pe_type_str, posX, posY, port)
-				print "add wave -noupdate -group {%s %dx%d - %d} -group LOCAL -group {router %dx%d output %s} -radix hexadecimal /test_bench/HeMPS/%s%dx%d/RouterCCwrapped/data_out(%d)" % 	(pe_type_str, posX, posY, pe, posX, posY, portname[port], pe_type_str, posX, posY, port)
-				print "add wave -noupdate -group {%s %dx%d - %d} -group LOCAL -group {router %dx%d output %s} -radix hexadecimal /test_bench/HeMPS/%s%dx%d/RouterCCwrapped/eop_out(%d)" % 	(pe_type_str, posX, posY, pe, posX, posY, portname[port], pe_type_str, posX, posY, port)
-				print "add wave -noupdate -group {%s %dx%d - %d} -group LOCAL -group {router %dx%d output %s} -radix hexadecimal /test_bench/HeMPS/%s%dx%d/pass(%d)" % 						(pe_type_str, posX, posY, pe, posX, posY, portname[port], pe_type_str, posX, posY, port)
-				print "add wave -noupdate -group {%s %dx%d - %d} -group LOCAL -group {router %dx%d output %s} -radix hexadecimal /test_bench/HeMPS/%s%dx%d/io_packet_mask(%d)" % 						(pe_type_str, posX, posY, pe, posX, posY, portname[port], pe_type_str, posX, posY, port)
-
-
+				location = "LOCAL"
 			else:
-				print "add wave -noupdate -group {%s %dx%d - %d} -group ports -group {router %dx%d input %s} -radix hexadecimal /test_bench/HeMPS/%s%dx%d/RouterCCwrapped/credit_o(%d)" % 	(pe_type_str, posX, posY, pe, posX, posY, portname[port], pe_type_str, posX, posY, port)
-				print "add wave -noupdate -group {%s %dx%d - %d} -group ports -group {router %dx%d input %s} -radix hexadecimal /test_bench/HeMPS/%s%dx%d/RouterCCwrapped/rx(%d)" % 			(pe_type_str, posX, posY, pe, posX, posY, portname[port], pe_type_str, posX, posY, port)
-				print "add wave -noupdate -group {%s %dx%d - %d} -group ports -group {router %dx%d input %s} -radix hexadecimal /test_bench/HeMPS/%s%dx%d/RouterCCwrapped/data_in(%d)" % 	(pe_type_str, posX, posY, pe, posX, posY, portname[port], pe_type_str, posX, posY, port)
-				print "add wave -noupdate -group {%s %dx%d - %d} -group ports -group {router %dx%d input %s} -radix hexadecimal /test_bench/HeMPS/%s%dx%d/RouterCCwrapped/eop_in(%d)" % 		(pe_type_str, posX, posY, pe, posX, posY, portname[port], pe_type_str, posX, posY, port)
-				print "add wave -noupdate -group {%s %dx%d - %d} -group ports -group {router %dx%d output %s} -radix hexadecimal /test_bench/HeMPS/%s%dx%d/RouterCCwrapped/credit_i(%d)" % 	(pe_type_str, posX, posY, pe, posX, posY, portname[port], pe_type_str, posX, posY, port)
-				print "add wave -noupdate -group {%s %dx%d - %d} -group ports -group {router %dx%d output %s} -radix hexadecimal /test_bench/HeMPS/%s%dx%d/RouterCCwrapped/tx(%d)" % 		(pe_type_str, posX, posY, pe, posX, posY, portname[port], pe_type_str, posX, posY, port)
-				print "add wave -noupdate -group {%s %dx%d - %d} -group ports -group {router %dx%d output %s} -radix hexadecimal /test_bench/HeMPS/%s%dx%d/RouterCCwrapped/data_out(%d)" % 	(pe_type_str, posX, posY, pe, posX, posY, portname[port], pe_type_str, posX, posY, port)
-				print "add wave -noupdate -group {%s %dx%d - %d} -group ports -group {router %dx%d output %s} -radix hexadecimal /test_bench/HeMPS/%s%dx%d/RouterCCwrapped/eop_out(%d)" % 	(pe_type_str, posX, posY, pe, posX, posY, portname[port], pe_type_str, posX, posY, port)
-				print "add wave -noupdate -group {%s %dx%d - %d} -group ports -group {router %dx%d output %s} -radix hexadecimal /test_bench/HeMPS/%s%dx%d/pass(%d)" % 						(pe_type_str, posX, posY, pe, posX, posY, portname[port], pe_type_str, posX, posY, port)
-				print "add wave -noupdate -group {%s %dx%d - %d} -group ports -group {router %dx%d output %s} -radix hexadecimal /test_bench/HeMPS/%s%dx%d/io_packet_mask(%d)" % 						(pe_type_str, posX, posY, pe, posX, posY, portname[port], pe_type_str, posX, posY, port)
-
-	
+				location = "ports"
+				
+			router_input_pfx = "add wave -noupdate -group {%s %dx%d - %d} -group %s -group {router %dx%d input %s} -radix hexadecimal /test_bench/HeMPS/%s%dx%d/RouterCCwrapped/" % 	(pe_type_str, posX, posY, pe,location, posX, posY, portname[port], pe_type_str, posX, posY)
+			router_input_sds = ["credit_o", "rx","data_in", "eop_in"]
+			for it in map(lambda sd: router_input_pfx + sd + f"({port:d})",router_input_sds):
+				print (it)
+			
+			router_output_pfx = "add wave -noupdate -group {%s %dx%d - %d} -group %s -group {router %dx%d output %s} -radix hexadecimal /test_bench/HeMPS/%s%dx%d/RouterCCwrapped/" % 	(pe_type_str, posX, posY, pe, location, posX, posY, portname[port], pe_type_str, posX, posY)
+			router_output_sds = ["credit_i","tx","data_out","eop_out"]
+								 
+			for it in map(lambda sd: router_output_pfx + sd + f"({port:d})",router_output_sds):
+				print (it)
 
 	if pe%MAX_X==MAX_X-1:
 		posX=0
 		posY=posY+1
 	else:
-		posX=posX+1	
-					
+		posX=posX+1
+
 #INJECTOR SIGNALS
-print "add wave -noupdate -group INJECTOR /test_bench/INJECTOR/clock"
-print "add wave -noupdate -group INJECTOR /test_bench/INJECTOR/reset"
-print "add wave -noupdate -group INJECTOR /test_bench/INJECTOR/in_source_router_seek_primary"
-print "add wave -noupdate -group INJECTOR /test_bench/INJECTOR/in_target_router_seek_primary"
-print "add wave -noupdate -group INJECTOR /test_bench/INJECTOR/in_payload_router_seek_primary"
-print "add wave -noupdate -group INJECTOR /test_bench/INJECTOR/in_service_router_seek_primary"
-print "add wave -noupdate -group INJECTOR /test_bench/INJECTOR/in_req_router_seek_primary"
-print "add wave -noupdate -group INJECTOR /test_bench/INJECTOR/in_ack_router_seek_primary"
-print "add wave -noupdate -group INJECTOR /test_bench/INJECTOR/in_opmode_router_seek_primary"
-print "add wave -noupdate -group INJECTOR /test_bench/INJECTOR/out_service_router_seek_primary"
-print "add wave -noupdate -group INJECTOR /test_bench/INJECTOR/out_source_router_seek_primary"
-print "add wave -noupdate -group INJECTOR /test_bench/INJECTOR/out_target_router_seek_primary"
-print "add wave -noupdate -group INJECTOR /test_bench/INJECTOR/out_payload_router_seek_primary"
-print "add wave -noupdate -group INJECTOR /test_bench/INJECTOR/out_ack_router_seek_primary"
-print "add wave -noupdate -group INJECTOR /test_bench/INJECTOR/out_req_router_seek_primary"
-print "add wave -noupdate -group INJECTOR /test_bench/INJECTOR/out_nack_router_seek_primary"
-print "add wave -noupdate -group INJECTOR /test_bench/INJECTOR/out_opmode_router_seek_primary"
-print "add wave -noupdate -group INJECTOR /test_bench/INJECTOR/clock_tx_primary"
-print "add wave -noupdate -group INJECTOR /test_bench/INJECTOR/tx_primary"
-print "add wave -noupdate -group INJECTOR /test_bench/INJECTOR/data_out_primary"
-print "add wave -noupdate -group INJECTOR /test_bench/INJECTOR/credit_i_primary"
-print "add wave -noupdate -group INJECTOR /test_bench/INJECTOR/eop_in_primary"
-print "add wave -noupdate -group INJECTOR /test_bench/INJECTOR/clock_rx_primary"
-print "add wave -noupdate -group INJECTOR /test_bench/INJECTOR/rx_primary"
-print "add wave -noupdate -group INJECTOR /test_bench/INJECTOR/data_in_primary"
-print "add wave -noupdate -group INJECTOR /test_bench/INJECTOR/credit_o_primary"
-print "add wave -noupdate -group INJECTOR /test_bench/INJECTOR/eop_out_primary"
-print "add wave -noupdate -group INJECTOR /test_bench/INJECTOR/in_source_router_seek_secondary"
-print "add wave -noupdate -group INJECTOR /test_bench/INJECTOR/in_target_router_seek_secondary"
-print "add wave -noupdate -group INJECTOR /test_bench/INJECTOR/in_payload_router_seek_secondary"
-print "add wave -noupdate -group INJECTOR /test_bench/INJECTOR/in_service_router_seek_secondary"
-print "add wave -noupdate -group INJECTOR /test_bench/INJECTOR/in_req_router_seek_secondary"
-print "add wave -noupdate -group INJECTOR /test_bench/INJECTOR/in_ack_router_seek_secondary"
-print "add wave -noupdate -group INJECTOR /test_bench/INJECTOR/in_opmode_router_seek_secondary"
-print "add wave -noupdate -group INJECTOR /test_bench/INJECTOR/out_service_router_seek_secondary"
-print "add wave -noupdate -group INJECTOR /test_bench/INJECTOR/out_source_router_seek_secondary"
-print "add wave -noupdate -group INJECTOR /test_bench/INJECTOR/out_target_router_seek_secondary"
-print "add wave -noupdate -group INJECTOR /test_bench/INJECTOR/out_payload_router_seek_secondary"
-print "add wave -noupdate -group INJECTOR /test_bench/INJECTOR/out_ack_router_seek_secondary"
-print "add wave -noupdate -group INJECTOR /test_bench/INJECTOR/out_req_router_seek_secondary"
-print "add wave -noupdate -group INJECTOR /test_bench/INJECTOR/out_nack_router_seek_secondary"
-print "add wave -noupdate -group INJECTOR /test_bench/INJECTOR/out_opmode_router_seek_secondary"
-print "add wave -noupdate -group INJECTOR /test_bench/INJECTOR/clock_tx_secondary"
-print "add wave -noupdate -group INJECTOR /test_bench/INJECTOR/tx_secondary"
-print "add wave -noupdate -group INJECTOR /test_bench/INJECTOR/data_out_secondary"
-print "add wave -noupdate -group INJECTOR /test_bench/INJECTOR/credit_i_secondary"
-print "add wave -noupdate -group INJECTOR /test_bench/INJECTOR/eop_in_secondary"
-print "add wave -noupdate -group INJECTOR /test_bench/INJECTOR/clock_rx_secondary"
-print "add wave -noupdate -group INJECTOR /test_bench/INJECTOR/rx_secondary"
-print "add wave -noupdate -group INJECTOR /test_bench/INJECTOR/data_in_secondary"
-print "add wave -noupdate -group INJECTOR /test_bench/INJECTOR/credit_o_secondary"
-print "add wave -noupdate -group INJECTOR /test_bench/INJECTOR/eop_out_secondary"
-print "add wave -noupdate -group INJECTOR /test_bench/INJECTOR/EA_in_datanoc"
-print "add wave -noupdate -group INJECTOR /test_bench/INJECTOR/EA_out_datanoc"
-print "add wave -noupdate -group INJECTOR /test_bench/INJECTOR/EA_in_brnoc"
-print "add wave -noupdate -group INJECTOR /test_bench/INJECTOR/EA_out_brnoc"
-print "add wave -noupdate -group INJECTOR /test_bench/INJECTOR/EA_manager"
+injectors_pfx = "add wave -noupdate -group INJECTOR /test_bench/INJECTOR/"
+injectors_sds = ["clock", "reset", "in_source_router_seek_primary", "in_target_router_seek_primary", "in_payload_router_seek_primary", "in_service_router_seek_primary", "in_req_router_seek_primary", "in_ack_router_seek_primary", "in_opmode_router_seek_primary", "out_service_router_seek_primary", "out_source_router_seek_primary", "out_target_router_seek_primary", "out_payload_router_seek_primary", "out_ack_router_seek_primary", "out_req_router_seek_primary", "out_nack_router_seek_primary", "out_opmode_router_seek_primary", "clock_tx_primary", "tx_primary", "data_out_primary", "credit_i_primary", "eop_in_primary", "clock_rx_primary", "rx_primary", "data_in_primary", "credit_o_primary", "eop_out_primary", "in_source_router_seek_secondary", "in_target_router_seek_secondary", "in_payload_router_seek_secondary", "in_service_router_seek_secondary", "in_req_router_seek_secondary", "in_ack_router_seek_secondary", "in_opmode_router_seek_secondary", "out_service_router_seek_secondary", "out_source_router_seek_secondary", "out_target_router_seek_secondary", "out_payload_router_seek_secondary", "out_ack_router_seek_secondary", "out_req_router_seek_secondary", "out_nack_router_seek_secondary", "out_opmode_router_seek_secondary", "clock_tx_secondary", "tx_secondary", "data_out_secondary", "credit_i_secondary", "eop_in_secondary", "clock_rx_secondary", "rx_secondary", "data_in_secondary", "credit_o_secondary", "eop_out_secondary", "EA_in_datanoc", "EA_out_datanoc", "EA_in_brnoc", "EA_out_brnoc", "EA_manager"]
+for it in map(lambda sd: injectors_pfx + sd, injectors_sds):
+	print (it)
+
 #IO_PERIPHERAL SIGNALS
-print "add wave -noupdate -group IO_PERIPHERAL /test_bench/IO_PERIPHERAL/clock"
-print "add wave -noupdate -group IO_PERIPHERAL /test_bench/IO_PERIPHERAL/reset"
-print "add wave -noupdate -group IO_PERIPHERAL /test_bench/IO_PERIPHERAL/in_source_router_seek_primary"
-print "add wave -noupdate -group IO_PERIPHERAL /test_bench/IO_PERIPHERAL/in_target_router_seek_primary"
-print "add wave -noupdate -group IO_PERIPHERAL /test_bench/IO_PERIPHERAL/in_payload_router_seek_primary"
-print "add wave -noupdate -group IO_PERIPHERAL /test_bench/IO_PERIPHERAL/in_service_router_seek_primary"
-print "add wave -noupdate -group IO_PERIPHERAL /test_bench/IO_PERIPHERAL/in_req_router_seek_primary"
-print "add wave -noupdate -group IO_PERIPHERAL /test_bench/IO_PERIPHERAL/in_ack_router_seek_primary"
-print "add wave -noupdate -group IO_PERIPHERAL /test_bench/IO_PERIPHERAL/in_opmode_router_seek_primary"
-print "add wave -noupdate -group IO_PERIPHERAL /test_bench/IO_PERIPHERAL/out_service_router_seek_primary"
-print "add wave -noupdate -group IO_PERIPHERAL /test_bench/IO_PERIPHERAL/out_source_router_seek_primary"
-print "add wave -noupdate -group IO_PERIPHERAL /test_bench/IO_PERIPHERAL/out_target_router_seek_primary"
-print "add wave -noupdate -group IO_PERIPHERAL /test_bench/IO_PERIPHERAL/out_payload_router_seek_primary"
-print "add wave -noupdate -group IO_PERIPHERAL /test_bench/IO_PERIPHERAL/out_ack_router_seek_primary"
-print "add wave -noupdate -group IO_PERIPHERAL /test_bench/IO_PERIPHERAL/out_req_router_seek_primary"
-print "add wave -noupdate -group IO_PERIPHERAL /test_bench/IO_PERIPHERAL/out_nack_router_seek_primary"
-print "add wave -noupdate -group IO_PERIPHERAL /test_bench/IO_PERIPHERAL/out_opmode_router_seek_primary"
-print "add wave -noupdate -group IO_PERIPHERAL /test_bench/IO_PERIPHERAL/clock_tx_primary"
-print "add wave -noupdate -group IO_PERIPHERAL /test_bench/IO_PERIPHERAL/tx_primary"
-print "add wave -noupdate -group IO_PERIPHERAL /test_bench/IO_PERIPHERAL/data_out_primary"
-print "add wave -noupdate -group IO_PERIPHERAL /test_bench/IO_PERIPHERAL/credit_i_primary"
-print "add wave -noupdate -group IO_PERIPHERAL /test_bench/IO_PERIPHERAL/eop_in_primary"
-print "add wave -noupdate -group IO_PERIPHERAL /test_bench/IO_PERIPHERAL/clock_rx_primary"
-print "add wave -noupdate -group IO_PERIPHERAL /test_bench/IO_PERIPHERAL/rx_primary"
-print "add wave -noupdate -group IO_PERIPHERAL /test_bench/IO_PERIPHERAL/data_in_primary"
-print "add wave -noupdate -group IO_PERIPHERAL /test_bench/IO_PERIPHERAL/credit_o_primary"
-print "add wave -noupdate -group IO_PERIPHERAL /test_bench/IO_PERIPHERAL/eop_out_primary"
-print "add wave -noupdate -group IO_PERIPHERAL /test_bench/IO_PERIPHERAL/EA_in"
-print "add wave -noupdate -group IO_PERIPHERAL /test_bench/IO_PERIPHERAL/EA_out"
-#IO_PERIPHERAL2 SIGNALS
-print "add wave -noupdate -group IO_PERIPHERAL2 /test_bench/IO_PERIPHERAL2/clock"
-print "add wave -noupdate -group IO_PERIPHERAL2 /test_bench/IO_PERIPHERAL2/reset"
-print "add wave -noupdate -group IO_PERIPHERAL2 /test_bench/IO_PERIPHERAL2/in_source_router_seek_primary"
-print "add wave -noupdate -group IO_PERIPHERAL2 /test_bench/IO_PERIPHERAL2/in_target_router_seek_primary"
-print "add wave -noupdate -group IO_PERIPHERAL2 /test_bench/IO_PERIPHERAL2/in_payload_router_seek_primary"
-print "add wave -noupdate -group IO_PERIPHERAL2 /test_bench/IO_PERIPHERAL2/in_service_router_seek_primary"
-print "add wave -noupdate -group IO_PERIPHERAL2 /test_bench/IO_PERIPHERAL2/in_req_router_seek_primary"
-print "add wave -noupdate -group IO_PERIPHERAL2 /test_bench/IO_PERIPHERAL2/in_ack_router_seek_primary"
-print "add wave -noupdate -group IO_PERIPHERAL2 /test_bench/IO_PERIPHERAL2/in_opmode_router_seek_primary"
-print "add wave -noupdate -group IO_PERIPHERAL2 /test_bench/IO_PERIPHERAL2/out_service_router_seek_primary"
-print "add wave -noupdate -group IO_PERIPHERAL2 /test_bench/IO_PERIPHERAL2/out_source_router_seek_primary"
-print "add wave -noupdate -group IO_PERIPHERAL2 /test_bench/IO_PERIPHERAL2/out_target_router_seek_primary"
-print "add wave -noupdate -group IO_PERIPHERAL2 /test_bench/IO_PERIPHERAL2/out_payload_router_seek_primary"
-print "add wave -noupdate -group IO_PERIPHERAL2 /test_bench/IO_PERIPHERAL2/out_ack_router_seek_primary"
-print "add wave -noupdate -group IO_PERIPHERAL2 /test_bench/IO_PERIPHERAL2/out_req_router_seek_primary"
-print "add wave -noupdate -group IO_PERIPHERAL2 /test_bench/IO_PERIPHERAL2/out_nack_router_seek_primary"
-print "add wave -noupdate -group IO_PERIPHERAL2 /test_bench/IO_PERIPHERAL2/out_opmode_router_seek_primary"
-print "add wave -noupdate -group IO_PERIPHERAL2 /test_bench/IO_PERIPHERAL2/clock_tx_primary"
-print "add wave -noupdate -group IO_PERIPHERAL2 /test_bench/IO_PERIPHERAL2/tx_primary"
-print "add wave -noupdate -group IO_PERIPHERAL2 /test_bench/IO_PERIPHERAL2/data_out_primary"
-print "add wave -noupdate -group IO_PERIPHERAL2 /test_bench/IO_PERIPHERAL2/credit_i_primary"
-print "add wave -noupdate -group IO_PERIPHERAL2 /test_bench/IO_PERIPHERAL2/eop_in_primary"
-print "add wave -noupdate -group IO_PERIPHERAL2 /test_bench/IO_PERIPHERAL2/clock_rx_primary"
-print "add wave -noupdate -group IO_PERIPHERAL2 /test_bench/IO_PERIPHERAL2/rx_primary"
-print "add wave -noupdate -group IO_PERIPHERAL2 /test_bench/IO_PERIPHERAL2/data_in_primary"
-print "add wave -noupdate -group IO_PERIPHERAL2 /test_bench/IO_PERIPHERAL2/credit_o_primary"
-print "add wave -noupdate -group IO_PERIPHERAL2 /test_bench/IO_PERIPHERAL2/eop_out_primary"
-print "add wave -noupdate -group IO_PERIPHERAL2 /test_bench/IO_PERIPHERAL2/EA_in"
-print "add wave -noupdate -group IO_PERIPHERAL2 /test_bench/IO_PERIPHERAL2/EA_out"
-
-	
+# io_peripheral_pfx="add wave -noupdate -group IO_PERIPHERAL /test_bench/IO_PERIPHERAL/"
+# io_peripheral_sds=["clock", "reset", "in_source_router_seek_primary", "in_target_router_seek_primary", "in_payload_router_seek_primary", "in_service_router_seek_primary", "in_req_router_seek_primary", "in_ack_router_seek_primary", "in_opmode_router_seek_primary", "out_service_router_seek_primary", "out_source_router_seek_primary", "out_target_router_seek_primary", "out_payload_router_seek_primary", "out_ack_router_seek_primary", "out_req_router_seek_primary", "out_nack_router_seek_primary", "out_opmode_router_seek_primary", "clock_tx_primary", "tx_primary", "data_out_primary", "credit_i_primary", "eop_in_primary", "clock_rx_primary", "rx_primary", "data_in_primary", "credit_o_primary", "eop_out_primary", "EA_in", "EA_out"]
+# for it in map(lambda sd: io_peripheral_pfx + sd, io_peripheral_sds):
+# 	print (it)
 
 
-print "TreeUpdate [SetDefaultTree]\n\
+print ("TreeUpdate [SetDefaultTree]\n\
 WaveRestoreCursors {{Cursor 1} {10 ps} 0}\n\
 quietly wave cursor active 1\n\
 configure wave -namecolwidth 242\n\
@@ -488,4 +197,4 @@ configure wave -gridoffset 0\n\
 configure wave -gridperiod 1\n\
 configure wave -griddelta 40\n\
 configure wave -timeline 0\n\
-configure wave -timelineunits ns\n"
+configure wave -timelineunits ps\n")

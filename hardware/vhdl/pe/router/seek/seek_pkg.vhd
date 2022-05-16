@@ -90,6 +90,27 @@ package seek_pkg is
 
     subtype     seek_bitN_service                       is std_logic_vector(TAM_SERVICE_SEEK-1 downto 0);
     type        regNport_seek_bitN_service              is array (NPORT_SEEK-1 downto 0) of seek_bitN_service;
+	
+    constant	REG_BACKTRACK_SIZE						: integer := 96;
+
+    -- table
+	type		source_table_type						is array (TABLE_SEEK_LENGHT-1 downto 0) of regNsource;
+	type		target_table_type						is array (TABLE_SEEK_LENGHT-1 downto 0) of regNtarget;
+	type		service_table_type						is array (TABLE_SEEK_LENGHT-1 downto 0) of seek_bitN_service;
+	type		payload_table_type						is array (TABLE_SEEK_LENGHT-1 downto 0) of regNpayload;
+	type		backtrack_port_table_type 				is array (TABLE_SEEK_LENGHT-1 downto 0) of std_logic_vector(2 downto 0);
+	type		source_router_port_table_type			is array (TABLE_SEEK_LENGHT-1 downto 0) of std_logic_vector(1 downto 0);
+
+	-- output FSM States
+
+	type T_ea_manager is (S_INIT, ARBITRATION, TEST_SERVICE, SERVICE_BACKTRACK, BACKTRACK_PROPAGATE, INIT_BACKTRACK, PREPARE_NEXT,
+		BACKTRACK_MOUNT, CLEAR_TABLE, COMPARE_TARGET, SEND_LOCAL, PROPAGATE, WAIT_ACK_PORTS, INIT_CLEAR, END_BACKTRACK, COUNT);
+	
+	-- input FSM States
+
+	type T_ea_manager_input is (S_INIT_INPUT, ARBITRATION_INPUT, LOOK_TABLE_INPUT, TEST_SPACE_AVAIL, SERVICE_INPUT, TABLE_WRITE_INPUT,
+		WRITE_BACKTRACK_INPUT, TEST_SEND_LOCAL, WRITE_CLEAR_INPUT, WAIT_REQ_DOWN, WAIT_REQ_DOWN_NACK, SEND_NACK);
+
 
 end package seek_pkg;
 

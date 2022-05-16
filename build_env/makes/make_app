@@ -7,7 +7,7 @@ CFLAGS            = -O2 -Wall -fms-extensions -c -s -std=c99 -G 0
 GCC_MIPS          = mips-elf-gcc $(CFLAGS)
 AS_MIPS           = mips-elf-as
 LD_MIPS           = mips-elf-ld
-DUMP_MIPS         = mips-elf-objdump -j .rodata -j .text -j .data -j .bss
+DUMP_MIPS         = mips-elf-objdump
 COPY_MIPS         = mips-elf-objcopy -I elf32-bigmips -O binary
 
 BOOT_TASK         = boot_task
@@ -37,7 +37,7 @@ clean:
 	@rm -rf *.o
 	@rm -rf *.bin
 	@rm -rf *.map
-#	@rm -rf *.lst
+	@rm -rf *.lst
 	@rm -rf *.txt
 	@rm -rf *.dump
 

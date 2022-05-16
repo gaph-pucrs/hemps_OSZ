@@ -84,11 +84,12 @@ void pe::mem_mapped_registers(){
 			// 	cpu_mem_data_read.write(out_reg_backtrack_seek_local.read());
 				// in_sel_reg_backtrack_seek_local.write(1);
 			// break;
+			// case SEEK_CAM_READ: // log artur - seek CAM
+			// 	cpu_mem_data_read.write(0xffffffff); //ler nada só para teste
+			// 	// in_sel_reg_backtrack_seek_local.write(0);
+			// break;
 			case DMNI_TIMEOUT_SIGNAL:
 				cpu_mem_data_read.write(dmni_timeout_ni.read());
-			break;
-			case KERNEL_DEBUG_STATE:		
-				cpu_mem_data_read.write(kernel_debug.read());
 			break;
 			default:
 				cpu_mem_data_read.write(data_read_ram.read());
@@ -161,7 +162,6 @@ void pe::comb_assignments(){
 	l_irq_status[0] = (!dmni_send_active_sig.read() && pending_service.read());
 	
 	irq_status.write(l_irq_status);
-	result_rx = rx_ni & mask_local_tx_output_local;
 }
 
 void pe::sequential_attr(){
@@ -241,9 +241,7 @@ void pe::sequential_attr(){
 		// 	}
 
 		// 	fclose (fp);
-		//}
-
-		//************** simluation-time debug implementation *******************
+				//************** simluation-time debug implementation *******************
 		if (cpu_mem_address_reg.read() == DEBUG && write_enable.read() == 1){
 			sprintf(aux, "log/log%dx%d.txt", (unsigned int) router_address.range(15,8), (unsigned int) router_address.range(7,0));
 			fp = fopen (aux, "a");
@@ -268,7 +266,6 @@ void pe::sequential_attr(){
 
 			fclose (fp);
 		}
-
 
 		//************ NEW DEBBUG AND REPORT logs - they are used by HeMPS Debbuger Tool********
 		if (write_enable.read()==1){
@@ -317,10 +314,6 @@ void pe::sequential_attr(){
 
 		if ((cpu_mem_address_reg.read() == TIME_SLICE_ADDR) and (write_enable.read()==1) ) {
 			time_slice.write(cpu_mem_data_write_reg.read());
-  		}
-	  				  
-		if ((cpu_mem_address_reg.read() == KERNEL_DEBUG_STATE) and (write_enable.read()==1) ) {
-			kernel_debug.write(cpu_mem_data_write_reg.read());
   		}
   		
   		tick_counter.write((tick_counter.read() + 1) );
@@ -570,7 +563,6 @@ void pe::seek_send(){
 							in_service_router_seek_local.write(2);//2 is the TARGET_UNREACHABLE_SERVICE
 							in_source_router_seek_local.write((MEM_target[i].read() << 16) | MEM_source[i].read());
 							in_target_router_seek_local.write(MEM_source[i].read());
-							in_payload_router_seek_local.write(tick_counter_local.read());
 							MEM_index_forwarded.write(i);
 							// (MEM_target[i].range(11,8) << 4) | MEM_target[i].range(3,0);
 							in_payload_router_seek_local.write((MEM_target[i].read()(11,8) << 4) | MEM_target[i].read()(3,0));
@@ -684,13 +676,11 @@ void pe::seek_receive(){
 						int_seek.write(1);
 					break;							
 					case 0x13:
-						cout << "MSG_DELIVERY_CONTROL";
-						// cout << "LOAN_PROCESSOR_REQUEST_SERVICE";
+						cout << "LOAN_PROCESSOR_REQUEST_SERVICE";
 						int_seek.write(1);
 					break;
 					case 0x14:
-						cout << "MSG_REQUEST_CONTROL";
-						// cout << "LOAN_PROCESSOR_REQUEST_SERVICE";
+						cout << "LOAN_PROCESSOR_RELEASE_SERVICE";
 						int_seek.write(1);
 					break;
 					case 0x15:
@@ -791,7 +781,6 @@ void pe::fail_in_generation(){
 		//router_fail_in[i].write(fail_in[i].read() | external_fail_in[i].read() | wrapper_reg[i].read() );
 	}
 }
-
 void pe::clock_stop(){
 
 	if (reset.read() == 1 || reset_plasma_from_dmni.read() == 1) {

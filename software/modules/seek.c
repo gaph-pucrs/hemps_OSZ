@@ -170,6 +170,7 @@ void Seek(unsigned int service, unsigned int source, unsigned int target, unsign
 			case UNFREEZE_TASK_SERVICE:
 			case FREEZE_TASK_SERVICE:
 			case RCV_FREEZE_TASK_SERVICE:
+			case OPEN_SECURE_ZONE_SERVICE:
 			// case LOAN_PROCESSOR_REQUEST_SERVICE:
 			// case LOAN_PROCESSOR_RELEASE_SERVICE:
 			case INITIALIZE_SLAVE_SERVICE:
@@ -179,7 +180,6 @@ void Seek(unsigned int service, unsigned int source, unsigned int target, unsign
 			break;
 
 			case SET_SZ_RECEIVED_SERVICE:
-			case OPEN_SECURE_ZONE_SERVICE:
 			case SET_SECURE_ZONE_SERVICE:
 			case SET_EXCESS_SZ_SERVICE:
 			case TARGET_UNREACHABLE_SERVICE:

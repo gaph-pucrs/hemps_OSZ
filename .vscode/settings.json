@@ -1,6 +1,6 @@
 {
+    "C_Cpp.errorSquiggles": "Enabled",
     "files.associations": {
-        "control_messages_fifo.h": "c",
-        "*.tcc": "cpp"
+        "random": "cpp"
     }
 }

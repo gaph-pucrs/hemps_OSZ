@@ -1,0 +1,14 @@
+#!/usr/bin/env python
+import os
+import sys
+
+#This script encapsulate the call of the HeMPS_Debugger.jar
+
+arg1 = ""
+
+try:
+    arg1 = sys.argv[1]
+except:
+    pass
+
+os.system("cd $HEMPS_PATH/testcases/examples; $HEMPS_PATH/build_env/gui_router_seek/gen_cenarios/geracenarios.py "+arg1)

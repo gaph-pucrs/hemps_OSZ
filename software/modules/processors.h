@@ -26,7 +26,7 @@
 #define ACTIVE          1
 #define FREEZING        2
 #define MAPPING         3
-#define MIGRATING       4
+#define MIGRATING       5 //4  Inconsistência com applications.h
 
 
 /**

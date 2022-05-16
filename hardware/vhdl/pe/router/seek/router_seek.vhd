@@ -19,11 +19,18 @@ use work.seek_pkg.all;
 
 entity router_seek is
 		generic (
-                router_address        			: regflit 
+                router_address        			: regflit;
+				debug_build 					: boolean := true
         );
 		port(
 				clock							: in	std_logic;
 				reset   						: in	std_logic;
+
+				-- log, desativado ao ser sintetizado LOG ARTUR
+				-- synthesis translate_off
+				in_tick_counter								: in	std_logic_vector(31 downto 0);
+				-- systhensis translate on
+
 				in_source_router_seek           : in	regNportNsource_neighbor;
 				in_target_router_seek           : in	regNportNtarget_neighbor;
 				in_payload_router_seek			: in	regNportNpayload_neighbor;
@@ -51,22 +58,19 @@ entity router_seek is
 end entity;  
 
 architecture router_seek of router_seek is
+	
+	-- FSM States
+	-- type T_ea_manager is (S_INIT, ARBITRATION, TEST_SERVICE, SERVICE_BACKTRACK, BACKTRACK_PROPAGATE, INIT_BACKTRACK, PREPARE_NEXT,
+	-- 	BACKTRACK_MOUNT, CLEAR_TABLE, COMPARE_TARGET, SEND_LOCAL, PROPAGATE, WAIT_ACK_PORTS, INIT_CLEAR, END_BACKTRACK, COUNT);
+	signal EA_manager, PE_manager  : T_ea_manager;
 
-type T_ea_manager   is (S_INIT, ARBITRATION, TEST_SERVICE, SERVICE_BACKTRACK, BACKTRACK_PROPAGATE, INIT_BACKTRACK, PREPARE_NEXT, 	
-                        BACKTRACK_MOUNT, CLEAR_TABLE, COMPARE_TARGET, SEND_LOCAL, PROPAGATE, WAIT_ACK_PORTS, INIT_CLEAR, END_BACKTRACK, COUNT);
-signal EA_manager, PE_manager  : T_ea_manager; 
+	-- FSM States
+	-- type T_ea_manager_input is (S_INIT_INPUT, ARBITRATION_INPUT, LOOK_TABLE_INPUT, TEST_SPACE_AVAIL, SERVICE_INPUT, TABLE_WRITE_INPUT,
+	-- 	WRITE_BACKTRACK_INPUT, TEST_SEND_LOCAL, WRITE_CLEAR_INPUT, WAIT_REQ_DOWN, WAIT_REQ_DOWN_NACK, SEND_NACK);
+	signal EA_manager_input, PE_manager_input  : T_ea_manager_input;
+	--EA (Estado Atual) / PE (Proximo Estado)
 
-type T_ea_manager_input   is (S_INIT_INPUT, ARBITRATION_INPUT, LOOK_TABLE_INPUT, TEST_SPACE_AVAIL, SERVICE_INPUT, TABLE_WRITE_INPUT, WRITE_BACKTRACK_INPUT, TEST_SEND_LOCAL, WRITE_CLEAR_INPUT, WAIT_REQ_DOWN, WAIT_REQ_DOWN_NACK, SEND_NACK);
-signal EA_manager_input, PE_manager_input  : T_ea_manager_input;
-
-constant REG_BACKTRACK_SIZE						: integer := 96;
-
-type	source_table_type					     					is array (TABLE_SEEK_LENGHT-1 downto 0) of regNsource;
-type	target_table_type					     					is array (TABLE_SEEK_LENGHT-1 downto 0) of regNtarget;
-type	service_table_type              					 		is array (TABLE_SEEK_LENGHT-1 downto 0) of seek_bitN_service;
-type	payload_table_type               							is array (TABLE_SEEK_LENGHT-1 downto 0) of regNpayload;
-type	backtrack_port_table_type    								is array (TABLE_SEEK_LENGHT-1 downto 0) of std_logic_vector(2 downto 0);
-type	source_router_port_table_type    							is array (TABLE_SEEK_LENGHT-1 downto 0) of std_logic_vector(1 downto 0);
+	-- Movi as declara��es dos tipos de entradas de tabela e constante REG_BACKTRACK_SIZE para o arquivo seek_pkg
 
 signal	sel_port,next_port,next_port1								: integer range 0 to 4;
 signal	sel, prox, prox1,free_index, source_index					: integer range 0 to 7;
@@ -979,7 +983,90 @@ begin
 		
  end process;
 					
-end generate;	  
------------------------------------------------------------------------------
+end generate;
+	  
+-- log, desativado ao ser sintetizado
+-- synthesis translate_off
+gen_test_count: if (debug_build) generate
+	get_signals: entity work.logging
+	generic map (
+		router_address => router_address
+	)
+	port map (
+		clock => clock,
+		reset => reset,
+		in_tick_counter => in_tick_counter,
+		EA_manager => EA_manager,
+		EA_manager_input	 => EA_manager_input,
+
+		in_source_router_seek => in_source_router_seek,
+		in_target_router_seek => in_target_router_seek,
+		in_service_router_seek => in_service_router_seek,
+		in_payload_router_seek => in_payload_router_seek,
+
+		in_req_router_seek => in_req_router_seek,
+		in_ack_router_seek => in_ack_router_seek,
+		in_nack_router_seek => in_nack_router_seek,
+		in_fail_router_seek => in_fail_router_seek,
+		in_opmode_router_seek => in_opmode_router_seek,
+
+		in_sel_reg_backtrack_seek => in_sel_reg_backtrack_seek,
+		in_ack_send_kernel_seek	=> in_ack_send_kernel_seek,
+
+		out_req_router_seek => out_req_router_seek,
+		out_ack_router_seek => out_ack_router_seek,
+		out_nack_router_seek => out_nack_router_seek,
+		out_opmode_router_seek => out_opmode_router_seek,
+
+		out_service_router_seek => out_service_router_seek,
+		out_source_router_seek => out_source_router_seek,
+		out_target_router_seek => out_target_router_seek,
+		out_payload_router_seek => out_payload_router_seek,
+
+		out_reg_backtrack_seek => out_reg_backtrack_seek,
+		out_req_send_kernel_seek => out_req_send_kernel_seek,
+
+		sel_port => sel_port,
+		next_port => next_port,
+		next_port1 => next_port1,
+		sel => sel,
+		prox => prox,
+		prox1 => prox1,
+		free_index => free_index,
+		source_index => source_index,
+		int_in_req_router_seek => int_in_req_router_seek,
+		int_out_ack_router_seek => int_out_ack_router_seek,
+		int_out_req_router_seek => int_out_req_router_seek,
+		int_in_ack_router_seek => int_in_ack_router_seek,
+		vector_ack_ports => vector_ack_ports,
+		vector_nack_ports => vector_nack_ports,
+		reg_backtrack => reg_backtrack,
+		compare_is_source => compare_is_source,
+		pending_table => pending_table,
+		used_table => used_table,
+		pending_local => pending_local,
+		task => task,
+		opmode_table => opmode_table,
+		compare_bactrack_pending_in_table => compare_bactrack_pending_in_table,
+		compare_searchpath_pending_in_table => compare_searchpath_pending_in_table,
+		compare_service_pending_in_table => compare_service_pending_in_table,
+		count_clear => count_clear,														
+		backtrack_port => backtrack_port,
+		req_task => req_task,
+		req_int => req_int,
+		is_my_turn_send_backtrack => is_my_turn_send_backtrack,
+		in_the_table => in_the_table,
+		space_aval_in_the_table => space_aval_in_the_table,
+		nack_recv => nack_recv,
+		backtrack_pending_in_table => backtrack_pending_in_table,
+		searchpath_pending_in_table => searchpath_pending_in_table,
+		service_pending_in_table => service_pending_in_table,
+		fail_with_mode_in => fail_with_mode_in,
+		fail_with_mode_out => fail_with_mode_out,
+		source_router_port_table => source_router_port_table,
+		backtrack_id => backtrack_id
+	);
+end generate gen_test_count;
+-- systhensis translate_on
 
 end router_seek;

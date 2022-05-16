@@ -279,8 +279,8 @@ int find_peripheral_at_line_column(unsigned int ll_address){
     Y_LL = ll_address & 0xFF;
 
     for(i = 0; i < IO_NUMBER; i++){
-        if( (X_LL == io_info[i].default_address_x ) && (Y_LL <= io_info[i].default_address_y) || 
-            (Y_LL == io_info[i].default_address_y ) && (X_LL <= io_info[i].default_address_x) ){
+        if( ((X_LL == io_info[i].default_address_x ) && (Y_LL <= io_info[i].default_address_y)) || 
+            ((Y_LL == io_info[i].default_address_y ) && (X_LL <= io_info[i].default_address_x)) ){
                 return 1;
         }
     }
@@ -311,7 +311,7 @@ void send_packet_io(ServiceHeader *p, unsigned int initial_address, unsigned int
 	int i, port_io;
 	enum {DISTRIBUTED_ROUTING, SOURCE_ROUTING} packet_type;
 
-    char SepKey[16] = {0,1,2,3,4,5,6,7,8,9,0xa,0xb,0xc,0xd,0xe,0xf};
+    // char SepKey[16] = {0,1,2,3,4,5,6,7,8,9,0xa,0xb,0xc,0xd,0xe,0xf};
 
 	port_io = -1;
 	for(i = 0; i < IO_NUMBER; i++){

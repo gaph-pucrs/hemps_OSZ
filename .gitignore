@@ -3,3 +3,16 @@ testcases/*
 
 !testcases/examples
 .Trash-2189
+
+*__pycache__
+testcases/examples
+testcases/examples/*.log
+!testcases/examples/*.yaml
+!testcases/examples/**/debug/router_seek/*
+**/*.kate-swp
+**/*.o
+include
+**/dist-newstyle
+vhdl_ls.toml
+vhdltool-config.yaml
+.vscode/c_cpp_properties.json

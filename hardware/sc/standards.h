@@ -94,16 +94,18 @@
 #define SEEK_BACKTRACK          0x20000500
 #define DMNI_TIMEOUT_SIGNAL     0x20000530
 #define WRAPPER_REGISTER        0x20000540
-#define WRAPPER_MASK_GO_REGISTER   0x20000544
-#define WRAPPER_MASK_BACK_REGISTER   0x20000548
 #define SEEK_OPMODE_REGISTER    0x20000550
 #define SEEK_BACKTRACK_REG_SEL  0x20000554
 
+// ARTUR LOG
+// #define SEEK_CAM_READ           0x20000600
+// enable seek log
+#define SEEK_LOG
+
 //Kernel pending service FIFO
 #define PENDING_SERVICE_INTR	0x20000400
-#define SLACK_MONITOR_WINDOW 	50000
-#define KERNEL_DEBUG_STATE    0x20000558
 
+#define SLACK_MONITOR_WINDOW 	50000
 
 //DMNI config code
 #define CODE_CS_NET 		1
@@ -118,9 +120,6 @@
 #define BUFFER_TAM          8 // must be power of two
 #define BUFFER_TAM_FIFO_PDN 4
 #define BUFFER_TAM_SENDER   6
-
-#define INPUT_DIRECTION      0
-#define OUTPUT_DIRECTION     1
 
 #define BUFFER_IN_WRAPPER       32
 #define BUFFER_IN_PERIPHERAL    32
@@ -155,6 +154,7 @@ typedef sc_uint<(3*NPORT)> 		reg_mux;
 #define NORTH 2
 #define SOUTH 3
 #define LOCAL 4
+
 #define SOURCE_ROUTING_TYPE 7
 typedef sc_uint<TAM_SERVICE_SEEK>     reg_seek_service;
 typedef sc_uint<SOURCE_SIZE>          reg_seek_source;

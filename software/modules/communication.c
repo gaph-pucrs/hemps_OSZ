@@ -580,6 +580,7 @@ unsigned int update_msg_request_table(unsigned int task_id, unsigned int new_pro
 			return 1;
 		}
 	}
+	return -1;
 }
 
 /**Remove all message request of a requested task ID and copies such messages to the removed_msgs array.
@@ -687,7 +688,7 @@ unsigned int remove_last_msg_waiting_ack(int taskID){
  */
 void send_message_delivery(int producer_task, int consumer_task, int consumer_PE, Message * msg_ptr){
 
-	ServiceHeader *p = get_service_header_slot();
+	volatile ServiceHeader *p = get_service_header_slot();
 
 	p->header[MAX_SOURCE_ROUTING_PATH_SIZE-1] = get_task_location(consumer_task);
 
@@ -717,7 +718,7 @@ void send_message_delivery(int producer_task, int consumer_task, int consumer_PE
  */
 void send_message_request_(int producer_task, int consumer_task, unsigned int producer_PE, unsigned int sourcePE, unsigned int flag_add_msg_request){
 
-	ServiceHeader *p = get_service_header_slot();
+	volatile ServiceHeader *p = get_service_header_slot();
 
 	p->header[MAX_SOURCE_ROUTING_PATH_SIZE-1] = get_task_location(producer_task);
 
@@ -744,7 +745,7 @@ void send_message_request_(int producer_task, int consumer_task, unsigned int pr
  */
 void send_message_io(int producer_task, int peripheral_ID, Message * msg_ptr, int secure){
 
-	ServiceHeader *p = get_service_header_slot();
+	volatile ServiceHeader *p = get_service_header_slot();
 
 	//p->header[MAX_SOURCE_ROUTING_PATH_SIZE-1] = get_task_location(consumer_task);
 	
@@ -775,7 +776,7 @@ void send_message_io(int producer_task, int peripheral_ID, Message * msg_ptr, in
  */
 void send_io_request(int peripheral_ID, int consumer_task, unsigned int sourcePE, int secure){
 
-	ServiceHeader *p = get_service_header_slot();
+	volatile ServiceHeader *p = get_service_header_slot();
 
 	#ifndef GRAY_AREA
 	if(secure){
@@ -797,8 +798,8 @@ void send_io_request(int peripheral_ID, int consumer_task, unsigned int sourcePE
 }
 
 void send_peripheral_SR_path(int slot_seek, int peripheral_ID, int secure){
-	int i;
-	ServiceHeader *p = get_service_header_slot();
+	// int i;
+	volatile ServiceHeader *p = get_service_header_slot();
 
 	#ifndef GRAY_AREA
 	if(secure){

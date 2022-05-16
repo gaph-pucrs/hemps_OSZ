@@ -20,7 +20,7 @@ STAND_SRC	    = $(addprefix vhdl/, 						$(STAND:=.vhd) 		)
 TOP_SRC	    	= $(addprefix vhdl/, 						$(TOP:=.vhd) 		)
 PE_SRC			= $(addprefix vhdl/pe/, 					$(PE:=.vhd)   		)
 DMNI_SRC		= $(addprefix vhdl/pe/dmni/, 				$(DMNI:=.vhd) 		)
-MEMORY_SRC		= $(addprefix ../ram_pe/,						$(MEMORY:=.vhd) 	) 
+MEMORY_SRC		= $(addprefix ../ram_pe/,					$(MEMORY:=.vhd) 	) 
 PROCESSOR_SRC	= $(addprefix vhdl/pe/processor/plasma/, 	$(PROCESSOR:=.vhd) 	)
 ROUTER_SRC		= $(addprefix vhdl/pe/router/, 				$(ROUTER:=.vhd) 	)
 

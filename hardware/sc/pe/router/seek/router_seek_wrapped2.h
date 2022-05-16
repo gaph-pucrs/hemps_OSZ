@@ -1,7 +1,7 @@
 #ifndef _SCGENMOD_router_seek_wrapped_
 #define _SCGENMOD_router_seek_wrapped_
 
-#include "systemc.h"
+#include <systemc.h>
 
 #include "../../../standards.h"
 #include "router_seek_wrapped.h"
@@ -9,6 +9,12 @@
 SC_MODULE(router_seek_wrapped) {
 		sc_in	<bool> clock;
 		sc_in	<bool> reset;
+
+		// log BrNoC : Arturbmallmann
+		#ifdef SEEK_LOG
+		sc_in<sc_uint<32 > > in_tick_counter;
+		#endif
+
 		sc_in	<reg_seek_source > 			in_source_router_seek[NPORT_SEEK];//reg_seek_source_target
 		sc_in	<reg_seek_target > 			in_target_router_seek[NPORT_SEEK];
 		sc_in	<reg_seek_payload > 		in_payload_router_seek[NPORT_SEEK];
@@ -26,13 +32,12 @@ SC_MODULE(router_seek_wrapped) {
 		sc_out	<reg_seek_source > 			out_source_router_seek[NPORT_SEEK];
 		sc_out	<reg_seek_target > 			out_target_router_seek[NPORT_SEEK];
 		sc_out	<reg_seek_payload > 		out_payload_router_seek[NPORT_SEEK];
-
+//source, target, service, hop | in_port, my_hop,outport | pending, used
 		sc_in<sc_uint<2> >					in_sel_reg_backtrack_seek;
 		sc_out<sc_uint<32> >				out_reg_backtrack_seek;
 		
 		sc_out<bool >						out_req_send_kernel_seek;
 		sc_in <bool >						in_ack_send_kernel_seek;
-		
 
 		//signals to bind in wrapped module
 		sc_signal<sc_uint<NPORT_SEEK> >  in_req_router_seek_internal;
@@ -66,7 +71,7 @@ SC_MODULE(router_seek_wrapped) {
 			 
 			const char* generic_list[1];
 			generic_list[0] = strdup("router_address=x\"AAAA\"");
-			sprintf((char*) generic_list[0],"router_address=x\"%x\"",(int)address);
+			sprintf((char*) generic_list[0],"router_address=x\"%.4x\"",(int)address);
 
 			seek = new router_seek("router_seek", "router_seek", 1, generic_list);
 			
@@ -75,7 +80,11 @@ SC_MODULE(router_seek_wrapped) {
 
 				seek->clock(clock);
 				seek->reset(reset);
-
+				// log BrNoC : Arturbmallmann
+				#ifdef SEEK_LOG
+				seek->in_tick_counter(in_tick_counter);
+				#endif
+				// ligação entre os adaptadores interface systemC / VHDL
 				seek->in_source_router_seek[EAST](in_source_router_seek[EAST]);
 				seek->in_source_router_seek[WEST](in_source_router_seek[WEST]);
 				seek->in_source_router_seek[NORTH](in_source_router_seek[NORTH]);
@@ -93,7 +102,7 @@ SC_MODULE(router_seek_wrapped) {
 				seek->in_payload_router_seek[NORTH](in_payload_router_seek[NORTH]);
 				seek->in_payload_router_seek[SOUTH](in_payload_router_seek[SOUTH]);
 				seek->in_payload_router_seek[LOCAL](in_payload_router_seek[LOCAL]);
-
+				// inversão de ordem para corrigir portas invertidas na ligação do sc_foreign_module
 				seek->in_service_router_seek[EAST](in_service_router_seek[LOCAL]);		 //[LOCAL]		[EAST]
 				seek->in_service_router_seek[WEST](in_service_router_seek[SOUTH]);		 //[SOUTH]		[WEST]
 				seek->in_service_router_seek[NORTH](in_service_router_seek[NORTH]);		 //[NORTH]		[NORTH]
@@ -178,8 +187,7 @@ SC_MODULE(router_seek_wrapped) {
 
 			SC_METHOD(upd_out_opmode_router_seek);
 			sensitive << out_opmode_router_seek_internal;
-
-
+			
 		}
 		~router_seek_wrapped()
 		{}
