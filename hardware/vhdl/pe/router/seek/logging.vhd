@@ -385,7 +385,7 @@ begin
 				if seek_cycles /= 0 then
 					write(linha,","&LF);
 				else
-					report "past_out_req" & print_port(past_out_req_router_seek,NPORT_SEEK) &LF& "out_req" & print_port(out_req_router_seek,NPORT_SEEK) ;
+					-- report "past_out_req" & print_port(past_out_req_router_seek,NPORT_SEEK) &LF& "out_req" & print_port(out_req_router_seek,NPORT_SEEK) ;
 					seek_cycles <= 1;
 					write(linha,'{'&'"'&"entradas"&'"'&":["&LF);
 				end if;

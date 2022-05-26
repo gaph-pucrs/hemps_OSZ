@@ -6,7 +6,7 @@ if len(argv) == 6:
 	MAX_Y=int(MAX_Y)
 	MAX_CLUSTER_X=int(MAX_CLUSTER_X)
 	MAX_CLUSTER_Y=int(MAX_CLUSTER_Y)
-	master_pe=int(master_posX, posY)
+	master_pe=int(master_pe)
 elif len(argv) == 5:
 	scriptname,MAX_X,MAX_Y,MAX_CLUSTER_X,MAX_CLUSTER_Y = argv
 	MAX_X=int(MAX_X)
@@ -47,31 +47,31 @@ print ("onerror {resume}\n\
 quietly WaveActivateNextPane {} 0\n")
 
 # print "printing MPSOC %dx%d master on %d" % (MAX_X,MAX_Y,master_posX, posY)
-print (f"MAX_X = {MAX_X:d} \n"
-+ f"MAX_Y = {MAX_Y:d} \n"
-+ f"MAX_CLUSTER_X = {MAX_CLUSTER_X:d} \n"
-+ f"MAX_CLUSTER_Y = {MAX_CLUSTER_Y:d}")
+# print (f"MAX_X = {MAX_X:d} \n"
+# + f"MAX_Y = {MAX_Y:d} \n"
+# + f"MAX_CLUSTER_X = {MAX_CLUSTER_X:d} \n"
+# + f"MAX_CLUSTER_Y = {MAX_CLUSTER_Y:d}")
 
 for pe in range(0,max_pe):
-	if MAX_CLUSTER_X == 0:
-		if master_pe==pe:
-			pe_type_str="local"
-		else:
-			pe_type_str="slave"
-	elif(MAX_CLUSTER_X != MAX_CLUSTER_Y or MAX_X != MAX_Y):
-		if pe == master_pe:
-			pe_type_str="local"
-		elif(((posX == MAX_CLUSTER_X) or (posX == 0)) and ((posY == MAX_X*MAX_CLUSTER_Y) or (posY+MAX_CLUSTER_X==MAX_CLUSTER_Y*MAX_X))):
-			pe_type_str="local"
-		elif ((posX == MAX_CLUSTER_X or posX == 0) and (posY == 0)):
-			pe_type_str="local"
-		else:
-			pe_type_str="slave"
+	# if MAX_CLUSTER_X == 0:
+	if master_pe==pe:
+		pe_type_str="local"
 	else:
-		if ((posX % MAX_CLUSTER_X) == 0) and ((posY % MAX_CLUSTER_Y)== 0):
-			pe_type_str="local"
-		else:
-			pe_type_str="slave"
+		pe_type_str="slave"
+	# elif(MAX_CLUSTER_X != MAX_CLUSTER_Y or MAX_X != MAX_Y):
+	# 	if pe == master_pe:
+	# 		pe_type_str="local"
+	# 	elif(((posX == MAX_CLUSTER_X) or (posX == 0)) and ((posY == MAX_X*MAX_CLUSTER_Y) or (posY+MAX_CLUSTER_X==MAX_CLUSTER_Y*MAX_X))):
+	# 		pe_type_str="local"
+	# 	elif ((posX == MAX_CLUSTER_X or posX == 0) and (posY == 0)):
+	# 		pe_type_str="local"
+	# 	else:
+	# 		pe_type_str="slave"
+	# else:
+	# 	if ((posX % MAX_CLUSTER_X) == 0) and ((posY % MAX_CLUSTER_Y)== 0):
+	# 		pe_type_str="local"
+	# 	else:
+	# 		pe_type_str="slave"
 
 	# print "PE %dx%d" % (posX,posY)
 
@@ -84,7 +84,9 @@ for pe in range(0,max_pe):
 		print (it)
 	#faults signals
 	group_faults_signals_pfx = "add wave -noupdate -group {%s %dx%d - %d} -group faults /test_bench/HeMPS/%s%dx%d/" % (pe_type_str, posX, posY, pe, pe_type_str, posX, posY)
-	group_faults_signals_sds = ['clock','external_fail_in','external_fail_out','fail_in','router_fail_in','router_fail_out','wrapper_reg']
+	# group_faults_signals_sds = ['clock','external_fail_in','external_fail_out','fail_in','fail_out','router_fail_in','router_fail_out','wrapper_reg', 'pass', 'io_packet_mask', 'ke']
+	group_faults_signals_sds = ['clock','external_fail_in','external_fail_out','fail_in','fail_out','router_fail_in','router_fail_out','wrapper_reg', 'io_packet_mask']
+
 	for it in map(lambda sd: group_faults_signals_pfx + sd,group_faults_signals_sds):
 		print (it)
 

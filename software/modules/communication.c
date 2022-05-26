@@ -798,7 +798,7 @@ void send_io_request(int peripheral_ID, int consumer_task, unsigned int sourcePE
 }
 
 void send_peripheral_SR_path(int slot_seek, int peripheral_ID, int secure){
-	// int i;
+	int i;
 	volatile ServiceHeader *p = get_service_header_slot();
 
 	#ifndef GRAY_AREA
@@ -813,12 +813,12 @@ void send_peripheral_SR_path(int slot_seek, int peripheral_ID, int secure){
 
 	p->peripheral_ID = peripheral_ID;
 
-	// puts("\nTarget: "); puts(itoh(SR_Table[slot_seek].target));
-	// puts("\nHeader: \n");
-	// for (i = 0; i < SR_Table[slot_seek].path_size; i++){
-	// 	puts("        "); puts(itoh(SR_Table[slot_seek].path[i])); puts("\n");
-	// }
-	//p->consumer_task = consumer_task;
+	puts("\nTarget: "); puts(itoh(SR_Table[slot_seek].target));
+	puts("\nHeader: \n");
+	for (i = 0; i < SR_Table[slot_seek].path_size; i++){
+		puts("        "); puts(itoh(SR_Table[slot_seek].path[i])); puts("\n");
+	}
+	// p->consumer_task = consumer_task;
 
 	//add_msg_request(p->header[MAX_SOURCE_ROUTING_PATH_SIZE-1], consumer_task, peripheral_ID); //caimi: arrumar header
 

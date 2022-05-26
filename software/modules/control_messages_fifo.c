@@ -23,7 +23,7 @@
  static unsigned int cmfifo_ptr = 0;
 
 
-void insert_CM_FIFO(ServiceHeader *p, unsigned int initial_address, unsigned int dmni_msg_size){
+void insert_CM_FIFO(volatile ServiceHeader *p, unsigned int initial_address, unsigned int dmni_msg_size){
     int aux;
 	switch(p->service){
 
@@ -232,7 +232,7 @@ int resend_control_message(unsigned int backtrack, unsigned int backtrack1, unsi
 
 	// print_CM_FIFO();
 	CMFifo_index = search_Target(target);
-	// puts("CMFifo_index: "); puts(itoh(CMFifo_index)); puts("\n");
+	puts("CMFifo_index: "); puts(itoh(CMFifo_index)); puts("\n");
 	if(CMFifo_index != -1){
 		if((CMFifo[CMFifo_index].service_header.service != IO_DELIVERY) && (CMFifo[CMFifo_index].service_header.service != IO_REQUEST)){
 			//puts("\nSR control message\n");
@@ -241,7 +241,7 @@ int resend_control_message(unsigned int backtrack, unsigned int backtrack1, unsi
 			return 1;
 		}
 		else{ // ajustar backtrack para o IO
-			//puts("SR IO message\n");
+			puts("SR IO message\n");
 			// puts("target: "); puts(itoh(SR_Table[slot_seek].target)); puts("\n");			
 			adjust_backtrack_IO(backtrack, backtrack1, backtrack2, target);
 			// service_header.cluster_ID contains the peripheral_ID; service_header.task_ID contains the io_service;

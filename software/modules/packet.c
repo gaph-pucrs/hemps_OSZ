@@ -121,7 +121,7 @@ void DMNI_send_data(unsigned int initial_address, unsigned int dmni_msg_size){
  * \param initial_address Initial memory address of the packet payload (payload, not service header)
  * \return dmni_msg_size Packet payload size represented in memory words of 32 bits
  */
-void send_packet(ServiceHeader *p, unsigned int initial_address, unsigned int dmni_msg_size){
+void send_packet(volatile ServiceHeader *p, unsigned int initial_address, unsigned int dmni_msg_size){
 
 		unsigned int slot;
 		int i;
@@ -305,7 +305,7 @@ int peripheral_connected_to_PE(int X_addr, int Y_addr){
  * \peripheral ID 
  * \return dmni_msg_size Packet payload size represented in memory words of 32 bits
  */
-void send_packet_io(ServiceHeader *p, unsigned int initial_address, unsigned int dmni_msg_size, int peripheral_id){
+void send_packet_io(volatile ServiceHeader *p, unsigned int initial_address, unsigned int dmni_msg_size, int peripheral_id){
 
 	unsigned int slot;
 	int i, port_io;
@@ -487,7 +487,6 @@ int pathToIO(int peripheral_id){
   unsigned int bt1, bt2, bt3, auxPosX, auxPosY;
   long unsigned int bt = 0;
   unsigned int shift =0;
-  int slotSR;
   int medium_X = -1;
   bt1 = bt2 = bt3 = 0;
 
@@ -616,9 +615,7 @@ unsigned int oppositePort(unsigned int p){
 
 int pathFromIO(long unsigned int bt){
   unsigned int i;
-  unsigned int RH_X_addr, RH_Y_addr;
   long unsigned int inverseBT =0;
-  long unsigned int reverseBT =0;
   unsigned int shift =2;
 
   unsigned int curPort = bt & 0x3;
@@ -637,7 +634,6 @@ int pathFromIO(long unsigned int bt){
 
   for(i=0; i <= shift; i = i+2){
 	  inverseBT = (inverseBT | (oppositePort((bt >> (shift-i)) & 0x3) << i));
-	//   reverseBT = (reverseBT | ((bt >> (shift-i)) & 0x3) << i);
   }
 
   inverseBT = (inverseBT | (oppositePort((inverseBT >> shift) & 0x3) << i));

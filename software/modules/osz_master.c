@@ -242,12 +242,14 @@ void shapes_invert_order(Shapes shapes[], int nb_valid_shapes){
 int search_shape_in_cluster(int X_size, int Y_size, Shapes shape[], int cont, int used_looking ){
     int x, y, used_in_SWS, result;
 
-    //for(y = 0; y<=YCLUSTER-Y_size; y++){
-    //  for(x = 0; x<=XCLUSTER-X_size; x++){
-
+#ifdef GRAY_AREA // Se for GA, mapear da Esquerda pra direita
+    for(y = YCLUSTER-Y_size; y >= 0; y--){
+        for(x = 0; x<=XCLUSTER-X_size; x++){
+#else // SWS TOP-RIGHT left
     for(y = YCLUSTER-Y_size; y >= 0; y--){
       for(x = XCLUSTER-X_size; x >= 0; x--){
-        // for(x = 0; x<=XCLUSTER-X_size; x++){
+#endif
+
         used_in_SWS = shape_recog(X_size, Y_size, x, y);
   
         //discart strip shapes using all column or all line at the middle of cluster

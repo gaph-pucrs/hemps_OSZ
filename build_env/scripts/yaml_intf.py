@@ -67,6 +67,16 @@ def get_cluster_y_dim(yaml_reader):
 def get_master_location(yaml_reader):
     return yaml_reader["hw"]["master_location"]
 
+def get_master_address(master_location, mpsocXsize, mpsocYsize):
+    if master_location == "LB":
+        return 0
+    elif master_location == "RB":
+        return mpsocXsize-1
+    elif master_location == "LT":
+        return ((mpsocYsize-1)*mpsocXsize)
+    elif master_location == "RT":
+        return (mpsocXsize*mpsocYsize)-1
+
 def get_physical_channels(yaml_reader):
     to_ret = 1
 

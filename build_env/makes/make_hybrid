@@ -5,7 +5,7 @@ LIB=work
 
 #Se for rodar na kriti tirar o -B/usr/bin das linhas onde tem SC_C = @ sccom
 #SC_C = @ sccom -nologo -work $(LIB) -fpermissive -g -Wno-write-strings -DDUPLICATED_CHANNEL -DWARD_MODULE -B/usr/bin
-SC_C = @ sccom -nologo -work $(LIB) -fpermissive -g -Wno-write-strings -DDUPLICATED_CHANNEL -B/usr/bin
+SC_C = @ sccom -nologo -work $(LIB) -g -Wno-write-strings -DDUPLICATED_CHANNEL -B/usr/bin
 
 VHD_C = @ vcom -quiet -2008 -work $(LIB) 
 

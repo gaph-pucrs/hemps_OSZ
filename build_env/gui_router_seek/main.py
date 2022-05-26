@@ -54,8 +54,9 @@ def main():
     #     height=canvas_size[1]
     (box_size) = x,y #ajusta espaco para cada router
     rede=NetworkView(canvas_size,width,height)
-    for j in range(dim[0]): #linha
-        for i in range(dim[1]): #coluna
+    print(f"X: {dim[0]} Y:{dim[1]}")
+    for j in range(dim[1]): #linha
+        for i in range(dim[0]): #coluna
             # calcula coordenadas na caixa baseado na posicao
             coord = rede.draw_boxes((i,dim[1]-j-1),box_size) # desenho comeca por baixo, por isso a coordenada J eh decrementada
 
@@ -63,7 +64,6 @@ def main():
             draw_box(rede.getCanvas(),*soma_tup(coord,(bordas,bordas,-bordas,-bordas)))
             # Box(rede.getCanvas(),coord,box_size,color="orange").draw()
             router_addres = (i,j)
-            print(f"{(i,j)} #### {coord} ")
             nr=RouterControl(rede.getCanvas(),  (i,j),  logs[(i,j)],    coord)
             routers.append(nr)
             # nr.insert_component()

@@ -231,7 +231,7 @@ begin
 						end if;
 						if in_the_table = '1' and sel_port = LOCAL and in_service_router_seek(sel_port) /= CLEAR_SERVICE then
 						--if in_the_table = '1' and in_service_router_seek(sel_port) /= CLEAR_SERVICE then
-							report "SERVICE " & CONV_STRING_8BITS("000" & in_service_router_seek(sel_port)) & " from LOCAL not added to the table! POSSIBLE ERROR!!!!";
+							-- report "SERVICE " & CONV_STRING_8BITS("000" & in_service_router_seek(sel_port)) & " from LOCAL not added to the table! POSSIBLE ERROR!!!!";
 						end if;
 									
 					when TABLE_WRITE_INPUT =>			

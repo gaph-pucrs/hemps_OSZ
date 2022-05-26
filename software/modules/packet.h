@@ -129,8 +129,8 @@ int DMNI_read_data(unsigned int, unsigned int);
 
 void DMNI_send_data(unsigned int, unsigned int);
 
-void send_packet(ServiceHeader *, unsigned int, unsigned int);
-void send_packet_io(ServiceHeader *, unsigned int, unsigned int, int);
+void send_packet(volatile ServiceHeader *, unsigned int, unsigned int);
+void send_packet_io(volatile ServiceHeader *, unsigned int, unsigned int, int);
 
 int find_io_peripheral(unsigned int );
 

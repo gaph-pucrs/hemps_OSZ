@@ -7,7 +7,6 @@ from BTrees.OOBTree import OOBTree
 from standards import services
 class RouterModel():
     def __init__(self, router_address:tuple,log:dict):
-        print(f"Init")
         self.valores_atuais=dict()
         # print(log)
         self.router_address=router_address
@@ -23,13 +22,10 @@ class RouterModel():
             for sinal in [a for a in amostra if a != "tick"]:
                 self.historico_sinal[sinal].update({tick:amostra[sinal]})
         self.set_time(0)
-        print(f"SetTime")
         self.local_max_tick=self.get_prior_event(int("7FFFFF",16))
         # sinais criados posteriormente
         self.load_sec_zones() # sec_zone e sec_zone_ID
-        print(f"Load")
         self.save_when_writed() # writed
-        print(f"Save")
     def get_next_signals_event(self,signals, time:int):
         next = int("7FFFFFF",16)
         for port in signals:

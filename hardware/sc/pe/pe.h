@@ -74,7 +74,7 @@ SC_MODULE(pe) {
 //	sc_signal 	<bool > 						in_nack_router_seek_local;
 	sc_signal 	<bool > 						in_opmode_router_seek_local;
 	sc_signal 	<bool > 						in_fail_router_seek_local;
-	// sc_signal   <bool > 						mask_local_tx_output_local;
+	sc_signal   <bool > 						mask_local_tx_output_local;
 	sc_signal   <bool > 						cpu_mask_clear;
 	sc_signal   <bool > 						mask_tx;
 	sc_signal   <bool > 						result_rx;
@@ -309,6 +309,7 @@ SC_MODULE(pe) {
 	void seek_send();
 	void seek_receive();
 	void waiting_seek_trigger();
+	void keyCheck();
 	void fail_in_generation();
 	void fail_out_generation();
 	void wrapper_register_handle();
@@ -385,7 +386,8 @@ SC_MODULE(pe) {
 		dm_ni->data_out(data_out_ni);//data out da ni vai ser ligado no sinal auxiliar
 		dm_ni->credit_i(credit_i_ni);
 		dm_ni->clock_rx(clock_rx_ni);
-		dm_ni->rx(rx_ni);
+		//dm_ni->rx(rx_ni);
+		dm_ni->rx(result_rx);
 		dm_ni->eop_in(eop_in_ni);
 		dm_ni->data_in(data_in_ni);
 		dm_ni->credit_o(credit_o_ni);
@@ -467,6 +469,7 @@ SC_MODULE(pe) {
 			router->credit_i 		[LOCAL1](credit_o_ni);
 			router->eop_out		[LOCAL1](eop_in_ni);
 			
+			router->mask_local_tx_output(mask_local_tx_output_local);
 			router->target(target);
 			router->source(source);
 			router->w_source_target(w_source_target);
@@ -624,6 +627,7 @@ SC_MODULE(pe) {
 		sensitive << cpu_set_op << cpu_set_size << cpu_set_address << cpu_set_address_2 << cpu_set_size_2 << cpu_send_kernel << cpu_fail_kernel<< cpu_wait_kernel << dmni_enable_internal_ram;
 		sensitive << mem_data_read << cpu_enable_ram << cpu_mem_write_byte_enable_reg << dmni_mem_write_byte_enable << mem_address_service_header_kernel;
 		sensitive << dmni_mem_data_write << ni_intr << slack_update_timer;
+		sensitive << rx_ni << mask_local_tx_output_local;
 		
 		SC_METHOD(mem_mapped_registers);
 		sensitive << cpu_mem_address_reg;
@@ -668,21 +672,24 @@ SC_MODULE(pe) {
 		// 	sensitive << fail_in[i];
 		// }
 		// sensitive << MEM_waiting[10];
+		SC_METHOD(keyCheck);
+		sensitive << reset;
+		sensitive << clock.pos();
 		SC_METHOD(fail_out_generation);
+		sensitive << io_packet_mask;
 		for(i=0;i<NPORT-1;i++){
-			sensitive << pass[i];
-			sensitive << data_in[i];
+			// sensitive << wrapper_mask_router_out[i];
 			sensitive << router_fail_out[i];
 			sensitive << external_fail_out[i];
 			sensitive << wrapper_reg[i];
-			sensitive << io_packet_mask;
-			sensitive << wrapper_mask_router_out;
+			sensitive << pass[i];
 		}
 		SC_METHOD(fail_in_generation);
 		for(i=0;i<NPORT-1;i++){
 			sensitive << fail_in[i];
 			sensitive << external_fail_in[i];
 			sensitive << wrapper_reg[i];
+			sensitive << wrapper_mask_router_in;
 		}
 		SC_METHOD(wrapper_register_handle);
 		sensitive << clock.pos();

@@ -16,7 +16,8 @@
 #include "utils.h"
 #include "define_pairs.h"
 #include "seek.h"
-
+#include "applications.h"
+#include "resource_manager.h"
 extern int clusterID;
 extern int PE_belong_SZ(int PE_x, int PE_y);
 //Processor processors[MAX_CLUSTER_PEs];	//!<Processor array
@@ -343,7 +344,7 @@ void init_processors(){
 
 
 void freeze_application(){
-    int index, last_appID = -1, appID = 0;
+    int index, appID = 0;
     for(index = 0; index < MAX_MIGRATIONS; index++){
 
         if(migration_list[index].status == ACTIVE){

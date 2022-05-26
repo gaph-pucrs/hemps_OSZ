@@ -82,6 +82,8 @@ def main():
     clusterXsize = get_cluster_x_dim(yaml_reader)
     clusterYsize = get_cluster_y_dim(yaml_reader)
     gray_area = get_gray_area_cols(yaml_reader)
+    master_location = get_master_location(yaml_reader)
+    master_addr = get_master_address(master_location, mpsocXsize, mpsocYsize)
 
     #Testcase generation: updates source files...
     copy_scripts ( HEMPS_PATH,  TESTCASE_NAME)
@@ -91,8 +93,8 @@ def main():
     copy_makefiles_and_waves( HEMPS_PATH,  TESTCASE_NAME, page_size_KB, memory_size_KB, model_description, apps_name_list, simul_time)
     copy_testcase_file( TESTCASE_NAME, INPUT_TESTCASE_FILE_PATH)
 
-    if not (os.path.isfile(TESTCASE_NAME + "/wave.do")) :
-        os.system("python3 "+ HEMPS_PATH+"/build_env/waves/wavegen.py "+ str(mpsocXsize) + " " + str(mpsocYsize) + " " + str(clusterXsize) + " " + str(clusterYsize) + " > " + TESTCASE_NAME + "/wave.do")
+    if not (os.path.isfile(TESTCASE_NAME + "/wave.do")) : 
+        os.system("python3 "+ HEMPS_PATH+"/build_env/waves/wavegen.py "+ str(mpsocXsize) + " " + str(mpsocYsize) + " " + str(clusterXsize) + " " + str(clusterYsize) + " " + str(master_addr) + " > " + TESTCASE_NAME + "/wave.do")
 
     #Create other importatants dirs
     create_ifn_exists(TESTCASE_NAME+"/include")
@@ -198,10 +200,10 @@ def copy_hardware(hemps_path, testcase_path, system_model_description, ga):
 
     generic_copy(source_hw_path, testcase_hw_path, ignored_names_list)
 
-    # if ga == 0:
-    #     source_hw_path = source_hw_path+"_legacy"
-    #     command_string = "rsync -r "+source_hw_path+"/ "+testcase_hw_path+"/"
-    #     status = os.system(command_string)
+    if ga == 0:
+        source_hw_path = source_hw_path+"_legacy"
+        command_string = "rsync -r "+source_hw_path+"/ "+testcase_hw_path+"/"
+        status = os.system(command_string)
 
 def copy_makefiles_and_waves(hemps_path, testcase_path, page_size_KB, memory_size_KB, system_model_description, apps_list, simul_time):
      #--------------  COPIES THE MAKEFILE TO SOFTWARE DIR ----------------------------------
@@ -250,7 +252,7 @@ def copy_makefiles_and_waves(hemps_path, testcase_path, page_size_KB, memory_siz
 
         copyfile(makes_dir+"/sim.do", testcase_path+"/sim.do")
 
-        copyfile(makes_dir+"/fault-inject.do", testcase_path+"/fault-inject.do")
+        # copyfile(makes_dir+"/fault-inject.do", testcase_path+"/fault-inject.do")
 
 
     #Changes the sim.do exit mode according the system model
@@ -259,7 +261,7 @@ def copy_makefiles_and_waves(hemps_path, testcase_path, page_size_KB, memory_siz
         sim_do_path = testcase_path+"/sim.do"
         sim_file = open(sim_do_path, "a")
         sim_file.write("\nwhen -label end_of_simulation { HeMPS/local0x0/end_sim_reg == x\"00000000\" } {echo \"End of simulation\" ; quit ;}")
-        sim_file.write("\ndo fault-inject.do")
+        # sim_file.write("\ndo fault-inject.do")
         sim_file.write("\nrun "+str(simul_time)+"ms")
         sim_file.write("\nexit")
         sim_file.close()

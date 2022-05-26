@@ -62,6 +62,7 @@ int get_proc_slack_time(int);
 void add_processor(int);
 
 void add_task(int, int);
+
 void print_processors();
 
 void remove_task(int, int);

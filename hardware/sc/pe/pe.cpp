@@ -162,6 +162,8 @@ void pe::comb_assignments(){
 	l_irq_status[0] = (!dmni_send_active_sig.read() && pending_service.read());
 	
 	irq_status.write(l_irq_status);
+	result_rx = rx_ni & mask_local_tx_output_local;
+
 }
 
 void pe::sequential_attr(){
@@ -744,35 +746,41 @@ void pe::seek_receive(){
 	}
 }
 
-//generates the fail_out and fail_in accordin to external_fail_in and external_fail_out
-void pe::fail_out_generation(){
-	int auxPass = 0;
+
+// controls the input at the access point
+void pe::keyCheck(){
+	static bool	auxPass[NPORT];
 	if (reset.read() == 1) {
 		for(i=0;i<NPORT-1;i++){
 			pass[i].write(1);
+			auxPass[i] = 0;
 		}
 	}else{
 		for(i=0;i<NPORT-1;i++){
-			if (((data_in[i].read()) == (ke.read() + 0x6000)) && (pass[i].read() == 1))
-			{
-				pass[i].write(0);
-			}
+			if (io_packet_mask == 0){
+				if (((data_in[i].read()) == (ke.read() | 0x6000)) && (pass[i].read() == 1))	{
 
-			if ((eop_in[i].read() == 1) && (pass[i].read() == 0))
-			{
-				auxPass = 1;
-			}
+					pass[i].write(0);
 
-			if ((eop_in[i].read() == 0) && (auxPass == 1))
-			{
-				pass[i].write(1);
-				auxPass = 0;
+				} else if ((eop_in[i].read() == 1) && (pass[i].read() == 0)){
+
+					auxPass[i] = 1;
+
+				} else if ((eop_in[i].read() == 0) && (auxPass[i] == 1)){
+
+					pass[i].write(1);
+					auxPass[i] = 0;
+
+				}
 			}
-				
-			fail_out[i].write(router_fail_out[i].read() | external_fail_out[i].read() | (wrapper_reg[i].read() & ( wrapper_mask_router_out.read()[i] | io_packet_mask | pass[i]) ) );
-			//fail_out[i].write(router_fail_out[i].read() | external_fail_out[i].read() | ( wrapper_reg[i].read() & wrapper_mask_router_out.read()[i] ) );
-			//fail_out[i].write(router_fail_out[i].read() | external_fail_out[i].read() |  wrapper_reg[i].read() );
 		}
+	}
+}
+
+//generates the fail_out and fail_in accordin to external_fail_in and external_fail_out
+void pe::fail_out_generation(){
+	for(i=0;i<NPORT-1;i++){
+		fail_out[i].write(router_fail_out[i].read() | external_fail_out[i].read() | (wrapper_reg[i].read() & ( wrapper_mask_router_out.read()[i] | io_packet_mask | pass[i])));
 	}
 }
 void pe::fail_in_generation(){

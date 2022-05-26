@@ -31,7 +31,7 @@ typedef struct {
 } ControlMessagesFifo;
 
 
-void insert_CM_FIFO(ServiceHeader *, unsigned int, unsigned int);
+void insert_CM_FIFO(volatile ServiceHeader *, unsigned int, unsigned int);
 
 int search_Service(unsigned int );
 

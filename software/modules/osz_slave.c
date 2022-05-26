@@ -96,6 +96,7 @@ void Set_Secure_Zone(unsigned int left_low_corner, unsigned int right_high_corne
 			isolated_ports = 0xC0 + isolated_ports;
 		}
 	}
+  puts("write wrapper: ");puts(itoh(isolated_ports));puts("\n");
 	if(isolated_ports != 0){
 		wrapper_value = isolated_ports;
 		//MemoryWrite(WRAPPER_REGISTER,isolated_ports);
@@ -232,7 +233,7 @@ if(!noCut){
 }
 
   //if(isolated_ports != previous_isolated){
-  	seek_puts("write wrapper: ");seek_puts(itoh(isolated_ports));seek_puts("\n");
+  	puts("write wrapper: ");puts(itoh(isolated_ports));puts("\n");
     MemoryWrite(WRAPPER_REGISTER,isolated_ports);
     if(myOSZ){
     //if((my_X_addr == LOCAL_RH_X_addr) && (my_Y_addr == LOCAL_RH_Y_addr)){

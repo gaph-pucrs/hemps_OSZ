@@ -595,7 +595,9 @@ SC_MODULE(pe) {
 		#endif
 		router->tick_counter(tick_counter);
 		fail_wrapper_module->tick_counter(tick_counter);
-		
+		#ifdef SEEK_LOG
+			seek->in_tick_counter(tick_counter);
+		#endif
 		SC_METHOD(sequential_attr);
 		sensitive << clock.pos() << reset.pos();			
 		
@@ -610,7 +612,7 @@ SC_MODULE(pe) {
 		sensitive << cpu_set_op << cpu_set_size << cpu_set_address << cpu_set_address_2 << cpu_set_size_2 << cpu_send_kernel << cpu_fail_kernel<< cpu_wait_kernel << dmni_enable_internal_ram;
 		sensitive << mem_data_read << cpu_enable_ram << cpu_mem_write_byte_enable_reg << dmni_mem_write_byte_enable << mem_address_service_header_kernel;
 		sensitive << dmni_mem_data_write << ni_intr << slack_update_timer;
-		sensitive << rx_ni << mask_tx;
+		sensitive << rx_ni << mask_local_tx_output_local;
 		
 		SC_METHOD(mem_mapped_registers);
 		sensitive << cpu_mem_address_reg;
