@@ -9,7 +9,7 @@
 #define SYN_STD_H_
 
 
-#define SYNTHETIC_ITERATIONS	10
+#define SYNTHETIC_ITERATIONS	30
 
 
 #endif /* SYN_STD_H_ */

@@ -858,7 +858,7 @@ void config_AP_SZ(){ // io_service: 0 - request; 1 - delivery
 	if(aux == -1)
 		return;
 
-    //puts("forward OPEN WRAPPER: "); puts(itoh(address_go)); puts("\n");
+    puts("AP address: "); puts(itoh(address_go)); puts("\n");
 
     //-----------------------------------------------------------------------------
     //OUT_WRAPPER

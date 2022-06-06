@@ -1172,8 +1172,8 @@ int main() {
 
 	//send ready by brnoc
 	if (is_global_master){
-		puts("Kernel GMV Initialized\n");
 		Seek(GMV_READY_SERVICE, get_net_address(), 0, 0);
+		puts("Kernel GMV Initialized\n");
 		Seek(CLEAR_SERVICE, get_net_address(), 0, 0);
 	}
 	else

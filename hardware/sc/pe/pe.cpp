@@ -488,9 +488,9 @@ void pe::seek_fault_middle_packet(){
 			for(j=0;j<NPORT;j++){
 				// if((local_rot_table[j] & router_fail_in[j].read()) == 1  && MEM_waiting[j].read() == 0){
 				if((local_rot_table[j] & router_fail_in[j].read()) == 1 ){//&& MEM_waiting[addr].read() == 0){
-					cout << "ROUTER:" << hex << router_address;
-					cout << ":error transmitting from " << source.read() << " to " << target.read() << endl;
-					cout << ":NEW error transmitting from " << MEM_source[j].read() << " to " << MEM_target[j].read() << endl;
+					// cout << "ROUTER:" << hex << router_address;
+					// cout << ":error transmitting from " << source.read() << " to " << target.read() << endl;
+					// cout << ":NEW error transmitting from " << MEM_source[j].read() << " to " << MEM_target[j].read() << endl;
 					// MEM_waiting[addr].write(1);
 					MEM_waiting[j].write(1);
 					// MEM_source[addr].write(source.read());
@@ -592,7 +592,7 @@ void pe::seek_receive(){
 		in_cpu_opmode_seek.write(0);
 	}
 	else{
-		if (out_req_router_seek_local.read() == 1){
+		if (out_req_router_seek_local.read() == 1 && out_service_router_seek_local.read() != 0x3){
 			if (in_ack_router_seek_local.read() == 0 && int_seek.read()==0 && int_dmni_seek.read() == 0){
 				cout << "router ";
 				cout << hex << router_address;
