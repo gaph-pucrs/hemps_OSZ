@@ -1,4 +1,3 @@
-*.pyc
 
 testcases/*
 
@@ -17,4 +16,3 @@ include
 vhdl_ls.toml
 vhdltool-config.yaml
 .vscode/c_cpp_properties.json
-source_hemps
