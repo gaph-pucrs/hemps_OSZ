@@ -99,15 +99,32 @@ begin
 
     table_is_full <= nor table.free;
 
-    FreeSlotsProc: process(table.free)
-    begin
-        for i in 0 to TABLE_SIZE-1 loop
-            if table.free(i)='1' then
-                next_free_slot <= i;
-                exit;
-            end if;
-        end loop;
-    end process;
+    ---- begin next_free_slot generates ----
+
+    if TABLE_SIZE = 2 generate
+        next_free_slot  <=  0   when table.free(0)='1'  else
+                            1;
+    end generate;
+
+    if TABLE_SIZE = 4 generate
+        next_free_slot  <=  0   when table.free(0)='1'  else
+                            1   when table.free(1)='1'  else
+                            2   when table.free(2)='1'  else
+                            3;
+    end generate;
+
+    if TABLE_SIZE = 8 generate
+        next_free_slot  <=  0   when table.free(0)='1'  else
+                            1   when table.free(1)='1'  else
+                            2   when table.free(2)='1'  else
+                            3   when table.free(3)='1'  else
+                            4   when table.free(4)='1'  else
+                            5   when table.free(5)='1'  else
+                            6   when table.free(6)='1'  else
+                            7;
+    end generate;
+
+    ---- end next_free_slot generates ----
 
     ---------------
     -- Hermes In --
