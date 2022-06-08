@@ -76,20 +76,25 @@ architecture network_interface of network_interface is
     signal table_is_full    : std_logic;
     signal next_free_slot   : integer range 0 to TABLE_SIZE-1;
 
-    ---------------------------
-    -- Hermes In FSM Signals --
-    ---------------------------
+    -----------------------
+    -- Hermes In Signals --
+    -----------------------
 
     type HermesInStateType is (HIS_WAIT_PACKET, HIS_HEADER, HIS_SERVICE, HIS_WAIT_EOP);
 
     signal HermesIn_PS  : HermesInStateType;
     signal HermesIn_NS  : HermesInStateType;
 
-    signal hermes_rx        : std_logic;
-    signal hermes_rx_ck     : std_logic;
-    signal hermes_eop_in    : std_logic;
-
-    signal recvd_flits
+    signal hermes_rx            : std_logic;
+    signal hermes_rx_ck         : std_logic;
+    signal hermes_data_in       : regflit;
+    signal hermes_eop_in        : std_logic;
+    signal hermes_credit_out    : std_logic;
+    
+    signal received_flits   : integer range 0 to MAX_FLITS_PER_PKG;
+    
+    signal hermes_is_receiving              : std_logic;
+    signal hermes_is_finishing_reception    : std_logic;
 
 begin
 
@@ -129,10 +134,15 @@ begin
     ---------------
     -- Hermes In --
     ---------------
+
+    hermes_rx                   <= hermes_primary_rx;
+    hermes_rx_ck                <= hermes_primary_rx_clk;
+    hermes_data_in              <= hermes_primary_data_in;
+    hermes_eop_in               <= hermes_primary_eop_in;
+    hermes_prymary_credit_out   <= hermes_credit_out;
     
-    hermes_rx       <= hermes_primary_rx;
-    hermes_rx_ck    <= hermes_primary_rx_clk;
-    hermes_eop_in   <= hermes_primary_eop_in;
+    hermes_is_receiving             <= hermes_rx and hermes_credit_out;
+    hermes_is_finishing_reception   <= hermes_is_receiving and hermes_eop_in;
 
     HermesInFSM_ChangeState: process(reset, clock, hermes_rx)
     begin
@@ -174,9 +184,17 @@ begin
         end case;
     end process;
 
-  
-    
-
-    
+    CountReceivedFlits: process(reset, clock)
+    begin
+        if reset='1' then
+            received_flits <= 0;
+        elsif clock'event and clock='1' then
+            if hermes_is_finishing_reception='1' then
+                received_flits <= 0;
+            elsif hermes_is_receiving='1' then
+                received_flits <= received_flits + 1;
+            end if;
+        end if;
+    end process;
 
 end network_interface;
