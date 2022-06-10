@@ -80,8 +80,6 @@ architecture network_interface of network_interface is
     -- Hermes In Signals --
     -----------------------
 
-    type HermesInStateType is (HIS_WAIT_PACKET, HIS_HEADER, HIS_SERVICE, HIS_WAIT_EOP);
-
     signal HermesIn_PS  : HermesInStateType;
     signal HermesIn_NS  : HermesInStateType;
 
@@ -143,46 +141,6 @@ begin
     
     hermes_is_receiving             <= hermes_rx and hermes_credit_out;
     hermes_is_finishing_reception   <= hermes_is_receiving and hermes_eop_in;
-
-    HermesInFSM_ChangeState: process(reset, clock, hermes_rx)
-    begin
-        if reset='1' then
-            HermesIn_PS <= HIS_WAIT_PACKET;
-        elsif clock'event and clock='1' and hermes_rx='1' then
-            HermesIn_PS <= HermesIn_NS;
-        end if;
-    end process;
-
-    HermesInFSM_NextStateCC: process(HermesIn_PS, hermes_rx, hermes_eop_in)
-    begin
-        case HermesIn_PS is
-
-            when HIS_WAIT_PACKET =>
-
-                if hermes_rx='1' then
-                    HermesIn_NS <= HIS_HEADER;
-                else
-                    HermesIn_NS <= HIS_WAIT_PACKET;
-                end if;
-            
-            when HIS_HEADER =>
-
-                if then
-                    HermesIn_NS <= HIS_SERVICE;
-                else
-                    HermesIn_NS <= HIS_HEADER;
-                end if;
-
-            when HIS_WAIT_EOP =>
-
-                if hermes_eop_in='1' then
-                    HermesIn_NS <= HIS_WAIT_PACKET;
-                else
-                    HermesIn_NS <= HIS_WAIT_EOP;
-                end if;
-
-        end case;
-    end process;
 
     CountReceivedFlits: process(reset, clock)
     begin
