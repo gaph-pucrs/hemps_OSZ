@@ -94,6 +94,10 @@ architecture network_interface of network_interface is
     signal hermes_is_receiving              : std_logic;
     signal hermes_is_finishing_reception    : std_logic;
 
+    signal hermes_in_pkg_service    : regword;
+    alias hermes_in_pkg_service_hi  : regflit   is hermes_in_pkg_service(TAM_WORD-1 downto TAM_FLIT);
+    alias hermes_in_pkg_service_lo  : regflit   is hermes_in_pkg_service(TAM_FLIT-1 downto 0);
+
 begin
 
     -----------
@@ -152,6 +156,23 @@ begin
             elsif hermes_is_receiving='1' then
                 received_flits <= received_flits + 1;
             end if;
+        end if;
+    end process;
+
+    process(reset, clock)
+    begin
+        if reset='1' then
+            hermes_in_pkg_service <= (others => '0');
+        elsif rising_edge(clock) then
+            case received_flits is
+
+                when FLIT_SERVICE_HI =>
+                    hermes_in_pkg_service_hi <= hermes_data_in;
+
+                when FLIT_SERVICE_LO =>
+                    hermes_in_pkg_service_lo <= hermes_data_in;
+            
+            end case;
         end if;
     end process;
 
