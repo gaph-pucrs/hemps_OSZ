@@ -7,7 +7,7 @@ use work.standards.all;
 package ni_pkg is
 
     constant TABLE_SIZE         : integer := 8;
-    constant MAX_FLITS_PER_PKG  : integer := 255;
+    constant MAX_FLITS_PER_PKT  : integer := 255;
     constant TAM_WORD           : integer := TAM_FLIT*2;
 
     subtype regword         is std_logic_vector(TAM_WORD-1 downto 0);

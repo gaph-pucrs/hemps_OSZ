@@ -91,15 +91,15 @@ architecture network_interface of network_interface is
     signal hermes_eop_in        : std_logic;
     signal hermes_credit_out    : std_logic;
     
-    signal received_flits   : integer range 0 to MAX_FLITS_PER_PKG;
+    signal received_flits   : integer range 0 to MAX_FLITS_PER_PKT;
     
     signal hermes_input_request     : std_logic;
     signal hermes_is_receiving      : std_logic;
     signal hermes_end_of_reception  : std_logic;
 
-    signal hermes_in_pkg_service    : regword;
-    alias hermes_in_pkg_service_hi  : regflit   is hermes_in_pkg_service(TAM_WORD-1 downto TAM_FLIT);
-    alias hermes_in_pkg_service_lo  : regflit   is hermes_in_pkg_service(TAM_FLIT-1 downto 0);
+    signal hermes_in_pkt_service    : regword;
+    alias hermes_in_pkt_service_hi  : regflit   is hermes_in_pkt_service(TAM_WORD-1 downto TAM_FLIT);
+    alias hermes_in_pkt_service_lo  : regflit   is hermes_in_pkt_service(TAM_FLIT-1 downto 0);
 
     signal brnoc_input_request      : std_logic;
     signal brnoc_end_of_reception   : std_logic;
@@ -223,17 +223,17 @@ begin
     HermesInControl: process(reset, clock)
     begin
         if reset='1' then
-            hermes_in_pkg_service <= (others => '0');
+            hermes_in_pkt_service <= (others => '0');
         elsif rising_edge(clock) then
             
-            -- save package service:
+            -- save packet service:
 
             if hermes_end_of_reception='1' then
-                hermes_in_pkg_service <= (others => '0');
+                hermes_in_pkt_service <= (others => '0');
             elsif received_flits = FLIT_SERVICE then
-                hermes_in_pkg_service_hi <= hermes_data_in;
+                hermes_in_pkt_service_hi <= hermes_data_in;
             elsif received_flits = FLIT_SERVICE+1 then
-                hermes_in_pkg_service_lo <= hermes_data_in;
+                hermes_in_pkt_service_lo <= hermes_data_in;
             end if;
 
         end if;
