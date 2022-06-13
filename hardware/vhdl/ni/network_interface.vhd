@@ -171,10 +171,10 @@ begin
         
             when IN_WAIT =>
 
-                if brnoc_input_request='1' then
-                    InputFSM_NS <= IN_BRNOC;
-                elsif hermes_input_request='1' then
+                if hermes_input_request='1' then
                     InputFSM_NS <= IN_HERMES;
+                elsif brnoc_input_request='1' then
+                    InputFSM_NS <= IN_BRNOC;
                 else
                     InputFSM_NS <= IN_WAIT;
                 end if;
