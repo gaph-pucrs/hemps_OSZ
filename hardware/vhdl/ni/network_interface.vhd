@@ -148,7 +148,9 @@ begin
     hermes_data_in              <= hermes_primary_data_in;
     hermes_eop_in               <= hermes_primary_eop_in;
     hermes_prymary_credit_out   <= hermes_credit_out;
-    
+
+    hermes_credit_out           <= '1' when InputFSM_PS = IN_HERMES else '0';
+
     hermes_input_request        <= hermes_rx;
     hermes_is_receiving         <= hermes_rx and hermes_credit_out;
     hermes_end_of_reception     <= hermes_is_receiving and hermes_eop_in;
@@ -216,7 +218,22 @@ begin
         if reset='1' then
             --todo: wipe table clean
         elsif rising_edge(clock) then
-            --whenever something has to be written on the table, to it here
+
+            if InFSM_PS = IN_HERMES and hermes_is_receiving='1' then
+
+                if hermes_in_pkt_service = CONFIG_PERITH_SERVICE then
+
+                    if received_flits = APPID_FLIT_CONFIG_PERIPH_SERVICE then
+                        table.app_id(next_free_slot) <= hermes_data_in(APPID_SIZE-1 downto 0);
+                        
+                    elsif received_flits = KEYP_FLIT_CONFIG_PERIPH_SERVICE then
+                        table.key_periph(next_free_slot) <= hermes_data_in(KEYPERITH_SIZE-1 downto 0);
+                    end if;
+                
+                end if;
+                    
+            end if;
+
         end if;
     end process;
 
