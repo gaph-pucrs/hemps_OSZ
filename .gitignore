@@ -1,14 +1,17 @@
-testcases/
+testcases/*
+!testcases/examples/
+
+testcases/examples/*
+!testcases/examples/*.yaml
+!testcases/examples/dsz/
+!testcases/examples/semap/
+
+
 
 .Trash-2189
 
+
 *__pycache__
-testcases/examples
-testcases/examples/*.log
-!testcases/examples/*.yaml
-!testcases/examples/dsz/*.yaml
-!testcases/examples/semap/*.yaml
-!testcases/examples/**/debug/router_seek/*
 **/*.kate-swp
 **/*.o
 include
@@ -17,4 +20,4 @@ vhdl_ls.toml
 vhdltool-config.yaml
 .vscode/c_cpp_properties.json
 build_env/gui_router_seek_lite
-build_env/gui_router_seek_lite/
+build_env/gui_router_seek_lite/p_properties.json
