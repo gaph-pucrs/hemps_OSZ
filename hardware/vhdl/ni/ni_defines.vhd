@@ -13,10 +13,10 @@ package ni_pkg is
     constant MAX_FLITS_PER_PKT  : integer := 255;
 
     constant APPID_SIZE         : integer := 10;
-    constant KEYPERITH_SIZE     : integer := 8;
+    constant KEYPERIPH_SIZE     : integer := 8;
 
     subtype regN_appID      is std_logic_vector(APPID_SIZE-1 downto 0);
-    subtype regN_keyPeriph  is std_logic_vector(KEYPERITH_SIZE-1 downto 0);
+    subtype regN_keyPeriph  is std_logic_vector(KEYPERIPH_SIZE-1 downto 0);
     subtype regN_path       is std_logic_vector(2 downto 0);
     subtype regN_burstSize  is std_logic_vector(2 downto 0);
     

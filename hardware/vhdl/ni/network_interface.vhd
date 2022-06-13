@@ -57,7 +57,7 @@ architecture network_interface of network_interface is
     -------------------
 
     type column_appId       is array(TABLE_SIZE-1 downto 0) of regN_appID;
-    type column_keyPerith   is array(TABLE_SIZE-1 downto 0) of regN_keyPerith;
+    type column_keyPeriph   is array(TABLE_SIZE-1 downto 0) of regN_keyPeriph;
     type column_burstSize   is array(TABLE_SIZE-1 downto 0) of regN_burstSize;
     type column_srcRouting  is array(TABLE_SIZE-1 downto 0) of std_logic;
     type column_path        is array(TABLE_SIZE-1 downto 0) of regN_path;
@@ -221,13 +221,13 @@ begin
 
             if InFSM_PS = IN_HERMES and hermes_is_receiving='1' then
 
-                if hermes_in_pkt_service = CONFIG_PERITH_SERVICE then
+                if hermes_in_pkt_service = CONFIG_PERIPH_SERVICE then
 
                     if received_flits = APPID_FLIT_CONFIG_PERIPH_SERVICE then
                         table.app_id(next_free_slot) <= hermes_data_in(APPID_SIZE-1 downto 0);
-                        
+
                     elsif received_flits = KEYP_FLIT_CONFIG_PERIPH_SERVICE then
-                        table.key_periph(next_free_slot) <= hermes_data_in(KEYPERITH_SIZE-1 downto 0);
+                        table.key_periph(next_free_slot) <= hermes_data_in(KEYPERIPH_SIZE-1 downto 0);
                     end if;
                 
                 end if;
