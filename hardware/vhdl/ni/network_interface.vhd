@@ -76,9 +76,9 @@ architecture network_interface of network_interface is
     signal table_is_full    : std_logic;
     signal next_free_slot   : integer range 0 to TABLE_SIZE-1;
 
-    -----------------------
-    -- Hermes In Signals --
-    -----------------------
+    ---------------------------
+    -- Input Control Signals --
+    ---------------------------
 
     type InFSM_StateType is (IN_WAIT, IN_HERMES, IN_BRNOC);
 
@@ -139,9 +139,9 @@ begin
 
     ---- end next_free_slot generates ----
 
-    ---------------
-    -- Hermes In --
-    ---------------
+    -------------------
+    -- Input Control --
+    -------------------
 
     hermes_rx                   <= hermes_primary_rx;
     hermes_rx_ck                <= hermes_primary_rx_clk;
