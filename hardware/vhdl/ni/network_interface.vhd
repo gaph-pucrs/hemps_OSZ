@@ -202,7 +202,7 @@ begin
     begin
         if reset='1' then
             received_flits <= 0;
-        elsif clock'event and clock='1' then
+        elsif rising_edge(clock) then
             if hermes_end_of_reception='1' then
                 received_flits <= 0;
             elsif hermes_is_receiving='1' then
@@ -230,9 +230,9 @@ begin
 
             if hermes_end_of_reception='1' then
                 hermes_in_pkt_service <= (others => '0');
-            elsif received_flits = FLIT_SERVICE then
+            elsif received_flits = SERVICE_FLIT then
                 hermes_in_pkt_service_hi <= hermes_data_in;
-            elsif received_flits = FLIT_SERVICE+1 then
+            elsif received_flits = SERVICE_FLIT+1 then
                 hermes_in_pkt_service_lo <= hermes_data_in;
             end if;
 
