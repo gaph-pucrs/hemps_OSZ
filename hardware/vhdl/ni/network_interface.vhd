@@ -203,7 +203,7 @@ begin
         if reset='1' then
             received_flits <= 0;
         elsif clock'event and clock='1' then
-            if hermes_is_finishing_reception='1' then
+            if hermes_end_of_reception='1' then
                 received_flits <= 0;
             elsif hermes_is_receiving='1' then
                 received_flits <= received_flits + 1;
