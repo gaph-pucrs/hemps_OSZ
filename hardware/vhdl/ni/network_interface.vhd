@@ -211,6 +211,15 @@ begin
         end if;
     end process;
 
+    WriteOnTable: process(reset, clock)
+    begin
+        if reset='1' then
+            --todo: wipe table clean
+        elsif rising_edge(clock) then
+            --whenever something has to be written on the table, to it here
+        end if;
+    end process;
+
     process(reset, clock)
     begin
         if reset='1' then
