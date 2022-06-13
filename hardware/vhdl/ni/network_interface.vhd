@@ -220,20 +220,22 @@ begin
         end if;
     end process;
 
-    process(reset, clock)
+    HermesInControl: process(reset, clock)
     begin
         if reset='1' then
             hermes_in_pkg_service <= (others => '0');
         elsif rising_edge(clock) then
-            case received_flits is
-
-                when FLIT_SERVICE_HI =>
-                    hermes_in_pkg_service_hi <= hermes_data_in;
-
-                when FLIT_SERVICE_LO =>
-                    hermes_in_pkg_service_lo <= hermes_data_in;
             
-            end case;
+            -- save package service:
+
+            if hermes_end_of_reception='1' then
+                hermes_in_pkg_service <= (others => '0');
+            elsif received_flits = FLIT_SERVICE then
+                hermes_in_pkg_service_hi <= hermes_data_in;
+            elsif received_flits = FLIT_SERVICE+1 then
+                hermes_in_pkg_service_lo <= hermes_data_in;
+            end if;
+
         end if;
     end process;
 
