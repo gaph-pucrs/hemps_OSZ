@@ -80,8 +80,10 @@ architecture network_interface of network_interface is
     -- Hermes In Signals --
     -----------------------
 
-    signal HermesIn_PS  : HermesInStateType;
-    signal HermesIn_NS  : HermesInStateType;
+    type InFSM_StateType is (IN_WAIT, IN_HERMES, IN_BRNOC);
+
+    signal InFSM_PS             : InFSM_StateType;
+    signal InFSM_NS             : InFSM_StateType;
 
     signal hermes_rx            : std_logic;
     signal hermes_rx_ck         : std_logic;
@@ -91,12 +93,16 @@ architecture network_interface of network_interface is
     
     signal received_flits   : integer range 0 to MAX_FLITS_PER_PKG;
     
-    signal hermes_is_receiving              : std_logic;
-    signal hermes_is_finishing_reception    : std_logic;
+    signal hermes_input_request     : std_logic;
+    signal hermes_is_receiving      : std_logic;
+    signal hermes_end_of_reception  : std_logic;
 
     signal hermes_in_pkg_service    : regword;
     alias hermes_in_pkg_service_hi  : regflit   is hermes_in_pkg_service(TAM_WORD-1 downto TAM_FLIT);
     alias hermes_in_pkg_service_lo  : regflit   is hermes_in_pkg_service(TAM_FLIT-1 downto 0);
+
+    signal brnoc_input_request      : std_logic;
+    signal brnoc_end_of_reception   : std_logic;
 
 begin
 
@@ -143,8 +149,54 @@ begin
     hermes_eop_in               <= hermes_primary_eop_in;
     hermes_prymary_credit_out   <= hermes_credit_out;
     
-    hermes_is_receiving             <= hermes_rx and hermes_credit_out;
-    hermes_is_finishing_reception   <= hermes_is_receiving and hermes_eop_in;
+    hermes_input_request        <= hermes_rx;
+    hermes_is_receiving         <= hermes_rx and hermes_credit_out;
+    hermes_end_of_reception     <= hermes_is_receiving and hermes_eop_in;
+
+    brnoc_input_request         <= '0';
+    brnoc_end_of_reception      <= '0';
+
+    InputFSM_ChangeState: process(reset, clock)
+    begin
+        if reset='1' then
+            InputFSM_PS <= IN_WAIT;
+        elsif rising_edge(clock) then
+            InputFSM_PS <= InputFSM_NS;
+        end if;
+    end process;
+
+    InputFSM_NextState: process(InputFSM_PS, brnoc_input_request, hermes_input_request, brnoc_end_of_reception, hermes_end_of_reception)
+    begin
+        case InputFSM_PS is
+        
+            when IN_WAIT =>
+
+                if brnoc_input_request='1' then
+                    InputFSM_NS <= IN_BRNOC;
+                elsif hermes_input_request='1' then
+                    InputFSM_NS <= IN_HERMES;
+                else
+                    InputFSM_NS <= IN_WAIT;
+                end if;
+
+            when IN_BRNOC =>
+
+                if brnoc_end_of_reception='1' then
+                    InputFSM_NS <= IN_WAIT;
+                else
+                    InputFSM_NS <= IN_BRNOC;
+                end if;
+            
+            when IN_HERMES =>
+            
+                if hermes_end_of_reception='1' then
+                    InputFSM_NS <= IN_WAIT;
+                else
+                    InputFSM_NS <= IN_HERMES;
+                end if;
+            
+        end case;
+    end process;
 
     CountReceivedFlits: process(reset, clock)
     begin
