@@ -31,8 +31,11 @@ generic(
 port(
     clock 		    : in  std_logic;
     reset 		    : in  std_logic;  
-	req_routing     : in  regNport;
-    ack_routing     : out regNport;		
+    req_routing     : in  regNport;
+	eop_in          : in  regNport;
+    ack_routing     : out regNport;     
+    io_mask_wrapper : out std_logic;
+	ke				: out std_logic_vector(11 downto 0);
     data_in_header  : in  arrayNport_regflit_32;
     data_in_header_fixed  : in  arrayNport_regflit_32;
     sender 		    : in  regNport;	
@@ -42,12 +45,12 @@ port(
 
     tx_internal		: in regNport;--needed by SR
 
-	--signals for writing source target pair
-	target 			: out regflit;
-	source			: out regflit;
-	w_source_target	: out std_logic;
-	w_addr			: out std_logic_vector(3 downto 0)
-
+    mask_local_tx_output : out std_logic;  -- needed to mask tx on IO_OPEN_WRAPPER message
+    --signals for writing source target pair
+    target          : out regflit;
+    source          : out regflit;
+    w_source_target : out std_logic;
+    w_addr          : out std_logic_vector(3 downto 0)
     );
 end SwitchControl_SR_write;
 
@@ -58,10 +61,10 @@ type state is (S0,S1,S2,S2a,S3,Sshift);
 signal EA: state;
 
 -- sinais do arbitro
-signal ask				: std_logic;
-signal sel,prox			: integer range 0 to (NPORT-1);
-signal header 			: regflit_32;
-signal header_fixed 	: regflit_32;
+signal ask				       : std_logic;
+signal sel,prox         	   : integer range 0 to (NPORT-1);
+signal header 			       : regflit_32;
+signal header_fixed 	       : regflit_32;
 
 -- sinais do controle
 signal dirx,diry: integer range 0 to (NPORT-1);
@@ -75,7 +78,12 @@ signal even_line: boolean;
 signal target_internal : regflit;
 
 signal shift_counter	: std_logic_vector(3 downto 0);
+signal aux_cont    : integer range 15 downto 0;
 
+--access point soft verification
+signal ke_reg	:  std_logic_vector(11 downto 0);
+
+signal header_ke	:	std_logic_vector(11 downto 0);
 --alias target:regmetadeflit                      is header(METADEFLIT-1 downto 0);
 
 alias Xsource:std_logic_vector(5 downto 0)		is header_fixed(FLIT16+11 downto FLIT16+6);
@@ -96,7 +104,8 @@ begin
 	source <= "00" & Xsource & "00" & Ysource;
 	target <= header_fixed(FLIT16-1 downto 0);
 	target_internal	<= "000" & header(12 downto 8) & "000" & header(4 downto 0);
-
+	header_ke <= header_fixed(27 downto 16);
+	ke <= ke_reg;
 	--input port
 	--w_addr <= std_logic_vector(to_unsigned(sel, 4));
 
@@ -115,7 +124,7 @@ begin
     ask <=	req_routing(LOCAL0) or req_routing(LOCAL1) or req_routing(EAST0) or req_routing(WEST0) or 
     		req_routing(NORTH0) or req_routing(SOUTH0) or req_routing(EAST1) or req_routing(WEST1) or 
     		req_routing(NORTH1) or req_routing(SOUTH1);
-    
+   
 	-- Pega o header do pacote selecionado pelo Round Robin
 	header 			<= data_in_header(sel);
 	header_fixed 	<= data_in_header_fixed(sel);
@@ -128,7 +137,9 @@ begin
 
     dirx <= WEST0 when lx > tx else EAST0;
     diry <= NORTH0 when ly < ty else SOUTH0;
-    
+
+	io_mask_wrapper <= '1' when ke_reg = x"000" else '0';
+
     -- Round Robin: seleciona uma das portas de entrada para o roteamento (prox).	
 	process(sel,req_routing)
     begin
@@ -259,15 +270,20 @@ begin
      	 
 	process(clock,reset)
 	variable packet_toward_high_label : boolean;
+    variable counter : integer;
     begin		  	   
 		if reset = '1' then
 			sel             <= LOCAL0;
             ack_routing     <= (others => '0');
+            -- io_mask_wrapper <= (others => '0');
 			rot_table       <= (others=>(others=>'0'));	
 			next_flit       <= (others => '0');
+			ke_reg			<= (others=> '0');
+            counter        := 0;
 			try_again       <= false;
 			EA              <= S0;
 			w_source_target <= '0';
+            mask_local_tx_output <= '1';
 			enable_shift	<= (others => '0');
 			shift_counter 	<= (others=>'0');
 
@@ -287,8 +303,14 @@ begin
 						EA <= S1;
 					else
 						EA <= S0;
-					end if;
-					
+                    end if;
+
+                    if mask_local_tx_output  = '0' and  free_port(LOCAL1) = '1' then
+                        mask_local_tx_output <= '1';
+                    end if;
+
+
+                    
 					-- Updates the switch table.
 					for i in 0 to NPORT-1 loop
 						if sender(i) = '0' then
@@ -300,9 +322,8 @@ begin
                     shift_counter 		<= (others=>'0');
 
 				when S1 =>
-                	
-                	-- Executes the source routing algorithm
 
+                	-- Executes the source routing algorithm
 					if header(TAM_FLIT_32-1 downto TAM_FLIT_32-4) = PACKET_SWITCHING_SR then
                         if sr_valid_0 = '0' then --this is a valid flit
                             --if sel (input port) is the same that sr_port_0 (output port) means that it should be routed to local port
@@ -337,7 +358,7 @@ begin
                     else
 						-- Packet achieved the target_internal
 	                    if target_internal = address  then
-	                      	if header(TAM_FLIT_32-1 downto TAM_FLIT_32-4) = PACKET_SWITCHING_XY then
+	                      	if header(TAM_FLIT_32-1 downto TAM_FLIT_32-4) = PACKET_SWITCHING_XY or header(TAM_FLIT_32-1 downto TAM_FLIT_32-4) = IO_PACKET then
 	                        	if free_port(LOCAL1)='1' then
 	                        	    rot_table(sel)(LOCAL1) <= '1';
 	                        	    ack_routing(sel) <= '1';
@@ -346,6 +367,17 @@ begin
 	                        	else
 	                        	    EA <= S0;
 	                        	end if;
+                            elsif  header(TAM_FLIT_32-1 downto TAM_FLIT_32-4) = OUT_WRAPPER then
+                                if free_port(LOCAL1)='1' then
+                                    rot_table(sel)(LOCAL1) <= '1';
+                                    ack_routing(sel) <= '1';
+                                    EA <= S3;
+                                    w_source_target <= '1';
+                                    mask_local_tx_output <= '0';
+									ke_reg <= header_ke;
+                                else
+                                    EA <= S0;
+                                end if;
 
 	                      	elsif  header(TAM_FLIT_32-1 downto TAM_FLIT_32-4) = OUT_NORTH then
 	                        	if free_port(NORTH0)='1' then
@@ -471,7 +503,8 @@ begin
 			
 	-- Mantém atualizada a tabela de portas livres.
 	free_port(LOCAL0) <= not (rot_table(EAST0)(LOCAL0) or rot_table(EAST1)(LOCAL0) or rot_table(SOUTH0)(LOCAL0) or rot_table(SOUTH1)(LOCAL0) or rot_table(WEST0)(LOCAL0) or rot_table(WEST1)(LOCAL0) or rot_table(NORTH0)(LOCAL0) or rot_table(NORTH1)(LOCAL0)); 
-	free_port(LOCAL1) <= not (rot_table(EAST0)(LOCAL1) or rot_table(EAST1)(LOCAL1) or rot_table(SOUTH0)(LOCAL1) or rot_table(SOUTH1)(LOCAL1) or rot_table(WEST0)(LOCAL1) or rot_table(WEST1)(LOCAL1) or rot_table(NORTH0)(LOCAL1) or rot_table(NORTH1)(LOCAL1));
+    --free_port(LOCAL1) <= not (rot_table(EAST0)(LOCAL1) or rot_table(EAST1)(LOCAL1) or rot_table(SOUTH0)(LOCAL1) or rot_table(SOUTH1)(LOCAL1) or rot_table(WEST0)(LOCAL1) or rot_table(WEST1)(LOCAL1) or rot_table(NORTH0)(LOCAL1) or rot_table(NORTH1)(LOCAL1));
+	free_port(LOCAL1) <= not (rot_table(EAST0)(LOCAL1) or rot_table(EAST1)(LOCAL1) or rot_table(SOUTH0)(LOCAL1) or rot_table(SOUTH1)(LOCAL1) or rot_table(WEST0)(LOCAL1) or rot_table(WEST1)(LOCAL1) or rot_table(NORTH0)(LOCAL1) or rot_table(NORTH1)(LOCAL1) or rot_table(LOCAL1)(LOCAL1));
 	free_port(EAST0)  <= not (rot_table(LOCAL0)(EAST0) or rot_table(LOCAL1)(EAST0) or rot_table(WEST0)(EAST0) or rot_table(WEST1)(EAST0) or rot_table(NORTH0)(EAST0) or rot_table(NORTH1)(EAST0) or rot_table(SOUTH0)(EAST0) or rot_table(SOUTH1)(EAST0));
 	free_port(EAST1)  <= not (rot_table(LOCAL0)(EAST1) or rot_table(LOCAL1)(EAST1) or rot_table(WEST0)(EAST1) or rot_table(WEST1)(EAST1) or rot_table(NORTH0)(EAST1) or rot_table(NORTH1)(EAST1) or rot_table(SOUTH0)(EAST1) or rot_table(SOUTH1)(EAST1));
 	free_port(WEST0)  <= not (rot_table(LOCAL0)(WEST0) or rot_table(LOCAL1)(WEST0) or rot_table(EAST0)(WEST0) or rot_table(EAST1)(WEST0) or rot_table(SOUTH0)(WEST0) or rot_table(SOUTH1)(WEST0) or rot_table(NORTH0)(WEST0) or rot_table(NORTH1)(WEST0)); 

@@ -22,8 +22,8 @@
 #include "../include/api.h"
 
 
-#define PIPE_SIZE       MAX_LOCAL_TASKS * 6//3 //24				//!< Size of the pipe array in fucntion of the maximum number of local task
-#define REQUEST_SIZE	 MAX_LOCAL_TASKS*(MAX_TASKS_APP-1) //50	//!< Size of the message request array in fucntion of the maximum number of local task and max task per app
+#define PIPE_SIZE        MAX_LOCAL_TASKS*(MAX_TASKS_APP-1) //MAX_LOCAL_TASKS * 12 //6 //3 //24				//!< Size of the pipe array in fucntion of the maximum number of local task
+#define REQUEST_SIZE	 MAX_LOCAL_TASKS*(MAX_TASKS_APP) //50	//!< Size of the message request array in fucntion of the maximum number of local task and max task per app
 #define MAX_TASK_SLOTS	 PIPE_SIZE/MAX_LOCAL_TASKS				//!< Maximum number of pipe slots that a task have
 
 /**
@@ -107,15 +107,17 @@ void send_message_delivery(int, int, int, Message *);
  
 void send_message_request_(int, int, unsigned int, unsigned int,  unsigned int);
 
-void send_message_io(int, int, Message *);
+void send_message_io(int, int, Message *, int);
 
-void send_io_request(int, int, unsigned int);
+void send_io_request(int, int, unsigned int, int);
+
+void send_peripheral_SR_path(int, int, int);
 
 #define send_message_request(producer_task, consumer_task, producer_PE, sourcePE) send_message_request_(producer_task, consumer_task, producer_PE, sourcePE, 1)
 	
 unsigned int remove_last_msg_waiting_ack(int taskID);
 
-// #define comm_puts(argument) puts(argument)
+//#define comm_puts(argument) puts(argument)
 #define comm_puts(argument) 
 
 #endif /* SOFTWARE_INCLUDE_COMMUNICATION_COMMUNICATION_H_ */

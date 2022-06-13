@@ -13,6 +13,7 @@
  * Adittionally it have a function named: SearchCluster, which selects the cluster to send an application. This
  * function in only used in the global master mode
  */
+#include "../include/plasma.h"
 
 #include "cluster_scheduler.h"
 
@@ -22,7 +23,7 @@
 #include "applications.h"
 #include "define_pairs.h"
 #include "seek.h" 
-#include "osz.h"
+#include "osz_master.h"
 
 extern unsigned int clusterID;
 //extern unsigned int app_id_counter;
@@ -43,7 +44,7 @@ inline void allocate_cluster_resource(int cluster_index, int nro_resources){
 		cluster_info[cluster_index].free_resources = 0;
 	}
 
-	//putsv(" ALLOCATE - nro resources : ", cluster_info[cluster_index].free_resources);
+	// putsv(" ALLOCATE - nro resources : ", cluster_info[cluster_index].free_resources);
 }
 
 /** Release resources of a Cluster by incrementing the number of free resources according to the nro of resources
@@ -72,7 +73,7 @@ void page_used(int cluster_id, int proc_address, int task_ID){
 	//puts("Page used proc: "); puts(itoh(proc_address)); putsv(" task id ", task_ID);
 	add_task(proc_address, task_ID);
 
-	allocate_cluster_resource(cluster_id, 1);
+	// allocate_cluster_resource(cluster_id, 1);
 }
 
 /** This function is called by manager inside it own code and in the modules: reclustering and cluster_scheduler.
@@ -173,7 +174,115 @@ int map_task(int last_proc_address, int task_id, int AppSec){
 	}
 #endif
 
+#ifdef GRAY_AREA
 	if(AppSec == 1){ 
+		int desl_Y, y, x;
+		int i, flag, init_cut_index, end_cut_index;
+		int xi, yi, xf, yf;
+
+
+		xi =  (shapes[shape_index].position >> 8) & 0XFF;
+		yi =   shapes[shape_index].position  & 0XFF;
+		xf =  xi + shapes[shape_index].X_size;
+		yf =  yi + shapes[shape_index].Y_size;
+
+
+		if(last_proc_address == 0){
+			y = yi;
+			x = xf-1;
+		}
+		else{
+			y = last_proc_address & 0xFF;
+			x = (last_proc_address >> 8) - 1;
+		}
+
+		init_cut_index = (shapes[shape_index].cut & 0XFFFF);
+		init_cut_index = ((init_cut_index & 0XFF) * XCLUSTER) + (init_cut_index >> 8);
+
+		end_cut_index = (shapes[shape_index].cut >> 16);
+		end_cut_index = ((end_cut_index & 0XFF) * XCLUSTER) + (end_cut_index >> 8);
+
+		for( ; y < yf; y++){
+			desl_Y = (y)*XCLUSTER ;
+			for( ;x >= xi; x--){
+
+				//----------- avoid the SZ excess ----------------
+				flag = 0;
+				for(i = init_cut_index; i <= end_cut_index; i += XCLUSTER){
+					if((x+desl_Y) == i)
+						flag = 1;
+				}
+				if(flag == 1){
+					continue;
+				}
+				//-----------------------------------------------
+				proc_address = get_proc_address(x+desl_Y);
+
+				//puts("Task mapping for task "), puts(itoa(task_id)); puts(" maped at proc "); puts(itoh(proc_address)); puts("\n");
+		
+				if (get_proc_free_pages(proc_address) > 0)
+					return proc_address;
+				else
+					continue;
+			}
+			x = xf-1;
+		}
+	}
+	
+	else if(AppSec >= 2){ // Mapear perto do AccessPoint
+		int desl_Y, y, x;
+		int i, flag, init_cut_index, end_cut_index;
+		int xi, yi, xf, yf;
+
+
+		xi =  (shapes[shape_index].position >> 8) & 0XFF;
+		yi =   shapes[shape_index].position  & 0XFF;
+		xf =  xi + shapes[shape_index].X_size;
+		yf =  yi + shapes[shape_index].Y_size;
+
+
+		if(last_proc_address == 0){
+			y = yf-1;
+			x = xi;
+		}
+		else{
+			y = last_proc_address & 0xFF;
+			x = (last_proc_address >> 8) + 1;
+		}
+
+		init_cut_index = (shapes[shape_index].cut & 0XFFFF);
+		init_cut_index = ((init_cut_index & 0XFF) * XCLUSTER) + (init_cut_index >> 8);
+
+		end_cut_index = (shapes[shape_index].cut >> 16);
+		end_cut_index = ((end_cut_index & 0XFF) * XCLUSTER) + (end_cut_index >> 8);
+
+		for( ; y >= yi; y--){
+			desl_Y = (y)*XCLUSTER ;
+			for( ;x < xf; x++){
+
+				//----------- avoid the SZ excess ----------------
+				flag = 0;
+				for(i = init_cut_index; i <= end_cut_index; i += XCLUSTER){
+					if((x+desl_Y) == i)
+						flag = 1;
+				}
+				if(flag == 1){
+					continue;
+				}
+				//-----------------------------------------------
+				proc_address = get_proc_address(x+desl_Y);
+
+				//puts("Task mapping for task "), puts(itoa(task_id)); puts(" maped at proc "); puts(itoh(proc_address)); puts("\n");
+				if (get_proc_free_pages(proc_address) > 0)
+					return proc_address;
+				else
+					continue;
+			}
+			x = xi;
+		}
+	}
+	#else
+		if(AppSec == 1){ 
 		int desl_Y, y, x;
 		int i, flag, init_cut_index, end_cut_index;
 		int xi, yi, xf, yf;
@@ -218,20 +327,28 @@ int map_task(int last_proc_address, int task_id, int AppSec){
 
 				//puts("Task mapping for task "), puts(itoa(task_id)); puts(" maped at proc "); puts(itoh(proc_address)); puts("\n");
 		
-				return proc_address;
+				if (get_proc_free_pages(proc_address) > 0)
+					return proc_address;
+				else
+					continue;
 			}
 			x = xi;
 		}
 	}
-
+	
+	#endif
 	//Else (not secure), map the task following a CPU utilization based algorithm
 	else{ 
 		for(int i=0; i<MAX_CLUSTER_PEs; i++){
 	
 			proc_address = get_proc_address(i);
 	
-			if ((get_proc_free_pages(proc_address) > 0) & (PE_belong_SZ(proc_address>>8, proc_address&0XFF) != 1)){
-	
+		#ifdef GRAY_AREA
+			if ((get_proc_free_pages(proc_address) > 0) && (PE_belong_SZ(proc_address>>8, proc_address&0XFF) != 1) && (PE_belong_GA(proc_address>>8, proc_address&0XFF) == 1))
+		#else
+			if ((get_proc_free_pages(proc_address) > 0) && (PE_belong_SZ(proc_address>>8, proc_address&0XFF) != 1))
+		#endif
+			{
 				slack_time = get_proc_slack_time(proc_address);
 	
 				if (max_slack_time < slack_time){
@@ -239,16 +356,15 @@ int map_task(int last_proc_address, int task_id, int AppSec){
 					max_slack_time = slack_time;
 				}
 			}
-		}
 	
-		if (canditate_proc != -1){
+			if (canditate_proc != -1){
 	
-			puts("Task mapping for task "), puts(itoa(task_id)); puts(" maped at proc "); puts(itoh(canditate_proc)); puts("\n");
+				puts("Task mapping for task "); puts(itoa(task_id)); puts(" maped at proc "); puts(itoh(canditate_proc)); puts("\n");
 	
-			return canditate_proc;
+				return canditate_proc;
+			}
 		}
 	}
-
 	putsv("WARNING: no resources available in cluster to map task ", task_id);
 	return -1;
 }
@@ -266,9 +382,9 @@ int application_mapping(int cluster_id, int app_id){
 
 	Application * app;
 	Task *t;
-	int proc_address;
+	int prev_proc_io, prev_proc, proc_address;
 
-	proc_address = 0;
+	proc_address = prev_proc_io = prev_proc =  0;
 	app = get_application_ptr(app_id);
 
 	//puts("\napplication_mapping\n");
@@ -281,10 +397,23 @@ int application_mapping(int cluster_id, int app_id){
 
 		/*Map task*/
 		if(i == (shapes[shape_index].processors - shapes[shape_index].excess ))
-			proc_address = 0;
+			proc_address = prev_proc_io = prev_proc =  0;
 
+		#ifdef GRAY_AREA
+		if(t->dependences_number > 0 && app->secure == 1){
+			prev_proc_io = map_task(prev_proc_io, t->id, 2);
+			proc_address = prev_proc_io;
+			puts("Proc mapeado IO ");puts(itoh(proc_address));puts("\n");
+		}else{
+			prev_proc = map_task(prev_proc, t->id, app->secure);
+			proc_address = prev_proc;
+			puts("Proc mapeado ");puts(itoh(proc_address));puts("\n");
+		}
+		#else
 		proc_address = map_task(proc_address, t->id, app->secure);
+		#endif
 
+		// puts("Proc mapeado para ");puts(itoh(proc_address));puts("\n");
 		if (proc_address == -1){
 
 			return 0;
@@ -349,7 +478,15 @@ int get_master_address(int slave_address){
 	return -1;
 }
 
-
+int get_cluster_index(int X_Add, int Y_Add){
+	int i;
+	for (i=0; i<CLUSTER_NUMBER; i++){
+		if(X_Add <= cluster_info[i].xf &&  X_Add >= cluster_info[i].xi)
+		  if(Y_Add <= cluster_info[i].yf &&  Y_Add >= cluster_info[i].yi)
+		  	return i;
+	}
+	return -1;
+}
 
 
 /**Selects a cluster to insert an application
@@ -387,7 +524,7 @@ int SearchCluster(int GM_cluster_id, int app_ID) {
 		}
 	}
 
-	if (cluster_info[GM_cluster_id].free_resources >= freest_cluster){
+	if (cluster_info[GM_cluster_id].free_resources > freest_cluster){
 		selected_cluster = GM_cluster_id;
 	}
 	if (selected_cluster == -1) {

@@ -143,6 +143,299 @@ void fail_WRAPPER_module::brNoC_monitor(){
 		fclose(fp);
 	}
 }
+
+void fail_WRAPPER_module::write_mask(){
+	if(reset){
+		aux_wrapper_mask_go = 0X3FF;
+		aux_wrapper_mask_back = 0X3FF;
+		aux_CPU_mask = 0X3FF;
+		
+		wrapper_mask_router_in = 0x3FF;
+		wrapper_mask_router_out = 0x3FF;
+		
+		//mask_tx_out = 1;
+		count_delay = 0;
+		cpu_mask_done = 0;
+		cpu_mask_clear = 0;
+	}
+	else{
+		int i;
+// EOP out received -- UNSET MASK  -- ACTIVE WRAPPER
+		// if((eop_out_router_ports[0] == 1) | (eop_out_router_ports[1] == 1)){
+		// 	if((aux_wrapper_mask_go & 0x03) == 0){
+		// 		aux_wrapper_mask_go = aux_wrapper_mask_go | 0X003;
+		// 		count_delay = 0;
+		// 	}
+		// }
+		// if((eop_out_router_ports[2] == 1) | (eop_out_router_ports[3] == 1)){
+		// 	if((aux_wrapper_mask_go & 0x0C) == 0){
+		// 		aux_wrapper_mask_go = aux_wrapper_mask_go | 0X00C;
+		// 		count_delay = 0;
+		// 	}
+		// }
+		// if((eop_out_router_ports[4] == 1) | (eop_out_router_ports[5] == 1)){
+		// 	if((aux_wrapper_mask_go & 0x30) == 0){
+		// 		aux_wrapper_mask_go = aux_wrapper_mask_go | 0X030;
+		// 		count_delay = 0;
+		// 	}
+		// }
+		// if((eop_out_router_ports[6] == 1) | (eop_out_router_ports[7] == 1)){
+		// 	if((aux_wrapper_mask_go & 0xC0) == 0){
+		// 		aux_wrapper_mask_go = aux_wrapper_mask_go | 0X0C0;
+		// 		count_delay = 0;
+		// 	}
+		// }		
+	
+//		if(((eop_out_router_ports[0] == 1) & (io_packet_mask[0] == 0)) | ((eop_out_router_ports[1] == 1) & (io_packet_mask[1] == 0))) {
+//			if((aux_wrapper_mask_go & 0x03) == 0){
+//				aux_wrapper_mask_go = aux_wrapper_mask_go | 0X003;
+//				count_delay = 0;
+//			}
+//		}
+//		if(((eop_out_router_ports[2] == 1) & (io_packet_mask[2] == 0)) | ((eop_out_router_ports[3] == 1) & (io_packet_mask[3] == 0))) {
+//			if((aux_wrapper_mask_go & 0x0C) == 0){
+//				aux_wrapper_mask_go = aux_wrapper_mask_go | 0X00C;
+//				count_delay = 0;
+//			}
+//		}
+//		if(((eop_out_router_ports[4] == 1) & (io_packet_mask[4] == 0)) | ((eop_out_router_ports[5] == 1) & (io_packet_mask[5] == 0))) {
+//			if((aux_wrapper_mask_go & 0x30) == 0){
+//				aux_wrapper_mask_go = aux_wrapper_mask_go | 0X030;
+//				count_delay = 0;
+//			}
+//		}
+//		if(((eop_out_router_ports[6] == 1) & (io_packet_mask[6] == 0)) | ((eop_out_router_ports[7] == 1) & (io_packet_mask[7] == 0))) {
+//			if((aux_wrapper_mask_go & 0xC0) == 0){
+//				aux_wrapper_mask_go = aux_wrapper_mask_go | 0X0C0;
+//				count_delay = 0;
+//			}
+//		}
+//
+
+// // EOP in received -- UNSET MASK  -- ACTIVE WRAPPER
+// 		if(((eop_in_router_ports[0] == 1) & (io_packet_mask[0] == 0)) | ((eop_in_router_ports[1] == 1) & (io_packet_mask[1] == 0))) {		
+// 		//if((eop_in_router_ports[0]) == 1 | (eop_in_router_ports[1] == 1)){
+// 			if((aux_wrapper_mask_back & 0x03) == 0){
+// 				aux_wrapper_mask_back = aux_wrapper_mask_back | 0X003;
+// 				count_delay = 0;
+// 			}
+// 		}
+// 		if(((eop_in_router_ports[2] == 1) & (io_packet_mask[2] == 0)) | ((eop_in_router_ports[3] == 1) & (io_packet_mask[3] == 0))) {
+// 		//if((eop_in_router_ports[2]) == 1 | (eop_in_router_ports[3] == 1)){
+// 			if((aux_wrapper_mask_back & 0x0C) == 0){
+// 				aux_wrapper_mask_back = aux_wrapper_mask_back | 0X00C;
+// 				count_delay = 0;
+// 			}
+// 		}
+// 		if(((eop_in_router_ports[4] == 1) & (io_packet_mask[4] == 0)) | ((eop_in_router_ports[5] == 1) & (io_packet_mask[5] == 0))) {
+// 		//if((eop_in_router_ports[4]) == 1 | (eop_in_router_ports[5] == 1)){
+// 			if((aux_wrapper_mask_back & 0x30) == 0){
+// 				aux_wrapper_mask_back = aux_wrapper_mask_back | 0X030;
+// 				count_delay = 0;
+// 			}
+// 		}
+// 		if(((eop_in_router_ports[6] == 1) & (io_packet_mask[6] == 0)) | ((eop_in_router_ports[7] == 1) & (io_packet_mask[7] == 0))) {
+// 		//if((eop_in_router_ports[6]) == 1 | (eop_in_router_ports[7] == 1)){
+// 			if((aux_wrapper_mask_back & 0xC0) == 0){
+// 				aux_wrapper_mask_back = aux_wrapper_mask_back | 0X0C0;
+// 				count_delay = 0;
+// 			}
+// 		}
+
+//////  IO_WRAPPER_MESSAGE RECEIVED	
+		if(change_mask == 1 && reg_direction == 1){
+			if(reg_io_port == 0){
+				aux_wrapper_mask_go = aux_wrapper_mask_go & 0X3FC;
+			}
+			else if (reg_io_port == 1)
+			{
+				aux_wrapper_mask_go = aux_wrapper_mask_go & 0x3F3;
+			}
+			else if (reg_io_port == 2)
+			{
+				aux_wrapper_mask_go = aux_wrapper_mask_go & 0x3CF;
+			}
+			else{
+				aux_wrapper_mask_go = aux_wrapper_mask_go & 0x33F;
+			}
+			mask_done = 1;
+		}
+		else if(change_mask == 1 && reg_direction == 0){
+			if(reg_io_port == 0){
+				aux_wrapper_mask_back = aux_wrapper_mask_back & 0X3FC;
+			}
+			else if (reg_io_port == 1)
+			{
+				aux_wrapper_mask_back = aux_wrapper_mask_back & 0x3F3;
+			}
+			else if (reg_io_port == 2)
+			{
+				aux_wrapper_mask_back = aux_wrapper_mask_back & 0x3CF;
+			}
+			else{
+				aux_wrapper_mask_back = aux_wrapper_mask_back & 0x33F;
+			}
+			mask_done = 1;
+		}	
+		else if(change_mask == 1 && reg_direction == 2){ //UNSET MASK: reg_direction == 2
+			aux_wrapper_mask_back = 0X3FF;
+//			if(reg_io_port == 0){
+//				//if((aux_wrapper_mask_back & 0x03) == 0)
+//					//aux_wrapper_mask_back = aux_wrapper_mask_back | 0X003;
+//					aux_wrapper_mask_back = 0X3FC;
+//			}
+//			else if (reg_io_port == 1)
+//			{
+//				//if((aux_wrapper_mask_back & 0x0C) == 0)
+//					//aux_wrapper_mask_back = aux_wrapper_mask_back | 0X00C;
+//					aux_wrapper_mask_back = 0X3F3;
+//			}
+//			else if (reg_io_port == 2)
+//			{
+//				//if((aux_wrapper_mask_back & 0x30) == 0)
+//				//	aux_wrapper_mask_back = aux_wrapper_mask_back | 0X030;
+//					aux_wrapper_mask_back = 0X3CF;
+//			}
+//			else{
+//				//if((aux_wrapper_mask_back & 0xC0) == 0)
+//				//	aux_wrapper_mask_back = aux_wrapper_mask_back | 0X0C0;
+//					aux_wrapper_mask_back = 0X33F;
+//			}
+			mask_done = 1;
+		}
+		else
+			mask_done = 0;
+
+
+////// wrapper_mask_from_CPU
+		if((wrapper_mask_go_from_CPU.read() != 0x3FF) && (wrapper_mask_go_from_CPU.read() != 0x000) && (cpu_mask_done == 0)){
+			aux_wrapper_mask_go = aux_wrapper_mask_go & wrapper_mask_go_from_CPU.read();
+			count_delay = 0;
+			cpu_mask_done = 1;
+		}
+		else if((wrapper_mask_back_from_CPU.read() != 0x3FF) && (wrapper_mask_back_from_CPU.read() != 0x000) && (cpu_mask_done == 0)){
+			aux_wrapper_mask_back = aux_wrapper_mask_back & wrapper_mask_back_from_CPU.read();
+			count_delay = 0;
+			cpu_mask_done = 1;
+		}
+		else
+			cpu_mask_clear = 0;
+		
+		if((wrapper_mask_go_from_CPU.read() == 0x3FF) && (wrapper_mask_back_from_CPU.read() == 0x3FF))
+			cpu_mask_done = 0;
+
+
+//////
+//		if (mask_tx_from_router_local == 1)
+//			mask_tx_out = 0;
+//		else if(eop_in_from_router_local == 1)
+//			aux_delay = 1;
+//		else if(aux_delay == 1){
+//			mask_tx_out = 1;
+//			aux_delay = 0;
+//		}
+
+
+// update wrapper_mask signal with 4 clock cycles delay to avoid unreacheble generation
+		if(count_delay == 4){
+			//wrapper_mask = aux_wrapper_mask_go;
+			wrapper_mask_router_in = aux_wrapper_mask_go;
+			wrapper_mask_router_out = aux_wrapper_mask_back;
+			count_delay = 0;
+			cpu_mask_clear = 1;
+		}
+		count_delay = count_delay + 1;
+
+	}
+
+}
+
+void fail_WRAPPER_module::in_dataNOC_FSM(){
+
+	if(reset.read() == true){
+		EA_dataNOC.write(S_INIT);
+		flit_in_counter = 0;
+		change_mask = 0;
+		for(int i=0;i<BUFFER_IN_WRAPPER;i++) {
+			buffer_in_flit[i]		=	0;
+		}		
+		
+	}
+	else{	
+		switch(EA_dataNOC.read()){
+			case S_INIT:			
+				if(rx_from_router_local.read() == true){
+						buffer_in_flit[flit_in_counter] = data_in_from_router_local.read();
+						flit_in_counter = flit_in_counter + 1;
+
+						EA_dataNOC.write(S_RECEIVE);
+				}
+				if(mask_done == 1)
+					change_mask = 0;
+
+			break;
+
+			case S_RECEIVE:
+				if(rx_from_router_local.read() == true){
+					buffer_in_flit[flit_in_counter] =  data_in_from_router_local.read();
+					flit_in_counter = flit_in_counter + 1;
+
+					if(flit_in_counter == 22){
+						reg_header	 		= buffer_in_flit[3];
+						reg_msg_size 		= buffer_in_flit[5];
+						reg_service 		= buffer_in_flit[7];
+						reg_io_service 		= buffer_in_flit[9];
+						reg_io_port 		= buffer_in_flit[11];
+						reg_direction 		= buffer_in_flit[19];
+
+					}
+					if(flit_in_counter == 26 && reg_msg_size > 0X0B){
+						EA_dataNOC.write(S_PAYLOAD);
+						flit_in_counter = 0;
+					}
+					if(eop_in_from_router_local.read() == true){
+						EA_dataNOC.write(S_SERVICE);
+						flit_in_counter = 0;
+					}
+					
+				}
+				else{
+					EA_dataNOC.write(S_WAIT);
+				}
+			break;			
+			
+			case S_WAIT:
+				if(rx_from_router_local.read() == true){
+					buffer_in_flit[flit_in_counter] =  data_in_from_router_local.read();
+					flit_in_counter = flit_in_counter + 1;						
+					EA_dataNOC.write(S_RECEIVE);
+				}
+			break;
+
+			case S_SERVICE:
+				flit_in_counter = 0;
+				if(reg_service == 0x00000295){  //  IO_OPEN_WRAPPER	
+					change_mask = 1;
+				}
+
+				EA_dataNOC.write(S_INIT);
+			break;
+			  
+			case S_PAYLOAD:
+				//if(rx_primary.read() == true){
+				//		buffer_in_flit[flit_in_counter] = data_in_from_router_local.read();
+				//}
+				//flit_in_counter = (flit_in_counter + 1) % BUFFER_IN_WRAPPER_MASK;
+				if(eop_in_from_router_local.read()== true){
+					EA_dataNOC.write(S_SERVICE);
+					flit_in_counter = 0;
+				}	
+			break;	
+
+		}
+	}
+}
+
 /*-- PDN services
     #define    SET_SECURE_ZONE_SERVICE                 0b00111
     #define    OPEN_SECURE_ZONE_SERVICE                0b01010

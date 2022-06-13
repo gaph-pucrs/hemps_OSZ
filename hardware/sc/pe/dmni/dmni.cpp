@@ -146,6 +146,7 @@ void dmni::receive(){
 	sc_uint<4> intr_counter_temp;
 
 	if (reset.read() == 1){
+		flag_middle_eop = 0;
 		cont.write(0);
 		first.write(0);
 		last.write(0);
@@ -156,6 +157,8 @@ void dmni::receive(){
 		receive_active.write(0);
 		DMNI_Receive.write(WAIT);
 		intr_count.write(0);
+		tick_counter.write(0);
+		flit_location.write(0);
 		for(int i=0; i<BUFFER_SIZE; i++){ //in vhdl replace by OTHERS=>'0'
 			is_header[i] = 0;
 		}
@@ -166,6 +169,10 @@ void dmni::receive(){
 
 
 			intr_counter_temp = intr_count.read();
+			if(flag_middle_eop.read() == 1 && intr_counter_temp > 0){
+				intr_counter_temp = intr_counter_temp - 1;
+				flag_middle_eop.write(0);
+			}
 	
 			if (cont.read() == 0) {//32 bits high flit
 			//Read from NoC
@@ -184,10 +191,11 @@ void dmni::receive(){
 				if(eop_in.read() == 1){
 					buffer[last.read()].write((buffer_high.read(),data_in.read()));
 					buffer_eop[last.read()].write(eop_in.read());
-					add_buffer.write(1);
-					last.write(last.read() + 1);
+					add_buffer.write(0);
+					last.write(last.read() - 2);
 					cont.write(0);
 					SR.write(HEADER);
+					flag_middle_eop.write(1);
 				}
 			}
 		}
@@ -213,8 +221,8 @@ void dmni::receive(){
 						}
 						
 						// intr_counter_temp = intr_counter_temp + 1;
-						if(address_router == 0){
-							cout<<"Master receiving msg "<<endl;}
+						// if(address_router == 0){
+						// 	cout<<"Master receiving msg "<<endl;}
 						is_header[last.read()] = 1;
 						SR.write(PAYLOAD_SIZE);
 					break;
@@ -222,8 +230,8 @@ void dmni::receive(){
 						cont.write(0);
 
 						intr_counter_temp = intr_counter_temp + 1;
-						if(address_router == 0){
-							cout<<"Master receiving msg "<<endl;}
+						// if(address_router == 0){
+						// 	cout<<"Master receiving msg "<<endl;}
 						is_header[last.read()] = 1;
 						SR.write(HEADER2);
 					break;
@@ -280,8 +288,16 @@ void dmni::receive(){
 			
 					if (write_enable.read() == 1 && read_av.read() == 1){
 						mem_byte_we.write(0xF);
-			
-						mem_data_write.write(buffer[first.read()].read());
+						flit_location.write((flit_location.read() + 1));
+
+						// mem_data_write.write(buffer[first.read()].read());
+
+						if (flit_location.read() == 8){
+							mem_data_write.write(tick_counter.read());
+						}else{
+							mem_data_write.write(buffer[first.read()].read());
+						}
+
 						first.write(first.read() + 1);
 						add_buffer.write(0);
 						recv_address.write(recv_address.read() + WORD_SIZE);
@@ -291,6 +307,9 @@ void dmni::receive(){
 						// if (recv_size.read() == 0){
 						if (recv_size.read() == 0){
 							DMNI_Receive.write(END);
+							if(buffer_eop[first.read()] == 1){
+								flit_location.write(0);
+							}
 						}
 						else{
 							if(buffer_eop[first.read()] == 1){
@@ -303,12 +322,14 @@ void dmni::receive(){
 								}
 								else{//normal reception
 									DMNI_Receive.write(END);
+									flit_location.write(0);
 								}
 							}
 						}
 					} else {
 						if(buffer_eop[first.read()] == 1){
 							DMNI_Receive.write(END);
+							flit_location.write(0);
 						}
 						mem_byte_we.write(0);
 					}
@@ -346,6 +367,8 @@ void dmni::receive(){
 
 		} //end if  if (reg_interrupt_received_wait.read() == 0){	
 	} //end else
+
+	tick_counter.write((tick_counter.read() + 1) );
 }
 
 
@@ -367,9 +390,9 @@ void dmni::send(){
 					send_size_2.write(size_2.read());
 					send_active.write(1);
 					DMNI_Send.write(LOAD);
-					if(address_router == 0){
-						cout<<"Master sending msg "<<endl;
-					}
+					// if(address_router == 0){
+					// 	cout<<"Master sending msg "<<endl;
+					// }
 				}
 			break;
 

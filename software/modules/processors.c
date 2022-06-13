@@ -16,7 +16,8 @@
 #include "utils.h"
 #include "define_pairs.h"
 #include "seek.h"
-
+#include "applications.h"
+#include "resource_manager.h"
 extern int clusterID;
 extern int PE_belong_SZ(int PE_x, int PE_y);
 //Processor processors[MAX_CLUSTER_PEs];	//!<Processor array
@@ -35,9 +36,22 @@ Processor * search_processor(int proc_address){
 		}
 	}
 
-	putsv("ERROR: Processor not found ", proc_address);
+	puts("ERROR: Processor not found "); puts(itoh(proc_address)); puts("\n");
 	while(1);
 	return 0;
+}
+
+Processor * search_free_processor(){
+
+    for(int i=0; i<MAX_CLUSTER_PEs; i++){
+        if (processors[i].address == -1){
+            return &processors[i];
+        }
+    }
+
+    puts("ERROR: Free processor not found\n"); 
+    while(1);
+    return 0;
 }
 
 /**Gets the processor address stored in the index parameter
@@ -81,11 +95,11 @@ int get_proc_slack_time(int proc_address){
 /**Add a valid processor to the processors' array
  * \param proc_address Processor address to be added
  */
-void add_procesor(int proc_address){
+void add_processor(int proc_address){
 	extern int net_address;
 	//net_address = get_net_address();
 
-	Processor * p = search_processor(-1); //Searches for a free slot
+	Processor * p = search_free_processor(); //Searches for a free slot
 
 	if(proc_address != net_address)
 		p->free_pages = MAX_LOCAL_TASKS;
@@ -251,16 +265,15 @@ int get_free_processor(){ // retorna -1 se estiver nenhum PE sem tarefas SENAO v
 	processor_free_pages = processors[1].free_pages;
     //for(int i=1; i<MAX_CLUSTER_PEs; i++){
 	for(int i = MAX_CLUSTER_PEs -1; i > 0; i--){
+			
 		if (processors[i].free_pages == MAX_LOCAL_TASKS){
 			processors_with_task = processors[i].address;
-            		PE_x = processors_with_task >> 8;
-            		PE_y = processors_with_task & 0XFF;
-            		//puts("Conferindo1 Proc: \n");puts(itoh(processors_with_task));
-            		if(PE_belong_SZ(PE_x, PE_y) != 1){
-            			//puts("Passou no 1\n");
-			     	return processors_with_task;}
-            		else
-                		continue;
+            PE_x = processors_with_task >> 8;
+            PE_y = processors_with_task & 0XFF;
+            if(PE_belong_SZ(PE_x, PE_y) != 1)
+			     return processors_with_task;
+            else
+                continue;
 		}
 		else{
 			if (processors[i].free_pages > processor_free_pages){
@@ -276,7 +289,7 @@ int get_free_processor(){ // retorna -1 se estiver nenhum PE sem tarefas SENAO v
 			}
 		}		
 	}
-	//puts("Passou no 2\n");
+
 	return processor_with_less_resources;
 }
 
@@ -308,21 +321,30 @@ void clear_free_page_processor(int proc_address){ //Add by Fochi
 	}	
 }
 
-/**Initializes the processors's array with invalid values
- */
-void init_procesors(){
+void print_processors(){
 	for(int i=0; i<MAX_CLUSTER_PEs; i++){
-		processors[i].address = -1;
-		processors[i].free_pages = 0;
-		for(int t=0; t<MAX_LOCAL_TASKS; t++){
-			processors[i].task[t] = -1;
-		}
+		puts("Index: "); puts(itoa(i));
+		puts("  Endereco: "); puts(itoh(processors[i].address)); puts("\n");
 	}
 }
 
 
+/**Initializes the processors's array with invalid values 
+ */
+void init_processors(){
+    for(int i=0; i<MAX_CLUSTER_PEs; i++){
+        processors[i].address = -1;
+        processors[i].free_pages = 0;
+        for(int t=0; t<MAX_LOCAL_TASKS; t++){
+            processors[i].task[t] = -1;
+        }
+    }
+    //print_processors();
+}
+
+
 void freeze_application(){
-    int index, last_appID = -1, appID = 0;
+    int index, appID = 0;
     for(index = 0; index < MAX_MIGRATIONS; index++){
 
         if(migration_list[index].status == ACTIVE){
@@ -336,90 +358,7 @@ void freeze_application(){
     }
 }
 
-// void set_Secure_Zone(int shape_index){
-//     int i;
 
-//     for(i = 0; i < MAX_SHAPES; i++){
-//         if(Secure_Zone[i].occuped == 0){
-//             //puts("set_SZ index: "); puts(itoh(i)); puts("\n");
-//             Secure_Zone[i].processors = shapes[shape_index].processors;
-//             Secure_Zone[i].X_size = shapes[shape_index].X_size;
-//             Secure_Zone[i].Y_size = shapes[shape_index].Y_size;
-//             Secure_Zone[i].excess = shapes[shape_index].excess;
-//             Secure_Zone[i].used = shapes[shape_index].used;
-//             Secure_Zone[i].cut = shapes[shape_index].cut;
-//             Secure_Zone[i].position = shapes[shape_index].position;
-//             Secure_Zone[i].occuped = 1;
-
-//             set_SZ_migrations(i);
-//             freeze_application();
-//             return;
-//         }
-//     }    
-// }
-
-//////////////////////////////////////////////////////////////////////////////////////
-// int set_SZ_migrations(int SZ_index) {
-//     int desl_Y, y, x, proc_address;
-//     int i, flag, init_cut_index, end_cut_index;
-//     int xi, yi, xf, yf;
-//     int taskID0, taskID1, index;
-//     xi =  (Secure_Zone[SZ_index].position >> 8) & 0XFF;
-//     yi =   Secure_Zone[SZ_index].position  & 0XFF;
-//     xf =  xi + Secure_Zone[SZ_index].X_size;
-//     yf =  yi + Secure_Zone[SZ_index].Y_size;
-//     if(Secure_Zone[SZ_index].cut != -1){
-//         init_cut_index = (Secure_Zone[SZ_index].cut & 0XFFFF);
-//         init_cut_index = ((init_cut_index & 0XFF) * XCLUSTER) + (init_cut_index >> 8);
-
-//         end_cut_index = (Secure_Zone[SZ_index].cut >> 16);
-//         end_cut_index = ((end_cut_index & 0XFF) * XCLUSTER) + (end_cut_index >> 8);
-//     }
-//     for(y = yi;  y < yf; y++){
-//         desl_Y = (y)*XCLUSTER ;
-//         for(x = xi; x < xf; x++){
-//             //----------- avoid the SZ excess ----------------
-//             if(Secure_Zone[SZ_index].cut != -1){
-//                 flag = 0;
-//                 for(i = init_cut_index; i <= end_cut_index; i += XCLUSTER){
-//                     if((x+desl_Y) == i)
-//                         flag = 1;
-//                 }
-//                 if(flag == 1){
-//                     continue;
-//                 }
-//             }
-//             //-----------------------------------------------
-//             proc_address = get_proc_address(x+desl_Y);
-//             //puts("address: "); puts(itoh(proc_address)); puts("\n");
-//             if (get_proc_free_pages(proc_address) != MAX_LOCAL_TASKS){
-//                 taskID0 = get_task_id_processor(proc_address);
-//                 taskID1 = (taskID0 >> 16) &  0XFFFF;
-//                 taskID0 = taskID0 &  0XFFFF;
-
-//                 for(index = 0; index < MAX_MIGRATIONS; index++){
-//                     if(migration_list[index].status == OFF ){
-//                         migration_list[index].status = ACTIVE;
-//                         migration_list[index].actual_address = proc_address;
-//                         migration_list[index].actual_taskID = taskID0;
-//                         break;
-//                     }
-//                 }
-//                 if(taskID1 != 0XFFFF){
-//                     for(; index < MAX_MIGRATIONS; index++){
-//                         if(migration_list[index].status == OFF ){
-//                             migration_list[index].status = ACTIVE;
-//                             migration_list[index].actual_address = proc_address;
-//                             migration_list[index].actual_taskID = taskID1;
-//                             break;
-//                         }
-//                     }                    
-//                 }
-//             }
-//         }
-//     }
-//     return 0;
-// }
 
 void initialize_migration_list(){
     int index;

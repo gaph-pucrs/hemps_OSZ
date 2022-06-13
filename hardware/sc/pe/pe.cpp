@@ -162,6 +162,8 @@ void pe::comb_assignments(){
 	l_irq_status[0] = (!dmni_send_active_sig.read() && pending_service.read());
 	
 	irq_status.write(l_irq_status);
+	result_rx = rx_ni & mask_local_tx_output_local;
+
 }
 
 void pe::sequential_attr(){
@@ -217,26 +219,50 @@ void pe::sequential_attr(){
 		}
 		//*********************************************************************
 
-		//************** simluation-time debug implementation *******************
+		// //************** simluation-time debug implementation *******************
+		// if (cpu_mem_address_reg.read() == DEBUG && write_enable.read() == 1){
+		// 	sprintf(aux, "log/log%dx%d.txt", (unsigned int) router_address.range(15,8), (unsigned int) router_address.range(7,0));
+		// 	fp = fopen (aux, "a");
+
+		// 	end = 0;
+		// 	for(int i=0;i<4;i++) {
+		// 		c = cpu_mem_data_write_reg.read().range(31-i*8,24-i*8);
+
+		// 		//Writes a string in the line
+		// 		if(c != 10 && c != 0 && !end){
+		// 			fprintf(fp,"%c",c);
+		// 		}
+		// 		//Detects the string end
+		// 		else if(c == 0){
+		// 			end = true;
+		// 		}
+		// 		//Line feed detected. Writes the line in the file
+		// 		else if(c == 10){
+		// 			fprintf(fp,"%c",c);
+		// 		}
+		// 	}
+
+		// 	fclose (fp);
+				//************** simluation-time debug implementation *******************
 		if (cpu_mem_address_reg.read() == DEBUG && write_enable.read() == 1){
 			sprintf(aux, "log/log%dx%d.txt", (unsigned int) router_address.range(15,8), (unsigned int) router_address.range(7,0));
 			fp = fopen (aux, "a");
 
 			end = 0;
-			for(int i=0;i<4;i++) {
-				c = cpu_mem_data_write_reg.read().range(31-i*8,24-i*8);
+			uint32_t address = cpu_mem_data_write_reg.read()/4;
+			while(!end){
+				unsigned long word = mem->ram_data[address++];
+				word = __builtin_bswap32(word);
+				char str[5] = {};
+				memcpy(str, &word, 4);
 
-				//Writes a string in the line
-				if(c != 10 && c != 0 && !end){
-					fprintf(fp,"%c",c);
-				}
-				//Detects the string end
-				else if(c == 0){
-					end = true;
-				}
-				//Line feed detected. Writes the line in the file
-				else if(c == 10){
-					fprintf(fp,"%c",c);
+				fprintf(fp, "%s", str);
+
+				for(int i = 0; i < 4; i++){
+					if(str[i] == 0){
+						end = 1;
+						break;
+					}
 				}
 			}
 
@@ -462,9 +488,9 @@ void pe::seek_fault_middle_packet(){
 			for(j=0;j<NPORT;j++){
 				// if((local_rot_table[j] & router_fail_in[j].read()) == 1  && MEM_waiting[j].read() == 0){
 				if((local_rot_table[j] & router_fail_in[j].read()) == 1 ){//&& MEM_waiting[addr].read() == 0){
-					cout << "ROUTER:" << hex << router_address;
-					cout << ":error transmitting from " << source.read() << " to " << target.read() << endl;
-					cout << ":NEW error transmitting from " << MEM_source[j].read() << " to " << MEM_target[j].read() << endl;
+					// cout << "ROUTER:" << hex << router_address;
+					// cout << ":error transmitting from " << source.read() << " to " << target.read() << endl;
+					// cout << ":NEW error transmitting from " << MEM_source[j].read() << " to " << MEM_target[j].read() << endl;
 					// MEM_waiting[addr].write(1);
 					MEM_waiting[j].write(1);
 					// MEM_source[addr].write(source.read());
@@ -566,7 +592,7 @@ void pe::seek_receive(){
 		in_cpu_opmode_seek.write(0);
 	}
 	else{
-		if (out_req_router_seek_local.read() == 1){
+		if (out_req_router_seek_local.read() == 1 && out_service_router_seek_local.read() != 0x3){
 			if (in_ack_router_seek_local.read() == 0 && int_seek.read()==0 && int_dmni_seek.read() == 0){
 				cout << "router ";
 				cout << hex << router_address;
@@ -720,18 +746,49 @@ void pe::seek_receive(){
 	}
 }
 
+
+// controls the input at the access point
+void pe::keyCheck(){
+	static bool	auxPass[NPORT];
+	if (reset.read() == 1) {
+		for(i=0;i<NPORT-1;i++){
+			pass[i].write(1);
+			auxPass[i] = 0;
+		}
+	}else{
+		for(i=0;i<NPORT-1;i++){
+			if (io_packet_mask == 0){
+				if (((data_in[i].read()) == (ke.read() | 0x6000)) && (pass[i].read() == 1))	{
+
+					pass[i].write(0);
+
+				} else if ((eop_in[i].read() == 1) && (pass[i].read() == 0)){
+
+					auxPass[i] = 1;
+
+				} else if ((eop_in[i].read() == 0) && (auxPass[i] == 1)){
+
+					pass[i].write(1);
+					auxPass[i] = 0;
+
+				}
+			}
+		}
+	}
+}
+
 //generates the fail_out and fail_in accordin to external_fail_in and external_fail_out
 void pe::fail_out_generation(){
-	for(i=0;i<NPORT-1;i++){	
-		fail_out[i].write(router_fail_out[i].read() | external_fail_out[i].read() | wrapper_reg[i].read());
+	for(i=0;i<NPORT-1;i++){
+		fail_out[i].write(router_fail_out[i].read() | external_fail_out[i].read() | (wrapper_reg[i].read() & ( wrapper_mask_router_out.read()[i] | io_packet_mask | pass[i])));
 	}
 }
 void pe::fail_in_generation(){
 	for(i=0;i<NPORT-1;i++){
-			router_fail_in[i].write(fail_in[i].read() | external_fail_in[i].read() | wrapper_reg[i].read());
+		router_fail_in[i].write(fail_in[i].read() | external_fail_in[i].read() | ( wrapper_reg[i].read() & wrapper_mask_router_in.read()[i]));
+		//router_fail_in[i].write(fail_in[i].read() | external_fail_in[i].read() | wrapper_reg[i].read() );
 	}
 }
-
 void pe::clock_stop(){
 
 	if (reset.read() == 1 || reset_plasma_from_dmni.read() == 1) {

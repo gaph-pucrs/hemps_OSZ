@@ -15,6 +15,7 @@
 #define CONTROL_MESSAGES_FIFO_H_
 
 #include "packet.h"
+#include "osz_slave.h"
 
 #define     CM_FIFO_LENGTH  16
 #define     YES     1
@@ -30,7 +31,7 @@ typedef struct {
 } ControlMessagesFifo;
 
 
-void insert_CM_FIFO(ServiceHeader *, unsigned int, unsigned int);
+void insert_CM_FIFO(volatile ServiceHeader *, unsigned int, unsigned int);
 
 int search_Service(unsigned int );
 
@@ -38,10 +39,14 @@ int search_Target(unsigned int );
 
 //int search_Target_Service(unsigned int, unsigned int );
 
+int get_CM_peripheral_ID(int );
+
+int get_CM_IO_service(int );
+
 void initialize_CM_FIFO();
 
 void print_CM_FIFO();
 
-int resend_control_message(unsigned int target);
+int resend_control_message(unsigned int backtrack, unsigned int backtrack1, unsigned int backtrack2, unsigned int target);
 
 #endif /* SOFTWARE_INCLUDE_CONTROL_MESSAGES_FIFO_ */

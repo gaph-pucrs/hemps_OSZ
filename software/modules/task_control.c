@@ -11,7 +11,7 @@
  * This module implements function relative to task control block (TCB)
  * This module is used by the slave kernel
  */
-
+#include "../include/plasma.h"
 #include "task_control.h"
 
 #include "../../include/kernel_pkg.h"

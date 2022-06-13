@@ -104,7 +104,6 @@ class RouterControl():
         # OBSERVAÇÃO: Precisa ser feito na ordem certa: 
         # EAST, WEST, NORTH, SOUTH, LOCAL
         # Desta forma os indices da lista batem na ordem certa
-                    
         # Portas EAST, define posições
         IN_EAST_ACK=(x2 - 26,y1+int(local_h*0.2))
         IN_EAST_NACK=(x2 - 26,y1+int(local_h*0.25))
@@ -155,7 +154,6 @@ class RouterControl():
         self.portas[stds.OUT_ACK].insert(stds.NORTH,ArrowOutput(C,OUT_NORTH_ACK,stds.NORTH))
 
         # # Portas SOUTH
-
         IN_SOUTH_ACK=(x1+int(local_w*0.2),y2-26)
         IN_SOUTH_NACK=(x1+int(local_w*0.25),y2-26)
         OUT_SOUTH_REQ=(x1+int(local_w*0.4),y2-26)

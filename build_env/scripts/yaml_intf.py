@@ -67,6 +67,16 @@ def get_cluster_y_dim(yaml_reader):
 def get_master_location(yaml_reader):
     return yaml_reader["hw"]["master_location"]
 
+def get_master_address(master_location, mpsocXsize, mpsocYsize):
+    if master_location == "LB":
+        return 0
+    elif master_location == "RB":
+        return mpsocXsize-1
+    elif master_location == "LT":
+        return ((mpsocYsize-1)*mpsocXsize)
+    elif master_location == "RT":
+        return (mpsocXsize*mpsocYsize)-1
+
 def get_physical_channels(yaml_reader):
     to_ret = 1
 
@@ -149,6 +159,26 @@ def get_io_number(yaml_reader):
     number = len(get_open_ports(yaml_reader))
     return number
 
+def get_session(yaml_reader):
+    try:
+        session = yaml_reader["hw"]["session"]
+    except:
+        session = 0  
+    return session   
+
+def get_gray_area_rows(yaml_reader):
+    try:
+        ga_rows = yaml_reader["hw"]["gray_area"]["rows"]
+    except:
+        ga_rows = 0
+    return ga_rows
+
+def get_gray_area_cols(yaml_reader):
+    try:
+        ga_cols = yaml_reader["hw"]["gray_area"]["cols"]
+    except:
+        ga_cols = 0
+    return ga_cols 
 
 #------- Repository Generation Scope -------------------
 #ATTENTION: STATIC MAPPING ONLY WORKS IF THE APPS START TIME ARE ORDERED

@@ -47,37 +47,39 @@ package seek_pkg is
 -- ordem SET_SECURE_ZONE_SERVICE, SET_EXCESS_SZ_SERVICE, SECURE_ZONE_CLOSED_SERVICE
 -- OPEN_SECURE_ZONE_SERVICE, SECURE_ZONE_OPENED_SERVICE
 -- PDN services
-	constant	START_APP_SERVICE						: std_logic_vector(TAM_SERVICE_SEEK-1 downto 0) := "00001";
-	constant	TARGET_UNREACHABLE_SERVICE				: std_logic_vector(TAM_SERVICE_SEEK-1 downto 0) := "00010";
-	constant	CLEAR_SERVICE							: std_logic_vector(TAM_SERVICE_SEEK-1 downto 0) := "00011";
-	constant	BACKTRACK_SERVICE						: std_logic_vector(TAM_SERVICE_SEEK-1 downto 0) := "00100";
-	constant	SEARCHPATH_SERVICE						: std_logic_vector(TAM_SERVICE_SEEK-1 downto 0) := "00101";
-	constant	END_TASK_SERVICE						: std_logic_vector(TAM_SERVICE_SEEK-1 downto 0) := "00110";
-	constant	SET_SECURE_ZONE_SERVICE					: std_logic_vector(TAM_SERVICE_SEEK-1 downto 0) := "00111"; -- adiciona a zona segura linha e coluna do canto inferior esquerdo até linha e coluna canto superior direito
-	constant	PACKET_RESEND_SERVICE					: std_logic_vector(TAM_SERVICE_SEEK-1 downto 0) := "01000";
-	constant	WARD_SERVICE							: std_logic_vector(TAM_SERVICE_SEEK-1 downto 0) := "01001";
-	constant	OPEN_SECURE_ZONE_SERVICE				: std_logic_vector(TAM_SERVICE_SEEK-1 downto 0) := "01010"; -- libera a zona segura: mesma logica, canto inferior esquerdo até superior direito
-	constant	SECURE_ZONE_CLOSED_SERVICE				: std_logic_vector(TAM_SERVICE_SEEK-1 downto 0) := "01011"; -- confirma que a zona segura está fechada(wrappers fechados)
-	constant	SECURE_ZONE_OPENED_SERVICE				: std_logic_vector(TAM_SERVICE_SEEK-1 downto 0) := "01100"; -- confirma que a zona segura não está mais ativa
-	constant	FREEZE_TASK_SERVICE						: std_logic_vector(TAM_SERVICE_SEEK-1 downto 0) := "01101";
-	constant	UNFREEZE_TASK_SERVICE					: std_logic_vector(TAM_SERVICE_SEEK-1 downto 0) := "01110";
-	constant	MASTER_CANDIDATE_SERVICE				: std_logic_vector(TAM_SERVICE_SEEK-1 downto 0) := "01111";
-	constant	TASK_ALLOCATED_SERVICE					: std_logic_vector(TAM_SERVICE_SEEK-1 downto 0) := "10000";
-	constant	INITIALIZE_SLAVE_SERVICE				: std_logic_vector(TAM_SERVICE_SEEK-1 downto 0) := "10001";
-	constant	INITIALIZE_CLUSTER_SERVICE				: std_logic_vector(TAM_SERVICE_SEEK-1 downto 0) := "10010";
-	constant	LOAN_PROCESSOR_REQUEST_SERVICE			: std_logic_vector(TAM_SERVICE_SEEK-1 downto 0) := "10011";
-	constant	LOAN_PROCESSOR_RELEASE_SERVICE			: std_logic_vector(TAM_SERVICE_SEEK-1 downto 0) := "10100";
-	constant	END_TASK_OTHER_CLUSTER_SERVICE			: std_logic_vector(TAM_SERVICE_SEEK-1 downto 0) := "10101";
-	constant	WAIT_KERNEL_SERVICE						: std_logic_vector(TAM_SERVICE_SEEK-1 downto 0) := "10110";
-	constant	SEND_KERNEL_SERVICE						: std_logic_vector(TAM_SERVICE_SEEK-1 downto 0) := "10111";
-	constant	WAIT_KERNEL_SERVICE_ACK					: std_logic_vector(TAM_SERVICE_SEEK-1 downto 0) := "11000";
-	constant	FAIL_KERNEL_SERVICE						: std_logic_vector(TAM_SERVICE_SEEK-1 downto 0) := "11001";
-	constant	NEW_APP_SERVICE							: std_logic_vector(TAM_SERVICE_SEEK-1 downto 0) := "11010";
-	constant	NEW_APP_ACK_SERVICE						: std_logic_vector(TAM_SERVICE_SEEK-1 downto 0) := "11011";
-	constant	GMV_READY_SERVICE						: std_logic_vector(TAM_SERVICE_SEEK-1 downto 0) := "11100";
-	constant	SET_SZ_RECEIVED_SERVICE					: std_logic_vector(TAM_SERVICE_SEEK-1 downto 0) := "11101";
-	constant	SET_EXCESS_SZ_SERVICE					: std_logic_vector(TAM_SERVICE_SEEK-1 downto 0) := "11110"; -- elimina da zona segura linha e coluna inferior esquerda até a superior direita
-	constant	RCV_FREEZE_TASK_SERVICE					: std_logic_vector(TAM_SERVICE_SEEK-1 downto 0) := "11111";
+    constant    START_APP_SERVICE                       : std_logic_vector(TAM_SERVICE_SEEK-1 downto 0) := "00001";
+    constant    TARGET_UNREACHABLE_SERVICE              : std_logic_vector(TAM_SERVICE_SEEK-1 downto 0) := "00010";
+    constant    CLEAR_SERVICE                           : std_logic_vector(TAM_SERVICE_SEEK-1 downto 0) := "00011";
+    constant    BACKTRACK_SERVICE                       : std_logic_vector(TAM_SERVICE_SEEK-1 downto 0) := "00100";
+    constant    SEARCHPATH_SERVICE                      : std_logic_vector(TAM_SERVICE_SEEK-1 downto 0) := "00101";
+    constant    END_TASK_SERVICE                        : std_logic_vector(TAM_SERVICE_SEEK-1 downto 0) := "00110";
+    constant    SET_SECURE_ZONE_SERVICE                 : std_logic_vector(TAM_SERVICE_SEEK-1 downto 0) := "00111";
+    constant    PACKET_RESEND_SERVICE                   : std_logic_vector(TAM_SERVICE_SEEK-1 downto 0) := "01000";
+    constant    WARD_SERVICE                            : std_logic_vector(TAM_SERVICE_SEEK-1 downto 0) := "01001";
+    constant    OPEN_SECURE_ZONE_SERVICE                : std_logic_vector(TAM_SERVICE_SEEK-1 downto 0) := "01010";
+    constant    SECURE_ZONE_CLOSED_SERVICE              : std_logic_vector(TAM_SERVICE_SEEK-1 downto 0) := "01011";
+    constant    SECURE_ZONE_OPENED_SERVICE              : std_logic_vector(TAM_SERVICE_SEEK-1 downto 0) := "01100";
+    constant    FREEZE_TASK_SERVICE                     : std_logic_vector(TAM_SERVICE_SEEK-1 downto 0) := "01101";
+    constant    UNFREEZE_TASK_SERVICE                   : std_logic_vector(TAM_SERVICE_SEEK-1 downto 0) := "01110";
+    constant    MASTER_CANDIDATE_SERVICE                : std_logic_vector(TAM_SERVICE_SEEK-1 downto 0) := "01111";
+    constant    TASK_ALLOCATED_SERVICE                  : std_logic_vector(TAM_SERVICE_SEEK-1 downto 0) := "10000";
+    constant    INITIALIZE_SLAVE_SERVICE                : std_logic_vector(TAM_SERVICE_SEEK-1 downto 0) := "10001";
+    constant    INITIALIZE_CLUSTER_SERVICE              : std_logic_vector(TAM_SERVICE_SEEK-1 downto 0) := "10010";
+    --constant    LOAN_PROCESSOR_REQUEST_SERVICE          : std_logic_vector(TAM_SERVICE_SEEK-1 downto 0) := "10011"; --
+    --constant    LOAN_PROCESSOR_RELEASE_SERVICE          : std_logic_vector(TAM_SERVICE_SEEK-1 downto 0) := "10100"; --
+    constant    END_TASK_OTHER_CLUSTER_SERVICE          : std_logic_vector(TAM_SERVICE_SEEK-1 downto 0) := "10101";
+    constant    WAIT_KERNEL_SERVICE                     : std_logic_vector(TAM_SERVICE_SEEK-1 downto 0) := "10110";
+    constant    SEND_KERNEL_SERVICE                     : std_logic_vector(TAM_SERVICE_SEEK-1 downto 0) := "10111";
+    constant    WAIT_KERNEL_SERVICE_ACK                 : std_logic_vector(TAM_SERVICE_SEEK-1 downto 0) := "11000";
+    constant    FAIL_KERNEL_SERVICE                     : std_logic_vector(TAM_SERVICE_SEEK-1 downto 0) := "11001";
+    constant    NEW_APP_SERVICE                         : std_logic_vector(TAM_SERVICE_SEEK-1 downto 0) := "11010";
+    constant    NEW_APP_ACK_SERVICE                     : std_logic_vector(TAM_SERVICE_SEEK-1 downto 0) := "11011";
+    constant    GMV_READY_SERVICE                       : std_logic_vector(TAM_SERVICE_SEEK-1 downto 0) := "11100";
+    constant    SET_SZ_RECEIVED_SERVICE                 : std_logic_vector(TAM_SERVICE_SEEK-1 downto 0) := "11101";
+    constant    SET_EXCESS_SZ_SERVICE                   : std_logic_vector(TAM_SERVICE_SEEK-1 downto 0) := "11110";
+    constant    RCV_FREEZE_TASK_SERVICE                 : std_logic_vector(TAM_SERVICE_SEEK-1 downto 0) := "11111";
+    constant    MSG_DELIVERY_CONTROL                     : std_logic_vector(TAM_SERVICE_SEEK-1 downto 0) := "10011";
+    constant    MSG_REQUEST_CONTROL                     : std_logic_vector(TAM_SERVICE_SEEK-1 downto 0) := "10100";
 
 	subtype		regNtarget								is std_logic_vector((TARGET_SIZE-1) downto 0);
 	subtype		regNsource								is std_logic_vector((SOURCE_SIZE-1) downto 0);
@@ -87,12 +89,12 @@ package seek_pkg is
 	type		regNportNtarget_neighbor				is array (0 to NPORT_SEEK-1) of regNtarget;
 	type		regNportNpayload_neighbor				is array (0 to NPORT_SEEK-1) of regNpayload;
 
-	subtype		seek_bitN_service						is std_logic_vector(TAM_SERVICE_SEEK-1 downto 0);
-	type		regNport_seek_bitN_service				is array (NPORT_SEEK-1 downto 0) of seek_bitN_service;
+    subtype     seek_bitN_service                       is std_logic_vector(TAM_SERVICE_SEEK-1 downto 0);
+    type        regNport_seek_bitN_service              is array (NPORT_SEEK-1 downto 0) of seek_bitN_service;
+	
+    constant	REG_BACKTRACK_SIZE						: integer := 96;
 
-    
-	constant	REG_BACKTRACK_SIZE						: integer := 96;
-	-- table
+    -- table
 	type		source_table_type						is array (TABLE_SEEK_LENGHT-1 downto 0) of regNsource;
 	type		target_table_type						is array (TABLE_SEEK_LENGHT-1 downto 0) of regNtarget;
 	type		service_table_type						is array (TABLE_SEEK_LENGHT-1 downto 0) of seek_bitN_service;
@@ -110,14 +112,15 @@ package seek_pkg is
 	type T_ea_manager_input is (S_INIT_INPUT, ARBITRATION_INPUT, LOOK_TABLE_INPUT, TEST_SPACE_AVAIL, SERVICE_INPUT, TABLE_WRITE_INPUT,
 		WRITE_BACKTRACK_INPUT, TEST_SEND_LOCAL, WRITE_CLEAR_INPUT, WAIT_REQ_DOWN, WAIT_REQ_DOWN_NACK, SEND_NACK);
 
+
 end package seek_pkg;
 
-------------------------------------------------------------------------------------------------------------------
--- Service                      type                        	Operation Mode      Payload     Target
--- START_APP_SERVICE            Broadcast to all local ports   	Global              AppID       RH_corner
--- TARGET_UNREACHABLE_SERVICE   Broadcast With Target       	Global              --          TaskID Address
--- CLEAR_SERVICE                Broadcast Without Target    	Global              --          --
--- BACKTRACK_SERVICE            Unicast                     	Restrict            Hop number  --
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+-- Service                      type                        	Operation Mode      Payload     Target                          Source
+-- START_APP_SERVICE            Broadcast to all local ports   	Global              AppID       RH_corner                       --
+-- TARGET_UNREACHABLE_SERVICE   Broadcast With Target       	Global              --          TaskID Address                  --
+-- CLEAR_SERVICE                Broadcast Without Target    	Global              --          --                              --
+-- BACKTRACK_SERVICE            Unicast                     	Restrict            Hop number  --                              --
 -- SEARCHPATH_SERVICE           Broadcast With Target          	Restrict            Hop number  Target Unreachable Address
 -- END_TASK_SERVICE             Broadcast With Target       	Global              TaskID      CMP Address
 -- PACKET_RESEND_SERVICE        Broadcast With Target       	Global              --          TaskID Address
@@ -137,3 +140,7 @@ end package seek_pkg;
 -- NEW_APP_SERVICE              Broadcast to all local ports    Global              Nr,task     Global master virtual
 -- NEW_APP_ACK_SERVICE          Broadcast With Target           Global              Nr,task     Address of the LMP
 -- GMV_READY_SERVICE            Broadcast Without Target        Global              --          Injection Entity 
+-- MSG_DELIVERY_CONTROL             Broadcast With Target           Global              TgtAppID    TargetID                        SrcAppID
+-- MSG_REQUEST_CONTROL          Broadcast With Target           Global              TgtAppID    TargetID                        SrcAppID
+
+--Seek(MSG_DELIVERY_CONTROL, target, (AppID << 16), 0); 

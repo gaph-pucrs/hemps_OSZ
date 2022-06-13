@@ -27,11 +27,13 @@
 #include "present.h"
 #endif 
 
+int LOCAL_left_low_corner = -1;
+int LOCAL_right_high_corner = -1;
+
 
 ServiceHeaderSlot sh_slot1, sh_slot2;	//!<Slots to prevent memory writing while is sending a packet
 
 unsigned int global_inst = 0;			//!<Global CPU instructions counter
-
 
 
 #ifdef AES_MODULE
@@ -119,7 +121,7 @@ void DMNI_send_data(unsigned int initial_address, unsigned int dmni_msg_size){
  * \param initial_address Initial memory address of the packet payload (payload, not service header)
  * \return dmni_msg_size Packet payload size represented in memory words of 32 bits
  */
-void send_packet(ServiceHeader *p, unsigned int initial_address, unsigned int dmni_msg_size){
+void send_packet(volatile ServiceHeader *p, unsigned int initial_address, unsigned int dmni_msg_size){
 
 		unsigned int slot;
 		int i;
@@ -174,7 +176,7 @@ void send_packet(ServiceHeader *p, unsigned int initial_address, unsigned int dm
 		//get slot
 		slot = SearchSourceRoutingDestination(p->header[MAX_SOURCE_ROUTING_PATH_SIZE-1]&0xffff);
 		//verify if path is a source routing destination
-		if(slot != -1){
+		if(slot != -1 && (p->service != IO_OPEN_WRAPPER)){
 
 			//move XY header to before SR header
 			p->header[MAX_SOURCE_ROUTING_PATH_SIZE-SR_Table[slot].path_size-1] = ((((p->source_PE & 0x3F00) >> 2) | (p->source_PE & 0x003F)) << 16) | p->header[MAX_SOURCE_ROUTING_PATH_SIZE-1];
@@ -185,6 +187,20 @@ void send_packet(ServiceHeader *p, unsigned int initial_address, unsigned int dm
 				// puts("p->header:");puts(itoh(p->header[MAX_SOURCE_ROUTING_PATH_SIZE-SR_Table[slot].path_size+i]));puts("\n");
 			}
 			packet_type = SOURCE_ROUTING;
+		}
+		else if (p->service == IO_OPEN_WRAPPER){
+			//NEW
+			p->header[MAX_SOURCE_ROUTING_PATH_SIZE-2] = p->header[MAX_SOURCE_ROUTING_PATH_SIZE-1];
+
+			//NEW
+			// p->header[MAX_SOURCE_ROUTING_PATH_SIZE-1] = p->header[MAX_SOURCE_ROUTING_PATH_SIZE-2];
+			p->header[MAX_SOURCE_ROUTING_PATH_SIZE-1] = p->header[MAX_SOURCE_ROUTING_PATH_SIZE-1];
+
+			// puts("Header OPEN WRAPPER\n")
+			// puts("p->header1:");puts(itoh(p->header[MAX_SOURCE_ROUTING_PATH_SIZE-2]));puts("\n");
+			// puts("p->header2:");puts(itoh(p->header[MAX_SOURCE_ROUTING_PATH_SIZE-1]));puts("\n");
+
+			packet_type = DISTRIBUTED_ROUTING;
 		}
 		else{
 			
@@ -228,6 +244,60 @@ void send_packet(ServiceHeader *p, unsigned int initial_address, unsigned int dm
 		insert_CM_FIFO(p, initial_address, dmni_msg_size);
 }
 
+int get_last_hop(unsigned int addX, unsigned int addY){
+	int x;
+    //puts("X: "); puts(itoa(addX)); puts(" Y: "); puts(itoa(addY)); puts("\n");
+	for(x = 0; x < IO_NUMBER; x++){
+		if((io_info[x].default_address_x == addX) && (io_info[x].default_address_y == addY)){
+			switch(io_info[x].default_port){
+				case OUT_EAST:  return 0; break;
+				case OUT_WEST:  return 1; break;
+				case OUT_NORTH: return 2; break;
+				case OUT_SOUTH: return 3; break;
+			}
+		}
+	}
+    //puts("saiu last hop\n");
+	return -1;
+}
+
+
+int find_io_peripheral(unsigned int address){
+	int i;
+    for(i = 0; i < IO_NUMBER; i++){
+        if((io_info[i].default_address_x == ((address & 0xFF00) >> 8)) && (io_info[i].default_address_y == (address & 0x00FF))){
+        	return io_info[i].peripheral_id;
+        }
+    }
+    return 0;
+}
+
+int find_peripheral_at_line_column(unsigned int ll_address){
+    int i, X_LL, Y_LL;
+
+    X_LL = ll_address >> 8;
+    Y_LL = ll_address & 0xFF;
+
+    for(i = 0; i < IO_NUMBER; i++){
+        if( ((X_LL == io_info[i].default_address_x ) && (Y_LL <= io_info[i].default_address_y)) || 
+            ((Y_LL == io_info[i].default_address_y ) && (X_LL <= io_info[i].default_address_x)) ){
+                return 1;
+        }
+    }
+    return 0;
+}
+
+int peripheral_connected_to_PE(int X_addr, int Y_addr){
+    int i;
+    for(i = 0; i < IO_NUMBER; i++){
+        if( (X_addr == io_info[i].default_address_x ) && (Y_addr == io_info[i].default_address_y ) ){
+                return 1;
+        }
+    }
+    return 0;
+}
+
+
 
 /**Function that abstracts the process to send a IO packet to NoC by programming the DMNI
  * \param p Packet pointer
@@ -235,22 +305,25 @@ void send_packet(ServiceHeader *p, unsigned int initial_address, unsigned int dm
  * \peripheral ID 
  * \return dmni_msg_size Packet payload size represented in memory words of 32 bits
  */
-void send_packet_io(ServiceHeader *p, unsigned int initial_address, unsigned int dmni_msg_size, int peripheral_id){
+void send_packet_io(volatile ServiceHeader *p, unsigned int initial_address, unsigned int dmni_msg_size, int peripheral_id){
 
-		unsigned int slot;
-		int i, port_io;
+	unsigned int slot;
+	int i, port_io;
+	enum {DISTRIBUTED_ROUTING, SOURCE_ROUTING} packet_type;
+
+    // char SepKey[16] = {0,1,2,3,4,5,6,7,8,9,0xa,0xb,0xc,0xd,0xe,0xf};
 
 	port_io = -1;
 	for(i = 0; i < IO_NUMBER; i++){
 		if(io_info[i].peripheral_id == peripheral_id){
-			if(io_info[i].active_connection == 0){
+			//if(io_info[i].active_connection == 0){
 				p->header[MAX_SOURCE_ROUTING_PATH_SIZE-1] = ((io_info[i].default_address_x << 8) | io_info[i].default_address_y);
 				port_io = io_info[i].default_port;
-			}
-			else{
-				p->header[MAX_SOURCE_ROUTING_PATH_SIZE-1] = ((io_info[i].alternative_address_x << 8) | io_info[i].alternative_address_y);
-				port_io = io_info[i].alternative_port;
-			}
+			//}
+			//else{
+			//	p->header[MAX_SOURCE_ROUTING_PATH_SIZE-1] = ((io_info[i].alternative_address_x << 8) | io_info[i].alternative_address_y);
+			//	port_io = io_info[i].alternative_port;
+			//}
 			break;
 		}
 	}
@@ -272,15 +345,67 @@ void send_packet_io(ServiceHeader *p, unsigned int initial_address, unsigned int
 	p->header[MAX_SOURCE_ROUTING_PATH_SIZE-2] = ((port_io & 0xF)<<28)|((((p->source_PE & 0x3F00) >> 2) | (p->source_PE & 0x003F)) << 16) | p->header[MAX_SOURCE_ROUTING_PATH_SIZE-1];
 	p->header[MAX_SOURCE_ROUTING_PATH_SIZE-1] = ((port_io & 0xF)<<28)|((((p->source_PE & 0x3F00) >> 2) | (p->source_PE & 0x003F)) << 16) | p->header[MAX_SOURCE_ROUTING_PATH_SIZE-1];
 
+	//get slot
+	slot = SearchSourceRoutingDestination(p->header[MAX_SOURCE_ROUTING_PATH_SIZE-1]&0xffff);
+	//verify if path is a source routing destination
+
+	// if(slot == -1 && ((p->service == IO_REQUEST) || (p->service == IO_DELIVERY))){
+	// 	puts("[packet]Calculando SR \n");
+	// 	slot = pathToIO(peripheral_id);
+	// }
+
+	if(slot != -1){
+		//move XY header to before SR header
+		p->header[MAX_SOURCE_ROUTING_PATH_SIZE-SR_Table[slot].path_size-1] = ((port_io & 0xF)<<28)|((((p->source_PE & 0x3F00) >> 2) | (p->source_PE & 0x003F)) << 16) | p->header[MAX_SOURCE_ROUTING_PATH_SIZE-1];
+
+		//if it is stored, must fulfill header with SR path
+		for(i=0;i<SR_Table[slot].path_size;i++){
+			p->header[MAX_SOURCE_ROUTING_PATH_SIZE-SR_Table[slot].path_size+i] = SR_Table[slot].path[i];
+			
+		}
+		
+		packet_type = SOURCE_ROUTING;
+	}
+	else{
+		
+		p->header[MAX_SOURCE_ROUTING_PATH_SIZE-2] = ((port_io & 0xF)<<28)|((((p->source_PE & 0x3F00) >> 2) | (p->source_PE & 0x003F)) << 16) | p->header[MAX_SOURCE_ROUTING_PATH_SIZE-1];
+	
+		p->header[MAX_SOURCE_ROUTING_PATH_SIZE-1] = ((port_io & 0xF)<<28)|((((p->source_PE & 0x3F00) >> 2) | (p->source_PE & 0x003F)) << 16) | p->header[MAX_SOURCE_ROUTING_PATH_SIZE-1];
+
+		packet_type = DISTRIBUTED_ROUTING;
+	}
+
 
 		//Waits the DMNI send process be released
 	while (MemoryRead(DMNI_SEND_ACTIVE));
-	
+
 	p->timestamp = MemoryRead(TICK_COUNTER);
 
 
-	MemoryWrite(DMNI_SIZE, CONSTANT_PKT_SIZE);
-	MemoryWrite(DMNI_ADDRESS, (unsigned int) &p->header[MAX_SOURCE_ROUTING_PATH_SIZE-2]);
+	if(packet_type == SOURCE_ROUTING){
+		MemoryWrite(DMNI_SIZE, CONSTANT_PKT_SIZE + SR_Table[slot].path_size-1);
+		// puts("sizehPKT:");puts(itoh(SR_Table[slot].path_size));puts("\n");
+		MemoryWrite(DMNI_ADDRESS, (unsigned int) &p->header[MAX_SOURCE_ROUTING_PATH_SIZE-SR_Table[slot].path_size-1]);
+	}else{
+		MemoryWrite(DMNI_SIZE, CONSTANT_PKT_SIZE);
+		//NEW
+		// MemoryWrite(DMNI_ADDRESS, (unsigned int) &p->header[MAX_SOURCE_ROUTING_PATH_SIZE-1]);
+		MemoryWrite(DMNI_ADDRESS, (unsigned int) &p->header[MAX_SOURCE_ROUTING_PATH_SIZE-2]);
+		//NEW/
+	}
+
+
+    //putsv("length - ", 14*4); 
+    //putsv("Init header MAC - ", MemoryRead(TICK_COUNTER)); 
+    //siphash24((void *)p->header[MAX_SOURCE_ROUTING_PATH_SIZE-2], 14*4, SepKey);
+    //putsv("End header MAC - ", MemoryRead(TICK_COUNTER)); 
+
+
+	//Waits the DMNI send process be released
+    // while (MemoryRead(DMNI_SEND_ACTIVE)); 
+	// p->timestamp = MemoryRead(TICK_COUNTER);
+	// MemoryWrite(DMNI_SIZE, CONSTANT_PKT_SIZE);
+	// MemoryWrite(DMNI_ADDRESS, (unsigned int) &p->header[MAX_SOURCE_ROUTING_PATH_SIZE-2]);
 
 	if (dmni_msg_size > 0){
 		MemoryWrite(DMNI_SIZE_2, dmni_msg_size);
@@ -352,3 +477,172 @@ int read_packet(ServiceHeader *p){
 
 	return 1;
 }
+
+#ifdef GRAY_AREA
+int pathToIO(int peripheral_id){
+  unsigned int my_X_addr, my_Y_addr;
+  unsigned int PER_X_addr, PER_Y_addr, port_io, i;
+  unsigned int RH_X_addr, RH_Y_addr;
+  unsigned int LL_X_addr, LL_Y_addr;
+  unsigned int bt1, bt2, bt3, auxPosX, auxPosY;
+  long unsigned int bt = 0;
+  unsigned int shift =0;
+  int medium_X = -1;
+  bt1 = bt2 = bt3 = 0;
+
+  RH_X_addr = (LOCAL_right_high_corner & 0xF0) >> 4;
+  RH_Y_addr = LOCAL_right_high_corner & 0x0F;
+
+  LL_X_addr = (LOCAL_left_low_corner & 0xF0) >> 4;
+  LL_Y_addr = LOCAL_left_low_corner & 0x0F;
+
+  my_X_addr = (get_net_address() & 0xF00) >> 8;
+  my_Y_addr = get_net_address() & 0x00F;
+
+  port_io = -1;
+  for(i = 0; i < IO_NUMBER; i++){
+      if(io_info[i].peripheral_id == peripheral_id){
+          PER_X_addr = io_info[i].default_address_x ;
+          PER_Y_addr = io_info[i].default_address_y;
+          port_io = io_info[i].default_port;
+          break;
+      }
+  }
+  if (port_io == -1) {
+      puts("[packet]ERROR: peripheral_id not found!\n");
+      return -1;
+  }
+  if (ga.rows[MAX_GRAY_ROWS-1]-1 == RH_Y_addr){
+    //   puts("AP no topo\n");
+      medium_X = LL_X_addr + ((RH_X_addr - LL_X_addr)/2);
+  }
+  // Calculate the Turns
+  auxPosX = my_X_addr;
+  auxPosY = my_Y_addr;
+  // Going UP
+  while (auxPosY < RH_Y_addr)
+  {
+    bt = bt | (0x2 << shift);
+    shift += 2;
+    auxPosY ++;
+  }
+
+  // East, West or North, depending on the side of GA
+  if (medium_X != -1){ // AP at North
+    while (auxPosX > medium_X){
+      bt = bt | (0x1 << shift);
+      shift += 2;
+      auxPosX --;
+    }; 
+	while (auxPosX < medium_X){
+      bt = bt | (0x0 << shift);
+      shift += 2;
+      auxPosX ++;
+    };
+	// Manda pra cima pra "sair"
+	bt = bt | (0x2 << shift);
+    shift += 2;
+    auxPosY ++;
+  }
+  else if(ga.cols[MAX_GRAY_COLS-1] < LL_X_addr){    
+    // puts("--Gray Area a esquerda\n");
+    while (auxPosX >= LL_X_addr){
+      bt = bt | (0x1 << shift);
+      shift += 2;
+      auxPosX --;
+    };  // Mais um pra "sair" da OSZ
+  }
+  else if(ga.cols[0] > RH_X_addr){
+    // puts("--Gray Area a direita\n");
+    while (auxPosX <= RH_X_addr){
+      bt = bt | (0x0 << shift);
+      shift += 2;
+      auxPosX ++;
+    }; // Mais um pra "sair" da OSZ   
+  }
+  //Arrived on the AccessPoint - Now travel to the IO
+  //UP
+  while (auxPosY < PER_Y_addr)
+  {
+    bt = bt | (0x2 << shift);
+    shift += 2;
+    auxPosY ++;
+  };
+  // East or West, depending on the side of the PER
+  if(auxPosX > PER_X_addr){    
+    // puts("--Gray Area a esquerda\n");
+    while (auxPosX > PER_X_addr){
+      bt = bt | (0x1 << shift);
+      shift += 2;
+      auxPosX --;
+    } ; // Mais um pra "sair" da OSZ
+    bt = bt | (0x0 << shift);
+  }
+  else if(auxPosX < PER_X_addr){
+    // puts("--Gray Area a direita\n");
+    while (auxPosX < PER_X_addr){
+      bt = bt | (0x0 << shift);
+      shift += 2;
+      auxPosX ++;
+    } ;
+    bt = bt | (0x1 << shift);
+  }else{
+    bt = bt | (0x3 << shift);
+  }
+
+//   puts("Backtrack MADE ");puts(itoh(bt));puts("\n");
+
+  return bt; 
+
+}
+
+unsigned int oppositePort(unsigned int p){
+	switch (p)
+	{
+	case NORTH:
+		return SOUTH;
+	case SOUTH:
+		return NORTH;
+	case WEST:
+		return EAST;
+	case EAST:
+		return WEST;
+	default:
+		return -1;
+	}
+
+}
+
+int pathFromIO(long unsigned int bt){
+  unsigned int i;
+  long unsigned int inverseBT =0;
+  unsigned int shift =2;
+
+  unsigned int curPort = bt & 0x3;
+  unsigned int nextPort = (bt >> 2) & 0x3;
+
+  // Find last port
+  while( !( (curPort == EAST  && nextPort == WEST) ||//if the path is EW WE SN NS then we should stop here
+			(curPort == WEST  && nextPort == EAST)  ||
+			(curPort == NORTH && nextPort == SOUTH) ||
+			(curPort == SOUTH && nextPort == NORTH) ) ){
+	shift += 2;
+	curPort = nextPort;
+	nextPort = (bt >> (shift)) & 0x3;
+  }
+//   puts("Shift ");puts(itoh(shift));puts("\n");
+
+  for(i=0; i <= shift; i = i+2){
+	  inverseBT = (inverseBT | (oppositePort((bt >> (shift-i)) & 0x3) << i));
+  }
+
+  inverseBT = (inverseBT | (oppositePort((inverseBT >> shift) & 0x3) << i));
+  inverseBT = (inverseBT >> 2);
+
+//   puts("Backtrack ");puts(itoh(bt));puts("\n");
+//   puts("Backtrack Inverse ");puts(itoh(inverseBT));puts("\n");
+//   puts("Backtrack Reverse ");puts(itoh(reverseBT));puts("\n");
+ 
+  return inverseBT;
+}
+#endif

@@ -71,7 +71,7 @@ SC_MODULE(router_seek_wrapped) {
 			 
 			const char* generic_list[1];
 			generic_list[0] = strdup("router_address=x\"AAAA\"");
-			sprintf((char*) generic_list[0],"router_address=x\"%x\"",(int)address);
+			sprintf((char*) generic_list[0],"router_address=x\"%.4x\"",(int)address);
 
 			seek = new router_seek("router_seek", "router_seek", 1, generic_list);
 			

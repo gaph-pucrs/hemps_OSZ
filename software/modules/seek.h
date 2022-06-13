@@ -42,8 +42,8 @@
 #define TASK_ALLOCATED_SERVICE          16
 #define INITIALIZE_SLAVE_SERVICE        17
 #define	INITIALIZE_CLUSTER_SERVICE	    18
-#define LOAN_PROCESSOR_REQUEST_SERVICE  19
-#define LOAN_PROCESSOR_RELEASE_SERVICE  20
+// #define LOAN_PROCESSOR_REQUEST_SERVICE  19
+// #define LOAN_PROCESSOR_RELEASE_SERVICE  20
 #define END_TASK_OTHER_CLUSTER_SERVICE  21
 #define	WAIT_KERNEL_SERVICE				22
 #define	SEND_KERNEL_SERVICE				23
@@ -55,12 +55,15 @@
 #define SET_SZ_RECEIVED_SERVICE         29
 #define SET_EXCESS_SZ_SERVICE           30
 #define	RCV_FREEZE_TASK_SERVICE			31
+#define	MSG_DELIVERY_CONTROL		    19
+#define	MSG_REQUEST_CONTROL				20
 
 
 #define	IRQ_SEEK						0x80
 
-#define seek_puts(argument) puts(argument)
-// #define seek_puts(argument) 
+ //#define seek_puts(argument) puts(argument)
+#define seek_puts(argument) 
+#define MAX_TRIES 5
 
 //used for seek purposes
 int slot_seek;
@@ -71,6 +74,7 @@ typedef struct {
 	enum {SR_LIVRE, SR_USADO} tableSlotStatus;
 	unsigned int target;
 	unsigned int path_size;
+	unsigned int prevPath[MAX_TRIES][MAX_SOURCE_ROUTING_PATH_SIZE];
 	//unsigned char port[64];
 } SourceRoutingTableSlot;
 
@@ -104,5 +108,6 @@ int ProcessTurns(unsigned int backtrack, unsigned int backtrack1, unsigned int b
 //void Unset_Secure_Zone(unsigned int left_low_corner, unsigned int right_high_corner, unsigned int master_PE);
 
 void Start_App_Secure_Zone(unsigned int appID);
+
 
 #endif

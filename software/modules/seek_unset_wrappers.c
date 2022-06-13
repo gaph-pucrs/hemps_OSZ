@@ -9,6 +9,7 @@ extern unsigned int 	net_address;
 int LOCAL_left_low_corner = -1;
 int LOCAL_right_high_corner = -1;
 
+
 /*--------------------------------------------------------------------
 * initSRstructs
 *
@@ -140,15 +141,15 @@ int ClearSlotSourceRouting(int target){
 
 void print_port(unsigned int port){
 	switch(port){
-		case 0x0: seek_puts("E0"); break;
-		case 0x4: seek_puts("E1"); break;
-		case 0x1: seek_puts("W0"); break;
-		case 0x5: seek_puts("W1"); break;
-		case 0x2: seek_puts("N0"); break;
-		case 0x6: seek_puts("N1"); break;
-		case 0x3: seek_puts("S0"); break;
-		case 0x7: seek_puts("S1"); break;
-		default: seek_puts("-"); break;
+		case 0x0: puts("E0"); break;
+		case 0x4: puts("E1"); break;
+		case 0x1: puts("W0"); break;
+		case 0x5: puts("W1"); break;
+		case 0x2: puts("N0"); break;
+		case 0x6: puts("N1"); break;
+		case 0x3: puts("S0"); break;
+		case 0x7: puts("S1"); break;
+		default: puts("-"); break;
 	}
 }
 
@@ -374,7 +375,7 @@ int ProcessTurns(unsigned int backtrack, unsigned int backtrack1, unsigned int b
 	for (j=0; j<=i; j++){
 		print_port(port[j]);
 	}
-	seek_puts("\n");
+	puts("\n");
 	//writes the path as an header of source routing
 	shift=24;
 	//16 bits flit

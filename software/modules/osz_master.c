@@ -18,8 +18,12 @@
 #include "applications.h"
 #include "define_pairs.h"
 #include "seek.h" 
+#include "packet.h"
+
 
 //extern unsigned int app_id_counter;
+unsigned int address_go, address_back;
+unsigned int port_go, port_back;  // 0-EAST; 1 - WEST ; 2 - NORTH; 3 - SOUTH
 
 ////////////////////////////////////////////
 void init_Secure_Zone(){
@@ -91,7 +95,20 @@ int create_valid_shapes(int PEs, int cont)
 {
   int x, y, ix1, ix2, delta1, delta2, swap, contador;
 
-  // create all possible the shapes
+#ifdef GRAY_AREA
+//   create all possible shapes
+  //printf("\ncall:");
+  for( y = 1 ; y<= PEs; y++)
+    {   x = PEs/y;
+        while (x*y < PEs)   x++;
+        shapes[cont+y-1].X_size = x;
+        shapes[cont+y-1].Y_size = y;
+        shapes[cont+y-1].valid = 1;   // all shapes are valid
+        // puts("\nShape:(");puts(itoa(x));puts(" x ");puts(itoa(y));puts(")\n");
+    }
+
+#else
+  // create all possible shapes
   //printf("\ncall:");
   for( x = 1 ; x<= PEs; x++)
     {   y = PEs/x;
@@ -125,15 +142,28 @@ int create_valid_shapes(int PEs, int cont)
            shapes[cont+ix2+1].Y_size = swap;
          }
       } 
+#endif
 
   // suppress invalid shapes -  those that are enclosed in other shapes 
   for( ix1= 0; ix1<PEs-1; ix1++)
        if  (shapes[cont+ix1].Y_size == shapes[cont+ix1+1].Y_size)  shapes[cont+ix1+1].valid=0;
 
-  // suppress invalid shapes -  that are larger than the cluster size
+  // suppress invalid shapes -  that are larger than the cluster size //ADD - LARGER THAN SecureArea
+  #ifdef GRAY_AREA
+  if ((ga.cols[MAX_GRAY_COLS-1] == XCLUSTER -1) || (ga.cols[0] == 0)){ // If GrayArea at the sides 
+    for( ix1=0; ix1<PEs; ix1++){
+        if( (shapes[cont+ix1].X_size > (XCLUSTER - MAX_GRAY_COLS)) || (shapes[cont+ix1].Y_size > (YCLUSTER - MAX_GRAY_ROWS))){
+            shapes[cont+ix1].valid=0;
+        }
+    }
+  }
+//   else{ //TODO: Caso GrayArea for no meio 
+//   }
+  #else
   for( ix1=0; ix1<PEs; ix1++)
-       if( shapes[cont+ix1].X_size>XCLUSTER || shapes[cont+ix1].Y_size>YCLUSTER)
-                    shapes[cont+ix1].valid=0; 
+    if( shapes[cont+ix1].X_size>XCLUSTER || shapes[cont+ix1].Y_size>YCLUSTER)
+        shapes[cont+ix1].valid=0; 
+  #endif
   
   // recreate the list and the correct number of shapes
   for( contador=x=0; x<PEs; x++)
@@ -146,7 +176,6 @@ int create_valid_shapes(int PEs, int cont)
 
           contador++;
         }
-
   return( cont+contador );
 }
 
@@ -213,11 +242,14 @@ void shapes_invert_order(Shapes shapes[], int nb_valid_shapes){
 int search_shape_in_cluster(int X_size, int Y_size, Shapes shape[], int cont, int used_looking ){
     int x, y, used_in_SWS, result;
 
-    //for(y = 0; y<=YCLUSTER-Y_size; y++){
-    //  for(x = 0; x<=XCLUSTER-X_size; x++){
-
+#ifdef GRAY_AREA // Se for GA, mapear da Esquerda pra direita
+    for(y = YCLUSTER-Y_size; y >= 0; y--){
+        for(x = 0; x<=XCLUSTER-X_size; x++){
+#else // SWS TOP-RIGHT left
     for(y = YCLUSTER-Y_size; y >= 0; y--){
       for(x = XCLUSTER-X_size; x >= 0; x--){
+#endif
+
         used_in_SWS = shape_recog(X_size, Y_size, x, y);
   
         //discart strip shapes using all column or all line at the middle of cluster
@@ -259,6 +291,10 @@ int shape_recog(int X_size, int Y_size, int X_init, int Y_init){
             return  100;
         if(PE_belong_SZ(x,y) == 1)
             return 100;
+        #ifdef GRAY_AREA
+        if(PE_belong_GA(x,y) == 1)
+            return 100;
+        #endif
     }
   }
   return used;
@@ -413,6 +449,22 @@ void free_Secure_Zone(int RH_address){ // falta implementar
     }    
 }
 
+#ifdef GRAY_AREA 
+//////////////////////////////////////////////////////////////////////////////////////
+int PE_belong_GA(int PE_x, int PE_y){
+
+    for (int i = 0; i < MAX_GRAY_COLS; i++)
+        if (PE_x == ga.cols[i])
+            return 1;
+        
+    for (int i = 0; i < MAX_GRAY_ROWS; i++)
+        if (PE_y == ga.rows[i])
+            return 1;
+
+    return 0;
+}
+#endif
+
 //////////////////////////////////////////////////////////////////////////////////////
 int PE_belong_SZ(int PE_x, int PE_y){
 
@@ -443,6 +495,58 @@ int PE_belong_SZ(int PE_x, int PE_y){
             }
         }
     return 0;
+}
+
+//////////////////////////////////////////////////////////////////////////////////////
+void open_wrapper_IO_SZ(int peripheral_id, int io_service){ // io_service: 0 - request; 1 - delivery
+	int aux;
+
+	ServiceHeader *p = get_service_header_slot();
+
+	// aux = find_SZ_position_and_direction_to_IO(peripheral_id);
+
+	// if(aux == -1)
+	// 	return;
+
+    //puts("forward OPEN WRAPPER: "); puts(itoh(address_go)); puts("\n");
+
+    //-----------------------------------------------------------------------------
+    //OUT_WRAPPER
+	p->header[MAX_SOURCE_ROUTING_PATH_SIZE-2] = (0x1 << 28) | ((0X3F00 & address_go) << 14) | ((0X003F & address_go) << 16)| address_go;
+	p->header[MAX_SOURCE_ROUTING_PATH_SIZE-1] = (0x1 << 28) | ((0X3F00 & address_go) << 14) | ((0X003F & address_go) << 16)| address_go;
+
+	p->payload_size = (CONSTANT_PKT_SIZE - 2);
+
+	p->service = IO_OPEN_WRAPPER;
+
+	p->source_PE = get_net_address();
+
+	p->io_port = port_go;
+
+	p->io_direction = OUTPUT_DIRECTION;
+
+	if(io_service == 0)  //io_service: 0 - REQUEST   1 - DELIVERY
+		p->io_service = IO_REQUEST;
+	else
+		p->io_service = IO_DELIVERY;
+
+	send_packet(p, 0, 0);
+
+    //------------------------------------------------------------------------------
+    //IN_WRAPPER
+	p->header[MAX_SOURCE_ROUTING_PATH_SIZE-2] = (0x1 << 28) | ((0X3F00 & address_back) << 14)| ((0X003F & address_back) << 16)| address_back;
+	p->header[MAX_SOURCE_ROUTING_PATH_SIZE-1] = (0x1 << 28) | ((0X3F00 & address_back) << 14)| ((0X003F & address_back) << 16)| address_back;
+
+	p->io_port = port_back;
+	p->io_direction = INPUT_DIRECTION;
+
+	if(io_service == 0)  //io_service: 0 - REQUEST   1 - DELIVERY
+		p->io_service = IO_DELIVERY;
+	else
+		p->io_service = IO_ACK;
+
+	send_packet(p, 0, 0);
+
 }
 
 // ////////////////////////////

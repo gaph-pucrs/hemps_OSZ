@@ -186,7 +186,7 @@ SC_MODULE(hemps) {
 				break;
 			}
 
-			printf("Creating PE %s\n", pe_name);
+			printf("Creating PE %s\n", pe_name, r_addr);
 
 			PE[j] = new pe(pe_name, r_addr);
 			PE[j]->clock(clock);

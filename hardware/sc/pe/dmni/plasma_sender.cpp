@@ -184,8 +184,9 @@ void plasma_sender::out_proc_FSM(){
 void plasma_sender::combinational(){
 	//credit_o.write( full[0].read() & full[1].read() );
 	
+	// tx.write( credit_in.read() &  data_avail.read() );
 	tx.write( credit_in.read() &  data_avail.read() );
-	
+
 
 	
 }

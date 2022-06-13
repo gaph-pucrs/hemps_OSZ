@@ -25,6 +25,10 @@ public:
     sc_out<regNport > eop_out;
     sc_out<regflit > data_out[NPORT];
     sc_in<regNport > credit_i;
+    sc_out<bool>      mask_local_tx_output;
+    sc_out<bool > io_packet_mask;
+    sc_out< sc_uint<12> > 		ke;
+
     
     sc_out<regflit>                 source;
     sc_out<regflit>                 target;
@@ -48,6 +52,9 @@ public:
        tx("tx"),
        eop_out("eop_out"),
        credit_i("credit_i"),
+       mask_local_tx_output("mask_local_tx_output"),
+       io_packet_mask("io_packet_mask"),
+       ke("ke"),
        target("target"),
        source("source"),
        w_source_target("w_source_target"),

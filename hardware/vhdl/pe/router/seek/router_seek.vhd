@@ -20,13 +20,44 @@ use work.seek_pkg.all;
 
 
 entity router_seek is
-	generic (
-		router_address        			: regflit
-		; debug_build 					: boolean := true
-	);
-	port(
-		clock										: in	std_logic;
-		reset										: in	std_logic;
+		generic (
+                router_address        			: regflit;
+				debug_build 					: boolean := true
+        );
+		port(
+				clock							: in	std_logic;
+				reset   						: in	std_logic;
+
+				-- log, desativado ao ser sintetizado LOG ARTUR
+				-- synthesis translate_off
+				in_tick_counter								: in	std_logic_vector(31 downto 0);
+				-- systhensis translate on
+
+				in_source_router_seek           : in	regNportNsource_neighbor;
+				in_target_router_seek           : in	regNportNtarget_neighbor;
+				in_payload_router_seek			: in	regNportNpayload_neighbor;
+				in_service_router_seek			: in 	regNport_seek_bitN_service;
+				in_req_router_seek				: in	std_logic_vector(NPORT_SEEK-1 downto 0);
+				in_ack_router_seek				: in	std_logic_vector(NPORT_SEEK-1 downto 0);
+				in_nack_router_seek				: in	std_logic_vector(NPORT_SEEK-1 downto 0);
+				in_fail_router_seek				: in	std_logic_vector(NPORT_SEEK-1 downto 0);
+				in_opmode_router_seek			: in	std_logic_vector(NPORT_SEEK-1 downto 0);
+													                             
+				out_req_router_seek				: out	std_logic_vector(NPORT_SEEK-1 downto 0); 
+				out_ack_router_seek				: out	std_logic_vector(NPORT_SEEK-1 downto 0);
+				out_nack_router_seek			: out	std_logic_vector(NPORT_SEEK-1 downto 0);				
+				out_opmode_router_seek			: out	std_logic_vector(NPORT_SEEK-1 downto 0);				
+				out_service_router_seek			: out	regNport_seek_bitN_service;
+				out_source_router_seek        	: out	regNportNsource_neighbor;
+				out_target_router_seek        	: out	regNportNtarget_neighbor;
+				out_payload_router_seek			: out	regNportNpayload_neighbor;
+				
+				in_sel_reg_backtrack_seek		: in std_logic_vector(1 downto 0);	-- 2 bits de seleção de registrador do backtrack
+				out_reg_backtrack_seek			: out std_logic_vector(31 downto 0);	-- 32 bits do registrador do backtrack	
+				out_req_send_kernel_seek		: out std_logic;	
+				in_ack_send_kernel_seek			: in  std_logic	
+		    );
+end entity;  
 
 		-- log, desativado ao ser sintetizado LOG ARTUR
 		-- synthesis translate_off
@@ -52,7 +83,7 @@ entity router_seek is
 		out_target_router_seek						: out	regNportNtarget_neighbor;
 		out_payload_router_seek						: out	regNportNpayload_neighbor;
 
-		in_sel_reg_backtrack_seek					: in std_logic_vector(1 downto 0);	-- 2 bits de sele��o de registrador do backtrack
+		in_sel_reg_backtrack_seek					: in std_logic_vector(1 downto 0);	-- 2 bits de sele��o de registrador do backtrack
 		out_reg_backtrack_seek						: out std_logic_vector(31 downto 0);	-- 32 bits do registrador do backtrack
 		out_req_send_kernel_seek					: out std_logic;
 		in_ack_send_kernel_seek						: in  std_logic
@@ -62,6 +93,7 @@ entity router_seek is
 end entity;
 
 architecture router_seek of router_seek is
+	
 	-- FSM States
 	-- type T_ea_manager is (S_INIT, ARBITRATION, TEST_SERVICE, SERVICE_BACKTRACK, BACKTRACK_PROPAGATE, INIT_BACKTRACK, PREPARE_NEXT,
 	-- 	BACKTRACK_MOUNT, CLEAR_TABLE, COMPARE_TARGET, SEND_LOCAL, PROPAGATE, WAIT_ACK_PORTS, INIT_CLEAR, END_BACKTRACK, COUNT);
@@ -75,34 +107,33 @@ architecture router_seek of router_seek is
 
 	-- Movi as declara��es dos tipos de entradas de tabela e constante REG_BACKTRACK_SIZE para o arquivo seek_pkg
 
-	signal	sel_port,next_port,next_port1									: integer range 0 to 4;
-	signal	sel, prox, prox1,free_index, source_index						: integer range 0 to 7;
-	signal	int_in_req_router_seek, int_out_ack_router_seek					: std_logic_vector(NPORT_SEEK-1 downto 0);
-	signal  int_out_req_router_seek, int_in_ack_router_seek					: std_logic_vector(NPORT_SEEK-1 downto 0);
-	signal	vector_ack_ports, vector_nack_ports								: std_logic_vector(NPORT_SEEK-2 downto 0);
-	signal	reg_backtrack													: std_logic_vector(REG_BACKTRACK_SIZE-1 downto 0);
-	signal	compare_is_source												: std_logic_vector(TABLE_SEEK_LENGHT-1 downto 0);
-	signal  pending_local, task												: std_logic_vector(TABLE_SEEK_LENGHT-1 downto 0);
-	signal	opmode_table													: std_logic_vector(TABLE_SEEK_LENGHT-1 downto 0);
-	signal	compare_bactrack_pending_in_table								: std_logic_vector(TABLE_SEEK_LENGHT-1 downto 0);
-	signal	compare_searchpath_pending_in_table								: std_logic_vector(TABLE_SEEK_LENGHT-1 downto 0);
-	signal  compare_service_pending_in_table								: std_logic_vector(TABLE_SEEK_LENGHT-1 downto 0);
-	signal  count_clear														: std_logic_vector(4 downto 0);
-	signal	backtrack_port													: std_logic_vector(1 downto 0);
-	signal  req_task, req_int, is_my_turn_send_backtrack					: std_logic;
-	signal	in_the_table, space_aval_in_the_table, nack_recv				: std_logic;
-	signal	backtrack_pending_in_table, searchpath_pending_in_table			: std_logic;
-	signal  service_pending_in_table										: std_logic;
-	signal  fail_with_mode_in, fail_with_mode_out							: std_logic_vector(NPORT_SEEK-1 downto 0);
-
-	-- entradas da tabela
-	signal	source_table													: source_table_type; -- source
-	signal	target_table													: target_table_type; -- target
-	signal	service_table													: service_table_type; -- service
-	signal	payload_table													: payload_table_type; -- hop
-
-	signal	my_payload_table												: payload_table_type; -- my_hop
-	signal	backtrack_port_table											: backtrack_port_table_type; -- Out Port porta que chegou a requisi��o 
+signal	sel_port,next_port,next_port1								: integer range 0 to 4;
+signal	sel, prox, prox1,free_index, source_index					: integer range 0 to 7;
+signal	int_in_req_router_seek, int_out_ack_router_seek				: std_logic_vector(NPORT_SEEK-1 downto 0);
+signal  int_out_req_router_seek, int_in_ack_router_seek				: std_logic_vector(NPORT_SEEK-1 downto 0);
+signal	vector_ack_ports, vector_nack_ports							: std_logic_vector(NPORT_SEEK-2 downto 0);
+signal	reg_backtrack												: std_logic_vector(REG_BACKTRACK_SIZE-1 downto 0);			
+signal	compare_is_source											: std_logic_vector(TABLE_SEEK_LENGHT-1 downto 0);
+signal	pending_table, used_table, pending_local, task				: std_logic_vector(TABLE_SEEK_LENGHT-1 downto 0);
+signal	opmode_table												: std_logic_vector(TABLE_SEEK_LENGHT-1 downto 0);
+signal	compare_bactrack_pending_in_table							: std_logic_vector(TABLE_SEEK_LENGHT-1 downto 0);
+signal	compare_searchpath_pending_in_table							: std_logic_vector(TABLE_SEEK_LENGHT-1 downto 0);
+signal  compare_service_pending_in_table							: std_logic_vector(TABLE_SEEK_LENGHT-1 downto 0);
+signal  count_clear													: std_logic_vector(4 downto 0);
+signal	backtrack_port												: std_logic_vector(1 downto 0);
+signal  req_task, req_int, is_my_turn_send_backtrack				: std_logic;
+signal	in_the_table, space_aval_in_the_table, nack_recv			: std_logic;
+signal	backtrack_pending_in_table, searchpath_pending_in_table		: std_logic;
+signal  service_pending_in_table									: std_logic;
+signal  fail_with_mode_in, fail_with_mode_out						: std_logic_vector(NPORT_SEEK-1 downto 0);
+signal	source_table	 											: source_table_type;
+signal	target_table	 											: target_table_type;
+signal	service_table	 											: service_table_type;
+signal	payload_table	 											: payload_table_type;
+signal	my_payload_table 											: payload_table_type;
+signal	backtrack_port_table										: backtrack_port_table_type; -- porta que chegou a requisição
+signal	source_router_port_table									: source_router_port_table_type;
+signal  backtrack_id 												: std_logic_vector(TARGET_SIZE-1 downto 0);
 
 	signal	pending_table													: std_logic_vector(TABLE_SEEK_LENGHT-1 downto 0); -- pending
 	signal	used_table														: std_logic_vector(TABLE_SEEK_LENGHT-1 downto 0); -- used
@@ -137,11 +168,12 @@ architecture router_seek of router_seek is
 		------------------------------------------------------------------
 		COMPARE_SERVICE: for i in 0 to TABLE_SEEK_LENGHT-1 generate
 
-			compare_is_source(i) <=
-				'1' when
-					source_table(i) = in_source_router_seek(sel_port)
-					and used_table(i)='1'
-				else '0';
+    int_in_ack_router_seek <= in_ack_router_seek or fail_with_mode_out;
+	--  int_in_ack_router_seek <= in_ack_router_seek;    
+    
+	out_req_router_seek <= int_out_req_router_seek and not(fail_with_mode_out); 
+	--  out_req_router_seek <= int_out_req_router_seek;  
+    
 
 			compare_bactrack_pending_in_table(i) <=
 				'1' when
@@ -276,43 +308,63 @@ architecture router_seek of router_seek is
 					target_table(free_index) 					<=	in_target_router_seek(sel_port);
 					service_table(free_index) 					<=  in_service_router_seek(sel_port);
 
-					opmode_table(free_index)					<=  in_opmode_router_seek(sel_port);
-					backtrack_port_table(free_index)			<=	std_logic_vector(to_unsigned(sel_port, 3));
-					pending_table(free_index)					<= '1';
-					pending_local(free_index)					<= '0';
-					used_table(free_index)						<= '1';
-					if in_service_router_seek(sel_port) = SEARCHPATH_SERVICE or  in_service_router_seek(sel_port) = BACKTRACK_SERVICE then
-						payload_table(free_index) 				<=  in_payload_router_seek(sel_port)+1; -- conta os hops
-					else
-						payload_table(free_index) 				<=  in_payload_router_seek(sel_port);
-					end if;
-
-				when WRITE_CLEAR_INPUT =>
-					int_out_ack_router_seek(sel_port) 			<= '1';
-					service_table(source_index) 				<=  CLEAR_SERVICE;
-					pending_table(source_index)					<= '1';
-					--clear is broadcasted to all ports by setting backtrack port to LOCAL
-					backtrack_port_table(source_index)			<=	std_logic_vector(to_unsigned(LOCAL, 3));
-
-				when WRITE_BACKTRACK_INPUT =>
-					int_out_ack_router_seek(sel_port) 			<= '1';
-					target_table(source_index)					<= in_target_router_seek(sel_port);
-
-					service_table(source_index) 				<= BACKTRACK_SERVICE;
-					payload_table(source_index) 				<= in_payload_router_seek(sel_port);
-					pending_table(source_index)					<= '1';
-					my_payload_table(source_index)				<= payload_table(source_index);
-					source_router_port_table(source_index)		<= std_logic_vector(to_unsigned(sel_port, 2));
-
-				when SEND_NACK =>
-					if int_out_ack_router_seek(sel_port) = '0' then
-						out_nack_router_seek(sel_port) 				<= '1';
-					else
-						out_nack_router_seek(sel_port) 				<= '0';
-					end if;
-				when others =>
-
-			end case;
+					when ARBITRATION_INPUT =>
+						sel_port <= next_port;				
+						
+					when LOOK_TABLE_INPUT =>																		
+																												    
+					when TEST_SPACE_AVAIL =>  																		
+						if in_the_table = '1' and ( in_service_router_seek(sel_port) /= BACKTRACK_SERVICE and in_service_router_seek(sel_port) /= CLEAR_SERVICE) then -- (TESTAR ---> ) and in_service_router_seek(sel_port) /= CLEAR_SERVICE then
+							int_out_ack_router_seek(sel_port) 		<= '1';
+						elsif in_the_table = '0' and in_service_router_seek(sel_port) = CLEAR_SERVICE then
+							int_out_ack_router_seek(sel_port) 		<= '1';
+						end if;
+						if in_the_table = '1' and sel_port = LOCAL and in_service_router_seek(sel_port) /= CLEAR_SERVICE then
+						--if in_the_table = '1' and in_service_router_seek(sel_port) /= CLEAR_SERVICE then
+							-- report "SERVICE " & CONV_STRING_8BITS("000" & in_service_router_seek(sel_port)) & " from LOCAL not added to the table! POSSIBLE ERROR!!!!";
+						end if;
+									
+					when TABLE_WRITE_INPUT =>			
+						int_out_ack_router_seek(sel_port) 			<= '1';					
+						source_table(free_index) 					<=	in_source_router_seek(sel_port);   	
+						target_table(free_index) 					<=	in_target_router_seek(sel_port);   	
+						service_table(free_index) 					<=  in_service_router_seek(sel_port);
+						opmode_table(free_index)					<=  in_opmode_router_seek(sel_port);
+						backtrack_port_table(free_index)			<=	std_logic_vector(to_unsigned(sel_port, 3));
+						pending_table(free_index)					<= '1';
+						pending_local(free_index)					<= '0';
+						used_table(free_index)						<= '1';												
+						if in_service_router_seek(sel_port) = SEARCHPATH_SERVICE or  in_service_router_seek(sel_port) = BACKTRACK_SERVICE then
+							payload_table(free_index) 						<=  in_payload_router_seek(sel_port)+1;
+						else
+							payload_table(free_index) 				<=  in_payload_router_seek(sel_port);
+						end if;
+										
+					when WRITE_CLEAR_INPUT =>	
+						int_out_ack_router_seek(sel_port) 			<= '1';
+						service_table(source_index) 				<=  CLEAR_SERVICE;
+						pending_table(source_index)					<= '1';
+						--clear is broadcasted to all ports by setting backtrack port to LOCAL
+						backtrack_port_table(source_index)			<=	std_logic_vector(to_unsigned(LOCAL, 3));
+						
+					when WRITE_BACKTRACK_INPUT =>						
+						int_out_ack_router_seek(sel_port) 			<= '1';
+						service_table(source_index) 				<= BACKTRACK_SERVICE;
+						target_table(source_index)					<= in_target_router_seek(sel_port);
+						payload_table(source_index) 				<= in_payload_router_seek(sel_port);
+						pending_table(source_index)					<= '1';
+						my_payload_table(source_index)				<= payload_table(source_index);
+						source_router_port_table(source_index)		<= std_logic_vector(to_unsigned(sel_port, 2));
+						
+					when SEND_NACK =>
+						if int_out_ack_router_seek(sel_port) = '0' then 
+							out_nack_router_seek(sel_port) 				<= '1';	
+						else
+							out_nack_router_seek(sel_port) 				<= '0';	
+						end if;	
+					when others => 
+					
+				end case;	
 ---------------------------------------------------------------------------------------------------------------
 			case EA_manager is
 				when WAIT_ACK_PORTS =>
@@ -387,13 +439,13 @@ architecture router_seek of router_seek is
 		end if;
 	end process;
 
-	----
-	----  INPUT TABLE FSM process  2 - computa o pr�ximo estado a partir dos valores atuais de estado e sinais de controle - l�gica combinacional
-	----
-	--process(EA_manage, todos os sinais de if)
-	process(EA_manager, EA_manager_input, req_int, in_the_table, space_aval_in_the_table, backtrack_pending_in_table, searchpath_pending_in_table, in_req_router_seek, compare_service_pending_in_table, sel_port, in_service_router_seek, service_pending_in_table)
-	begin
-		case EA_manager_input is
+----
+----  INPUT TABLE FSM process  2 - computa o próximo estado a partir dos valores atuais de estado e sinais de controle - lógica combinacional
+----
+--process(EA_manage, todos os sinais de if)
+process(PE_manager, EA_manager, EA_manager_input, req_int, in_the_table, space_aval_in_the_table, backtrack_pending_in_table, searchpath_pending_in_table, in_req_router_seek, compare_service_pending_in_table, sel_port, in_service_router_seek, service_pending_in_table)
+begin
+		case EA_manager_input is		
 
 			when S_INIT_INPUT =>
 				if req_int = '1' then
@@ -446,11 +498,11 @@ architecture router_seek of router_seek is
 					PE_manager_input <= TABLE_WRITE_INPUT;
 				else
 					PE_manager_input <= WAIT_REQ_DOWN;
-				end if;
-
-			when TEST_SEND_LOCAL =>
-				if PE_manager = SEND_LOCAL or PE_manager = COMPARE_TARGET then --or (sel = source_index and  pending_table = 1) then
-					PE_manager_input	<= 	TEST_SEND_LOCAL;
+				end if;				
+				
+			when TEST_SEND_LOCAL => 
+				if PE_manager = SEND_LOCAL or PE_manager = COMPARE_TARGET  then
+					PE_manager_input	<= 	TEST_SEND_LOCAL;						
 				else
 					PE_manager_input	<=	WRITE_CLEAR_INPUT;
 				end if;
@@ -539,20 +591,21 @@ architecture router_seek of router_seek is
 
 				when WAIT_ACK_PORTS =>
 
-					--do not execute acks when backtrack port is local
-					if backtrack_port_table(sel) /= x"4" then
-						vector_ack_ports(to_integer(unsigned(backtrack_port_table(sel)(1 DOWNTO 0)))) <= '1';
-					end if;
-					for j in 0 to (NPORT_SEEK-2) loop
-						--	if (int_in_ack_router_seek(j) = '1' or in_nack_router_seek(j) = '1') then
-						if (int_in_ack_router_seek(j) = '1') then
-							vector_ack_ports(j) 	<= '1';
-							int_out_req_router_seek(j) 	<= '0';
-						end if;
+						
+					when PROPAGATE =>							
+						for j in 0 to (NPORT_SEEK-2) loop  
+						--if (j /= to_integer(unsigned((backtrack_port_table(sel)))))  then       -- Backtrack local, CLEAR não passava                
+							if (j /= to_integer(unsigned((backtrack_port_table(sel)))) OR service_table(sel) = CLEAR_SERVICE)  then                       
+								int_out_req_router_seek(j)	<= '1';
+							end if;
+						end loop;	
+					
+					when WAIT_ACK_PORTS =>
 
-						if (in_nack_router_seek(j) = '1') then
-							vector_nack_ports(j) 	<= '1';
-							int_out_req_router_seek(j) 	<= '0';
+						--do not execute acks when backtrack port is local
+						-- if backtrack_port_table(sel) /= x"4" then
+						if (backtrack_port_table(sel) /= x"4" and service_table(sel) /= CLEAR_SERVICE) then
+							vector_ack_ports(to_integer(unsigned(backtrack_port_table(sel)(1 DOWNTO 0)))) <= '1';
 						end if;
 
 					end loop;
@@ -592,14 +645,16 @@ architecture router_seek of router_seek is
 				end if;
 
 			when ARBITRATION =>
-				PE_manager <= TEST_SERVICE;
-
-			when TEST_SERVICE =>
-				if (pending_table(sel) = '1') and (service_table(sel) = CLEAR_SERVICE or service_table(sel) = SET_SECURE_ZONE_SERVICE or service_table(sel) = START_APP_SERVICE
-					or  service_table(sel) = OPEN_SECURE_ZONE_SERVICE or  service_table(sel) = GMV_READY_SERVICE or  service_table(sel) = FREEZE_TASK_SERVICE or  service_table(sel) = UNFREEZE_TASK_SERVICE
-					or  service_table(sel) = INITIALIZE_SLAVE_SERVICE or  service_table(sel) = NEW_APP_ACK_SERVICE or  service_table(sel) = NEW_APP_SERVICE or  service_table(sel) = INITIALIZE_CLUSTER_SERVICE
-					or  service_table(sel) = LOAN_PROCESSOR_REQUEST_SERVICE or  service_table(sel) = SET_EXCESS_SZ_SERVICE or  service_table(sel) = LOAN_PROCESSOR_RELEASE_SERVICE) then
+				PE_manager <= TEST_SERVICE;	
+							 
+			when TEST_SERVICE=>
+				if (pending_table(sel) = '1') and (service_table(sel) = CLEAR_SERVICE or service_table(sel) = SET_SECURE_ZONE_SERVICE or service_table(sel) = START_APP_SERVICE 
+					or  service_table(sel) = OPEN_SECURE_ZONE_SERVICE or  service_table(sel) = GMV_READY_SERVICE or  service_table(sel) = FREEZE_TASK_SERVICE or  service_table(sel) = UNFREEZE_TASK_SERVICE 
+					or  service_table(sel) = INITIALIZE_SLAVE_SERVICE or  service_table(sel) = NEW_APP_ACK_SERVICE or  service_table(sel) = NEW_APP_SERVICE or  service_table(sel) = INITIALIZE_CLUSTER_SERVICE 
+					or  service_table(sel) = SET_EXCESS_SZ_SERVICE ) then 
 					PE_manager <= PROPAGATE;
+				--  or  service_table(sel) = LOAN_PROCESSOR_REQUEST_SERVICE or  service_table(sel) = LOAN_PROCESSOR_RELEASE_SERVICE
+				-- 	or service_table(sel) = MSG_REQUEST_CONTROL
 				elsif (pending_table(sel) = '1') and (service_table(sel) = BACKTRACK_SERVICE) then
 					PE_manager <= SERVICE_BACKTRACK;
 				elsif pending_local(sel) = '1' then
@@ -694,13 +749,13 @@ architecture router_seek of router_seek is
 					PE_manager <= INIT_CLEAR;
 				elsif (int_in_ack_router_seek(LOCAL) = '1'  and  service_table(sel) = TASK_ALLOCATED_SERVICE ) then
 					PE_manager <= INIT_CLEAR;
-					report "SEND LOCAL: "
-					& CONV_STRING_8BITS(source_table(sel)(TARGET_SIZE-1 downto TARGET_SIZE/2)) & " "
-					& CONV_STRING_8BITS(source_table(sel)(TARGET_SIZE/2-1 downto 0)) & " "
-					& CONV_STRING_8BITS(target_table(sel)(TARGET_SIZE-1 downto TARGET_SIZE/2)) & " "
-					& CONV_STRING_8BITS(target_table(sel)(TARGET_SIZE/2-1 downto 0)) & " "
-					& CONV_STRING_8BITS("000" & service_table(sel))	& " "
-					& CONV_STRING_8BITS(payload_table(sel));
+					-- report "SEND LOCAL: " 
+					-- & CONV_STRING_8BITS(source_table(sel)(TARGET_SIZE-1 downto TARGET_SIZE/2)) & " " 
+					-- & CONV_STRING_8BITS(source_table(sel)(TARGET_SIZE/2-1 downto 0)) & " " 
+					-- & CONV_STRING_8BITS(target_table(sel)(TARGET_SIZE-1 downto TARGET_SIZE/2)) & " " 
+					-- & CONV_STRING_8BITS(target_table(sel)(TARGET_SIZE/2-1 downto 0)) & " "
+					-- & CONV_STRING_8BITS("000" & service_table(sel))	& " " 
+					-- & CONV_STRING_8BITS(payload_table(sel));
 				elsif (int_in_ack_router_seek(LOCAL) = '1'  and  service_table(sel) = SET_SZ_RECEIVED_SERVICE ) then
 					PE_manager <= INIT_CLEAR;
 				elsif (int_in_ack_router_seek(LOCAL) = '1'  and  service_table(sel) = RCV_FREEZE_TASK_SERVICE ) then
@@ -712,6 +767,12 @@ architecture router_seek of router_seek is
 				elsif (int_in_ack_router_seek(LOCAL) = '1'  and  service_table(sel) = WAIT_KERNEL_SERVICE ) then
 					PE_manager <= INIT_CLEAR;
 				elsif (int_in_ack_router_seek(LOCAL) = '1'  and  service_table(sel) = WAIT_KERNEL_SERVICE_ACK ) then
+					PE_manager <= INIT_CLEAR;	
+				elsif (int_in_ack_router_seek(LOCAL) = '1'  and  service_table(sel) = MSG_DELIVERY_CONTROL ) then
+					PE_manager <= INIT_CLEAR;	
+				elsif (int_in_ack_router_seek(LOCAL) = '1'  and  service_table(sel) = MSG_REQUEST_CONTROL ) then
+					PE_manager <= INIT_CLEAR;		
+				elsif (in_ack_send_kernel_seek = '1'  and  service_table(sel) = SEND_KERNEL_SERVICE ) then 
 					PE_manager <= INIT_CLEAR;
 				elsif (in_ack_send_kernel_seek = '1'  and  service_table(sel) = SEND_KERNEL_SERVICE ) then
 					PE_manager <= INIT_CLEAR;
@@ -747,13 +808,17 @@ architecture router_seek of router_seek is
 				elsif ((vector_ack_ports or vector_nack_ports) = "1111" )  and service_table(sel) = INITIALIZE_SLAVE_SERVICE and source_table(sel)(15 downto 0) /= router_address then
 					PE_manager <= SEND_LOCAL;
 				elsif ((vector_ack_ports or vector_nack_ports) = "1111" )  and service_table(sel) = NEW_APP_SERVICE then
-					PE_manager <= SEND_LOCAL;
-				elsif ((vector_ack_ports or vector_nack_ports) = "1111" )  and service_table(sel) = LOAN_PROCESSOR_REQUEST_SERVICE and source_table(sel)(15 downto 0) /= router_address then
-					PE_manager <= SEND_LOCAL;
-				elsif ((vector_ack_ports or vector_nack_ports) = "1111" )  and service_table(sel) = LOAN_PROCESSOR_RELEASE_SERVICE and source_table(sel)(15 downto 0) /= router_address then
-					PE_manager <= SEND_LOCAL;
+					PE_manager <= SEND_LOCAL;					
+				-- elsif ((vector_ack_ports or vector_nack_ports) = "1111" )  and service_table(sel) = LOAN_PROCESSOR_REQUEST_SERVICE and source_table(sel)(15 downto 0) /= router_address then
+				-- 	PE_manager <= SEND_LOCAL;
+				-- elsif ((vector_ack_ports or vector_nack_ports) = "1111" )  and service_table(sel) = LOAN_PROCESSOR_RELEASE_SERVICE and source_table(sel)(15 downto 0) /= router_address then
+				-- 	PE_manager <= SEND_LOCAL;
 				elsif ((vector_ack_ports or vector_nack_ports) = "1111" )  and service_table(sel) = SET_SECURE_ZONE_SERVICE and source_table(sel)(15 downto 0) /= router_address then
 					PE_manager <= SEND_LOCAL;
+				-- elsif ((vector_ack_ports or vector_nack_ports) = "1111" )  and service_table(sel) = MSG_DELIVERY_CONTROL and source_table(sel)(15 downto 0) /= router_address then
+				-- 	PE_manager <= SEND_LOCAL;
+				-- elsif ((vector_ack_ports or vector_nack_ports) = "1111" )  and service_table(sel) = MSG_REQUEST_CONTROL and source_table(sel)(15 downto 0) /= router_address then
+				-- 	PE_manager <= SEND_LOCAL;
 				elsif ((vector_ack_ports or vector_nack_ports) = "1111" )  and service_table(sel) = SET_EXCESS_SZ_SERVICE and source_table(sel)(15 downto 0) /= router_address then
 					PE_manager <= SEND_LOCAL;
 				elsif ((vector_ack_ports or vector_nack_ports) = "1111" )  and service_table(sel) = OPEN_SECURE_ZONE_SERVICE and source_table(sel)(15 downto 0) /= router_address then
@@ -1008,14 +1073,14 @@ architecture router_seek of router_seek is
 				elsif task(ROW1)='1' then prox<=ROW1;
 				elsif task(ROW2)='1' then prox<=ROW2;
 				else  prox<=ROW3; end if;
-
-				when others => NULL;
-			end case;
-
-		end process;
-
-	end generate;
-
+		           					
+			when others => NULL;
+		end case;
+		
+ end process;
+					
+end generate;
+	  
 -- log, desativado ao ser sintetizado
 -- synthesis translate_off
 gen_test_count: if (debug_build) generate

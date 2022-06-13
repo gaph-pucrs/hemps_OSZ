@@ -115,10 +115,11 @@ class RouterModel():
                     elif val[1] == '01010': # OPEN_SECURE_ZONE_SERVICE = 1
                         if self.get_value_at(at_tick,'sec_zone_ID')[1] == self.payload_port_to_int(payload[1]):
                             self.historico_sinal['sec_zone'].update({at_tick:1})
-                        
+
                     elif val[1] == '01100': # SECURE_ZONE_OPENED_SERVICE = 0
                         if self.get_value_at(at_tick,'sec_zone_ID')[1] == self.payload_port_to_int(payload[1]):
                             self.historico_sinal['sec_zone'].update({at_tick:0})
+
         # print([a for a in self.historico_sinal['in_service'].keys() ])
         # print(self.historico_sinal['in_service'].maxKey(31791))  
         ###

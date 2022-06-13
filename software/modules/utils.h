@@ -16,6 +16,8 @@
 #define FALSE		0
 #define TRUE		1
 
+#define puts(string) MemoryWrite(UART_WRITE, (unsigned int)string);
+
 void set_net_address(unsigned int);
 
 unsigned int get_net_address();
@@ -40,7 +42,7 @@ char *strcpy(char *, const char *);
 
 int strlen(const char *);
 
-int puts(char *);
+//int puts(char *);
 
 #define putsv(string, value) puts(string); puts(itoa(value)); puts("\n");
 

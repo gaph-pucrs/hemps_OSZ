@@ -6,6 +6,9 @@ SourceRoutingTableSlot SR_Table[MAX_SOURCE_ROUTING_DESTINATIONS];
 int net_addr;
 extern unsigned int 	net_address;
 
+// GrayArea ga = {
+// 	{3}, {0,1}, 2
+// };
 //int LOCAL_left_low_corner = -1;
 //int LOCAL_right_high_corner = -1;
 //int wrapper_value = 0;
@@ -60,37 +63,7 @@ int GetFreeSlotSourceRouting(int target){
 }
 
 
-// int GetFreeSlotSourceRouting(){
-// 	int i;
-// 	for (i=0; i<MAX_SOURCE_ROUTING_DESTINATIONS; i++){
-// 		if(SR_Table[i].tableSlotStatus == SR_LIVRE){
-// 			return i;
-// 		}
-// 	}
-// 	puts("There is no space for storing Source Routing destination\n");
-// 	return -1;
-// }
-// int GetFreeSlotSourceRouting(int target){
-// 	int i;
-// 	int value;
 
-// 	value = -1;
-
-// 	for (i=0; i<MAX_SOURCE_ROUTING_DESTINATIONS; i++){
-// 		if(SR_Table[i].tableSlotStatus == SR_LIVRE){
-// 			value = i;
-// 		}
-// 		else{
-// 			if(SR_Table[i].target == target){//&& SR_Table[i].tableSlotStatus == SR_USADO
-// 			return i;
-// 			}
-// 		}
-// 	}
-// 	if(value == -1){
-// 		puts("ERROR: There is no space for storing Source Routing destination\n");
-// 	}
-// 	return value;
-// }
 
 /*--------------------------------------------------------------------
 * SearchSourceRoutingDestination
@@ -155,18 +128,27 @@ void ClearAllSourceRouting(){
 	}
 }
 
+void print_SR_Table(slot_seek){
+	//SR_Table[i].path
+	int i;
+	puts("\nHeader: \n");
+	for (i = 0; i < SR_Table[slot_seek].path_size; i++){
+		puts("        "); puts(itoh(SR_Table[slot_seek].path[i])); puts("\n");
+	}
+}	
+
 
 void print_port(unsigned int port){
 	switch(port){
-		case 0x0: seek_puts("E0"); break;
-		case 0x4: seek_puts("E1"); break;
-		case 0x1: seek_puts("W0"); break;
-		case 0x5: seek_puts("W1"); break;
-		case 0x2: seek_puts("N0"); break;
-		case 0x6: seek_puts("N1"); break;
-		case 0x3: seek_puts("S0"); break;
-		case 0x7: seek_puts("S1"); break;
-		default: seek_puts("-"); break;
+		case 0x0: puts("E0"); break;	//0000
+		case 0x4: puts("E1"); break;	//0100	
+		case 0x1: puts("W0"); break;	//0001
+		case 0x5: puts("W1"); break;	//0101
+		case 0x2: puts("N0"); break;	//0010
+		case 0x6: puts("N1"); break;	//0110
+		case 0x3: puts("S0"); break;	//0011
+		case 0x7: puts("S1"); break;	//0111
+		default: puts("-"); break;
 	}
 }
 
@@ -183,27 +165,29 @@ void Seek(unsigned int service, unsigned int source, unsigned int target, unsign
 			case END_TASK_OTHER_CLUSTER_SERVICE:
 			case START_APP_SERVICE:
 			case TASK_ALLOCATED_SERVICE:
-			case SET_SECURE_ZONE_SERVICE:
-			case SET_SZ_RECEIVED_SERVICE:
-			case SET_EXCESS_SZ_SERVICE:
-			case OPEN_SECURE_ZONE_SERVICE:
 			case SECURE_ZONE_CLOSED_SERVICE:
 			case SECURE_ZONE_OPENED_SERVICE:
 			case UNFREEZE_TASK_SERVICE:
 			case FREEZE_TASK_SERVICE:
 			case RCV_FREEZE_TASK_SERVICE:
-			case LOAN_PROCESSOR_REQUEST_SERVICE:
-			case LOAN_PROCESSOR_RELEASE_SERVICE:
+			case OPEN_SECURE_ZONE_SERVICE:
+			// case LOAN_PROCESSOR_REQUEST_SERVICE:
+			// case LOAN_PROCESSOR_RELEASE_SERVICE:
 			case INITIALIZE_SLAVE_SERVICE:
 			case INITIALIZE_CLUSTER_SERVICE:
 			case GMV_READY_SERVICE:
 				 MemoryWrite(SEEK_OPMODE_REGISTER,GLOBAL_MODE);
 			break;
 
+			case SET_SZ_RECEIVED_SERVICE:
+			case SET_SECURE_ZONE_SERVICE:
+			case SET_EXCESS_SZ_SERVICE:
 			case TARGET_UNREACHABLE_SERVICE:
 			case BACKTRACK_SERVICE:
 			case SEARCHPATH_SERVICE:
 			case WARD_SERVICE:
+			case MSG_DELIVERY_CONTROL:
+			case MSG_REQUEST_CONTROL:
 				 MemoryWrite(SEEK_OPMODE_REGISTER,RESTRICT_MODE);
 			break;
 
@@ -212,7 +196,7 @@ void Seek(unsigned int service, unsigned int source, unsigned int target, unsign
 
 			break;
 		}
-		// Must be last value writed because target value fires the seek_send function
+		// Must be last value written because target value fires the seek_send function
 
 		MemoryWrite(SEEK_TARGET_REGISTER,target);  
 
@@ -265,8 +249,13 @@ int ProcessTurns(unsigned int backtrack, unsigned int backtrack1, unsigned int b
 	}
 	//gets target address
 	seek_puts("Target: ");seek_puts(itoh((((net_address>>8) + addrX)<<8) | ((net_address + addrY)&0xff)));seek_puts("\n");
+
 	//gets index in SR_Table
 	slot_seek = SearchSourceRoutingDestination( (((net_address>>8) + addrX)<<8) | ((net_address + addrY)&0xff) );
+	if (slot_seek == -1){
+		puts("Calculando pro IO\n");
+		slot_seek = SearchSourceRoutingDestination( (((net_address>>8))<<8) | ((net_address)&0xff) );
+	}
 	// seek_puts("PATH to ");
 	// seek_puts(itoh(SR_Table[slot_seek].target));seek_puts(" = ");
 	//SR_Table[slot_seek].path_size = ((i)/7)+1;//path size per hop(32 bits) = 7
@@ -288,14 +277,114 @@ int ProcessTurns(unsigned int backtrack, unsigned int backtrack1, unsigned int b
 			port[j] = port[j]+4;
 		}
 	}
-	for (j=0; j<=i; j++){
-		print_port(port[j]);
-	}
-	seek_puts("\n");
+	//for (j=0; j<=i; j++){
+	//	print_port(port[j]);
+	//}
+	//seek_puts("\n");
 	//writes the path as an header of source routing
 	shift=24;
 	//16 bits flit
 	SR_Table[slot_seek].path[0] = 0x70007000;
+	for(i=0;i<=j;i++){
+		SR_Table[slot_seek].path[i/6] = SR_Table[slot_seek].path[i/6]|((port[i]&0x0f) << shift);
+
+		switch(shift){
+			case 16:
+				shift = 8;
+			break;
+			case 0:
+				shift = 24;
+				SR_Table[slot_seek].path[i/6+1] = 0x70007000;
+			break;
+			default:
+				shift = shift - 4;
+			break;
+		}
+	}
+	// print_SR_Table(slot_seek);
+	return slot_seek;
+}
+int adjust_backtrack_IO(unsigned int backtrack, unsigned int backtrack1, unsigned int backtrack2, unsigned int target){
+	unsigned int next_port;
+	unsigned int port[MAX_SOURCE_ROUTING_DESTINATIONS];//used for storing hops
+	unsigned char algorithm;
+	unsigned int shift;
+	int addrX, addrY, x, j, i = 0, slot_seek = 0;
+	int last_hop;
+
+
+	do {
+		port[i] = backtrack & 0x3;
+		next_port = (backtrack >> 2) & 0x3;
+		backtrack >>= 2;
+		i++;
+		if(i==16){
+			backtrack = backtrack1;
+		}
+		else if(i==32){
+			backtrack = backtrack2;
+		}
+	}while( !( (port[i-1] == EAST  && next_port == WEST) ||//if the path is EW WE SN NS then we should stop here
+			  (port[i-1] == WEST  && next_port == EAST)  ||
+			  (port[i-1] == NORTH && next_port == SOUTH) ||
+			  (port[i-1] == SOUTH && next_port == NORTH) ) );
+
+	port[i] = next_port;
+
+//	addrX=1;
+//	addrY=0;
+
+	last_hop = get_last_hop((target >> 8), target & 0XFF);
+	if(last_hop == -1){
+		puts("ERROR: target not found!!!");
+	}
+
+	//puts("last hop: "); puts(itoa(last_hop)); puts("\n");
+
+	slot_seek = SearchSourceRoutingDestination( target );
+
+	port[i++] = last_hop;
+	if(port[i-1] == EAST)
+		port[ i] = WEST;
+	else if(port[i-1] == WEST)
+		port[i] = EAST;
+	else if(port[i-1] == NORTH)
+		port[ i] = SOUTH;
+	else if(port[i-1] == SOUTH)
+	 	port[ i] = NORTH;
+
+
+	SR_Table[slot_seek].path_size = ((i)/6)+1;
+
+	algorithm = EAST_FIRST;//initialize with west first
+	for(j=0;j<i;j++){//calculate the channel to comply with the routing algorithm
+		if(algorithm == WEST_FIRST){
+			if((port[j] == SOUTH || port[j] == NORTH) && port[j+1] == WEST){//turns prohibited by WEST FIRST :SW and NW
+				algorithm = EAST_FIRST;
+			}
+		}
+		else{
+			if((port[j] == SOUTH || port[j] == NORTH) && port[j+1] == EAST){//turns prohibited by WEST FIRST :SE and NE
+				algorithm = WEST_FIRST;
+			}
+			port[j] = port[j]+4;
+		}
+	}
+
+	// puts("Backtrack Montado:");
+	// for (j=0; j<=i; j++){
+	// 	print_port(port[j]);
+	// }
+	// puts("\n");
+
+	port[i-1] = port[i-1] & 0x3;
+
+	shift=24;
+
+	if(slot_seek < 0)
+		slot_seek = 0;
+	SR_Table[slot_seek].path[0] = 0x70007000;
+
 	for(i=0;i<=j;i++){
 		SR_Table[slot_seek].path[i/6] = SR_Table[slot_seek].path[i/6]|((port[i]&0x0f) << shift);
 		switch(shift){
@@ -311,34 +400,100 @@ int ProcessTurns(unsigned int backtrack, unsigned int backtrack1, unsigned int b
 			break;
 		}
 	}
+
 	return slot_seek;
-	/*
-		//32 bits flit
-		// number of hops in the word = 6 for 16 bits, 7 for 32
-		// SR_Table[slot_seek].path[0] = 0x70000000;
-		// for(i=0;i<=j;i++){
-		// 	SR_Table[slot_seek].path[i/7] = SR_Table[slot_seek].path[i/7]|((port[i]&0x0f) << shift);
-		// 	switch(shift){
-		// 		// case 16:
-		// 		//     shift = 8;
-		// 		// break;
-		// 		case 0:
-		// 			shift = 24;
-		// 			SR_Table[slot_seek].path[i/7+1] = 0x70000000;
-		// 		break;
-		// 		default:
-		// 			shift = shift - 4;
-		// 		break;
-		// 	}
-		// }
-		// SR_Table[slot_seek].tableSlotStatus = SR_USADO;
-		// puts("\n:tableSlotStatus:");puts(itoh(SR_Table[slot_seek].tableSlotStatus));
-		// for (i = 0; i < SR_Table[slot_seek].path_size; ++i){
-		// 	puts(itoh(SR_Table[slot_seek].path[i]));
-		// 	puts("\n");
-		// }
-		// //this read is necessary to point to SEEK_BACKTRACK0 in the next read;
-		// MemoryRead(SEEK_BACKTRACK2);
-	*/
+}
+
+
+
+
+
+/*
+void adjust_wrapper(int io_direction, int io_port){
+	//seek_puts("direction: "); seek_puts(itoa(io_direction)); seek_puts("\n");
+	//seek_puts("     port: "); seek_puts(itoa(io_port)); seek_puts("\n");
+	if(io_direction == 1){ //1 -> OUTPUT_DIRECTION
+		switch (io_port) {
+			case 0:
+				mask_wrapper_go_value = mask_wrapper_go_value & 0XFFFFFFFC;
+			break;
+	
+			case 1:
+				mask_wrapper_go_value = mask_wrapper_go_value & 0XFFFFFFF3;
+			break;
+	
+			case 2:
+				mask_wrapper_go_value = mask_wrapper_go_value & 0XFFFFFFCF;
+			break;
+	
+			case 3:
+				mask_wrapper_go_value = mask_wrapper_go_value & 0XFFFFFF3F;
+			break;
+			default:
+				seek_puts("ERROR: invalid port number\n");
+		}
+		//seek_puts("wrapper mask GO 1: "); seek_puts(itoh(mask_wrapper_go_value)); seek_puts("\n");
+		MemoryWrite(WRAPPER_MASK_GO_REGISTER,mask_wrapper_go_value);
+	}
+	if(io_direction == 0){ //0 -> INPUT_DIRECTION
+		switch (io_port) {
+			case 0:
+				mask_wrapper_back_value = mask_wrapper_back_value & 0XFFFFFFFC;
+			break;
+	
+			case 1:
+				mask_wrapper_back_value = mask_wrapper_back_value & 0XFFFFFFF3;
+			break;
+	
+			case 2:
+				mask_wrapper_back_value = mask_wrapper_back_value & 0XFFFFFFCF;
+			break;
+	
+			case 3:
+				mask_wrapper_back_value = mask_wrapper_back_value & 0XFFFFFF3F;
+			break;
+			default:
+				seek_puts("ERROR: invalid port number\n");
+		}
+		//seek_puts("wrapper mask BACK 0: "); seek_puts(itoh(mask_wrapper_back_value)); seek_puts("\n");
+		MemoryWrite(WRAPPER_MASK_BACK_REGISTER,mask_wrapper_back_value);
+	}
+	if(io_direction == 2){ //2 -> CLEAR_INPUT_DIRECTION
+		switch (io_port) {
+			case 0:
+				mask_wrapper_back_value =  0X3FC;
+			break;
+	
+			case 1:
+				mask_wrapper_back_value =  0X3F3;
+			break;
+	
+			case 2:
+				mask_wrapper_back_value =  0X3CF;
+			break;
+	
+			case 3:
+				mask_wrapper_back_value =  0X33F;
+			break;
+			default:
+				seek_puts("ERROR: invalid port number\n");
+		}
+		//seek_puts("wrapper mask BACK 2: "); seek_puts(itoh(mask_wrapper_back_value)); seek_puts("\n");
+		MemoryWrite(WRAPPER_MASK_BACK_REGISTER,mask_wrapper_back_value);
+	}
+}
+*/
+
+void printGray(){
+	// puts("Rows:");
+	// for (int i = 0; i < MAX_GRAY_ROWS; i++){
+	// 	puts(itoa(ga.rows[i]));
+	// }
+	// puts("\n Cols:");
+	// for (int j = 0; j < MAX_GRAY_COLS; j++)
+	// {
+	// 	puts(itoa(ga.cols[j]));	puts("--");
+	// }
+	return;
 }
 

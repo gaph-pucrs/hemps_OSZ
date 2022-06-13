@@ -16,10 +16,7 @@ apps:
     secure: yes            
   - name: mpeg
     start_time_ms: 0 #any unsigned integer number
-    #secure: yes            
+    secure: yes            
   - name: mpeg
     start_time_ms: 0 #any unsigned integer number
-    #secure: yes               
-  - name: mpeg
-    start_time_ms: 0 #any unsigned integer number
-    secure: yes   
+    secure: yes               

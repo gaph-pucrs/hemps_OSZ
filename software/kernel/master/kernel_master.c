@@ -20,8 +20,8 @@
 
 #include "kernel_master.h"
 
-#include "../../modules/utils.h"
 #include "../../include/plasma.h"
+#include "../../modules/utils.h"
 #include "../../include/services.h"
 #include "../../modules/packet.h"
 #include "../../modules/new_task.h"
@@ -34,6 +34,7 @@
 #include "../../modules/lfsr.h"
 
 #include "../../modules/osz_master.h"
+
 
 NewTask * pending_new_task;
 
@@ -197,10 +198,11 @@ void send_app_allocation_map(Application * app, unsigned int * task_info, int ta
 	p->app_task_number = tasks_map_number;
 
 	//putsv("Send new APP REQUEST to master - id: ", p->task_ID );
-	//putsv(" app id: ", app->app_ID);
+	//putsv("App id: ", app->app_ID);
 
-	send_packet(p, (unsigned int) task_info, app->tasks_number*4);
-	//send_packet_io(p, (unsigned int) task_info, app->tasks_number*4, INJECTOR);
+	if(get_net_address() != global_master_address)
+		send_packet(p, (unsigned int) task_info, app->tasks_number*4);
+
 	send_packet_io(p, (unsigned int) task_info, tasks_map_number*4, INJECTOR);
 
 	while (MemoryRead(DMNI_SEND_ACTIVE));
@@ -496,8 +498,8 @@ void handle_packet() {
 		break;
 
 	case LOAN_PROCESSOR_REQUEST:
-	case LOAN_PROCESSOR_DELIVERY:
-	case LOAN_PROCESSOR_RELEASE:
+	//case LOAN_PROCESSOR_DELIVERY:
+	//case LOAN_PROCESSOR_RELEASE:
 
 		handle_reclustering((ServiceHeader *)&p);
 
@@ -692,7 +694,7 @@ void initialize_slaves(){
 	int proc_address; //, index_counter;
 	unsigned int LL_addr, RH_addr;	
 
-	init_procesors();
+	init_processors();
 
 	//init_shapes();
 
@@ -706,11 +708,11 @@ void initialize_slaves(){
 			if( proc_address != net_address) {
 
 				//Fills the struct processors
-				add_procesor(proc_address);
+				add_processor(proc_address);
 
 			}
 			else
-				add_procesor(proc_address);
+				add_processor(proc_address);
 		}
 	}
 
@@ -726,6 +728,25 @@ void initialize_slaves(){
 
 
 }
+
+#ifdef GRAY_AREA
+void initialize_IO(int peripheralID){
+
+	ServiceHeader *p = get_service_header_slot();
+
+	p->service = IO_INIT;
+
+	p->requesting_processor = get_net_address();
+
+	// p->task_ID = consumer_task;
+
+	p->peripheral_ID = peripheralID;
+
+	//add_msg_request(p->header[MAX_SOURCE_ROUTING_PATH_SIZE-1], consumer_task, peripheral_ID); //caimi: arrumar header
+
+	send_packet_io(p, 0, 0, peripheralID);
+}
+#endif
 
 /** Initializes all local managers by sending a INITIALIZE_CLUSTER packet to each one
  */
@@ -754,9 +775,10 @@ void handle_new_app(int app_ID, volatile unsigned int *ref_address, unsigned int
 	Application *application;
 	int mapping_completed = 0;
 
-	int PEs_number, shape_location;
+	int PEs_number;
 	int xi_initial=0, yi_initial=0, xf_initial=0, yf_initial=0;
 
+	int  shape_location = 0;
 	//INICIO DO PROTOCOLO
 	putsv("#### BEGIN PROTOCOL OVERHEAD - ", MemoryRead(TICK_COUNTER));
 
@@ -774,7 +796,7 @@ void handle_new_app(int app_ID, volatile unsigned int *ref_address, unsigned int
 
 		if( shape_location == 0 ){
   			PEs_number = create_shapes(MAX_LOCAL_TASKS, application->tasks_number);
-  			//print_shapes_found(PEs_number);
+  			print_shapes_found(PEs_number);
   			shape_location = search_shape(PEs_number);
   		}
 
@@ -795,6 +817,12 @@ void handle_new_app(int app_ID, volatile unsigned int *ref_address, unsigned int
 	//Fills the cluster load
 	for(int k=0; k < application->tasks_number; k++){
 		cluster_load[clusterID] += application->tasks[k].computation_load;
+		#ifdef GRAY_AREA
+		for (int i = 0; i < application->tasks[k].dependences_number; i++){
+			initialize_IO(application->tasks[k].dependences[i].flits);
+	    	puts("Enviado INITIALIZE para IO: ");  puts(itoa(application->tasks[k].dependences[i].flits)); puts("\n");
+		}
+		#endif
 	}
 
 	pending_app_to_map++;
@@ -870,7 +898,7 @@ int SeekInterruptHandler(){
 			// seek_puts("slot: "); seek_puts(itoa(slot_seek)); seek_puts("\n");
 			//while(seek_interruption){}
 			Seek(CLEAR_SERVICE, ((SR_Table[slot_seek].target<<16) | (get_net_address()&0xffff)), 0,0);
-			aux = resend_control_message(SR_Table[slot_seek].target);
+			aux = resend_control_message(backtrack, backtrack1, backtrack2, SR_Table[slot_seek].target);
 			if(aux == -1){
 				puts("ERROR: no msg deliver\n");
 			}
@@ -898,26 +926,26 @@ int SeekInterruptHandler(){
 			puts("Released from: "); puts(itoh(source & 0xffff)); puts("\n");
 			//Test if is necessary to terminated the app
 			if (app->terminated_tasks == app->tasks_number){
-				
-					puts("All Tasks Finished AppID: "); puts(itoh(app_id)); puts("\n");
-					//puts("Secure: "); puts(itoh(app->secure)); puts("\n");
-					if(app->secure == 1){
-						Seek(OPEN_SECURE_ZONE_SERVICE, get_net_address(), app_id, app->RH_Address);
-					}
-					else{
-				
-						for (int i=0; i<app->tasks_number; i++){
-							if (app->tasks[i].borrowed_master != -1){
-								terminated_task_master[i] = app->tasks[i].borrowed_master;
-							} else {
-								terminated_task_master[i] = net_address;
-							}
-						}
-						if (is_global_master) {
-							handle_app_terminated(app->app_ID, app->tasks_number, net_address);
+			
+				puts("All Tasks Finished AppID: "); puts(itoh(app_id)); puts("\n");
+				//puts("Secure: "); puts(itoh(app->secure)); puts("\n");
+				if(app->secure == 1){
+					Seek(OPEN_SECURE_ZONE_SERVICE, MemoryRead(TICK_COUNTER)<<16 | get_net_address(), app_id, app->RH_Address);
+				}
+				else{
+			
+					for (int i=0; i<app->tasks_number; i++){
+						if (app->tasks[i].borrowed_master != -1){
+							terminated_task_master[i] = app->tasks[i].borrowed_master;
 						} else {
-							send_app_terminated(app, terminated_task_master); // Poderia ser via Seek
+							terminated_task_master[i] = net_address;
 						}
+					}
+					if (is_global_master) {
+						handle_app_terminated(app->app_ID, app->tasks_number, net_address);
+					} else {
+						send_app_terminated(app, terminated_task_master); // Poderia ser via Seek
+					}
 					remove_application(app->app_ID);
 				}	
 			}				
@@ -949,6 +977,7 @@ int SeekInterruptHandler(){
 			aux = get_Secure_Zone_index(payload);
 			app_id = get_AppID_with_RH_Address(payload);
 			if(aux != -1){
+				// puts(itoh(Secure_Zone[aux].cut));
 				RH_addr = Secure_Zone[aux].cut >> 16;
 				LL_addr = Secure_Zone[aux].cut & 0XFFFF;
 
@@ -1036,7 +1065,7 @@ int SeekInterruptHandler(){
 						//puts("LL_addr: "); puts(itoh(LL_addr)); puts("\n");
 						set_RH_Address(app->app_ID, RH_addr);
 						//get_Secure_Zone_index(RH_addr);
-						puts("SET_SECURE_ZONE at time: "), puts(itoa(MemoryRead(TICK_COUNTER))); puts("\n");
+						puts("SET_SECURE_ZONE at time: "); puts(itoa(MemoryRead(TICK_COUNTER))); puts("\n");
 						//Seek(SET_SECURE_ZONE_SERVICE, (get_Secure_Zone_index(RH_addr)<<16 | get_net_address()), LL_addr, RH_addr);
 						//Seek(SET_SECURE_ZONE_SERVICE, (MemoryRead(TICK_COUNTER)<<16 | get_net_address()), LL_addr, RH_addr);
 						Seek(SET_SECURE_ZONE_SERVICE, ((app_id << 24) | ((MemoryRead(TICK_COUNTER) << 16) & 0xFF0000) | get_net_address()), LL_addr, RH_addr);
@@ -1059,12 +1088,12 @@ int SeekInterruptHandler(){
 				Seek(CLEAR_SERVICE, source, 0, 0);
 			initialize_slaves();
 		break;
-		case LOAN_PROCESSOR_REQUEST_SERVICE:
-			handle_reclustering_request_from_seek((source&0xffff), target, payload);
-		break;
-		case LOAN_PROCESSOR_RELEASE_SERVICE:
-		    handle_reclustering_release_from_seek((source&0xffff), target, payload);
-		break;
+		// case LOAN_PROCESSOR_REQUEST_SERVICE:
+		// 	handle_reclustering_request_from_seek((source&0xffff), target, payload);
+		// break;
+		// case LOAN_PROCESSOR_RELEASE_SERVICE:
+		//     handle_reclustering_release_from_seek((source&0xffff), target, payload);
+		// break;
 		case RCV_FREEZE_TASK_SERVICE:
 					puts("RCV_FREEZE_TASK "); puts(itoh(source)); puts("\n"); // used to reset the time_out
 		
@@ -1081,15 +1110,15 @@ int SeekInterruptHandler(){
 		break;
 		case NEW_APP_SERVICE:
 			if (is_global_master){//keep in mind manter uma estrutura de qual injector pediu alocação ..
-				puts("\nGlobal master receive a NEW_APP_SERVICE\n");
+
 				Seek(CLEAR_SERVICE, source, 0, 0);
 				selected_cluster = SearchCluster(clusterID, payload); //acha um cluster para colocar as apps
 				total_mpsoc_resources -= payload;
 				allocate_cluster_resource(selected_cluster, payload);
 				waiting_app_allocation = 1; //flag para evitar que outra aplicação seja alocada junto
 				selected_cluster_proc = get_cluster_proc(selected_cluster); //Pega o endereço do mestre local
-				Seek(NEW_APP_ACK_SERVICE, app_id_counter, selected_cluster_proc, source); 
-				puts("\n");
+				Seek(NEW_APP_ACK_SERVICE, ((MemoryRead(TICK_COUNTER) << 16) & 0xFFFF0000) | app_id_counter, selected_cluster_proc, source); 
+				puts("Sent NEW APP ACK\n");
 				app_id_counter++;	
 			}
 		break;
@@ -1109,7 +1138,8 @@ int main() {
 	
 	set_net_address(MemoryRead(NI_CONFIG));
 	//By default HeMPS assumes that GM is positioned at address 0
-	if ( get_net_address() == 0){
+	//if ( get_net_address() == 0){
+	if ( get_net_address() == (cluster_info[0].master_x*256+ cluster_info[0].master_y )){
 
 		puts("This kernel is global master\n");
 
@@ -1130,6 +1160,7 @@ int main() {
 		is_global_master = 0;
 	}
 
+
 	initialize_applications();
 
 	init_new_task_list();
@@ -1141,8 +1172,8 @@ int main() {
 
 	//send ready by brnoc
 	if (is_global_master){
-		puts("Kernel GMV Initialized\n");
 		Seek(GMV_READY_SERVICE, get_net_address(), 0, 0);
+		puts("Kernel GMV Initialized\n");
 		Seek(CLEAR_SERVICE, get_net_address(), 0, 0);
 	}
 	else

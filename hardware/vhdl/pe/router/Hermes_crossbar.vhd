@@ -133,6 +133,7 @@ begin
 	data_out(LOCAL1) <=	data(SOUTH1) when table(SOUTH1)(LOCAL1) = '1' else (others=>'Z');
 	data_out(LOCAL1) <=	data(NORTH0) when table(NORTH0)(LOCAL1) = '1' else (others=>'Z');
 	data_out(LOCAL1) <=	data(NORTH1) when table(NORTH1)(LOCAL1) = '1' else (others=>'Z');
+	data_out(LOCAL1) <=	data(LOCAL1) when table(LOCAL1)(LOCAL1) = '1' else (others=>'Z');
 	
 -- Crossbar do controle de fluxo
 -- Liga os sinais de entrada 'credit_i' aos sinais 'credit' baseado na tabela de roteamento.
@@ -338,6 +339,7 @@ begin
 					data_av(SOUTH1) when table(SOUTH1)(LOCAL1) = '1' and credit(SOUTH1) = '1' else
 					data_av(NORTH0) when table(NORTH0)(LOCAL1) = '1'and credit(NORTH0) = '1'  else 
 					data_av(NORTH1) when table(NORTH1)(LOCAL1) = '1'and credit(NORTH1) = '1'  else
+					data_av(LOCAL1) when table(LOCAL1)(LOCAL1) = '1'and credit(LOCAL1) = '1'  else
 					'0'; 
 
 
@@ -440,6 +442,7 @@ begin
 						eop_buffer(SOUTH1) when table(SOUTH1)(LOCAL1) = '1' and credit(SOUTH1) = '1' else
 						eop_buffer(NORTH0) when table(NORTH0)(LOCAL1) = '1'and credit(NORTH0) = '1'  else 
 						eop_buffer(NORTH1) when table(NORTH1)(LOCAL1) = '1'and credit(NORTH1) = '1'  else
+						eop_buffer(LOCAL1) when table(LOCAL1)(LOCAL1) = '1'and credit(LOCAL1) = '1'  else
 						'0'; 
 
 	data_ack <= credit;

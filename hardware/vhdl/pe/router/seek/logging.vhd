@@ -102,7 +102,7 @@ entity logging is
 	signal seek_cycles	: integer range 0 to 2**16;
 
 	-- converter o endere�o em string
-	function print_router (	vec :std_logic_vector) -- valor de 16 bits
+	function print_router (	vec :std_logic_vector(15 downto 0)) -- valor de 16 bits
 	return string is
 		-- variable str1,str2: string(1 to 2);
 		variable output_str: string(1 to 5);
@@ -385,7 +385,7 @@ begin
 				if seek_cycles /= 0 then
 					write(linha,","&LF);
 				else
-					report "past_out_req" & print_port(past_out_req_router_seek,NPORT_SEEK) &LF& "out_req" & print_port(out_req_router_seek,NPORT_SEEK) ;
+					-- report "past_out_req" & print_port(past_out_req_router_seek,NPORT_SEEK) &LF& "out_req" & print_port(out_req_router_seek,NPORT_SEEK) ;
 					seek_cycles <= 1;
 					write(linha,'{'&'"'&"entradas"&'"'&":["&LF);
 				end if;

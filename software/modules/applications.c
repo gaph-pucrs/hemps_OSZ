@@ -12,8 +12,10 @@
  * This modules is only used by manager kernel
  */
 
-#include "applications.h"
+#include "../include/plasma.h"
 #include "utils.h"
+#include "applications.h"
+
 
 //Globals
 
