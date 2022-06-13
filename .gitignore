@@ -11,3 +11,7 @@ include
 vhdl_ls.toml
 vhdltool-config.yaml
 .vscode/c_cpp_properties.json
+
+
+.Trash-2189
+build_env/gui_router_seek_lite/
