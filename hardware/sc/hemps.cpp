@@ -418,7 +418,7 @@ void hemps::pes_interconnection(){
 				// cout << "grounding WEST in seek: " << i << endl;
 				in_source_router_seek	[i][WEST].write(0);
 				in_target_router_seek	[i][WEST].write(0);
-				in_payload_router_seek		[i][WEST].write(0);
+				in_payload_router_seek	[i][WEST].write(0);
 				in_service_router_seek	[i][WEST].write(0);
 				in_req_router_seek		[i][WEST].write(0);
 				in_ack_router_seek		[i][WEST].write(1);
@@ -447,7 +447,7 @@ void hemps::pes_interconnection(){
 				eop_in  [i][WEST1].write(eop_out [i-1][EAST1].read());
 				in_source_router_seek	[i][WEST].write(out_source_router_seek	[i-1][EAST]);
 				in_target_router_seek	[i][WEST].write(out_target_router_seek	[i-1][EAST]);
-				in_payload_router_seek	[i][WEST].write(out_payload_router_seek		[i-1][EAST]);
+				in_payload_router_seek	[i][WEST].write(out_payload_router_seek	[i-1][EAST]);
 				in_service_router_seek	[i][WEST].write(out_service_router_seek	[i-1][EAST]);
 				in_req_router_seek		[i][WEST].write(out_req_router_seek		[i-1][EAST]);
 				in_ack_router_seek		[i][WEST].write(out_ack_router_seek		[i-1][EAST]);
@@ -522,7 +522,7 @@ void hemps::pes_interconnection(){
 	 			eop_in  [i][NORTH1].write(0);
 				in_source_router_seek	[i][NORTH].write(0);
 				in_target_router_seek	[i][NORTH].write(0);
-				in_payload_router_seek		[i][NORTH].write(0);
+				in_payload_router_seek	[i][NORTH].write(0);
 				in_service_router_seek	[i][NORTH].write(0);
 				in_req_router_seek		[i][NORTH].write(0);
 				in_ack_router_seek		[i][NORTH].write(1);
@@ -551,7 +551,7 @@ void hemps::pes_interconnection(){
 				eop_in  [i][NORTH1].write(eop_out [i+N_PE_X][SOUTH1].read());
 				in_source_router_seek	[i][NORTH].write(out_source_router_seek		[i+N_PE_X][SOUTH].read());
 				in_target_router_seek	[i][NORTH].write(out_target_router_seek		[i+N_PE_X][SOUTH].read());
-				in_payload_router_seek	[i][NORTH].write(out_payload_router_seek		[i+N_PE_X][SOUTH].read());
+				in_payload_router_seek	[i][NORTH].write(out_payload_router_seek	[i+N_PE_X][SOUTH].read());
 				in_service_router_seek	[i][NORTH].write(out_service_router_seek	[i+N_PE_X][SOUTH].read());
 				in_req_router_seek		[i][NORTH].write(out_req_router_seek		[i+N_PE_X][SOUTH].read());
 				in_ack_router_seek		[i][NORTH].write(out_ack_router_seek		[i+N_PE_X][SOUTH].read());

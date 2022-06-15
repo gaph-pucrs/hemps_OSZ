@@ -160,6 +160,7 @@ typedef sc_uint<(3*NPORT)> 		reg_mux;
 #define NORTH 2
 #define SOUTH 3
 #define LOCAL 4
+
 #define SOURCE_ROUTING_TYPE 7
 typedef sc_uint<TAM_SERVICE_SEEK>     reg_seek_service;
 typedef sc_uint<SOURCE_SIZE>          reg_seek_source;

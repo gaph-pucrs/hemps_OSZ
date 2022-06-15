@@ -193,6 +193,9 @@ void Unset_Secure_Zone(unsigned int left_low_corner, unsigned int right_high_cor
   //     	  right_high_corner = ((get_net_address() >> 4)& 0XF0) | (get_net_address() &  0X0F);
   //         Seek(SECURE_ZONE_CLOSED_SERVICE, get_net_address(), master_PE, LOCAL_right_high_corner);
   //         //puts("ENDSZ RH:");puts(itoh(LOCAL_right_high_corner));puts("\n"); 
+  //         seek_puts("Without CUT - wrapper: ");seek_puts(itoh(isolated_ports));seek_puts("\n");
+  //         seek_puts("RH address: ");seek_puts(itoh(right_high_corner));seek_puts("\n");
+  //         // return;
   // }
 
 // This is to uncut at RH position
@@ -211,7 +214,6 @@ void Unset_Secure_Zone(unsigned int left_low_corner, unsigned int right_high_cor
 //  // UNSET wrapper port NORTH
 //  if( (my_Y_addr == RH_Y_addr) && (my_X_addr == RH_X_addr ))
 //      isolated_ports = isolated_ports - 0x30;    
-
 
 if(!noCut){
 // This is to uncut at LL position
@@ -232,6 +234,7 @@ if(!noCut){
       isolated_ports = isolated_ports - 0xC0;    
 }
 
+}
   //if(isolated_ports != previous_isolated){
   	puts("write wrapper: ");puts(itoh(isolated_ports));puts("\n");
     MemoryWrite(WRAPPER_REGISTER,isolated_ports);

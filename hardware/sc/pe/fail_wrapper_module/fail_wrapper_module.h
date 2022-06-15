@@ -59,11 +59,17 @@ SC_MODULE(fail_WRAPPER_module){
 	sc_in<sc_uint<32 > > tick_counter;
 	void brNoC_monitor();
 
-		/////////////////////////////////////////////////////////////////
-	// modulo para mascarar falha a partir do serviço IO_OPEN_WRAPPER
-
-	enum FSM_in{S_INIT, S_RECEIVE, S_WAIT, S_SERVICE, S_PAYLOAD};
-	sc_signal<FSM_in > EA_dataNOC;
+	#ifdef SEEK_LOG
+	SC_HAS_PROCESS(fail_WRAPPER_module);
+	fail_WRAPPER_module(sc_module_name name_, regaddress address_ = 0x0000) :
+	sc_module(name_), address(address_)
+	#else
+	SC_CTOR(fail_WRAPPER_module)
+	#endif
+	{
+    	SC_METHOD(in_proc_FSM);
+    	sensitive << reset;
+    	sensitive << clock.pos();
 
 	//sc_out<bool >    		mask_tx_out;
 	//sc_in<bool >    		mask_tx_from_router_local;

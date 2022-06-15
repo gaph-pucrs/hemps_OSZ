@@ -495,7 +495,6 @@ int Syscall(unsigned int service, unsigned int arg0, unsigned int arg1, unsigned
 			puts("\n");
 
 		break;
-
 		case REALTIME:
 
 			if (MemoryRead(DMNI_SEND_ACTIVE)){
@@ -1343,7 +1342,6 @@ void Scheduler() {
 	unsigned int scheduler_call_time;
 
 	scheduler_call_time = MemoryRead(TICK_COUNTER);
-
 	MemoryWrite(SCHEDULING_REPORT, SCHEDULER);
 
 	#if MIGRATION_ENABLED

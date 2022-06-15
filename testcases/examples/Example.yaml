@@ -18,4 +18,10 @@ apps:
     static_mapping:
       cons: [1,1]
       prod: [2,2]
+  - name: prod_cons
+    start_time_ms: 2 #any unsigned integer number
+    secure: no
+    static_mapping:
+      cons: [0,1]
+      prod: [0,2]
 

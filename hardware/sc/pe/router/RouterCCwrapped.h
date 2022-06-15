@@ -1,8 +1,9 @@
 #ifndef _SCGENMOD_RouterCC_
 #define _SCGENMOD_RouterCC_
 
-#include "systemc.h"
+#include <systemc.h>
 
+#include "../../standards.h"
 #define ROUTER_VHD
 
 class RouterCC : public sc_foreign_module
