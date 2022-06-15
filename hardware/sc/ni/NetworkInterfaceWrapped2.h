@@ -50,11 +50,13 @@ SC_MODULE(NetworkInterfaceWrapped)
 	NetworkInterfaceWrapped(sc_module_name name_, regaddress address_ = 0x0000) : sc_module(name_), address(address_)
 	{	 
         //TODO: Pra que serve 'generic_list'? Mantenho? Troco 'router_address' por 'ni_address'? 
-        const char* generic_list[1];
-		generic_list[0] = strdup("router_address=x\"AAAA\"");
-		sprintf((char*) generic_list[0],"router_address=x\"%.4x\"",(int)address);
+        
+        //const char* generic_list[1];
+		//generic_list[0] = strdup("router_address=x\"AAAA\"");
+		//sprintf((char*) generic_list[0],"router_address=x\"%.4x\"",(int)address);
 
-		network_interface = new NetworkInterface("NetworkInterface", "NetworkInterface", 1, generic_list);
+		// network_interface = new NetworkInterface("NetworkInterface", "NetworkInterface", 0, generic_list);
+		network_interface = new NetworkInterface("NetworkInterface", "NetworkInterface");
         
         network_interface->clock(clock);
         network_interface->reset(reset);

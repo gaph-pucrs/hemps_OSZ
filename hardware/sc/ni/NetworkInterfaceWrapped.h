@@ -44,7 +44,8 @@ class NetworkInterface : public sc_foreign_module
         sc_out<bool>                brnoc_primary_opmode_out;
         sc_in<bool>                 brnoc_primary_ack_in;
 
-        NetworkInterface(sc_module_name nm, const char* hdl_name, int num_generics, const char** generic_list) :
+        // NetworkInterface(sc_module_name nm, const char* hdl_name, int num_generics, const char** generic_list) :
+        NetworkInterface(sc_module_name nm, const char* hdl_name) :
             sc_foreign_module(nm),
 
 			clock("clock"),
