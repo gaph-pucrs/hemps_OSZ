@@ -51,9 +51,8 @@ def load_json(json_files,log_folder):
 
 def load_files(project_yaml:str):#-> tuple((int,int),dict):
     # Ler YAML
-    # TESTS_PATH = HEMPS_PATH+"/testcases/examples/"
-    TESTS_PATH = HEMPS_PATH+"/testcases/"
-    DEBUG_FDR = "/debug/router_seek/"
+    TESTS_PATH = ""
+    DEBUG_FDR = "/"
     try:
         print("Trying from this folder:"+TESTS_PATH)
         yaml_file = open(TESTS_PATH+project_yaml)

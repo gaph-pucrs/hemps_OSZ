@@ -448,12 +448,24 @@ void pe::log_process(){
 
 void pe::wrapper_register_handle(){
 	sc_uint<NPORT > l_wrapper_reg;
+ 	sc_uint<NPORT > l_ap_mask;
+
 	if ((cpu_mem_address_reg.read() == WRAPPER_REGISTER) and (write_enable.read()==1) ) {
 		l_wrapper_reg = cpu_mem_data_write_reg.read();
 		for(i=0;i<NPORT;i++){
 			wrapper_reg[i].write(l_wrapper_reg[i]);
 		}
 	}
+	if ((cpu_mem_address_reg.read() == KAP_REGISTER) and (write_enable.read()==1) ) {
+		kap = cpu_mem_data_write_reg.read();
+	}
+	if ((cpu_mem_address_reg.read() == AP_MASK) and (write_enable.read()==1) ) {
+		l_ap_mask = cpu_mem_data_write_reg.read();
+		for(i=0;i<NPORT;i++){
+			ap_mask[i].write(l_ap_mask[i]);
+		}
+	}
+
 }
 
 void pe::seek_access(){
@@ -495,6 +507,10 @@ void pe::seek_fault_middle_packet(){
 					MEM_waiting[j].write(1);
 					// MEM_source[addr].write(source.read());
 					// MEM_target[addr].write(target.read());
+				}
+				else if ((local_rot_table[j] & router_fail_in[j].read()) == 0)
+				{
+					MEM_waiting[j].write(0);
 				}
 			}
 		}
@@ -635,7 +651,8 @@ void pe::seek_receive(){
 						int_seek.write(1);
 					break;
 					case 0x8:
-						cout << "PACKET RESEND";
+						cout << "SET_AP_SERVICE";
+						int_seek.write(1);
 					break;
 					case 0x9:
 						cout << "WARD SERVICE";
@@ -758,7 +775,7 @@ void pe::keyCheck(){
 	}else{
 		for(i=0;i<NPORT-1;i++){
 			if (io_packet_mask == 0){
-				if (((data_in[i].read()) == (ke.read() | 0x6000)) && (pass[i].read() == 1))	{
+				if (((data_in[i].read()) == (kap.read() | 0x6000)) && (pass[i].read() == 1))	{
 
 					pass[i].write(0);
 

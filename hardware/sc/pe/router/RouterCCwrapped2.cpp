@@ -73,6 +73,18 @@ void RouterCCwrapped::upd_credit_i(){
 	 credit_i_internal.write(l_credit_i_internal);
 }
 
+void RouterCCwrapped::upd_ap(){
+	int i;
+	sc_uint<NPORT > l_ap_internal;
+
+	 for(i=0;i<NPORT;i++){
+		//modified to add faults
+		l_ap_internal[i] = (ap[i].read());
+	 }
+
+	 ap_internal.write(l_ap_internal);
+}
+
 
 //output signals
 //read from internal, write in output

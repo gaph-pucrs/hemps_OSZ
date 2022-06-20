@@ -147,7 +147,7 @@ def load_image(name): # carrega imagens e evita o carregamento repetido caso já
     global images
     if images.get(name)==None:
         try:
-            imgpath=os.environ.get("HEMPS_PATH")+"/build_env/gui_router_seek/"+name
+            imgpath=""+name
             images.update({name:tkk.PhotoImage(file=imgpath)})
         except FileNotFoundError:
             try:
