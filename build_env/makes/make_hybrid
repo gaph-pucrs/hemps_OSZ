@@ -70,7 +70,7 @@ FAIL_WRAPPER_MODULE_TGT	=$(addprefix $(TGT_SCCOM_PATH), $(FAIL_WRAPPER_MODULE_SC
 IO_PERIPHERAL_TGT		=$(addprefix $(TGT_SCCOM_PATH), $(IO_PERIPHERAL_SC:=.o))
 INJECTOR_TGT			=$(addprefix $(TGT_SCCOM_PATH), $(INJECTOR_SC:=.o))
 
-default: lib $(HEMPS_PKG) $(STAND) $(STAND_NI) $(ROUTER_VHD) $(SEEK_VHD) $(NI_VHD) $(ROUTER_TGT) $(SEEK_TGT) $(NI_TGT) $(FIFO_PDN_TGT) $(FAIL_WRAPPER_MODULE_TGT) $(PROCESSOR_TGT) $(DMNI_TGT) $(MEMORY_TGT) $(PE_TGT) $(IO_PERIPHERAL_TGT) $(INJECTOR_TGT)  $(TOP_TGT)
+default: lib $(HEMPS_PKG) $(STAND) $(STAND_NI) $(ROUTER_VHD) $(SEEK_VHD) $(NI_VHD) $(ROUTER_TGT) $(SEEK_TGT) $(FIFO_PDN_TGT) $(FAIL_WRAPPER_MODULE_TGT) $(PROCESSOR_TGT) $(DMNI_TGT) $(MEMORY_TGT) $(PE_TGT) $(IO_PERIPHERAL_TGT) $(INJECTOR_TGT)  $(TOP_TGT)
 	@sccom -B/usr/bin -link
 
 lib:
@@ -117,9 +117,9 @@ $(SEEK_TGT): $(SEEK_SC_SRC)
 	@printf "${COR}Compiling SystemC source: %s ...${NC}\n" "$(dir $<)$(notdir $*).cpp"
 	$(SC_C) $(dir $<)$(notdir $*).cpp
 
-$(NI_TGT): $(NI_SC_SRC)
-	@printf "${COR}Compiling SystemC source: %s ...${NC}\n" "$(dir $<)$(notdir $*).cpp"
-	$(SC_C) $(dir $<)$(notdir $*).cpp
+#$(NI_TGT): $(NI_SC_SRC)
+#	@printf "${COR}Compiling SystemC source: %s ...${NC}\n" "$(dir $<)$(notdir $*).cpp"
+#	$(SC_C) $(dir $<)$(notdir $*).cpp
 
 $(FIFO_PDN_TGT): $(FIFO_PDN_SRC)
 $(FIFO_PDN_TGT): $(FIFO_PDN_SRC)

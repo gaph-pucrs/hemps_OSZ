@@ -59,17 +59,15 @@ architecture network_interface of network_interface is
     type column_appId       is array(TABLE_SIZE-1 downto 0) of regN_appID;
     type column_keyPeriph   is array(TABLE_SIZE-1 downto 0) of regN_keyPeriph;
     type column_burstSize   is array(TABLE_SIZE-1 downto 0) of regN_burstSize;
-    type column_srcRouting  is array(TABLE_SIZE-1 downto 0) of std_logic;
     type column_path        is array(TABLE_SIZE-1 downto 0) of regN_path;
-    type column_free        is array(TABLE_SIZE-1 downto 0) of std_logic;
 
     type table_record is record
         app_id      : column_appId;
         key_periph  : column_keyPeriph;
         burst_size  : column_burstSize;
-        src_routing : column_srcRouting;
+        src_routing : std_logic_vector(TABLE_SIZE-1 downto 0);
         path        : column_path;
-        free        : column_free;
+        free        : std_logic_vector(TABLE_SIZE-1 downto 0);
     end record table_record;
 
     signal table            : table_record;
@@ -114,19 +112,19 @@ begin
 
     ---- begin next_free_slot generates ----
 
-    if TABLE_SIZE = 2 generate
+    IF_GEN_SLOT_2: if TABLE_SIZE = 2 generate
         next_free_slot  <=  0   when table.free(0)='1'  else
                             1;
     end generate;
 
-    if TABLE_SIZE = 4 generate
+    IF_GEN_SLOT_4: if TABLE_SIZE = 4 generate
         next_free_slot  <=  0   when table.free(0)='1'  else
                             1   when table.free(1)='1'  else
                             2   when table.free(2)='1'  else
                             3;
     end generate;
 
-    if TABLE_SIZE = 8 generate
+    IF_GEN_SLOT_8: if TABLE_SIZE = 8 generate
         next_free_slot  <=  0   when table.free(0)='1'  else
                             1   when table.free(1)='1'  else
                             2   when table.free(2)='1'  else
@@ -147,9 +145,9 @@ begin
     hermes_rx_ck                <= hermes_primary_rx_clk;
     hermes_data_in              <= hermes_primary_data_in;
     hermes_eop_in               <= hermes_primary_eop_in;
-    hermes_prymary_credit_out   <= hermes_credit_out;
+    hermes_primary_credit_out   <= hermes_credit_out;
 
-    hermes_credit_out           <= '1' when InputFSM_PS = IN_HERMES else '0';
+    hermes_credit_out           <= '1' when InFSM_PS = IN_HERMES else '0';
 
     hermes_input_request        <= hermes_rx;
     hermes_is_receiving         <= hermes_rx and hermes_credit_out;
@@ -161,40 +159,40 @@ begin
     InputFSM_ChangeState: process(reset, clock)
     begin
         if reset='1' then
-            InputFSM_PS <= IN_WAIT;
+            InFSM_PS <= IN_WAIT;
         elsif rising_edge(clock) then
-            InputFSM_PS <= InputFSM_NS;
+            InFSM_PS <= InFSM_NS;
         end if;
     end process;
 
-    InputFSM_NextState: process(InputFSM_PS, brnoc_input_request, hermes_input_request, brnoc_end_of_reception, hermes_end_of_reception)
+    InputFSM_NextState: process(InFSM_PS, brnoc_input_request, hermes_input_request, brnoc_end_of_reception, hermes_end_of_reception)
     begin
-        case InputFSM_PS is
+        case InFSM_PS is
         
             when IN_WAIT =>
 
                 if hermes_input_request='1' then
-                    InputFSM_NS <= IN_HERMES;
+                    InFSM_NS <= IN_HERMES;
                 elsif brnoc_input_request='1' then
-                    InputFSM_NS <= IN_BRNOC;
+                    InFSM_NS <= IN_BRNOC;
                 else
-                    InputFSM_NS <= IN_WAIT;
+                    InFSM_NS <= IN_WAIT;
                 end if;
 
             when IN_BRNOC =>
 
                 if brnoc_end_of_reception='1' then
-                    InputFSM_NS <= IN_WAIT;
+                    InFSM_NS <= IN_WAIT;
                 else
-                    InputFSM_NS <= IN_BRNOC;
+                    InFSM_NS <= IN_BRNOC;
                 end if;
             
             when IN_HERMES =>
             
                 if hermes_end_of_reception='1' then
-                    InputFSM_NS <= IN_WAIT;
+                    InFSM_NS <= IN_WAIT;
                 else
-                    InputFSM_NS <= IN_HERMES;
+                    InFSM_NS <= IN_HERMES;
                 end if;
             
         end case;

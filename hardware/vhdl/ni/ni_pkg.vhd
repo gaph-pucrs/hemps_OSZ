@@ -20,7 +20,7 @@ package ni_pkg is
     subtype regN_path       is std_logic_vector(2 downto 0);
     subtype regN_burstSize  is std_logic_vector(2 downto 0);
     
-    constant CONFIG_PERIPH_SERVICE              : regword := "02000010";
+    constant CONFIG_PERIPH_SERVICE              : regword := x"02000010";
     
     constant SERVICE_FLIT                       : integer := 7;
     constant APPID_FLIT_CONFIG_PERIPH_SERVICE   : integer := 10;
