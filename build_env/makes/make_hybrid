@@ -27,6 +27,7 @@ NI_SC			 		=NetworkInterfaceWrapped2
 #vhdl files
 HEMPS_PKG	=hemps_pkg
 STAND		=standards
+STAND_NI	=ni_pkg
 SEEK_VHD 	=seek_pkg logging router_seek
 #SEEK_VHD 	=seek_pkg router_seek
 ROUTER_VHD 	=Hermes_buffer Hermes_crossbar Hermes_switchcontrol_SR mux_control RouterCC_SR
@@ -48,6 +49,7 @@ INJECTOR_SRC			= $(addprefix sc/peripherals/IO_peripheral/, 	$(INJECTOR_SC:=.cpp
 #vhdl files
 HEMPS_PKG_SRC	= $(addprefix ../include/, 				$(HEMPS_PKG:=.vhd) 					)
 STAND_SRC	    = $(addprefix vhdl/, 					$(STAND:=.vhd) 						)
+STAND_NI_SRC	= $(addprefix vhdl/ni/,					$(STAND_NI:=.vhd)					)
 ROUTER_VHD_SRC	= $(addprefix vhdl/pe/router/, 			$(ROUTER_VHD:=.vhd)					)
 SEEK_VHD_SRC	= $(addprefix vhdl/pe/router/seek/, 	$(SEEK_VHD:=.vhd)					)
 NI_VHD_SRC		= $(addprefix vhdl/ni/,					$(NI_VHD:=.vhd)						)
@@ -68,7 +70,7 @@ FAIL_WRAPPER_MODULE_TGT	=$(addprefix $(TGT_SCCOM_PATH), $(FAIL_WRAPPER_MODULE_SC
 IO_PERIPHERAL_TGT		=$(addprefix $(TGT_SCCOM_PATH), $(IO_PERIPHERAL_SC:=.o))
 INJECTOR_TGT			=$(addprefix $(TGT_SCCOM_PATH), $(INJECTOR_SC:=.o))
 
-default: lib $(HEMPS_PKG) $(STAND) $(ROUTER_VHD) $(SEEK_VHD) $(NI_VHD) $(ROUTER_TGT) $(SEEK_TGT) $(NI_TGT) $(FIFO_PDN_TGT) $(FAIL_WRAPPER_MODULE_TGT) $(PROCESSOR_TGT) $(DMNI_TGT) $(MEMORY_TGT) $(PE_TGT) $(IO_PERIPHERAL_TGT) $(INJECTOR_TGT)  $(TOP_TGT)
+default: lib $(HEMPS_PKG) $(STAND) $(STAND_NI) $(ROUTER_VHD) $(SEEK_VHD) $(NI_VHD) $(ROUTER_TGT) $(SEEK_TGT) $(NI_TGT) $(FIFO_PDN_TGT) $(FAIL_WRAPPER_MODULE_TGT) $(PROCESSOR_TGT) $(DMNI_TGT) $(MEMORY_TGT) $(PE_TGT) $(IO_PERIPHERAL_TGT) $(INJECTOR_TGT)  $(TOP_TGT)
 	@sccom -B/usr/bin -link
 
 lib:
@@ -80,6 +82,10 @@ $(HEMPS_PKG): $(HEMPS_PKG_SRC)
 	$(VHD_C) $(dir $<)$@.vhd
 
 $(STAND): $(STAND_SRC)
+	@printf "${COR}Compiling VHDL source: %s ...${NC}\n" "$(dir $<)$@.vhd"
+	$(VHD_C) $(dir $<)$@.vhd
+
+$(STAND_NI): $(STAND_NI_SRC)
 	@printf "${COR}Compiling VHDL source: %s ...${NC}\n" "$(dir $<)$@.vhd"
 	$(VHD_C) $(dir $<)$@.vhd
 

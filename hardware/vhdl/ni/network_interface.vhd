@@ -4,7 +4,7 @@ use ieee.std_logic_unsigned.all;
 use ieee.std_logic_arith.all;
 use work.standards.all;
 use work.seek_pkg.all;
-use work.ni_defines.all;
+use work.ni_pkg.all;
 
 entity network_interface is
     port
