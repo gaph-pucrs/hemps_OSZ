@@ -1,0 +1,6 @@
+  - name: prod_cons
+    start_time_ms: {4} #any unsigned integer number
+    secure: {5}
+    static_mapping:
+      cons: [{0},{1}]
+      prod: [{2},{3}]

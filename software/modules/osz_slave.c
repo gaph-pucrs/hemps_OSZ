@@ -99,11 +99,17 @@ void Set_Secure_Zone(unsigned int left_low_corner, unsigned int right_high_corne
   puts("write wrapper: ");puts(itoh(isolated_ports));puts("\n");
 	if(isolated_ports != 0){
 		wrapper_value = isolated_ports;
-		//MemoryWrite(WRAPPER_REGISTER,isolated_ports);
+		MemoryWrite(WRAPPER_REGISTER,isolated_ports);
     seek_puts("[Set Secure Zone] LOCAL_right_high_corner = "); seek_puts(itoa(LOCAL_right_high_corner)); puts("\n");
 		if((my_X_addr == RH_X_addr) && (my_Y_addr == RH_Y_addr)){
+      #ifdef GRAY_AREA
+      puts("ENDSZ RH:");puts(itoh(LOCAL_right_high_corner));puts("\n");
+      Seek(SECURE_ZONE_CLOSED_SERVICE, get_net_address(), master_PE, LOCAL_right_high_corner);
+      config_AP_SZ();
+      #else 
 			Seek(SET_SZ_RECEIVED_SERVICE, get_net_address(), master_PE, right_high_corner);
-			seek_puts("SET SZ RH: ");seek_puts(itoh(LOCAL_right_high_corner));seek_puts("\n");	
+			seek_puts("SET SZ RH: ");seek_puts(itoh(LOCAL_right_high_corner));seek_puts("\n");
+      #endif	
 		}
 		seek_puts("wrapper: ");seek_puts(itoh(isolated_ports));seek_puts("\n");
 	}
@@ -234,7 +240,6 @@ if(!noCut){
       isolated_ports = isolated_ports - 0xC0;    
 }
 
-}
   //if(isolated_ports != previous_isolated){
   	puts("write wrapper: ");puts(itoh(isolated_ports));puts("\n");
     MemoryWrite(WRAPPER_REGISTER,isolated_ports);
@@ -863,6 +868,7 @@ void config_AP_SZ(){ // io_service: 0 - request; 1 - delivery
 
     puts("AP address: "); puts(itoh(address_go)); puts("\n");
 
+  Seek(SET_AP_SERVICE, get_net_address(), address_go, port_go);
     //-----------------------------------------------------------------------------
     //OUT_WRAPPER
 	p->header[MAX_SOURCE_ROUTING_PATH_SIZE-2] = (0x1 << 28) | (KE_OSZ << 16) | address_go;

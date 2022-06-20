@@ -1,0 +1,3 @@
+Initializing PE: 0x00000203
+Cluster Master Address: 0x00000003
+Received SET_EXCESS_SZ_SERVICE

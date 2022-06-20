@@ -54,7 +54,8 @@ package seek_pkg is
     constant    SEARCHPATH_SERVICE                      : std_logic_vector(TAM_SERVICE_SEEK-1 downto 0) := "00101";
     constant    END_TASK_SERVICE                        : std_logic_vector(TAM_SERVICE_SEEK-1 downto 0) := "00110";
     constant    SET_SECURE_ZONE_SERVICE                 : std_logic_vector(TAM_SERVICE_SEEK-1 downto 0) := "00111";
-    constant    PACKET_RESEND_SERVICE                   : std_logic_vector(TAM_SERVICE_SEEK-1 downto 0) := "01000";
+    constant    SET_AP_SERVICE                          : std_logic_vector(TAM_SERVICE_SEEK-1 downto 0) := "01000";
+    -- constant    PACKET_RESEND_SERVICE                   : std_logic_vector(TAM_SERVICE_SEEK-1 downto 0) := "01000";
     constant    WARD_SERVICE                            : std_logic_vector(TAM_SERVICE_SEEK-1 downto 0) := "01001";
     constant    OPEN_SECURE_ZONE_SERVICE                : std_logic_vector(TAM_SERVICE_SEEK-1 downto 0) := "01010";
     constant    SECURE_ZONE_CLOSED_SERVICE              : std_logic_vector(TAM_SERVICE_SEEK-1 downto 0) := "01011";
@@ -65,6 +66,8 @@ package seek_pkg is
     constant    TASK_ALLOCATED_SERVICE                  : std_logic_vector(TAM_SERVICE_SEEK-1 downto 0) := "10000";
     constant    INITIALIZE_SLAVE_SERVICE                : std_logic_vector(TAM_SERVICE_SEEK-1 downto 0) := "10001";
     constant    INITIALIZE_CLUSTER_SERVICE              : std_logic_vector(TAM_SERVICE_SEEK-1 downto 0) := "10010";
+    constant    MSG_DELIVERY_CONTROL                    : std_logic_vector(TAM_SERVICE_SEEK-1 downto 0) := "10011";
+    constant    MSG_REQUEST_CONTROL                     : std_logic_vector(TAM_SERVICE_SEEK-1 downto 0) := "10100";
     --constant    LOAN_PROCESSOR_REQUEST_SERVICE          : std_logic_vector(TAM_SERVICE_SEEK-1 downto 0) := "10011"; --
     --constant    LOAN_PROCESSOR_RELEASE_SERVICE          : std_logic_vector(TAM_SERVICE_SEEK-1 downto 0) := "10100"; --
     constant    END_TASK_OTHER_CLUSTER_SERVICE          : std_logic_vector(TAM_SERVICE_SEEK-1 downto 0) := "10101";
@@ -78,8 +81,7 @@ package seek_pkg is
     constant    SET_SZ_RECEIVED_SERVICE                 : std_logic_vector(TAM_SERVICE_SEEK-1 downto 0) := "11101";
     constant    SET_EXCESS_SZ_SERVICE                   : std_logic_vector(TAM_SERVICE_SEEK-1 downto 0) := "11110";
     constant    RCV_FREEZE_TASK_SERVICE                 : std_logic_vector(TAM_SERVICE_SEEK-1 downto 0) := "11111";
-    constant    MSG_DELIVERY_CONTROL                     : std_logic_vector(TAM_SERVICE_SEEK-1 downto 0) := "10011";
-    constant    MSG_REQUEST_CONTROL                     : std_logic_vector(TAM_SERVICE_SEEK-1 downto 0) := "10100";
+
 
 	subtype		regNtarget								is std_logic_vector((TARGET_SIZE-1) downto 0);
 	subtype		regNsource								is std_logic_vector((SOURCE_SIZE-1) downto 0);

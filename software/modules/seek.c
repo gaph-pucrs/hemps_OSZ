@@ -159,7 +159,7 @@ void Seek(unsigned int service, unsigned int source, unsigned int target, unsign
 		MemoryWrite(SEEK_SOURCE_REGISTER,source);
 		MemoryWrite(SEEK_PAYLOAD_REGISTER, payload);
 		switch(service){
-			case PACKET_RESEND_SERVICE:
+			case SET_AP_SERVICE:
 			case CLEAR_SERVICE:
 			case END_TASK_SERVICE:
 			case END_TASK_OTHER_CLUSTER_SERVICE:

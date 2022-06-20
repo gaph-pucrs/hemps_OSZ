@@ -1,0 +1,3 @@
+0x0		0x00000000	repo address		[aes_IO]
+0x4		0x00000000	start time in ms	[aes_IO]
+0x8		0xdeadc0de	end of file indicator

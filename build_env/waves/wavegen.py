@@ -6,7 +6,7 @@ if len(argv) == 6:
 	MAX_Y=int(MAX_Y)
 	MAX_CLUSTER_X=int(MAX_CLUSTER_X)
 	MAX_CLUSTER_Y=int(MAX_CLUSTER_Y)
-	master_pe=int(master_posX, posY)
+	master_pe=int(master_pe)
 elif len(argv) == 5:
 	scriptname,MAX_X,MAX_Y,MAX_CLUSTER_X,MAX_CLUSTER_Y = argv
 	MAX_X=int(MAX_X)
@@ -47,13 +47,18 @@ print ("onerror {resume}\n\
 quietly WaveActivateNextPane {} 0\n")
 
 # print "printing MPSOC %dx%d master on %d" % (MAX_X,MAX_Y,master_posX, posY)
-print (f"MAX_X = {MAX_X:d} \n"
-+ f"MAX_Y = {MAX_Y:d} \n"
-+ f"MAX_CLUSTER_X = {MAX_CLUSTER_X:d} \n"
-+ f"MAX_CLUSTER_Y = {MAX_CLUSTER_Y:d}")
+# print (f"MAX_X = {MAX_X:d} \n"
+# + f"MAX_Y = {MAX_Y:d} \n"
+# + f"MAX_CLUSTER_X = {MAX_CLUSTER_X:d} \n"
+# + f"MAX_CLUSTER_Y = {MAX_CLUSTER_Y:d}")
 
 for pe in range(0,max_pe):
-	if MAX_CLUSTER_X == 0:
+	if(MAX_CLUSTER_X == MAX_X and  MAX_CLUSTER_Y == MAX_Y): # Sem clusterização
+		if master_pe==pe:
+			pe_type_str="local"
+		else:
+			pe_type_str="slave"
+	elif MAX_CLUSTER_X == 0:
 		if master_pe==pe:
 			pe_type_str="local"
 		else:
@@ -79,12 +84,12 @@ for pe in range(0,max_pe):
 
 	#pe signals
 	group_pe_signals_pfx = "add wave -noupdate -group {%s %dx%d - %d} -group pe /test_bench/HeMPS/%s%dx%d/" % (pe_type_str, posX, posY, pe, pe_type_str, posX, posY)
-	group_pe_signals_sds = ['irq','int_seek','irq_mask_reg','irq_status','cpu/mem_address','cpu/mem_byte_we','cpu/mem_data_r','cpu/mem_data_w','cpu/page']
+	group_pe_signals_sds = ['irq','int_seek','irq_mask_reg','irq_status','cpu/mem_address','cpu/mem_byte_we','cpu/mem_data_r','cpu/mem_data_w','cpu/page','ap_mask','ke','kap']
 	for it in map(lambda sd: group_pe_signals_pfx + sd,group_pe_signals_sds):
 		print (it)
 	#faults signals
 	group_faults_signals_pfx = "add wave -noupdate -group {%s %dx%d - %d} -group faults /test_bench/HeMPS/%s%dx%d/" % (pe_type_str, posX, posY, pe, pe_type_str, posX, posY)
-	group_faults_signals_sds = ['clock','external_fail_in','external_fail_out','fail_in','router_fail_in','router_fail_out','wrapper_reg']
+	group_faults_signals_sds = ['clock','external_fail_in','external_fail_out','fail_in','fail_out','router_fail_in','router_fail_out','wrapper_reg']
 	for it in map(lambda sd: group_faults_signals_pfx + sd,group_faults_signals_sds):
 		print (it)
 
@@ -140,7 +145,7 @@ for pe in range(0,max_pe):
 	print (dmni_signals_pfx+"DMNI_Send")
 
 	router_pfx = "add wave -noupdate -group {%s %dx%d - %d} -group {switch control} /test_bench/HeMPS/%s%dx%d/RouterCCwrapped/RouterCC/SwitchControl_SR_write/" % 					(pe_type_str, posX, posY, pe, pe_type_str, posX, posY)
-	router_sds = ["EA","ask","shift_counter","Xsource","Ysource","ack_routing","address","clock","data_in_header","data_in_header_fixed","dirx","diry","enable_shift","flit_type","even_line", "free_port","header","header_fixed","lx","ly","next_flit","priority","prox","req_routing" ,"reset","rot_table","routing","sel","sender","sr_channel_0","sr_port_0","sr_valid_0","source" ,"target","target_internal","try_again","tx","ty","w_addr","w_source_target"]
+	router_sds = ["EA","ask","ack_routing","address","clock","data_in_header","data_in_header_fixed","dirx","diry","enable_shift", "free_port","header","header_fixed","lx","next_flit","prox","req_routing" ,"reset","rot_table","sel","sender","source" ,"target","target_internal","try_again","tx","w_addr","w_source_target"]
 	for it in map (lambda sd: router_pfx + sd, router_sds):
 		print (it)
 
@@ -177,7 +182,7 @@ for it in map(lambda sd: injectors_pfx + sd, injectors_sds):
 
 #IO_PERIPHERAL SIGNALS
 io_peripheral_pfx="add wave -noupdate -group IO_PERIPHERAL /test_bench/IO_PERIPHERAL/"
-io_peripheral_sds=["clock", "reset", "in_source_router_seek_primary", "in_target_router_seek_primary", "in_payload_router_seek_primary", "in_service_router_seek_primary", "in_req_router_seek_primary", "in_ack_router_seek_primary", "in_opmode_router_seek_primary", "out_service_router_seek_primary", "out_source_router_seek_primary", "out_target_router_seek_primary", "out_payload_router_seek_primary", "out_ack_router_seek_primary", "out_req_router_seek_primary", "out_nack_router_seek_primary", "out_opmode_router_seek_primary", "clock_tx_primary", "tx_primary", "data_out_primary", "credit_i_primary", "eop_in_primary", "clock_rx_primary", "rx_primary", "data_in_primary", "credit_o_primary", "eop_out_primary", "EA_in", "EA_out"]
+io_peripheral_sds=["clock", "reset", "in_source_router_seek_primary", "in_target_router_seek_primary", "in_payload_router_seek_primary", "in_service_router_seek_primary", "in_req_router_seek_primary", "in_ack_router_seek_primary", "in_opmode_router_seek_primary", "out_service_router_seek_primary", "out_source_router_seek_primary", "out_target_router_seek_primary", "out_payload_router_seek_primary", "out_ack_router_seek_primary", "out_req_router_seek_primary", "out_nack_router_seek_primary", "out_opmode_router_seek_primary", "clock_tx_primary", "tx_primary", "data_out_primary", "credit_i_primary", "eop_in_primary", "clock_rx_primary", "rx_primary", "data_in_primary", "credit_o_primary", "eop_out_primary", "EA_in", "EA_out", "SR_path"]
 for it in map(lambda sd: io_peripheral_pfx + sd, io_peripheral_sds):
 	print (it)
 

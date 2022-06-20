@@ -1,0 +1,41 @@
+Initializing PE: 0x00000302
+Cluster Master Address: 0x00000003
+Task id: 10 released at 31802
+Task id: 10 allocated at 118351
+Task Allocated SEGURA: 0x0000000a
+Send Task Allocated (TA): 10
+write wrapper: 0x00000030
+
+Received SET_EXCESS_SZ_SERVICE
+write wrapper: 0x00000030
+143350_3x2_0_10_143036
+143911_3x2_0_10_task AES SLAVE started - ID:
+185445_3x2_0_10_7
+186008_3x2_0_10_Operation:
+186581_3x2_0_10_0
+187141_3x2_0_10_Blocks:
+187750_3x2_0_10_2
+216624_3x2_0_10_encript
+217395_3x2_0_10_ROUND 0 finished.
+226721_3x2_0_10_ROUND Final finished.
+272869_3x2_0_10_encript
+273640_3x2_0_10_ROUND 0 finished.
+282966_3x2_0_10_ROUND Final finished.
+327715_3x2_0_10_Operation:
+328324_3x2_0_10_1
+328884_3x2_0_10_Blocks:
+329493_3x2_0_10_2
+343545_3x2_0_10_decript
+344314_3x2_0_10_ROUND 0 finished.
+354622_3x2_0_10_ROUND Final finished.
+384160_3x2_0_10_decript
+384929_3x2_0_10_ROUND 0 finished.
+395237_3x2_0_10_ROUND Final finished.
+443902_3x2_0_10_Operation:
+444511_3x2_0_10_2
+445071_3x2_0_10_Blocks:
+445644_3x2_0_10_0
+446206_3x2_0_10_task AES SLAVE finished  - ID: 
+446817_3x2_0_10_7
+447690_3x2_0_10_447376
+Task id: 10 terminated at 448352

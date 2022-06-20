@@ -1,0 +1,1333 @@
+{"entradas":[
+{
+ "fsm1":0,
+ "fsm2":0,
+ "in_req":"00000",
+ "in_ack":"01001",
+ "in_nack":"00000",
+ "in_fail":"00000",
+ "in_opmode":"00110",
+ "fail_with_mode_in":"00000",
+ "sel_port":4,
+ "free_index":0,
+ "in_source":"00x00",
+ "in_id":"0000000000000000",
+ "in_target":"00x00",
+ "in_service":"00000",
+ "in_payload":"00000000",
+ "sel":0,
+ "used_table":"00000000",
+ "out_source":"00x00",
+ "out_id":"0000000000000000",
+ "out_target":"00x00",
+ "out_service":"00000",
+ "out_payload":"00000000",
+ "pending_local":"00000000",
+ "pending_table":"00000000",
+ "in_ack_send_kernel_seek":"0",
+ "out_req":"00000",
+ "out_ack":"00000",
+ "out_nack":"00000",
+ "out_opmode":"11111",
+ "fail_with_mode_out":"00000",
+ "tick":0
+}
+,
+{
+ "out_req":"00000",
+ "tick":1
+}
+,
+{
+ "in_opmode":"00000",
+ "tick":183
+}
+,
+{
+ "in_req":"00110",
+ "tick":187
+}
+,
+{
+ "fsm1":1,
+ "tick":188
+}
+,
+{
+ "fsm1":2,
+ "sel_port":1,
+ "in_source":"00x03",
+ "in_id":"0000000000010010",
+ "in_service":"10010",
+ "tick":189
+}
+,
+{
+ "fsm1":3,
+ "tick":190
+}
+,
+{
+ "fsm1":4,
+ "tick":191
+}
+,
+{
+ "fsm1":5,
+ "tick":192
+}
+,
+{
+ "fsm1":9,
+ "free_index":1,
+ "used_table":"00000001",
+ "out_source":"00x03",
+ "out_id":"0000000000010010",
+ "out_target":"00x00",
+ "out_service":"10010",
+ "out_payload":"00000000",
+ "pending_table":"00000001",
+ "out_ack":"00010",
+ "out_opmode":"00000",
+ "tick":193
+}
+,
+{
+ "fsm2":1,
+ "in_req":"00100",
+ "tick":194
+}
+,
+{
+ "fsm1":0,
+ "fsm2":2,
+ "tick":195
+}
+,
+{
+ "fsm1":1,
+ "fsm2":11,
+ "out_ack":"00000",
+ "tick":196
+}
+,
+{
+ "fsm1":2,
+ "fsm2":12,
+ "sel_port":2,
+ "out_req":"01101",
+ "tick":197
+}
+,
+{
+ "fsm1":3,
+ "out_req":"00100",
+ "tick":198
+}
+,
+{
+ "fsm1":4,
+ "out_ack":"00100",
+ "tick":199
+}
+,
+{
+ "fsm1":11,
+ "in_req":"00000",
+ "tick":200
+}
+,
+{
+ "fsm1":10,
+ "in_ack":"01101",
+ "tick":201
+}
+,
+{
+ "fsm1":0,
+ "out_req":"00000",
+ "tick":202
+}
+,
+{
+ "fsm2":10,
+ "pending_table":"00000000",
+ "out_ack":"00000",
+ "tick":203
+}
+,
+{
+ "in_ack":"01001",
+ "out_req":"10000",
+ "tick":204
+}
+,
+{
+ "in_ack":"11001",
+ "tick":207
+}
+,
+{
+ "fsm2":0,
+ "tick":208
+}
+,
+{
+ "out_req":"00000",
+ "tick":209
+}
+,
+{
+ "in_ack":"01001",
+ "tick":211
+}
+,
+{
+ "in_service":"00011",
+ "tick":258
+}
+,
+{
+ "in_req":"00110",
+ "tick":262
+}
+,
+{
+ "fsm1":1,
+ "tick":263
+}
+,
+{
+ "fsm1":2,
+ "sel_port":1,
+ "tick":264
+}
+,
+{
+ "fsm1":3,
+ "tick":265
+}
+,
+{
+ "fsm1":4,
+ "tick":266
+}
+,
+{
+ "fsm1":7,
+ "tick":267
+}
+,
+{
+ "fsm1":8,
+ "tick":268
+}
+,
+{
+ "fsm1":9,
+ "out_service":"00011",
+ "pending_table":"00000001",
+ "out_ack":"00010",
+ "tick":269
+}
+,
+{
+ "fsm2":1,
+ "in_req":"00100",
+ "tick":270
+}
+,
+{
+ "fsm1":0,
+ "fsm2":2,
+ "tick":271
+}
+,
+{
+ "fsm1":1,
+ "fsm2":11,
+ "out_ack":"00000",
+ "tick":272
+}
+,
+{
+ "fsm1":2,
+ "fsm2":12,
+ "sel_port":2,
+ "out_req":"01111",
+ "tick":273
+}
+,
+{
+ "fsm1":3,
+ "out_req":"00110",
+ "tick":274
+}
+,
+{
+ "fsm1":4,
+ "tick":275
+}
+,
+{
+ "fsm1":7,
+ "tick":276
+}
+,
+{
+ "fsm1":8,
+ "tick":277
+}
+,
+{
+ "fsm1":9,
+ "out_ack":"00100",
+ "tick":278
+}
+,
+{
+ "in_req":"00000",
+ "tick":279
+}
+,
+{
+ "fsm1":0,
+ "in_ack":"01111",
+ "tick":280
+}
+,
+{
+ "out_req":"00000",
+ "out_ack":"00000",
+ "tick":281
+}
+,
+{
+ "fsm2":8,
+ "pending_table":"00000000",
+ "tick":282
+}
+,
+{
+ "in_ack":"01001",
+ "free_index":0,
+ "used_table":"00000000",
+ "tick":283
+}
+,
+{
+ "fsm2":0,
+ "tick":284
+}
+,
+{
+ "in_id":"0000000000010001",
+ "in_service":"10001",
+ "in_payload":"00110011",
+ "tick":2800
+}
+,
+{
+ "in_req":"00110",
+ "tick":2804
+}
+,
+{
+ "fsm1":1,
+ "tick":2805
+}
+,
+{
+ "fsm1":2,
+ "sel_port":1,
+ "tick":2806
+}
+,
+{
+ "fsm1":3,
+ "tick":2807
+}
+,
+{
+ "fsm1":4,
+ "tick":2808
+}
+,
+{
+ "fsm1":5,
+ "tick":2809
+}
+,
+{
+ "fsm1":9,
+ "free_index":1,
+ "used_table":"00000001",
+ "out_id":"0000000000010001",
+ "out_service":"10001",
+ "out_payload":"00110011",
+ "pending_table":"00000001",
+ "out_ack":"00010",
+ "tick":2810
+}
+,
+{
+ "fsm2":1,
+ "in_req":"00100",
+ "tick":2811
+}
+,
+{
+ "fsm1":0,
+ "fsm2":2,
+ "tick":2812
+}
+,
+{
+ "fsm1":1,
+ "fsm2":11,
+ "out_ack":"00000",
+ "tick":2813
+}
+,
+{
+ "fsm1":2,
+ "fsm2":12,
+ "sel_port":2,
+ "out_req":"01101",
+ "tick":2814
+}
+,
+{
+ "fsm1":3,
+ "out_req":"00100",
+ "tick":2815
+}
+,
+{
+ "fsm1":4,
+ "out_ack":"00100",
+ "tick":2816
+}
+,
+{
+ "fsm1":11,
+ "in_req":"00000",
+ "tick":2817
+}
+,
+{
+ "fsm1":10,
+ "in_ack":"01101",
+ "tick":2818
+}
+,
+{
+ "fsm1":0,
+ "out_req":"00000",
+ "tick":2819
+}
+,
+{
+ "fsm2":10,
+ "pending_table":"00000000",
+ "out_ack":"00000",
+ "tick":2820
+}
+,
+{
+ "in_ack":"01001",
+ "out_req":"10000",
+ "tick":2821
+}
+,
+{
+ "in_ack":"11001",
+ "tick":2824
+}
+,
+{
+ "fsm2":0,
+ "tick":2825
+}
+,
+{
+ "out_req":"00000",
+ "tick":2826
+}
+,
+{
+ "in_ack":"01001",
+ "tick":2828
+}
+,
+{
+ "in_service":"00011",
+ "tick":3211
+}
+,
+{
+ "in_req":"00100",
+ "tick":3215
+}
+,
+{
+ "fsm1":1,
+ "tick":3216
+}
+,
+{
+ "fsm1":2,
+ "tick":3217
+}
+,
+{
+ "fsm1":3,
+ "tick":3218
+}
+,
+{
+ "fsm1":4,
+ "tick":3219
+}
+,
+{
+ "fsm1":7,
+ "tick":3220
+}
+,
+{
+ "fsm1":8,
+ "tick":3221
+}
+,
+{
+ "fsm1":9,
+ "out_service":"00011",
+ "pending_table":"00000001",
+ "out_ack":"00100",
+ "tick":3222
+}
+,
+{
+ "fsm2":1,
+ "in_req":"00000",
+ "tick":3223
+}
+,
+{
+ "fsm1":0,
+ "fsm2":2,
+ "tick":3224
+}
+,
+{
+ "fsm2":11,
+ "out_ack":"00000",
+ "tick":3225
+}
+,
+{
+ "fsm2":12,
+ "out_req":"01111",
+ "tick":3226
+}
+,
+{
+ "out_req":"00110",
+ "tick":3227
+}
+,
+{
+ "in_req":"00010",
+ "tick":3233
+}
+,
+{
+ "fsm1":1,
+ "tick":3234
+}
+,
+{
+ "fsm1":2,
+ "sel_port":1,
+ "tick":3235
+}
+,
+{
+ "fsm1":3,
+ "in_ack":"01101",
+ "tick":3236
+}
+,
+{
+ "fsm1":4,
+ "out_req":"00010",
+ "tick":3237
+}
+,
+{
+ "fsm1":7,
+ "in_ack":"01111",
+ "tick":3238
+}
+,
+{
+ "fsm1":8,
+ "in_ack":"01011",
+ "out_req":"00000",
+ "tick":3239
+}
+,
+{
+ "fsm1":9,
+ "fsm2":8,
+ "pending_table":"00000000",
+ "out_ack":"00010",
+ "tick":3240
+}
+,
+{
+ "in_req":"00000",
+ "in_ack":"01001",
+ "tick":3241
+}
+,
+{
+ "fsm1":0,
+ "tick":3242
+}
+,
+{
+ "free_index":0,
+ "used_table":"00000000",
+ "out_ack":"00000",
+ "tick":3243
+}
+,
+{
+ "fsm2":0,
+ "tick":3244
+}
+,
+{
+ "in_id":"0000000000000000",
+ "in_service":"11100",
+ "in_payload":"00000000",
+ "tick":3252
+}
+,
+{
+ "in_req":"00110",
+ "tick":3254
+}
+,
+{
+ "fsm1":1,
+ "tick":3255
+}
+,
+{
+ "fsm1":2,
+ "sel_port":2,
+ "tick":3256
+}
+,
+{
+ "fsm1":3,
+ "tick":3257
+}
+,
+{
+ "fsm1":4,
+ "tick":3258
+}
+,
+{
+ "fsm1":5,
+ "tick":3259
+}
+,
+{
+ "fsm1":9,
+ "free_index":1,
+ "used_table":"00000001",
+ "out_id":"0000000000000000",
+ "out_service":"11100",
+ "out_payload":"00000000",
+ "pending_table":"00000001",
+ "out_ack":"00100",
+ "tick":3260
+}
+,
+{
+ "fsm2":1,
+ "in_req":"00010",
+ "tick":3261
+}
+,
+{
+ "fsm1":0,
+ "fsm2":2,
+ "tick":3262
+}
+,
+{
+ "fsm1":1,
+ "fsm2":11,
+ "out_ack":"00000",
+ "tick":3263
+}
+,
+{
+ "fsm1":2,
+ "fsm2":12,
+ "sel_port":1,
+ "out_req":"01011",
+ "tick":3264
+}
+,
+{
+ "fsm1":3,
+ "out_req":"00010",
+ "tick":3265
+}
+,
+{
+ "fsm1":4,
+ "out_ack":"00010",
+ "tick":3266
+}
+,
+{
+ "fsm1":11,
+ "in_req":"00000",
+ "tick":3267
+}
+,
+{
+ "fsm1":10,
+ "in_ack":"01011",
+ "tick":3268
+}
+,
+{
+ "fsm1":0,
+ "out_req":"00000",
+ "tick":3269
+}
+,
+{
+ "fsm2":10,
+ "pending_table":"00000000",
+ "out_ack":"00000",
+ "tick":3270
+}
+,
+{
+ "in_ack":"01001",
+ "out_req":"10000",
+ "tick":3271
+}
+,
+{
+ "in_ack":"11001",
+ "tick":3274
+}
+,
+{
+ "fsm2":0,
+ "tick":3275
+}
+,
+{
+ "out_req":"00000",
+ "tick":3276
+}
+,
+{
+ "in_ack":"01001",
+ "in_opmode":"00100",
+ "tick":3278
+}
+,
+{
+ "in_req":"00100",
+ "tick":3280
+}
+,
+{
+ "fsm1":1,
+ "tick":3281
+}
+,
+{
+ "fsm1":2,
+ "in_opmode":"00110",
+ "sel_port":2,
+ "in_source":"00x5A",
+ "in_service":"11010",
+ "in_payload":"00000110",
+ "tick":3282
+}
+,
+{
+ "fsm1":3,
+ "tick":3283
+}
+,
+{
+ "fsm1":4,
+ "in_req":"00110",
+ "tick":3284
+}
+,
+{
+ "fsm1":5,
+ "tick":3285
+}
+,
+{
+ "fsm1":9,
+ "free_index":2,
+ "used_table":"00000011",
+ "pending_table":"00000010",
+ "out_ack":"00100",
+ "tick":3286
+}
+,
+{
+ "fsm2":1,
+ "in_req":"00010",
+ "tick":3287
+}
+,
+{
+ "fsm1":0,
+ "fsm2":2,
+ "sel":1,
+ "out_source":"00x5A",
+ "out_service":"11010",
+ "out_payload":"00000110",
+ "out_opmode":"11111",
+ "tick":3288
+}
+,
+{
+ "fsm1":1,
+ "fsm2":11,
+ "out_ack":"00000",
+ "tick":3289
+}
+,
+{
+ "fsm1":2,
+ "fsm2":12,
+ "sel_port":1,
+ "out_req":"01011",
+ "tick":3290
+}
+,
+{
+ "fsm1":3,
+ "out_req":"00010",
+ "tick":3291
+}
+,
+{
+ "fsm1":4,
+ "out_ack":"00010",
+ "tick":3292
+}
+,
+{
+ "fsm1":11,
+ "in_req":"00000",
+ "tick":3293
+}
+,
+{
+ "fsm1":10,
+ "tick":3294
+}
+,
+{
+ "fsm1":0,
+ "tick":3295
+}
+,
+{
+ "out_ack":"00000",
+ "tick":3296
+}
+,
+{
+ "in_ack":"01011",
+ "tick":3299
+}
+,
+{
+ "out_req":"00000",
+ "tick":3300
+}
+,
+{
+ "fsm2":10,
+ "pending_table":"00000000",
+ "tick":3301
+}
+,
+{
+ "in_ack":"01001",
+ "out_req":"10000",
+ "tick":3302
+}
+,
+{
+ "in_ack":"11001",
+ "tick":3305
+}
+,
+{
+ "fsm2":0,
+ "tick":3306
+}
+,
+{
+ "in_opmode":"00010",
+ "out_req":"00000",
+ "tick":3307
+}
+,
+{
+ "in_req":"00100",
+ "in_ack":"01001",
+ "tick":3309
+}
+,
+{
+ "fsm1":1,
+ "in_opmode":"00000",
+ "in_source":"00x03",
+ "in_service":"00011",
+ "in_payload":"00000000",
+ "tick":3310
+}
+,
+{
+ "fsm1":2,
+ "sel_port":2,
+ "tick":3311
+}
+,
+{
+ "fsm1":3,
+ "in_req":"00110",
+ "tick":3312
+}
+,
+{
+ "fsm1":4,
+ "tick":3313
+}
+,
+{
+ "fsm1":7,
+ "tick":3314
+}
+,
+{
+ "fsm1":8,
+ "tick":3315
+}
+,
+{
+ "fsm1":9,
+ "pending_table":"00000001",
+ "out_ack":"00100",
+ "tick":3316
+}
+,
+{
+ "fsm2":1,
+ "in_req":"00010",
+ "tick":3317
+}
+,
+{
+ "fsm1":0,
+ "fsm2":2,
+ "sel":0,
+ "out_source":"00x03",
+ "out_service":"00011",
+ "out_payload":"00000000",
+ "out_opmode":"00000",
+ "tick":3318
+}
+,
+{
+ "fsm1":1,
+ "fsm2":11,
+ "out_ack":"00000",
+ "tick":3319
+}
+,
+{
+ "fsm1":2,
+ "fsm2":12,
+ "sel_port":1,
+ "out_req":"01111",
+ "tick":3320
+}
+,
+{
+ "fsm1":3,
+ "out_req":"00110",
+ "tick":3321
+}
+,
+{
+ "fsm1":4,
+ "tick":3322
+}
+,
+{
+ "fsm1":7,
+ "tick":3323
+}
+,
+{
+ "fsm1":8,
+ "in_ack":"01101",
+ "tick":3324
+}
+,
+{
+ "fsm1":9,
+ "out_req":"00010",
+ "out_ack":"00010",
+ "tick":3325
+}
+,
+{
+ "in_req":"00000",
+ "tick":3326
+}
+,
+{
+ "fsm1":0,
+ "in_ack":"01011",
+ "tick":3327
+}
+,
+{
+ "out_req":"00000",
+ "out_ack":"00000",
+ "tick":3328
+}
+,
+{
+ "fsm2":8,
+ "pending_table":"00000000",
+ "tick":3329
+}
+,
+{
+ "in_ack":"01001",
+ "free_index":0,
+ "used_table":"00000010",
+ "tick":3330
+}
+,
+{
+ "fsm2":0,
+ "tick":3331
+}
+,
+{
+ "in_opmode":"00110",
+ "in_source":"00x5A",
+ "in_payload":"00000110",
+ "tick":3405
+}
+,
+{
+ "in_req":"00110",
+ "tick":3407
+}
+,
+{
+ "fsm1":1,
+ "tick":3408
+}
+,
+{
+ "fsm1":2,
+ "tick":3409
+}
+,
+{
+ "fsm1":3,
+ "tick":3410
+}
+,
+{
+ "fsm1":4,
+ "tick":3411
+}
+,
+{
+ "fsm1":7,
+ "tick":3412
+}
+,
+{
+ "fsm1":8,
+ "tick":3413
+}
+,
+{
+ "fsm1":9,
+ "pending_table":"00000010",
+ "out_ack":"00010",
+ "tick":3414
+}
+,
+{
+ "fsm2":1,
+ "in_req":"00100",
+ "tick":3415
+}
+,
+{
+ "fsm1":0,
+ "fsm2":2,
+ "sel":1,
+ "out_source":"00x5A",
+ "out_payload":"00000110",
+ "out_opmode":"11111",
+ "tick":3416
+}
+,
+{
+ "fsm1":1,
+ "fsm2":11,
+ "out_ack":"00000",
+ "tick":3417
+}
+,
+{
+ "fsm1":2,
+ "fsm2":12,
+ "sel_port":2,
+ "out_req":"01111",
+ "tick":3418
+}
+,
+{
+ "fsm1":3,
+ "out_req":"00110",
+ "tick":3419
+}
+,
+{
+ "fsm1":4,
+ "tick":3420
+}
+,
+{
+ "fsm1":7,
+ "tick":3421
+}
+,
+{
+ "fsm1":8,
+ "tick":3422
+}
+,
+{
+ "fsm1":9,
+ "out_ack":"00100",
+ "tick":3423
+}
+,
+{
+ "in_req":"00000",
+ "tick":3424
+}
+,
+{
+ "fsm1":0,
+ "in_ack":"01111",
+ "tick":3425
+}
+,
+{
+ "out_req":"00000",
+ "out_ack":"00000",
+ "tick":3426
+}
+,
+{
+ "fsm2":8,
+ "pending_table":"00000000",
+ "tick":3427
+}
+,
+{
+ "in_ack":"01001",
+ "used_table":"00000000",
+ "tick":3428
+}
+,
+{
+ "fsm2":0,
+ "tick":3429
+}
+,
+{
+ "in_opmode":"00100",
+ "tick":3578
+}
+,
+{
+ "in_opmode":"00000",
+ "in_source":"00x00",
+ "in_id":"0000110110001010",
+ "in_target":"00x03",
+ "in_service":"11011",
+ "in_payload":"01011010",
+ "tick":3580
+}
+,
+{
+ "in_req":"00110",
+ "tick":3582
+}
+,
+{
+ "fsm1":1,
+ "tick":3583
+}
+,
+{
+ "fsm1":2,
+ "sel_port":1,
+ "tick":3584
+}
+,
+{
+ "fsm1":3,
+ "tick":3585
+}
+,
+{
+ "fsm1":4,
+ "tick":3586
+}
+,
+{
+ "fsm1":5,
+ "tick":3587
+}
+,
+{
+ "fsm1":9,
+ "free_index":1,
+ "used_table":"00000001",
+ "pending_table":"00000001",
+ "out_ack":"00010",
+ "tick":3588
+}
+,
+{
+ "fsm2":1,
+ "in_req":"00100",
+ "tick":3589
+}
+,
+{
+ "fsm1":0,
+ "fsm2":2,
+ "sel":0,
+ "out_source":"00x00",
+ "out_id":"0000110110001010",
+ "out_target":"00x03",
+ "out_service":"11011",
+ "out_payload":"01011010",
+ "out_opmode":"00000",
+ "tick":3590
+}
+,
+{
+ "fsm1":1,
+ "fsm2":11,
+ "out_ack":"00000",
+ "tick":3591
+}
+,
+{
+ "fsm1":2,
+ "fsm2":12,
+ "sel_port":2,
+ "out_req":"01101",
+ "tick":3592
+}
+,
+{
+ "fsm1":3,
+ "out_req":"00100",
+ "tick":3593
+}
+,
+{
+ "fsm1":4,
+ "out_ack":"00100",
+ "tick":3594
+}
+,
+{
+ "fsm1":11,
+ "in_req":"00000",
+ "tick":3595
+}
+,
+{
+ "fsm1":10,
+ "tick":3596
+}
+,
+{
+ "fsm1":0,
+ "tick":3597
+}
+,
+{
+ "out_ack":"00000",
+ "tick":3598
+}
+,
+{
+ "in_service":"00011",
+ "tick":3599
+}
+,
+{
+ "in_ack":"01101",
+ "tick":3605
+}
+,
+{
+ "out_req":"00000",
+ "tick":3606
+}
+,
+{
+ "fsm2":0,
+ "pending_table":"00000000",
+ "tick":3607
+}
+,
+{
+ "in_ack":"01001",
+ "tick":3609
+}

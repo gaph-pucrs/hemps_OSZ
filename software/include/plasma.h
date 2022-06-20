@@ -93,6 +93,11 @@
 
 #define KERNEL_DEBUG_STATE	    0x20000558
 
+// Access Point registers
+#define KAP_REGISTER          0x20000560
+#define AP_MASK               0x20000564
+
+
 //Kernel pending service FIFO
 #define PENDING_SERVICE_INTR	0x20000400
 

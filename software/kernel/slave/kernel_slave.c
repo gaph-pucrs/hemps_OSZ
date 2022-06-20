@@ -611,7 +611,8 @@ int Syscall(unsigned int service, unsigned int arg0, unsigned int arg1, unsigned
   							auxBT >> 64 & 0xffffFFFF,
 							(PER_X_addr << 8) | PER_Y_addr);
 						// puts("--slot_adjust: ");puts(itoa(slotSR)); puts("\n");
-						auxBT = pathFromIO(auxBT);
+						// auxBT = pathFromIO(auxBT);
+						auxBT = IOtoAP(arg1);
 						puts("-- enviando caminho:");puts(itoh(auxBT)); puts("\n");
 						slotSR = GetFreeSlotSourceRouting(get_net_address());
 						// puts("--slot: ");puts(itoa(slotSR)); puts("\n");
@@ -1488,6 +1489,17 @@ int SeekInterruptHandler(){
 		case SET_SECURE_ZONE_SERVICE:
 			// seek_puts("Received SET_SECURE_ZONE"); seek_puts("\n");
 			Set_Secure_Zone(target, payload, source); // verificação interna
+		break;
+
+		case SET_AP_SERVICE:
+			puts("Received SET_AP_SERVICE"); seek_puts("\n");
+			MemoryWrite(KAP_REGISTER, 0x021);
+			puts("--source(caller): "); puts(itoh(source)); puts("\n");
+			puts("--target(AP addr): "); puts(itoh(target)); puts("\n");
+			puts("--payload(port): "); puts(itoh(payload)); puts("\n");
+
+			MemoryWrite(AP_MASK, 3 << (payload*2)); // Mascarar as duas portas, 01 - E, 23 - W, 45-N, 67-S 
+
 		break;
 
 		#ifdef SESSION_MANAGER
