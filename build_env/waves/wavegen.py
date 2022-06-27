@@ -186,6 +186,12 @@ io_peripheral_sds=["clock", "reset", "in_source_router_seek_primary", "in_target
 for it in map(lambda sd: io_peripheral_pfx + sd, io_peripheral_sds):
 	print (it)
 
+#NI SIGNALS
+ni_pfx="add wave -noupdate -group NI /test_bench/NI/network_interface/"
+ni_sds=["clock", "reset", "hermes_primary_rx", "hermes_primary_rx_clk", "hermes_primary_data_in", "hermes_primary_eop_in", "hermes_primary_credit_out", "next_free_slot", "InFSM_PS", "InFSM_NS", "received_flits", "hermes_input_request", "hermes_is_receiving", "hermes_end_of_reception", "hermes_in_pkt_service", "table"]
+for it in map(lambda sd: ni_pfx + sd, ni_sds):
+	print (it)
+
 
 print ("TreeUpdate [SetDefaultTree]\n\
 WaveRestoreCursors {{Cursor 1} {10 ps} 0}\n\

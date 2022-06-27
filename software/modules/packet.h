@@ -55,6 +55,7 @@ typedef struct {
 	   	unsigned int hops;
 	   	unsigned int period;
 		unsigned int io_port; 
+		unsigned int key_periph;
 	};
 
 	unsigned int source_PE;				//!<Store the packet source PE address

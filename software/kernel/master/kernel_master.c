@@ -734,14 +734,12 @@ void initialize_IO(int peripheralID){
 
 	ServiceHeader *p = get_service_header_slot();
 
-	p->service = IO_INIT;
-
-	p->requesting_processor = get_net_address();
+	p->service = 0x02000010;
+	p->app_ID = 0x24F;
+	p->key_periph = 0x67;
 
 	// p->task_ID = consumer_task;
-
-	p->peripheral_ID = peripheralID;
-
+	// p->peripheral_ID = peripheralID;
 	//add_msg_request(p->header[MAX_SOURCE_ROUTING_PATH_SIZE-1], consumer_task, peripheral_ID); //caimi: arrumar header
 
 	send_packet_io(p, 0, 0, peripheralID);

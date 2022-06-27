@@ -47,16 +47,9 @@ SC_MODULE(NetworkInterfaceWrapped)
 
     SC_HAS_PROCESS(NetworkInterfaceWrapped); //TODO: What does this line do? Can I remove it?
 
-	NetworkInterfaceWrapped(sc_module_name name_, regaddress address_ = 0x0000) : sc_module(name_), address(address_)
+	NetworkInterfaceWrapped(sc_module_name name_) : sc_module(name_)
 	{	 
-        //TODO: Pra que serve 'generic_list'? Mantenho? Troco 'router_address' por 'ni_address'? 
-        
-        //const char* generic_list[1];
-		//generic_list[0] = strdup("router_address=x\"AAAA\"");
-		//sprintf((char*) generic_list[0],"router_address=x\"%.4x\"",(int)address);
-
-		// network_interface = new NetworkInterface("NetworkInterface", "NetworkInterface", 0, generic_list);
-		network_interface = new NetworkInterface("NetworkInterface", "NetworkInterface");
+		network_interface = new NetworkInterface("network_interface", "network_interface");
         
         network_interface->clock(clock);
         network_interface->reset(reset);
@@ -91,10 +84,6 @@ SC_MODULE(NetworkInterfaceWrapped)
     }
 
     ~NetworkInterfaceWrapped(){}
-
-	public:
-		regaddress address;
-
 };
 
 #endif
