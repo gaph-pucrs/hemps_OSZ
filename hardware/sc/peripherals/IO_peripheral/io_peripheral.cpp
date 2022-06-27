@@ -61,10 +61,16 @@ void io_peripheral::SR_path_FSM(){
                     // if (reg_msg_size % 2 == 1)
                     //     SR_size[SR_index]  = reg_msg_size - 9;
                     // else
-                        SR_size[SR_index]  = reg_msg_size - 10;
+                    SR_size[SR_index]  = reg_msg_size - 10;
                     SR_used[SR_index]   = 1;
                     for(i = 0; i < SR_size[SR_index]; i++){
                         SR_path[SR_index][i]  = buffer_in_flit[i];
+                    }
+
+                    // if ((SR_path[SR_index][i-1] & 0x00ff ) == 0xee){ // Se os dois caminhos forem vazios, adiciona
+                    if ((SR_path[SR_index][i-1] & 0xff ) != 0xee){
+                        SR_size[SR_index]++;
+                        SR_path[SR_index][i] = 0x7eee;
                     }
 
                     for(i = 0; i < IO_SR_PATHS; i++){

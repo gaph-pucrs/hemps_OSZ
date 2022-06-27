@@ -8,7 +8,6 @@ rm -f $logs/*
 
 cd $testcases
 for appIO in aesIO dijkstraIO dtwIO fixeIO mpegIO mpeg4IO syntheticIO vopdIO wmdIO
-# for appIO in dijkstraIO fixeIO mpeg4IO syntheticIO
 do
     rm -fr $testcases/$appIO
     nohup hemps-run $testcases/$appIO.yaml 30 > $logs/$appIO.txt &
