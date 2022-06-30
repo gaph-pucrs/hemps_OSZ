@@ -256,8 +256,8 @@ void hemps::pes_interconnection(){
 		if(open_io[i] == 0 && (RouterPosition(i) == BR || RouterPosition(i) == CRX || RouterPosition(i) == TR)){
 	//	if((RouterPosition(i) == BR || RouterPosition(i) == CRX || RouterPosition(i) == TR)){
 			#ifdef DUPLICATED_CHANNEL
-			//	credit_i				[i][EAST0].write(sig_credit_i_io[io_count].read());
-				credit_i				[i][EAST0].write(1);
+				credit_i				[i][EAST0].write(sig_credit_i_io[io_count].read());
+				//credit_i				[i][EAST0].write(1);
 				credit_i				[i][EAST1].write(0);
 				clock_rx				[i][EAST0].write(sig_clock_rx_io[io_count].read());
 				clock_rx				[i][EAST1].write(0);
@@ -362,8 +362,8 @@ void hemps::pes_interconnection(){
 		//if((RouterPosition(i) == BL || RouterPosition(i) == CL || RouterPosition(i) == TL)){
 		if(open_io[i] == 1 && (RouterPosition(i) == BL || RouterPosition(i) == CL || RouterPosition(i) == TL)){
 				#ifdef DUPLICATED_CHANNEL
-				credit_i				[i][WEST0].write(1);
-				//credit_i				[i][WEST0].write(sig_credit_i_io[io_count].read());
+				//credit_i				[i][WEST0].write(1);
+				credit_i				[i][WEST0].write(sig_credit_i_io[io_count].read());
 				credit_i				[i][WEST1].write(0);
 				clock_rx				[i][WEST0].write(sig_clock_rx_io[io_count].read());
 				clock_rx				[i][WEST1].write(0);
@@ -467,8 +467,8 @@ void hemps::pes_interconnection(){
 		if(open_io[i] == 2 && (RouterPosition(i) == TL || RouterPosition(i) == TC || RouterPosition(i) == TR)){
 		//if((RouterPosition(i) == TL || RouterPosition(i) == TC || RouterPosition(i) == TR)){
 			#ifdef DUPLICATED_CHANNEL
-				credit_i				[i][NORTH0].write(1);
-				//credit_i				[i][NORTH0].write(sig_credit_i_io[io_count].read());
+				//credit_i				[i][NORTH0].write(1);
+				credit_i				[i][NORTH0].write(sig_credit_i_io[io_count].read());
 				credit_i				[i][NORTH1].write(0);
 				clock_rx				[i][NORTH0].write(sig_clock_rx_io[io_count].read());
 				clock_rx				[i][NORTH1].write(0);
@@ -571,8 +571,8 @@ void hemps::pes_interconnection(){
  		//if((RouterPosition(i) == BL || RouterPosition(i) == BC || RouterPosition(i) == BR)){
  		if(open_io[i] == 3 && (RouterPosition(i) == BL || RouterPosition(i) == BC || RouterPosition(i) == BR)){
 			#ifdef DUPLICATED_CHANNEL
-				//credit_i				[i][SOUTH0].write(sig_credit_i_io[io_count].read());
-				credit_i				[i][SOUTH0].write(1);
+				credit_i				[i][SOUTH0].write(sig_credit_i_io[io_count].read());
+				//credit_i				[i][SOUTH0].write(1);
 				credit_i				[i][SOUTH1].write(0);
 				clock_rx				[i][SOUTH0].write(sig_clock_rx_io[io_count].read());
 				clock_rx				[i][SOUTH1].write(0);

@@ -22,8 +22,8 @@ package ni_pkg is
     
     constant CONFIG_PERIPH_SERVICE              : regword := x"02000010";
     
-    constant SERVICE_FLIT                       : integer := 7;
-    constant APPID_FLIT_CONFIG_PERIPH_SERVICE   : integer := 10;
-    constant KEYP_FLIT_CONFIG_PERIPH_SERVICE    : integer := 12;
+    constant SERVICE_FLIT                       : integer := 6;
+    constant APPID_FLIT_CONFIG_PERIPH_SERVICE   : integer := 9;
+    constant KEYP_FLIT_CONFIG_PERIPH_SERVICE    : integer := 11;
     
 end package ni_pkg;

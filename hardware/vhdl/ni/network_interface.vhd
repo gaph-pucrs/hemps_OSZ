@@ -147,7 +147,7 @@ begin
     hermes_eop_in               <= hermes_primary_eop_in;
     hermes_primary_credit_out   <= hermes_credit_out;
 
-    hermes_credit_out           <= '1' when InFSM_PS = IN_HERMES else '0';
+    hermes_credit_out           <= '1' when InFSM_PS = IN_WAIT or InFSM_PS = IN_HERMES else '0';
 
     hermes_input_request        <= hermes_rx;
     hermes_is_receiving         <= hermes_rx and hermes_credit_out;
