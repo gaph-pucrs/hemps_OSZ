@@ -682,6 +682,9 @@ int IOtoAP(int peripheral_id){
 	  medium_X = 1;
       AP_X_addr = LL_X_addr + ((RH_X_addr - LL_X_addr)/2);
 	  AP_Y_addr = RH_Y_addr;
+  }else{
+	  AP_X_addr = LL_X_addr;
+	  AP_Y_addr = RH_Y_addr;
   }
   // Calculate the Turns
   auxPosX = my_X_addr;
@@ -726,11 +729,11 @@ int IOtoAP(int peripheral_id){
   }
   //Arrived at the GA collumn - Now travel to the AP row
   //DOWN
-  while (auxPosY < AP_Y_addr)
+  while (auxPosY > AP_Y_addr)
   {
     bt = bt | (0x3 << shift);
     shift += 2;
-    auxPosY ++;
+    auxPosY --;
   };
   // East or West, depending on the side of the AP
   if(auxPosX > AP_X_addr){    

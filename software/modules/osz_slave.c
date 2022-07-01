@@ -100,6 +100,7 @@ void Set_Secure_Zone(unsigned int left_low_corner, unsigned int right_high_corne
 	if(isolated_ports != 0){
 		wrapper_value = isolated_ports;
 		MemoryWrite(WRAPPER_REGISTER,isolated_ports);
+    MemoryWrite(AP_MASK, 0x3FF);
     seek_puts("[Set Secure Zone] LOCAL_right_high_corner = "); seek_puts(itoa(LOCAL_right_high_corner)); puts("\n");
 		if((my_X_addr == RH_X_addr) && (my_Y_addr == RH_Y_addr)){
       #ifdef GRAY_AREA
@@ -884,7 +885,7 @@ void config_AP_SZ(){ // io_service: 0 - request; 1 - delivery
 
 	p->io_direction = OUTPUT_DIRECTION;
 
-  send_packet(p, 0, 0); //!
+  // send_packet(p, 0, 0); //!
 
     //------------------------------------------------------------------------------
     //IN_WRAPPER
@@ -894,7 +895,7 @@ void config_AP_SZ(){ // io_service: 0 - request; 1 - delivery
 	p->io_port = port_back;
 	p->io_direction = INPUT_DIRECTION;
 
-	send_packet(p, 0, 0); //!
+	// send_packet(p, 0, 0); //!
 
 }
 #else

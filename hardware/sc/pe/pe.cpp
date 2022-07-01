@@ -769,12 +769,13 @@ void pe::keyCheck(){
 	static bool	auxPass[NPORT];
 	if (reset.read() == 1) {
 		for(i=0;i<NPORT-1;i++){
+			ap_mask[i].write(1);
 			pass[i].write(1);
 			auxPass[i] = 0;
 		}
 	}else{
 		for(i=0;i<NPORT-1;i++){
-			if (io_packet_mask == 0){
+			if (ap_mask[i].read() == 0){
 				if (((data_in[i].read()) == (kap.read() | 0x6000)) && (pass[i].read() == 1))	{
 
 					pass[i].write(0);
@@ -797,13 +798,15 @@ void pe::keyCheck(){
 //generates the fail_out and fail_in accordin to external_fail_in and external_fail_out
 void pe::fail_out_generation(){
 	for(i=0;i<NPORT-1;i++){
-		fail_out[i].write(router_fail_out[i].read() | external_fail_out[i].read() | (wrapper_reg[i].read() & ( wrapper_mask_router_out.read()[i] | io_packet_mask | pass[i])));
+		// fail_out[i].write(router_fail_out[i].read() | external_fail_out[i].read() | (wrapper_reg[i].read() & ( wrapper_mask_router_out.read()[i] | io_packet_mask | pass[i])));
+		fail_out[i].write((wrapper_reg[i].read() & (pass[i])));
+
 	}
 }
 void pe::fail_in_generation(){
 	for(i=0;i<NPORT-1;i++){
-		router_fail_in[i].write(fail_in[i].read() | external_fail_in[i].read() | ( wrapper_reg[i].read() & wrapper_mask_router_in.read()[i]));
-		//router_fail_in[i].write(fail_in[i].read() | external_fail_in[i].read() | wrapper_reg[i].read() );
+		// router_fail_in[i].write(fail_in[i].read() | external_fail_in[i].read() | ( wrapper_reg[i].read() & wrapper_mask_router_in.read()[i]));
+		router_fail_in[i].write(fail_in[i].read() | ( wrapper_reg[i].read() & ap_mask[i].read()));
 	}
 }
 void pe::clock_stop(){

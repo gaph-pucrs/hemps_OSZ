@@ -554,7 +554,8 @@ int Syscall(unsigned int service, unsigned int arg0, unsigned int arg1, unsigned
   							auxBT >> 64 & 0xffffFFFF,
 							(PER_X_addr << 8) | PER_Y_addr);
 						// puts("--slot_adjust: ");puts(itoa(slotSR)); puts("\n");
-						auxBT = pathFromIO(auxBT);
+						// auxBT = pathFromIO(auxBT);
+						auxBT = IOtoAP(arg1);
 						puts("-- enviando caminho:");puts(itoh(auxBT)); puts("\n");
 						slotSR = GetFreeSlotSourceRouting(get_net_address());
 						// puts("--slot: ");puts(itoa(slotSR)); puts("\n");
@@ -623,7 +624,7 @@ int Syscall(unsigned int service, unsigned int arg0, unsigned int arg1, unsigned
   							auxBT >> 32 & 0xffffFFFF,
   							auxBT >> 64 & 0xffffFFFF);
 						send_peripheral_SR_path(slotSR, arg1, current->secure);
-						// puts("--slot_adjust: ");puts(itoa(slotSR)); puts("\n");
+						puts("--slot_adjust: ");puts(itoa(slotSR)); puts("\n");
 						ClearSlotSourceRouting(get_net_address());
 					}
 				break;
@@ -1078,6 +1079,7 @@ int handle_packet(volatile ServiceHeader * p) {
 
 		tcb_ptr = searchTCB(p->task_ID);
 
+		puts("[ALLOCATION] searching TCB:"); puts(itoa(p->task_ID));puts("\n");
 		if(tcb_ptr == 0){  //task allocation before task_release
 
 			tcb_ptr = search_free_TCB();
@@ -1098,6 +1100,7 @@ int handle_packet(volatile ServiceHeader * p) {
 		tcb_ptr->text_lenght = code_lenght;
 
 		tcb_ptr->master_address = p->master_ID;
+		puts("MasterID "); puts(itoa(tcb_ptr->master_address)); puts("\n");
 
 		tcb_ptr->proc_to_migrate = -1;
 
@@ -1167,6 +1170,8 @@ int handle_packet(volatile ServiceHeader * p) {
 				tcb_ptr->scheduling_ptr->status = BLOCKED;
 
 			send_task_allocated(tcb_ptr);
+			puts("[AFTER]Task id: "); puts(itoa(tcb_ptr->id)); puts("\n");
+			puts("[AFTER]MasterID "); puts(itoa(tcb_ptr->master_address)); puts("\n");
 
 			putsv("Send Task Allocated (TA): ", tcb_ptr->id);
 		}
@@ -1498,7 +1503,7 @@ int SeekInterruptHandler(){
 			puts("--target(AP addr): "); puts(itoh(target)); puts("\n");
 			puts("--payload(port): "); puts(itoh(payload)); puts("\n");
 
-			MemoryWrite(AP_MASK, 3 << (payload*2)); // Mascarar as duas portas, 01 - E, 23 - W, 45-N, 67-S 
+			MemoryWrite(AP_MASK, ~(3 << (payload*2))); // Mascarar as duas portas, 01 - E, 23 - W, 45-N, 67-S 
 
 		break;
 
@@ -1839,7 +1844,7 @@ void OS_InterruptServiceRoutine(unsigned int status) {
 
 	if ( status & IRQ_NOC ){
 		auxTime = MemoryRead(TICK_COUNTER);
-		// puts("Tempo da Interrupção: ");puts(itoa(auxTime));puts("\n");
+		// puts("Tempo da Interrupção irq: ");puts(itoa(auxTime));puts("\n");
 		//printar o tempo do novo tratamento
 		if (read_packet(&p) != -1){
 			if (MemoryRead(DMNI_SEND_ACTIVE) && (p.service == MESSAGE_REQUEST || p.service == TASK_MIGRATION) ){

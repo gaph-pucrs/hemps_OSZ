@@ -112,8 +112,6 @@ begin
 	
 	rot_table	<= table;
 	fail_out <= "0000000000";
-	-- bufferAP <= "0000110000" when io_packet_mask = '0' else
-	-- 			"0000000000";
 
 	fifo_generation : for i in 0 to NPORT-1 generate
 		Fifo : Entity work.Hermes_buffer

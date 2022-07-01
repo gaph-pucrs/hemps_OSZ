@@ -690,7 +690,7 @@ SC_MODULE(pe) {
 		SC_METHOD(fail_in_generation);
 		for(i=0;i<NPORT-1;i++){
 			sensitive << fail_in[i];
-			sensitive << external_fail_in[i];
+			sensitive << ap_mask[i];
 			sensitive << wrapper_reg[i];
 			sensitive << wrapper_mask_router_in;
 		}
