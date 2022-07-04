@@ -188,7 +188,7 @@ for it in map(lambda sd: io_peripheral_pfx + sd, io_peripheral_sds):
 
 #NI SIGNALS
 ni_pfx="add wave -noupdate -group NI /test_bench/NI/network_interface/"
-ni_sds=["clock", "reset", "hermes_primary_rx", "hermes_primary_rx_clk", "hermes_primary_data_in", "hermes_primary_eop_in", "hermes_primary_credit_out", "next_free_slot", "InFSM_PS", "InFSM_NS", "received_flits", "hermes_input_request", "hermes_is_receiving", "hermes_end_of_reception", "hermes_in_pkt_service", "table"]
+ni_sds=["clock", "reset", "InFSM_PS", "hermes_rx", "hermes_rx_ck", "hermes_data_in", "hermes_eop_in", "hermes_credit_out", "flit_counter", "hermes_input_request", "hermes_is_receiving", "hermes_end_of_reception", "hermes_in_service", "hermes_in_app_id", "hermes_in_key_periph", "hermes_in_save_app_id", "hermes_in_save_keyp", "next_free_slot", "table_is_full", "table"]
 for it in map(lambda sd: ni_pfx + sd, ni_sds):
 	print (it)
 

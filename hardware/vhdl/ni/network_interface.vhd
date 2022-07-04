@@ -83,21 +83,31 @@ architecture network_interface of network_interface is
     signal InFSM_PS             : InFSM_StateType;
     signal InFSM_NS             : InFSM_StateType;
 
-    signal hermes_rx            : std_logic;
-    signal hermes_rx_ck         : std_logic;
-    signal hermes_data_in       : regflit;
-    signal hermes_eop_in        : std_logic;
-    signal hermes_credit_out    : std_logic;
+    ---- hermes ----
     
-    signal received_flits   : integer range 0 to MAX_FLITS_PER_PKT;
+    signal hermes_rx                : std_logic;
+    signal hermes_rx_ck             : std_logic;
+    signal hermes_data_in           : regflit;
+    signal hermes_eop_in            : std_logic;
+    signal hermes_credit_out        : std_logic;
     
+    signal flit_counter             : integer range 0 to MAX_FLITS_PER_PKT;
+    
+    signal hermes_in_service        : regword;
+    signal hermes_in_app_id         : regN_appID;
+    signal hermes_in_key_periph     : regN_keyPeriph;
+
+    signal hermes_in_save_app_id    : std_logic;
+    signal hermes_in_save_keyp      : std_logic;
+    
+    alias hermes_in_service_hi      : regflit   is hermes_in_service(TAM_WORD-1 downto TAM_FLIT);
+    alias hermes_in_service_lo      : regflit   is hermes_in_service(TAM_FLIT-1 downto 0);
+
     signal hermes_input_request     : std_logic;
     signal hermes_is_receiving      : std_logic;
     signal hermes_end_of_reception  : std_logic;
-
-    signal hermes_in_pkt_service    : regword;
-    alias hermes_in_pkt_service_hi  : regflit   is hermes_in_pkt_service(TAM_WORD-1 downto TAM_FLIT);
-    alias hermes_in_pkt_service_lo  : regflit   is hermes_in_pkt_service(TAM_FLIT-1 downto 0);
+    
+    ---- brnoc ----
 
     signal brnoc_input_request      : std_logic;
     signal brnoc_end_of_reception   : std_logic;
@@ -201,12 +211,12 @@ begin
     CountReceivedFlits: process(reset, clock)
     begin
         if reset='1' then
-            received_flits <= 0;
+            flit_counter <= 0;
         elsif rising_edge(clock) then
             if hermes_end_of_reception='1' then
-                received_flits <= 0;
+                flit_counter <= 0;
             elsif hermes_is_receiving='1' then
-                received_flits <= received_flits + 1;
+                flit_counter <= flit_counter + 1;
             end if;
         end if;
     end process;
@@ -216,39 +226,62 @@ begin
         if reset='1' then
             --todo: wipe table clean
         elsif rising_edge(clock) then
+            if InFSM_PS = IN_HERMES and hermes_end_of_reception='1' then
 
-            if InFSM_PS = IN_HERMES and hermes_is_receiving='1' then
-
-                if hermes_in_pkt_service = CONFIG_PERIPH_SERVICE then
-
-                    if received_flits = APPID_FLIT_CONFIG_PERIPH_SERVICE then
-                        table.app_id(next_free_slot) <= hermes_data_in(APPID_SIZE-1 downto 0);
-
-                    elsif received_flits = KEYP_FLIT_CONFIG_PERIPH_SERVICE then
-                        table.key_periph(next_free_slot) <= hermes_data_in(KEYPERIPH_SIZE-1 downto 0);
-                    end if;
-                
+                if hermes_in_save_app_id='1' then
+                    table.app_id(next_free_slot) <= hermes_data_in(APPID_SIZE-1 downto 0);
                 end if;
-                    
-            end if;
 
+                if hermes_in_save_keyp='1' then
+                    table.key_periph(next_free_slot) <= hermes_data_in(KEYPERIPH_SIZE-1 downto 0);
+                end if;
+
+                --todo: esse trecho eh temporario
+                if hermes_in_save_app_id='1' or hermes_in_save_keyp='1' then
+                    table.free(next_free_slot) <= '0';
+                end if;
+                
+            end if;
         end if;
     end process;
 
     HermesInControl: process(reset, clock)
     begin
+
         if reset='1' then
-            hermes_in_pkt_service <= (others => '0');
-        elsif rising_edge(clock) then
-            
-            -- save packet service:
+            hermes_in_service       <= (others => '0');
+            hermes_in_app_id        <= (others => '0');
+            hermes_in_key_periph    <= (others => '0');
+            hermes_in_save_app_id   <= '0';
+            hermes_in_save_keyp     <= '0';
+
+        elsif rising_edge(clock) and InFSM_PS = IN_HERMES then
 
             if hermes_end_of_reception='1' then
-                hermes_in_pkt_service <= (others => '0');
-            elsif received_flits = SERVICE_FLIT then
-                hermes_in_pkt_service_hi <= hermes_data_in;
-            elsif received_flits = SERVICE_FLIT+1 then
-                hermes_in_pkt_service_lo <= hermes_data_in;
+                hermes_in_service       <= (others => '0');
+                hermes_in_app_id        <= (others => '0');
+                hermes_in_key_periph    <= (others => '0');
+                hermes_in_save_app_id   <= '0';
+                hermes_in_save_keyp     <= '0';
+            
+            elsif flit_counter = SERVICE_FLIT then
+                hermes_in_service_hi <= hermes_data_in;
+            elsif flit_counter = SERVICE_FLIT+1 then
+                hermes_in_service_lo <= hermes_data_in;
+            else
+                if hermes_in_service = CONFIG_PERIPH_SERVICE then
+
+                    if flit_counter = APPID_FLIT_CONFIG_PERIPH_SERVICE then
+                        hermes_in_app_id <= hermes_data_in(APPID_SIZE-1 downto 0);
+                        hermes_in_save_app_id <= '1';
+                    
+                    elsif flit_counter = KEYP_FLIT_CONFIG_PERIPH_SERVICE then
+                        hermes_in_key_periph <= hermes_data_in(KEYPERIPH_SIZE-1 downto 0);
+                        hermes_in_save_keyp <= '1';
+                    
+                    end if;
+
+                end if;
             end if;
 
         end if;
