@@ -68,11 +68,19 @@ architecture network_interface of network_interface is
         src_routing : std_logic_vector(TABLE_SIZE-1 downto 0);
         path        : column_path;
         free        : std_logic_vector(TABLE_SIZE-1 downto 0);
+        match       : std_logic_vector(TABLE_SIZE-1 downto 0);
     end record table_record;
 
     signal table            : table_record;
+    
     signal table_is_full    : std_logic;
-    signal next_free_slot   : integer range 0 to TABLE_SIZE-1;
+    signal table_has_match  : std_logic;
+
+    signal fetch_appid      : regN_appID;
+    
+    signal free_slot        : integer range 0 to TABLE_SIZE-1;
+    signal match_slot       : integer range 0 to TABLE_SIZE-1;
+    signal write_slot       : integer range 0 to TABLE_SIZE-1;
 
     ---------------------------
     -- Input Control Signals --
@@ -119,34 +127,53 @@ begin
     -----------
 
     table_is_full <= nor table.free;
-
-    ---- begin next_free_slot generates ----
-
-    IF_GEN_SLOT_2: if TABLE_SIZE = 2 generate
-        next_free_slot  <=  0   when table.free(0)='1'  else
-                            1;
+    table_has_match <= or table.match;
+    
+    GEN_TABLE_MATCH: for i in 0 to TABLE_SIZE-1 generate
+        table.match(i) <= '1' when table.app_id(i) = fetch_appid and table.free(i)='0' else '0';
+    end generate;
+    
+    IF_GEN_SLOTS_2: if TABLE_SIZE = 2 generate
+        free_slot   <=  0   when table.free(0)='1'  else
+                        1;
+        match_slot  <=  0   when table.match(0)='1' else
+                        1;
     end generate;
 
-    IF_GEN_SLOT_4: if TABLE_SIZE = 4 generate
-        next_free_slot  <=  0   when table.free(0)='1'  else
-                            1   when table.free(1)='1'  else
-                            2   when table.free(2)='1'  else
-                            3;
+    IF_GEN_SLOTS_4: if TABLE_SIZE = 4 generate
+        free_slot   <=  0   when table.free(0)='1'  else
+                        1   when table.free(1)='1'  else
+                        2   when table.free(2)='1'  else
+                        3;
+        match_slot  <=  0   when table.match(0)='1' else
+                        1   when table.match(1)='1' else
+                        2   when table.match(2)='1' else
+                        3;
     end generate;
 
-    IF_GEN_SLOT_8: if TABLE_SIZE = 8 generate
-        next_free_slot  <=  0   when table.free(0)='1'  else
-                            1   when table.free(1)='1'  else
-                            2   when table.free(2)='1'  else
-                            3   when table.free(3)='1'  else
-                            4   when table.free(4)='1'  else
-                            5   when table.free(5)='1'  else
-                            6   when table.free(6)='1'  else
-                            7;
+    IF_GEN_SLOTS_8: if TABLE_SIZE = 8 generate
+        free_slot   <=  0   when table.free(0)='1'  else
+                        1   when table.free(1)='1'  else
+                        2   when table.free(2)='1'  else
+                        3   when table.free(3)='1'  else
+                        4   when table.free(4)='1'  else
+                        5   when table.free(5)='1'  else
+                        6   when table.free(6)='1'  else
+                        7;
+        match_slot  <=  0   when table.match(0)='1' else
+                        1   when table.match(1)='1' else
+                        2   when table.match(2)='1' else
+                        3   when table.match(3)='1' else
+                        4   when table.match(4)='1' else
+                        5   when table.match(5)='1' else
+                        6   when table.match(6)='1' else
+                        7;
     end generate;
 
-    ---- end next_free_slot generates ----
+    write_slot <= match_slot when table_has_match='1' else free_slot;
 
+    fetch_appid <= hermes_in_app_id;
+    
     -------------------
     -- Input Control --
     -------------------
@@ -229,16 +256,15 @@ begin
             if InFSM_PS = IN_HERMES and hermes_end_of_reception='1' then
 
                 if hermes_in_save_app_id='1' then
-                    table.app_id(next_free_slot) <= hermes_data_in(APPID_SIZE-1 downto 0);
+                    table.app_id(write_slot) <= hermes_in_app_id;
                 end if;
 
                 if hermes_in_save_keyp='1' then
-                    table.key_periph(next_free_slot) <= hermes_data_in(KEYPERIPH_SIZE-1 downto 0);
+                    table.key_periph(write_slot) <= hermes_in_key_periph;
                 end if;
 
-                --todo: esse trecho eh temporario
                 if hermes_in_save_app_id='1' or hermes_in_save_keyp='1' then
-                    table.free(next_free_slot) <= '0';
+                    table.free(write_slot) <= '0';
                 end if;
                 
             end if;
