@@ -106,11 +106,13 @@ architecture network_interface of network_interface is
     signal hermes_in_service        : regword;
     signal hermes_in_app_id         : regN_appID;
     signal hermes_in_key_periph     : regN_keyPeriph;
+    signal hermes_in_burst_size     : regN_burstSize;
     signal hermes_in_path_flit      : regflit;
     signal hermes_in_path_size      : intN_pathSize;
 
     signal hermes_in_save_app_id    : std_logic;
     signal hermes_in_save_keyp      : std_logic;
+    signal hermes_in_save_bsize     : std_logic;
     signal hermes_in_save_path      : std_logic;
     signal hermes_in_save_path_size : std_logic;
     
@@ -270,11 +272,15 @@ begin
                     table.key_periph(write_slot) <= hermes_in_key_periph;
                 end if;
 
+                if hermes_in_save_bsize='1' then
+                    table.burst_size(write_slot) <= hermes_in_burst_size;
+                end if;
+
                 if hermes_in_save_path_size='1' then
                     table.path_size(write_slot) <= hermes_in_path_size;
                 end if;
 
-                if hermes_in_save_app_id='1' or hermes_in_save_keyp='1' or hermes_in_save_path_size='1' then
+                if hermes_in_save_app_id='1' or hermes_in_save_keyp='1' or hermes_in_save_bsize='1' or hermes_in_save_path_size='1' then
                     table.free(write_slot) <= '0';
                 end if;
                 
@@ -300,6 +306,7 @@ begin
             hermes_in_key_periph    <= (others => '0');
             hermes_in_save_app_id   <= '0';
             hermes_in_save_keyp     <= '0';
+            hermes_in_save_bsize    <= '0';
             hermes_in_save_path     <= '0';
 
         elsif rising_edge(clock) and InFSM_PS = IN_HERMES then
@@ -310,6 +317,7 @@ begin
                 hermes_in_key_periph    <= (others => '0');
                 hermes_in_save_app_id   <= '0';
                 hermes_in_save_keyp     <= '0';
+                hermes_in_save_bsize    <= '0';
                 hermes_in_save_path     <= '0';
             
             elsif flit_counter = SERVICE_FLIT then
@@ -318,7 +326,7 @@ begin
                 hermes_in_service_lo <= hermes_data_in;
             else
 
-                ---- CONFIG_PERIPH ----
+                ---- CONFIG_PERIPHERAL ----
 
                 if hermes_in_service = CONFIG_PERIPH_SERVICE then
 
@@ -334,7 +342,7 @@ begin
 
                 end if;
 
-                ---- SET PATH ----
+                ---- SET_PATH ----
 
                 if hermes_in_service = SET_PATH_SERVICE then
 
@@ -343,6 +351,21 @@ begin
                         
                     elsif flit_counter = END_OF_HEADER_FLIT then
                         hermes_in_save_path <= '1';
+                    
+                    end if;
+
+                end if;
+
+                ---- REQUEST_PERIPHERAL ----
+
+                if hermes_in_service = REQUEST_PERIPH_SERVICE then
+
+                    if flit_counter = REQUEST_PERIPH_SERVICE_APPID_FLIT then
+                        hermes_in_app_id <= hermes_data_in(APPID_SIZE-1 downto 0);
+                    
+                    elsif flit_counter = REQUEST_PERIPH_SERVICE_BSIZE_FLIT then
+                        hermes_in_burst_size <= hermes_data_in(BSIZE_SIZE-1 downto 0);
+                        hermes_in_save_bsize <= '1';
                     
                     end if;
 

@@ -751,6 +751,12 @@ void initialize_IO(int peripheralID){
 	p3->app_ID = 0x24F;
 	p3->key_periph = 0x67;
 	send_packet_io(p3, (unsigned int) path, 2, peripheralID);
+
+	ServiceHeader *p4 = get_service_header_slot();
+	p4->service = 0x45542323;
+	p4->app_ID = 0x24F;
+	p4->burst_size = 0x0F;
+	send_packet_io(p4, 0, 0, peripheralID);
 }
 #endif
 
