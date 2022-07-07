@@ -251,7 +251,7 @@ begin
     WriteOnTable: process(reset, clock)
     begin
         if reset='1' then
-            --todo: wipe table clean
+            table.free <= (others => '1');
         elsif rising_edge(clock) then
             if InFSM_PS = IN_HERMES and hermes_end_of_reception='1' then
 
