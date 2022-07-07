@@ -14,18 +14,22 @@ package ni_pkg is
 
     constant APPID_SIZE         : integer := 10;
     constant KEYPERIPH_SIZE     : integer := 8;
+    constant MAX_PATH_FLITS     : integer := 6;    
 
     subtype regN_appID      is std_logic_vector(APPID_SIZE-1 downto 0);
     subtype regN_keyPeriph  is std_logic_vector(KEYPERIPH_SIZE-1 downto 0);
-    subtype regN_path       is std_logic_vector(2 downto 0);
     subtype regN_burstSize  is std_logic_vector(2 downto 0);
-    
-    constant CONFIG_PERIPH_SERVICE              : regword := x"02000010";
+    type    regN_path       is array(MAX_PATH_FLITS-1 downto 0) of regflit;
+    subtype intN_pathSize   is integer range 0 to MAX_PATH_FLITS;
     
     constant SERVICE_FLIT                       : integer := 6;
     constant END_OF_HEADER_FLIT                 : integer := 25;
+    
+    constant CONFIG_PERIPH_SERVICE              : regword := x"02000010";
+    constant CONFIG_PERIPH_SERVICE_APPID_FLIT   : integer := 9;
+    constant CONFIG_PERIPH_SERVICE_KEYP_FLIT    : integer := 11;
 
-    constant APPID_FLIT_CONFIG_PERIPH_SERVICE   : integer := 9;
-    constant KEYP_FLIT_CONFIG_PERIPH_SERVICE    : integer := 11;
+    constant SET_PATH_SERVICE                   : regword := x"FEDC1234";
+    constant SET_PATH_SERVICE_APPID_FLIT        : integer := 9;
     
 end package ni_pkg;

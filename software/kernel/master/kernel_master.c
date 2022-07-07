@@ -732,17 +732,25 @@ void initialize_slaves(){
 #ifdef GRAY_AREA
 void initialize_IO(int peripheralID){
 
-	ServiceHeader *p = get_service_header_slot();
+	ServiceHeader *p1 = get_service_header_slot();
+	p1->service = 0x02000010;
+	p1->app_ID = 0x24F;
+	p1->key_periph = 0x67;
+	send_packet_io(p1, 0, 0, peripheralID);
 
-	p->service = 0x02000010;
-	p->app_ID = 0x24F;
-	p->key_periph = 0x67;
+	ServiceHeader *p2 = get_service_header_slot();
+	p2->service = 0x02000010;
+	p2->app_ID = 0x186;
+	p2->key_periph = 0x12;
+	send_packet_io(p2, 0, 0, peripheralID);
 
-	// p->task_ID = consumer_task;
-	// p->peripheral_ID = peripheralID;
-	//add_msg_request(p->header[MAX_SOURCE_ROUTING_PATH_SIZE-1], consumer_task, peripheral_ID); //caimi: arrumar header
+	unsigned int path[2] = {0x11112222, 0x43443300};
 
-	send_packet_io(p, 0, 0, peripheralID);
+	ServiceHeader *p3 = get_service_header_slot();
+	p3->service = 0xfedc1234;
+	p3->app_ID = 0x24F;
+	p3->key_periph = 0x67;
+	send_packet_io(p3, (unsigned int) path, 2, peripheralID);
 }
 #endif
 

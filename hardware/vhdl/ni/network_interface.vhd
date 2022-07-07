@@ -60,13 +60,14 @@ architecture network_interface of network_interface is
     type column_keyPeriph   is array(TABLE_SIZE-1 downto 0) of regN_keyPeriph;
     type column_burstSize   is array(TABLE_SIZE-1 downto 0) of regN_burstSize;
     type column_path        is array(TABLE_SIZE-1 downto 0) of regN_path;
+    type column_pathSize    is array(TABLE_SIZE-1 downto 0) of intN_pathSize;
 
     type table_record is record
         app_id      : column_appId;
         key_periph  : column_keyPeriph;
         burst_size  : column_burstSize;
-        src_routing : std_logic_vector(TABLE_SIZE-1 downto 0);
         path        : column_path;
+        path_size   : column_pathSize;
         free        : std_logic_vector(TABLE_SIZE-1 downto 0);
         match       : std_logic_vector(TABLE_SIZE-1 downto 0);
     end record table_record;
@@ -100,13 +101,18 @@ architecture network_interface of network_interface is
     signal hermes_credit_out        : std_logic;
     
     signal flit_counter             : integer range 0 to MAX_FLITS_PER_PKT;
+    signal path_flit_counter        : intN_pathSize;
     
     signal hermes_in_service        : regword;
     signal hermes_in_app_id         : regN_appID;
     signal hermes_in_key_periph     : regN_keyPeriph;
+    signal hermes_in_path_flit      : regflit;
+    signal hermes_in_path_size      : intN_pathSize;
 
     signal hermes_in_save_app_id    : std_logic;
     signal hermes_in_save_keyp      : std_logic;
+    signal hermes_in_save_path      : std_logic;
+    signal hermes_in_save_path_size : std_logic;
     
     alias hermes_in_service_hi      : regflit   is hermes_in_service(TAM_WORD-1 downto TAM_FLIT);
     alias hermes_in_service_lo      : regflit   is hermes_in_service(TAM_FLIT-1 downto 0);
@@ -114,7 +120,7 @@ architecture network_interface of network_interface is
     signal hermes_input_request     : std_logic;
     signal hermes_is_receiving      : std_logic;
     signal hermes_end_of_reception  : std_logic;
-    
+
     ---- brnoc ----
 
     signal brnoc_input_request      : std_logic;
@@ -253,6 +259,7 @@ begin
         if reset='1' then
             table.free <= (others => '1');
         elsif rising_edge(clock) then
+
             if InFSM_PS = IN_HERMES and hermes_end_of_reception='1' then
 
                 if hermes_in_save_app_id='1' then
@@ -263,11 +270,24 @@ begin
                     table.key_periph(write_slot) <= hermes_in_key_periph;
                 end if;
 
-                if hermes_in_save_app_id='1' or hermes_in_save_keyp='1' then
+                if hermes_in_save_path_size='1' then
+                    table.path_size(write_slot) <= hermes_in_path_size;
+                end if;
+
+                if hermes_in_save_app_id='1' or hermes_in_save_keyp='1' or hermes_in_save_path_size='1' then
                     table.free(write_slot) <= '0';
                 end if;
                 
             end if;
+
+            if InFSM_PS = IN_HERMES and hermes_is_receiving='1' then
+                
+                if hermes_in_save_path='1' then
+                    table.path(write_slot)(path_flit_counter) <= hermes_in_path_flit;
+                end if;
+
+            end if;
+        
         end if;
     end process;
 
@@ -280,6 +300,7 @@ begin
             hermes_in_key_periph    <= (others => '0');
             hermes_in_save_app_id   <= '0';
             hermes_in_save_keyp     <= '0';
+            hermes_in_save_path     <= '0';
 
         elsif rising_edge(clock) and InFSM_PS = IN_HERMES then
 
@@ -289,28 +310,63 @@ begin
                 hermes_in_key_periph    <= (others => '0');
                 hermes_in_save_app_id   <= '0';
                 hermes_in_save_keyp     <= '0';
+                hermes_in_save_path     <= '0';
             
             elsif flit_counter = SERVICE_FLIT then
                 hermes_in_service_hi <= hermes_data_in;
             elsif flit_counter = SERVICE_FLIT+1 then
                 hermes_in_service_lo <= hermes_data_in;
             else
+
+                ---- CONFIG_PERIPH ----
+
                 if hermes_in_service = CONFIG_PERIPH_SERVICE then
 
-                    if flit_counter = APPID_FLIT_CONFIG_PERIPH_SERVICE then
+                    if flit_counter = CONFIG_PERIPH_SERVICE_APPID_FLIT then
                         hermes_in_app_id <= hermes_data_in(APPID_SIZE-1 downto 0);
                         hermes_in_save_app_id <= '1';
                     
-                    elsif flit_counter = KEYP_FLIT_CONFIG_PERIPH_SERVICE then
+                    elsif flit_counter = CONFIG_PERIPH_SERVICE_KEYP_FLIT then
                         hermes_in_key_periph <= hermes_data_in(KEYPERIPH_SIZE-1 downto 0);
                         hermes_in_save_keyp <= '1';
                     
                     end if;
 
                 end if;
-            end if;
 
+                ---- SET PATH ----
+
+                if hermes_in_service = SET_PATH_SERVICE then
+
+                    if flit_counter = SET_PATH_SERVICE_APPID_FLIT then
+                        hermes_in_app_id <= hermes_data_in(APPID_SIZE-1 downto 0);
+                        
+                    elsif flit_counter = END_OF_HEADER_FLIT then
+                        hermes_in_save_path <= '1';
+                    
+                    end if;
+
+                end if;
+
+            end if;
         end if;
     end process;
+
+    CountPathFlits: process(reset, clock)
+    begin
+        if reset='1' then
+            path_flit_counter <= 0;
+        elsif rising_edge(clock) then
+            if hermes_end_of_reception='1' then
+                path_flit_counter <= 0;
+            elsif hermes_is_receiving='1' and hermes_in_save_path='1' then
+                path_flit_counter <= path_flit_counter + 1;
+            end if;
+        end if;
+    end process;
+
+    hermes_in_path_flit <= hermes_data_in when hermes_in_save_path='1' else (others => '0');
+    hermes_in_path_size <= path_flit_counter when hermes_in_save_path='1' else 0;
+    hermes_in_save_path_size <= '1' when hermes_in_save_path='1' and hermes_end_of_reception='1' else '0';
 
 end network_interface;
