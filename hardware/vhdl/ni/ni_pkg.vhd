@@ -22,6 +22,7 @@ package ni_pkg is
     subtype regN_burstSize  is std_logic_vector(BSIZE_SIZE-1 downto 0);
     type    regN_path       is array(MAX_PATH_FLITS-1 downto 0) of regflit;
     subtype intN_pathSize   is integer range 0 to MAX_PATH_FLITS;
+    subtype intN_pathIndex  is integer range 0 to MAX_PATH_FLITS-1;
     
     constant SERVICE_FLIT                       : integer := 6;
     constant END_OF_HEADER_FLIT                 : integer := 25;
