@@ -188,10 +188,21 @@ for it in map(lambda sd: io_peripheral_pfx + sd, io_peripheral_sds):
 
 #NI SIGNALS
 ni_pfx="add wave -noupdate -group NI /test_bench/NI/network_interface/"
-ni_sds=["clock", "reset", "InFSM_PS", "hermes_rx", "hermes_data_in", "hermes_eop_in", "hermes_credit_out", "flit_counter", "path_flit_counter", "hermes_input_request", "hermes_is_receiving", "hermes_end_of_reception", "hermes_in_service", "hermes_in_app_id", "hermes_in_key_periph", "hermes_in_burst_size", "hermes_in_path_flit", "hermes_in_path_size", "hermes_in_save_app_id", "hermes_in_save_keyp", "hermes_in_save_bsize", "hermes_in_save_path", "hermes_in_save_path_size", "table_is_full", "table_has_match", "fetch_appid", "free_slot", "match_slot", "write_slot", "table"]
+ni_sds=["clock", "reset", "hermes_rx", "hermes_data_in", "hermes_eop_in", "hermes_credit_out", "tableIn_rxOut", "tableOut_rxIn"]
 for it in map(lambda sd: ni_pfx + sd, ni_sds):
 	print (it)
 
+#NI_TABLE SIGNALS
+ni_table_pfx="add wave -noupdate -group NI_Table /test_bench/NI/network_interface/Table/"
+ni_table_sds=["state", "next_state", "is_fetching", "match", "match_regular", "match_crypto", "match_new", "slot", "reset_slot", "enable_counter", "slot_is_last", "read_enable", "table"]
+for it in map(lambda sd: ni_table_pfx + sd, ni_table_sds):
+	print (it)
+
+#NI_RX SIGNALS
+ni_rx_pfx="add wave -noupdate -group NI_RX /test_bench/NI/network_interface/ModuleRX/"
+ni_rx_sds=["state", "next_state", "header_flit", "path_flit", "app_id", "app_id_valid", "crpto_tag", "crypto_tag_valid", "key_periph", "burst_size", "hermes_service", "hermes_service_valid", "end_of_handling", "hermesControl", "tableControl"]
+for it in map(lambda sd: ni_rx_pfx + sd, ni_rx_sds):
+	print (it)
 
 print ("TreeUpdate [SetDefaultTree]\n\
 WaveRestoreCursors {{Cursor 1} {10 ps} 0}\n\

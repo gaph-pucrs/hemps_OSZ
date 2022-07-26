@@ -111,7 +111,7 @@ begin
     begin
         if reset='1' then
             state <= WAIT_REQ;
-        else
+        elsif rising_edge(clock) then
             state <= next_state;
         end if;
     end process;
@@ -124,7 +124,7 @@ begin
 
                 if hermesControl.request='1' then
                     next_state <= HERMES_HEADER;
-                elsif
+                else
                     next_state <= WAIT_REQ;
                 end if;
 
@@ -163,7 +163,7 @@ begin
                 if hermesControl.acceptingFlit='1' and hermesControl.endOfPacket='1' then
                     next_state <= WRITE_TABLE;
                 else
-                    next_state <= RECEIVE_SIZE;
+                    next_state <= RECEIVE_PATH;
                 end if;
 
             when WRITE_TABLE =>
@@ -236,6 +236,7 @@ begin
                     hermes_service_hi <= hermes_data_in;
                 elsif header_flit = SERVICE_FLIT+1 then
                     hermes_service_lo <= hermes_data_in;
+                    hermes_service_valid <= '1';
                 else
 
                     ---- CONFIG_PERIPHERAL ----
@@ -335,15 +336,17 @@ begin
     -- CONTROL SIGNALS GENERATION --
     --------------------------------
 
-    end_of_handling <= '1' when state = WAIT_REQ else '0';
+    end_of_handling <= '1' when (next_state = WAIT_REQ) and (state /= WAIT_REQ) else '0';
 
     ---- hermes ----
 
+    hermes_credit_out <= '1' when (state = WAIT_REQ) or (state = HERMES_HEADER) or (state = RECEIVE_PATH) else '0';
+
     hermesControl.request <= hermes_rx;
 
-    hermesControl.acceptingFlit <= hermes_rx and credit_out;
+    hermesControl.acceptingFlit <= hermes_rx and hermes_credit_out;
 
-    hermesControl.receivingHeader <= '1' when state = HERMES_HEADER else '0';
+    hermesControl.receivingHeader <= '1' when (state = WAIT_REQ) or (state = HERMES_HEADER) else '0';
     
     hermesControl.receivingPath <= '1' when state = RECEIVE_PATH else '0';
     
@@ -385,7 +388,7 @@ begin
     
     tableControl.accessFailed <= tableIn.fail;
 
-    tableControl.enableWriting <= '1' when state=TABLE_WRITING else '0';
+    tableControl.enableWriting <= '1' when state=WRITE_TABLE else '0';
     
     tableControl.enablePathWriting <= '1' when state=RECEIVE_PATH and hermesControl.acceptingFlit='1' else '0';
     

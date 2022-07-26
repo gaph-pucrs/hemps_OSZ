@@ -11,47 +11,8 @@ entity ni_table is
     (
         clock           : in    std_logic;
         reset           : in    std_logic;
-
-        -- control --
-
-        request         : in    std_logic;
-        crypto          : in    std_logic;
-        new_line        : in    std_logic;
-        tag             : in    regN_appID;
-
-        ready           : out   std_logic;
-        fail            : out   std_logic;
-        
-        full            : out   std_logic;
-        
-        -- rw interface --
-
-        app_id          : out   regN_appID;
-        app_id_w        : in    regN_appID;
-        app_id_w_en     : in    std_logic;
-
-        key1            : out   regN_keyPeriph;
-        key1_w          : in    regN_keyPeriph;
-        key1_w_en       : in    std_logic;
-
-        key2            : out   regN_keyPeriph;
-        key2_w          : in    regN_keyPeriph;
-        key2_w_en       : in    std_logic;
-
-        burst_size      : out   regN_burstSize;
-        burst_size_w    : in    regN_burstSize;
-        burst_size_w_en : in    std_logic;
-
-        path_size       : out   intN_pathSize;
-        path_size_w     : in    intN_pathSize;
-        path_size_w_en  : in    std_logic;
-
-        path_flit       : out   regflit;
-        path_flit_w     : in    regflit;
-        path_flit_w_en  : in    std_logic;
-        path_flit_index : in    intN_pathIndex;
-
-        free_slot       : in    std_logic
+        tableIn         : in    TableInput;
+        tableOut        : out   TableOutput
     );
 end entity;
 
@@ -81,13 +42,14 @@ architecture ni_table of ni_table is
 
     type StateType is (WAITING, FETCHING, FETCHING_CRYPTO, FETCHING_NEW, READY, FAILED, SLOT_FREED);
 
-    signal present_state    : StateType;
+    signal state            : StateType;
     signal next_state       : StateType;
 
     signal is_fetching      : std_logic;
 
     -- fetch signals
 
+    signal match            : std_logic;
     signal match_regular    : std_logic;
     signal match_crypto     : std_logic;
     signal match_new        : std_logic;
@@ -99,12 +61,12 @@ architecture ni_table of ni_table is
 
     -- rw signals
 
-    signal read_en          : std_logic;
-    signal write_en         : std_logic;
+    signal read_enable      : std_logic;
+    signal write_enable     : std_logic;
 
 begin
 
-    full <= and table.used;
+    tableOut.full <= and table.used;
 
     ---------------
     -- TABLE FSM --
@@ -113,22 +75,22 @@ begin
     ChangeState: process(clock, reset)
     begin
         if reset='1' then
-            present_state <= WAITING; 
+            state <= WAITING; 
         elsif rising_edge(clock) then
-            present_state <= next_state;
+            state <= next_state;
         end if;
     end process;
 
-    NextState: process(present_state, request, crypto, new_line, match, slot_is_last, free_slot)
+    NextState: process(state, tableIn.request, tableIn.crypto, tableIn.newLine, tableIn.clearSlot, match, slot_is_last)
     begin
-        case present_state is
+        case state is
 
             when WAITING =>
 
-                if request='1' then
-                    if new_line='1' then
+                if tableIn.request='1' then
+                    if tableIn.newLine='1' then
                         next_state <= FETCHING_NEW;
-                    elsif crypto='1' then
+                    elsif tableIn.crypto='1' then
                         next_state <= FETCHING_CRYPTO;
                     else
                         next_state <= FETCHING;
@@ -169,9 +131,9 @@ begin
             
             when READY =>
 
-                if request='0' then
+                if tableIn.request='0' then
                     next_state <= WAITING;
-                elsif free_slot='0' then
+                elsif tableIn.clearSlot='0' then
                     next_state <= SLOT_FREED;
                 else
                     next_state <= READY;
@@ -179,7 +141,7 @@ begin
             
             when FAILED =>
                 
-                if request='0' then
+                if tableIn.request='0' then
                     next_state <= WAITING;
                 else
                     next_state <= FAILED;
@@ -187,7 +149,7 @@ begin
             
             when SLOT_FREED =>
 
-                if request='0'then
+                if tableIn.request='0'then
                     next_state <= WAITING;
                 else
                     next_state <= SLOT_FREED;
@@ -196,22 +158,22 @@ begin
         end case;
     end process;
 
-    ready <= '1' when present_state = READY else '0';
-    fail <= '1' when present_state = FAILED else '0';
+    tableOut.ready <= '1' when state = READY else '0';
+    tableOut.fail <= '1' when state = FAILED else '0';
 
-    is_fetching <= '1' when present_state=FETCHING or present_state=FETCHING_CRYPTO or present_state=FETCHING_NEW else '0';
+    is_fetching <= '1' when state=FETCHING or state=FETCHING_CRYPTO or state=FETCHING_NEW else '0';
 
     ----------------
     -- FETCH SLOT --
     ----------------
 
-    match_regular   <= nor (tag xor table.app_id(slot));
-    match_crypto    <= nor (tag xor table.app_id(slot) xor table.key2(slot));
+    match_regular   <= nor (tableIn.tag xor table.app_id(slot));
+    match_crypto    <= nor (tableIn.tag xor table.app_id(slot) xor table.key2(slot));
     match_new       <= not (table.used(slot));
     
-    match <=    match_regular   when present_state = FETCHING else
-                match_crypto    when present_state = FETCHING_CRYPTO else
-                match_new       when present_state = FETCHING_NEW else
+    match <=    match_regular   when state = FETCHING else
+                match_crypto    when state = FETCHING_CRYPTO else
+                match_new       when state = FETCHING_NEW else
                 '0';
     
     SlotCounter: process(clock, reset_slot, enable_counter)
@@ -223,29 +185,29 @@ begin
         end if;
     end process;
 
-    reset_slot <= '1' when reset='1' or current_state=WAITING else '0';
-    enable_counter <= '1' when is_fetching='1' and match='0' else '0';
+    reset_slot <= '1' when reset='1' or state=WAITING else '0';
+    enable_counter <= '1' when is_fetching='1' and match='0' and slot_is_last='0' else '0';
     slot_is_last <= '1' when slot = TABLE_SIZE-1 else '0';
 
     ----------
     -- READ --
     ----------
 
-    read_enable <= '1' when present_state = READY else '0';
+    read_enable <= '1' when state = READY else '0';
     
-    app_id      <= table.app_id(slot)       when read_enable='1' else (others => '0');
-    key1        <= table.key1(slot)         when read_enable='1' else (others => '0');
-    key2        <= table.key2(slot)         when read_enable='1' else (others => '0');
-    burst_size  <= table.burst_size(slot)   when read_enable='1' else (others => '0');
-    path_size   <= table.path_size(slot)    when read_enable='1' else (others => '0');
+    tableOut.appId      <= table.app_id(slot)       when read_enable='1' else (others => '0');
+    tableOut.key1       <= table.key1(slot)         when read_enable='1' else (others => '0');
+    tableOut.key2       <= table.key2(slot)         when read_enable='1' else (others => '0');
+    tableOut.burstSize  <= table.burst_size(slot)   when read_enable='1' else (others => '0');
+    tableOut.pathSize   <= table.path_size(slot)    when read_enable='1' else 0;
 
-    path_flit   <= table.path(slot)(path_flit_index) when read_enable='1' else (others => '0');
+    tableOut.pathFlit   <= table.path(slot)(tableIn.pathFlit_idx) when read_enable='1' else (others => '0');
 
     -----------
     -- WRITE --
     -----------
 
-    write_enable <= '1' when present_state = READY else '0';
+    write_enable <= '1' when state = READY else '0';
 
     TableWrite: process(clock, reset)
     begin
@@ -255,41 +217,41 @@ begin
             table.key1          <= (others => (others => '0'));
             table.key2          <= (others => (others => '0'));
             table.burst_size    <= (others => (others => '0'));
-            table.path_size     <= (others => (others => '0'));
+            table.path_size     <= (others => 0);
             table.path          <= (others => (others => (others => '0')));
 
         elsif rising_edge(clock) and write_enable='1' then
 
-            if free_slot='1' then
+            if tableIn.clearSlot='1' then
                 table.app_id(slot)      <= (others => '0');
                 table.key1(slot)        <= (others => '0');
                 table.key2(slot)        <= (others => '0');
                 table.burst_size(slot)  <= (others => '0');
-                table.path_size(slot)   <= (others => '0');
+                table.path_size(slot)   <= 0;
                 table.path(slot)        <= (others => (others => '0'));
             else
-                if app_id_w_en='1' then
-                    table.app_id(slot) <= app_id_w;
-                end if;d
-
-                if key1_w_en='1' then
-                    table.key1(slot) <= key1_w;
+                if tableIn.appId_wen='1' then
+                    table.app_id(slot) <= tableIn.appId_w;
                 end if;
 
-                if key2_w_en='1' then
-                    table.key2(slot) <= key2_w;
+                if tableIn.key1_wen='1' then
+                    table.key1(slot) <= tableIn.key1_w;
                 end if;
 
-                if burst_size_w_en='1' then
-                    table.burst_size(slot) <= burst_size_w;
+                if tableIn.key2_wen='1' then
+                    table.key2(slot) <= tableIn.key2_w;
                 end if;
 
-                if path_size_w_en='1' then
-                    table.path_size(slot) <= path_size_w;
+                if tableIn.burstSize_wen='1' then
+                    table.burst_size(slot) <= tableIn.burstSize_w;
                 end if;
 
-                if path_flit_w_en='1' then
-                    table.path(slot)(path_flit_index) <= path_flit_w;
+                if tableIn.pathSize_wen='1' then
+                    table.path_size(slot) <= tableIn.pathSize_w;
+                end if;
+
+                if tableIn.pathFlit_wen='1' then
+                    table.path(slot)(tableIn.pathFlit_idx) <= tableIn.pathFlit_w;
                 end if;
             end if;
 
@@ -299,14 +261,14 @@ begin
     ManageUsedSlots: process(clock, reset)
     begin
         if reset='1' then
-            table.used <= (others <= '0');
+            table.used <= (others => '0');
         elsif rising_edge(clock) then
             
-            if present_state = FETCHING_NEW and match='1' then
+            if state = FETCHING_NEW and match='1' then
                 table.used(slot) <= '1';
             end if;
 
-            if present_state = READY and free_slot='1' then
+            if state = READY and tableIn.clearSlot='1' then
                 table.used(slot) <= '0';
             end if;
 

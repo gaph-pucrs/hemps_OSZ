@@ -14,7 +14,7 @@ package ni_pkg is
     constant MAX_FLITS_PER_PKT  : integer := 255;
 
     constant APPID_SIZE         : integer := 10;
-    constant KEYPERIPH_SIZE     : integer := 8;
+    constant KEYPERIPH_SIZE     : integer := APPID_SIZE;
     constant BSIZE_SIZE         : integer := 6;
     constant MAX_PATH_FLITS     : integer := 6;    
 
@@ -51,7 +51,7 @@ package ni_pkg is
         crypto          : std_logic;
         newLine         : std_logic;
         tag             : regN_appID;
-        clearSlot       : std_logic
+        clearSlot       : std_logic;
 
         -- rw
 
@@ -86,12 +86,12 @@ package ni_pkg is
 
         -- rw
 
-        app_id          : regN_appID;
+        appId           : regN_appID;
         key1            : regN_keyPeriph;
         key2            : regN_keyPeriph;
-        burst_size      : regN_burstSize;
-        path_size       : intN_pathSize;
-        path_flit       : regflit;
+        burstSize       : regN_burstSize;
+        pathSize        : intN_pathSize;
+        pathFlit        : regflit;
     
     end record;
     
