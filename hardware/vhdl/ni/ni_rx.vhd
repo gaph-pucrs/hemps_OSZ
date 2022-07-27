@@ -80,22 +80,22 @@ architecture ni_rx of ni_rx is
 
     type TableControlSignals is record
 
-        accessRequired      : std_logic;
-        pathSavingRequired  : std_logic;
+        accessRequired      : std_logic; -- the handling of this service requires table access
+        pathSavingRequired  : std_logic; -- the handling of this service requires saving a path
 
-        requestNewSlot      : std_logic;
-        requestExistingSlot : std_logic;
-        cryptoFetch         : std_logic;
-        tagAvailable        : std_logic;
-        slotAvailable       : std_logic;
-        accessFailed        : std_logic;
+        requestNewSlot      : std_logic; -- the handling of this service consumes one table slot
+        requestExistingSlot : std_logic; -- the handling of this service accesses an existing table slot
+        cryptoFetch         : std_logic; -- the handling of this service makes use of a crypto tag
+        tagAvailable        : std_logic; -- the tag needed for fetching is available
+        slotAvailable       : std_logic; -- the desired slot could be fetched and can be used
+        accessFailed        : std_logic; -- the desired slot could not be fetched
         
-        enableWriting       : std_logic;
-        enablePathWriting   : std_logic;
-        saveAppId           : std_logic;
-        saveKeyPeriph       : std_logic;
-        saveBurstSize       : std_logic;
-        savePathSize        : std_logic;
+        enableWriting       : std_logic; -- enables the writing of the desired fields (other than PathFlit)
+        enablePathWriting   : std_logic; -- enables the writing of PathFlit
+        saveAppId           : std_logic; -- the handling of this service requires saving the AppId field  
+        saveKeyPeriph       : std_logic; -- the handling of this service requires saving the KeyPeriph field
+        saveBurstSize       : std_logic; -- the handling of this service requires saving the BurstSize field
+        savePathSize        : std_logic; -- the handling of this service requires saving the PathSize field
 
     end record;
 
@@ -356,31 +356,7 @@ begin
 
     ---- table ----
 
-    -------------------------------
-    ------------ TO DO ------------
-    -------------------------------
-    -- ORGANIZAR ESSES PROCESSOS --
-    -------------------------------
-
-    tableControl.accessRequired <=
-        '1' when hermes_service_valid='1' and hermes_service=CONFIG_PERIPH_SERVICE  else
-        '1' when hermes_service_valid='1' and hermes_service=SET_PATH_SERVICE       else
-        '1' when hermes_service_valid='1' and hermes_service=REQUEST_PERIPH_SERVICE else
-        '0';
-
-    tableControl.pathSavingRequired <=
-        '1' when hermes_service_valid='1' and hermes_service=SET_PATH_SERVICE       else
-        '0';
-
-    tableControl.requestNewSlot <=
-        '1' when hermes_service_valid='1' and hermes_service=CONFIG_PERIPH_SERVICE  else
-        '0';
-
     tableControl.requestExistingSlot <= tableControl.accessRequired and not tableControl.requestNewSlot;
-
-    tableControl.cryptoFetch <=
-        '1' when hermes_service_valid='1' and hermes_service=REQUEST_PERIPH_SERVICE else
-        '0';
 
     tableControl.tagAvailable <= (app_id_valid and not tableControl.cryptoFetch) or (crypto_tag_valid and tableControl.cryptoFetch);
     
@@ -392,20 +368,53 @@ begin
     
     tableControl.enablePathWriting <= '1' when state=RECEIVE_PATH and hermesControl.acceptingFlit='1' else '0';
     
-    tableControl.saveAppId <=
-        '1' when hermes_service_valid='1' and hermes_service=CONFIG_PERIPH_SERVICE  else
-        '0';
+    DecodeService: process(hermes_service, hermes_service_valid)
+    begin
+        if hermes_service_valid='1' and hermes_service=CONFIG_PERIPH_SERVICE then
 
-    tableControl.saveKeyPeriph <=
-        '1' when hermes_service_valid='1' and hermes_service=CONFIG_PERIPH_SERVICE  else
-        '0';
+            tableControl.accessRequired     <= '1';
+            tableControl.pathSavingRequired <= '0';
+            tableControl.requestNewSlot     <= '1';
+            tableControl.cryptoFetch        <= '0';
+            tableControl.saveAppId          <= '1';
+            tableControl.saveKeyPeriph      <= '1';
+            tableControl.saveBurstSize      <= '0';
+            tableControl.savePathSize       <= '0';
 
-    tableControl.saveBurstSize <=
-        '1' when hermes_service_valid='1' and hermes_service=REQUEST_PERIPH_SERVICE else
-        '0';
-    
-    tableControl.savePathSize <=
-        '1' when hermes_service_valid='1' and hermes_service=SET_PATH_SERVICE else
-        '0';
+        elsif hermes_service_valid='1' and hermes_service=SET_PATH_SERVICE then
+
+            tableControl.accessRequired     <= '1';
+            tableControl.pathSavingRequired <= '1';
+            tableControl.requestNewSlot     <= '0';
+            tableControl.cryptoFetch        <= '0';
+            tableControl.saveAppId          <= '0';
+            tableControl.saveKeyPeriph      <= '0';
+            tableControl.saveBurstSize      <= '0';
+            tableControl.savePathSize       <= '1';
+        
+        elsif hermes_service=REQUEST_PERIPH_SERVICE then
+
+            tableControl.accessRequired     <= '1';
+            tableControl.pathSavingRequired <= '0';
+            tableControl.requestNewSlot     <= '0';
+            tableControl.cryptoFetch        <= '1';
+            tableControl.saveAppId          <= '0';
+            tableControl.saveKeyPeriph      <= '0';
+            tableControl.saveBurstSize      <= '1';
+            tableControl.savePathSize       <= '0';
+        
+        else
+
+            tableControl.accessRequired     <= '0';
+            tableControl.pathSavingRequired <= '0';
+            tableControl.requestNewSlot     <= '0';
+            tableControl.cryptoFetch        <= '0';
+            tableControl.saveAppId          <= '0';
+            tableControl.saveKeyPeriph      <= '0';
+            tableControl.saveBurstSize      <= '0';
+            tableControl.savePathSize       <= '0';
+
+        end if;
+    end process;
 
 end architecture;
