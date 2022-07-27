@@ -11,8 +11,12 @@ entity ni_table is
     (
         clock           : in    std_logic;
         reset           : in    std_logic;
+
         tableIn         : in    TableInput;
-        tableOut        : out   TableOutput
+        tableOut        : out   TableOutput;
+
+        secondaryIn     : in    TableSecondaryInput;
+        secondaryOut    : out   TableSecondaryOutput
     );
 end entity;
 
@@ -63,6 +67,11 @@ architecture ni_table of ni_table is
 
     signal read_enable      : std_logic;
     signal write_enable     : std_logic;
+
+    -- secondary interface signals
+
+    signal read_only_slot   : integer range 0 to TABLE_SIZE-1;
+    signal secondary_match  : std_logic_vector(TABLE_SIZE-1 downto 0);
 
 begin
 
@@ -274,5 +283,48 @@ begin
 
         end if;
     end process;
+    
+    -------------------------------------
+    -- SECONDARY INTERFACE (READ-ONLY) --
+    -------------------------------------
+
+    GenSecondaryMatch: for i in 0 to TABLE_SIZE-1 generate
+        secondary_match(i) <= '1' when (table.app_id(i) = secondaryIn.tag) and (table.used(i) = '1') else '0';
+    end generate;
+
+    GenSecondarySlot2: if TABLE_SIZE = 2 generate
+        read_only_slot <=
+            0 when secondary_match(0) else
+            1;
+    end generate;
+
+    GenSecondarySlot4: if TABLE_SIZE = 4 generate
+        read_only_slot <=
+            0 when secondary_match(0) else
+            1 when secondary_match(1) else
+            2 when secondary_match(2) else
+            3;
+    end generate;
+    
+    GenSecondarySlot8: if TABLE_SIZE = 8 generate
+        read_only_slot <=
+            0 when secondary_match(0) else
+            1 when secondary_match(1) else
+            2 when secondary_match(2) else
+            3 when secondary_match(3) else
+            4 when secondary_match(4) else
+            5 when secondary_match(5) else
+            6 when secondary_match(6) else
+            7;
+    end generate;
+
+    secondaryOut.ready      <= secondary_match(read_only_slot);
+
+    secondaryOut.appId      <= table.app_id(read_only_slot);
+    secondaryOut.key1       <= table.key1(read_only_slot);
+    secondaryOut.key2       <= table.key2(read_only_slot);
+    secondaryOut.burstSize  <= table.burst_size(read_only_slot);
+    secondaryOut.pathSize   <= table.path_size(read_only_slot);
+    secondaryOut.pathFlit   <= table.path(read_only_slot)(secondaryIn.pathFlit_idx);
     
 end architecture;

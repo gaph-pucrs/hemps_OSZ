@@ -66,8 +66,11 @@ architecture network_interface of network_interface is
     -- Table Signals --
     -------------------
 
-    signal tableIn_rxOut   : TableInput;
-    signal tableOut_rxIn   : TableOutput;
+    signal tableIn_rxOut    : TableInput;
+    signal tableOut_rxIn    : TableOutput;
+
+    signal tableIn_txOut    : TableSecondaryInput;
+    signal tableOut_txIn    : TableSecondaryOutput;
 
 begin
 
@@ -88,11 +91,14 @@ begin
     Table: entity work.ni_table
     port map
     (
-        clock       => clock,
-        reset       => reset,
+        clock           => clock,
+        reset           => reset,
 
-        tableIn     => tableIn_rxOut,
-        tableOut    => tableOut_rxIn
+        tableIn         => tableIn_rxOut,
+        tableOut        => tableOut_rxIn,
+
+        secondaryIn     => tableIn_txOut,
+        secondaryOut    => tableOut_txIn
     );
 
     ----------------------

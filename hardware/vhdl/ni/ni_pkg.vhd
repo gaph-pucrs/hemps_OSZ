@@ -95,4 +95,23 @@ package ni_pkg is
     
     end record;
     
+    -------------------------------
+    -- TABLE READ-ONLY INTERFACE --
+    -------------------------------
+
+    type TableSecondaryInput is record
+        tag             : regN_appID;        
+        pathFlit_idx    : intN_pathIndex;
+    end record;
+
+    type TableSecondaryOutput is record
+        ready           : std_logic;
+        appId           : regN_appID;
+        key1            : regN_keyPeriph;
+        key2            : regN_keyPeriph;
+        burstSize       : regN_burstSize;
+        pathSize        : intN_pathSize;
+        pathFlit        : regflit;
+    end record;
+    
 end package ni_pkg;
