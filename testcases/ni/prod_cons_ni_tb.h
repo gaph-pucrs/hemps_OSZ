@@ -123,65 +123,65 @@ SC_MODULE(test_bench) {
 
  // NoC Interface
 
-        Injector->clock_tx_primary(clock_rx_tb[0]);
-        Injector->tx_primary(rx_tb[0]);
-        Injector->data_out_primary(data_in_tb[0]);
-        Injector->credit_i_primary(credit_o_tb[0]);
-        Injector->eop_in_primary(eop_out_tb[0]);  
-        Injector->clock_rx_primary(clock_tx_tb[0]);
-        Injector->rx_primary(tx_tb[0]);
-        Injector->data_in_primary(data_out_tb[0]);
-        Injector->credit_o_primary(credit_i_tb[0]);
-        Injector->eop_out_primary(eop_in_tb[0]);
+        Injector->clock_tx_primary(clock_rx_tb[1]);
+        Injector->tx_primary(rx_tb[1]);
+        Injector->data_out_primary(data_in_tb[1]);
+        Injector->credit_i_primary(credit_o_tb[1]);
+        Injector->eop_in_primary(eop_out_tb[1]);  
+        Injector->clock_rx_primary(clock_tx_tb[1]);
+        Injector->rx_primary(tx_tb[1]);
+        Injector->data_in_primary(data_out_tb[1]);
+        Injector->credit_o_primary(credit_i_tb[1]);
+        Injector->eop_out_primary(eop_in_tb[1]);
 
   
-        Injector->in_source_router_seek_primary(out_source_router_seek_tb[0]);
-        Injector->in_target_router_seek_primary(out_target_router_seek_tb[0]);
-        Injector->in_payload_router_seek_primary(out_payload_router_seek_tb[0]);
-        Injector->in_service_router_seek_primary(out_service_router_seek_tb[0]);
-        Injector->in_req_router_seek_primary(out_req_router_seek_tb[0]);
-        Injector->in_ack_router_seek_primary(out_ack_router_seek_tb[0]);
-        Injector->in_opmode_router_seek_primary(out_opmode_router_seek_tb[0]);
+        Injector->in_source_router_seek_primary(out_source_router_seek_tb[1]);
+        Injector->in_target_router_seek_primary(out_target_router_seek_tb[1]);
+        Injector->in_payload_router_seek_primary(out_payload_router_seek_tb[1]);
+        Injector->in_service_router_seek_primary(out_service_router_seek_tb[1]);
+        Injector->in_req_router_seek_primary(out_req_router_seek_tb[1]);
+        Injector->in_ack_router_seek_primary(out_ack_router_seek_tb[1]);
+        Injector->in_opmode_router_seek_primary(out_opmode_router_seek_tb[1]);
 
-        Injector->out_service_router_seek_primary(in_service_router_seek_tb[0]);
-        Injector->out_source_router_seek_primary(in_source_router_seek_tb[0]);
-        Injector->out_target_router_seek_primary(in_target_router_seek_tb[0]);
-        Injector->out_payload_router_seek_primary(in_payload_router_seek_tb[0]);
-        Injector->out_ack_router_seek_primary(in_ack_router_seek_tb[0]);
-        Injector->out_nack_router_seek_primary(in_nack_router_seek_tb[0]);
-        Injector->out_opmode_router_seek_primary(in_opmode_router_seek_tb[0]);
-        Injector->out_req_router_seek_primary(in_req_router_seek_tb[0]);
+        Injector->out_service_router_seek_primary(in_service_router_seek_tb[1]);
+        Injector->out_source_router_seek_primary(in_source_router_seek_tb[1]);
+        Injector->out_target_router_seek_primary(in_target_router_seek_tb[1]);
+        Injector->out_payload_router_seek_primary(in_payload_router_seek_tb[1]);
+        Injector->out_ack_router_seek_primary(in_ack_router_seek_tb[1]);
+        Injector->out_nack_router_seek_primary(in_nack_router_seek_tb[1]);
+        Injector->out_opmode_router_seek_primary(in_opmode_router_seek_tb[1]);
+        Injector->out_req_router_seek_primary(in_req_router_seek_tb[1]);
 
 
 
-        Injector->clock_tx_secondary(clock_rx_tb[1]);
-        Injector->tx_secondary(rx_tb[1]);
-        Injector->data_out_secondary(data_in_tb[1]);
-        Injector->credit_i_secondary(credit_o_tb[1]);
-        Injector->eop_in_secondary(eop_out_tb[1]);  
-        Injector->clock_rx_secondary(clock_tx_tb[1]);
-        Injector->rx_secondary(tx_tb[1]);
-        Injector->data_in_secondary(data_out_tb[1]);
-        Injector->credit_o_secondary(credit_i_tb[1]);
-        Injector->eop_out_secondary(eop_in_tb[1]);
+        Injector->clock_tx_secondary(clock_rx_tb[0]);
+        Injector->tx_secondary(rx_tb[0]);
+        Injector->data_out_secondary(data_in_tb[0]);
+        Injector->credit_i_secondary(credit_o_tb[0]);
+        Injector->eop_in_secondary(eop_out_tb[0]);  
+        Injector->clock_rx_secondary(clock_tx_tb[0]);
+        Injector->rx_secondary(tx_tb[0]);
+        Injector->data_in_secondary(data_out_tb[0]);
+        Injector->credit_o_secondary(credit_i_tb[0]);
+        Injector->eop_out_secondary(eop_in_tb[0]);
 
   
-        Injector->in_source_router_seek_secondary(out_source_router_seek_tb[1]);
-        Injector->in_target_router_seek_secondary(out_target_router_seek_tb[1]);
-        Injector->in_payload_router_seek_secondary(out_payload_router_seek_tb[1]);
-        Injector->in_service_router_seek_secondary(out_service_router_seek_tb[1]);
-        Injector->in_req_router_seek_secondary(out_req_router_seek_tb[1]);
-        Injector->in_ack_router_seek_secondary(out_ack_router_seek_tb[1]);
-        Injector->in_opmode_router_seek_secondary(out_opmode_router_seek_tb[1]);
+        Injector->in_source_router_seek_secondary(out_source_router_seek_tb[0]);
+        Injector->in_target_router_seek_secondary(out_target_router_seek_tb[0]);
+        Injector->in_payload_router_seek_secondary(out_payload_router_seek_tb[0]);
+        Injector->in_service_router_seek_secondary(out_service_router_seek_tb[0]);
+        Injector->in_req_router_seek_secondary(out_req_router_seek_tb[0]);
+        Injector->in_ack_router_seek_secondary(out_ack_router_seek_tb[0]);
+        Injector->in_opmode_router_seek_secondary(out_opmode_router_seek_tb[0]);
 
-        Injector->out_service_router_seek_secondary(in_service_router_seek_tb[1]);
-        Injector->out_source_router_seek_secondary(in_source_router_seek_tb[1]);
-        Injector->out_target_router_seek_secondary(in_target_router_seek_tb[1]);
-        Injector->out_payload_router_seek_secondary(in_payload_router_seek_tb[1]);
-        Injector->out_ack_router_seek_secondary(in_ack_router_seek_tb[1]);
-        Injector->out_nack_router_seek_secondary(in_nack_router_seek_tb[1]);
-        Injector->out_opmode_router_seek_secondary(in_opmode_router_seek_tb[1]);
-        Injector->out_req_router_seek_secondary(in_req_router_seek_tb[1]);
+        Injector->out_service_router_seek_secondary(in_service_router_seek_tb[0]);
+        Injector->out_source_router_seek_secondary(in_source_router_seek_tb[0]);
+        Injector->out_target_router_seek_secondary(in_target_router_seek_tb[0]);
+        Injector->out_payload_router_seek_secondary(in_payload_router_seek_tb[0]);
+        Injector->out_ack_router_seek_secondary(in_ack_router_seek_tb[0]);
+        Injector->out_nack_router_seek_secondary(in_nack_router_seek_tb[0]);
+        Injector->out_opmode_router_seek_secondary(in_opmode_router_seek_tb[0]);
+        Injector->out_req_router_seek_secondary(in_req_router_seek_tb[0]);
 
 
         
