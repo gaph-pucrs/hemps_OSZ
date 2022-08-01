@@ -142,6 +142,7 @@ SC_MODULE(hemps) {
 	regaddress r_addr;
  	void pes_interconnection();
  	void io_interconnection();
+	void ni_interconnection();
 	
  	void fault_injection();
 	int test_faults_inserted(int nbr_faults);
@@ -244,9 +245,28 @@ SC_MODULE(hemps) {
 				sensitive << credit_o[j][i];
 			}
 		}
+		for (i = 2; i < IO_NUMBER; i++) {
+			sensitive << sig_clock_rx_io[i];
+			sensitive << sig_rx_io[i];
+			sensitive << sig_data_in_io[i];
+			sensitive << sig_credit_i_io[i];
+		}
+
 		SC_METHOD(io_interconnection);
 		sensitive << clock.pos();
 		sensitive << reset;
+
+		SC_METHOD(ni_interconnection);
+		for(i = 2; i < IO_NUMBER; i++) {
+			sensitive << sig_clock_tx_io[i];
+			sensitive << sig_tx_io[i];
+			sensitive << sig_data_out_io[i];
+			sensitive << credit_i_io[i];
+			sensitive << data_in_io[i];
+			sensitive << clock_rx_io[i];
+			sensitive << rx_io[i];
+			sensitive << sig_credit_o_io[i];
+		}
 	}
 };
 
