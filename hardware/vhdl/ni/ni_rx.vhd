@@ -99,7 +99,6 @@ architecture ni_rx of ni_rx is
         saveAppId           : std_logic; -- the handling of this service requires saving the AppId field  
         saveKeyPeriph       : std_logic; -- the handling of this service requires saving the KeyPeriph field
         saveBurstSize       : std_logic; -- the handling of this service requires saving the BurstSize field
-        savePathSize        : std_logic; -- the handling of this service requires saving the PathSize field
 
     end record;
 
@@ -355,8 +354,10 @@ begin
     tableOut.burstSize_w    <= burst_size;
     tableOut.burstSize_wen  <= tableControl.enableWriting and  tableControl.saveBurstSize;
 
+    -- write fields - path
+
     tableOut.pathSize_w     <= path_flit;
-    tableOut.pathSize_wen   <= tableControl.enableWriting and tableControl.savePathSize;
+    tableOut.pathSize_wen   <= tableControl.enablePathWriting;
 
     tableOut.pathFlit_w     <= hermes_data_in;
     tableOut.pathFlit_wen   <= tableControl.enablePathWriting;
@@ -409,7 +410,6 @@ begin
             tableControl.saveAppId          <= '1';
             tableControl.saveKeyPeriph      <= '1';
             tableControl.saveBurstSize      <= '0';
-            tableControl.savePathSize       <= '0';
 
         elsif hermes_service_valid='1' and hermes_service=SET_PATH_SERVICE then
 
@@ -420,7 +420,6 @@ begin
             tableControl.saveAppId          <= '0';
             tableControl.saveKeyPeriph      <= '0';
             tableControl.saveBurstSize      <= '0';
-            tableControl.savePathSize       <= '1';
         
         elsif hermes_service=REQUEST_PERIPH_SERVICE then
 
@@ -431,7 +430,6 @@ begin
             tableControl.saveAppId          <= '0';
             tableControl.saveKeyPeriph      <= '0';
             tableControl.saveBurstSize      <= '1';
-            tableControl.savePathSize       <= '0';
         
         else
 
@@ -442,7 +440,6 @@ begin
             tableControl.saveAppId          <= '0';
             tableControl.saveKeyPeriph      <= '0';
             tableControl.saveBurstSize      <= '0';
-            tableControl.savePathSize       <= '0';
 
         end if;
     end process;
