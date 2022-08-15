@@ -3,20 +3,24 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_unsigned.all;
 use ieee.std_logic_arith.all;
 use work.standards.all;
+use work.seek_pkg.all;
 
 package ni_pkg is
     
     constant TAM_WORD   : integer := TAM_FLIT*2;
     subtype regword is std_logic_vector(TAM_WORD-1 downto 0);
 
-    constant HEADER_SIZE        : integer := 26;
-    constant TABLE_SIZE         : integer := 8;
-    constant MAX_FLITS_PER_PKT  : integer := 255;
+    constant FIXED_HEADER_SIZE      : integer := 2;
+    constant DYNAMIC_HEADER_SIZE    : integer := 22;
+    constant HEADER_SIZE            : integer := FIXED_HEADER_SIZE*2 + DYNAMIC_HEADER_SIZE;
 
-    constant APPID_SIZE         : integer := 10;
-    constant KEYPERIPH_SIZE     : integer := APPID_SIZE;
-    constant BSIZE_SIZE         : integer := 6;
-    constant MAX_PATH_FLITS     : integer := 6;    
+    constant TABLE_SIZE             : integer := 4;
+    constant MAX_FLITS_PER_PKT      : integer := 255;
+
+    constant APPID_SIZE             : integer := 10;
+    constant KEYPERIPH_SIZE         : integer := APPID_SIZE;
+    constant BSIZE_SIZE             : integer := 6;
+    constant MAX_PATH_FLITS         : integer := 6;    
 
     subtype regN_appID      is std_logic_vector(APPID_SIZE-1 downto 0);
     subtype regN_keyPeriph  is std_logic_vector(KEYPERIPH_SIZE-1 downto 0);
@@ -112,6 +116,25 @@ package ni_pkg is
         burstSize       : regN_burstSize;
         pathSize        : intN_pathSize;
         pathFlit        : regflit;
+    end record;
+
+    --------------------------------
+    -- RESPONSE REQUEST INTERFACE --
+    --------------------------------
+
+    type TransmissionModeType is (THROUGH_HERMES, THROUGH_BRNOC);
+
+    type ResponseParametersType is record
+        txMode          : TransmissionModeType;
+        appId           : regN_appID;
+        hermesService   : regword;
+        brnocService    : seek_bitN_service;
+    end record;
+
+    type TransmissionStatusType is record
+        busy            : std_logic;
+        accepted        : std_logic;
+        rejected        : std_logic;
     end record;
     
 end package ni_pkg;

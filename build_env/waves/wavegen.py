@@ -188,20 +188,26 @@ for it in map(lambda sd: io_peripheral_pfx + sd, io_peripheral_sds):
 
 #NI SIGNALS
 ni_pfx="add wave -noupdate -group NI /test_bench/NI/network_interface/"
-ni_sds=["clock", "reset", "hermes_rx", "hermes_data_in", "hermes_eop_in", "hermes_credit_out", "tableIn_rxOut", "tableOut_rxIn"]
+ni_sds=["clock", "reset", "hermes_rx", "hermes_data_in", "hermes_eop_in", "hermes_credit_out", "tableIn_rxOut", "tableOut_rxIn", "hermes_tx", "hermes_data_out", "hermes_eop_out", "hermes_credit_in", "tableIn_txOut", "tableOut_txIn", "response_req", "response_param", "tx_busy", "tx_rejected"]
 for it in map(lambda sd: ni_pfx + sd, ni_sds):
 	print (it)
 
 #NI_TABLE SIGNALS
 ni_table_pfx="add wave -noupdate -group NI_Table /test_bench/NI/network_interface/Table/"
-ni_table_sds=["state", "next_state", "is_fetching", "match", "match_regular", "match_crypto", "match_new", "slot", "reset_slot", "enable_counter", "slot_is_last", "read_enable", "table"]
+ni_table_sds=["state", "next_state", "is_fetching", "match", "match_regular", "match_crypto", "match_new", "slot", "reset_slot", "enable_counter", "slot_is_last", "read_enable", "table", "read_only_slot", "secondary_match"]
 for it in map(lambda sd: ni_table_pfx + sd, ni_table_sds):
 	print (it)
 
 #NI_RX SIGNALS
 ni_rx_pfx="add wave -noupdate -group NI_RX /test_bench/NI/network_interface/ModuleRX/"
-ni_rx_sds=["state", "next_state", "header_flit", "path_flit", "app_id", "app_id_valid", "crpto_tag", "crypto_tag_valid", "key_periph", "burst_size", "hermes_service", "hermes_service_valid", "end_of_handling", "hermesControl", "tableControl"]
+ni_rx_sds=["state", "next_state", "header_flit", "path_flit", "app_id", "app_id_valid", "crypto_tag", "crypto_tag_valid", "key_periph", "burst_size", "hermes_service", "hermes_service_valid", "end_of_handling", "hermesControl", "tableControl"]
 for it in map(lambda sd: ni_rx_pfx + sd, ni_rx_sds):
+	print (it)
+
+#NI_TX SIGNALS
+ni_tx_pfx="add wave -noupdate -group NI_TX /test_bench/NI/network_interface/ModuleTX/"
+ni_tx_sds=["state", "next_state", "fixed_header_flit", "path_flit", "header_flit", "fixed_header_end", "path_end", "header_end"]
+for it in map(lambda sd: ni_tx_pfx + sd, ni_tx_sds):
 	print (it)
 
 print ("TreeUpdate [SetDefaultTree]\n\

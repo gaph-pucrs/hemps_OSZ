@@ -318,7 +318,7 @@ begin
             7;
     end generate;
 
-    secondaryOut.ready      <= secondary_match(read_only_slot);
+    secondaryOut.ready      <= or secondary_match;
 
     secondaryOut.appId      <= table.app_id(read_only_slot);
     secondaryOut.key1       <= table.key1(read_only_slot);

@@ -18,7 +18,11 @@ entity ni_rx is
         hermes_credit_out   : out   std_logic;
 
         tableIn             : in    TableOutput;
-        tableOut            : out   TableInput
+        tableOut            : out   TableInput;
+
+        response_req        : out   std_logic;
+        response_param      : out   ResponseParametersType;
+        tx_status           : in    TransmissionStatusType
     );
 end entity;
 
@@ -28,7 +32,7 @@ architecture ni_rx of ni_rx is
     -- FSM SIGNALS --
     -----------------
 
-    type InputHandlerState is (WAIT_REQ, HERMES_HEADER, WAIT_SLOT, RECEIVE_PATH, WRITE_TABLE);
+    type InputHandlerState is (WAIT_REQ, HERMES_HEADER, WAIT_SLOT, RECEIVE_PATH, WRITE_TABLE, WAIT_TX_AVAIL, REQUEST_RESPONSE);
 
     signal state        : InputHandlerState;
     signal next_state   : InputHandlerState;
@@ -101,6 +105,12 @@ architecture ni_rx of ni_rx is
 
     signal tableControl     : TableControlSignals;
 
+    ---------------------------------
+    -- AUX CONTROL SIGNALS -- TEMP --
+    ---------------------------------
+
+    signal send_ack : std_logic; -- will request transmission of a packet
+
 begin
 
     --------------------------
@@ -116,7 +126,7 @@ begin
         end if;
     end process;
 
-    NextState: process(state, hermesControl, tableControl)
+    NextState: process(state, hermesControl, tableControl, tx_status, send_ack)
     begin
         case state is
 
@@ -168,7 +178,27 @@ begin
 
             when WRITE_TABLE =>
 
-                next_state <= WAIT_REQ;
+                if send_ack='1' then
+                    next_state <= WAIT_TX_AVAIL;
+                else
+                    next_state <= WAIT_REQ;
+                end if;
+            
+            when WAIT_TX_AVAIL =>
+
+                if tx_status.busy='0' then
+                    next_state <= REQUEST_RESPONSE;
+                else
+                    next_state <= WAIT_TX_AVAIL;
+                end if;
+            
+            when REQUEST_RESPONSE =>
+
+                if tx_status.accepted='1' or tx_status.rejected='1' then
+                    next_state <= WAIT_REQ;
+                else
+                    next_state <= REQUEST_RESPONSE;
+                end if;
 
         end case;
     end process;
@@ -416,5 +446,18 @@ begin
 
         end if;
     end process;
+
+    ---------------------------------------------------------------
+    -- DUMMY SIGNALS TO REQUEST TRANSMISSION OF A PACKET -- TEMP --
+    ---------------------------------------------------------------
+    
+    response_req <= '1' when state=REQUEST_RESPONSE and send_ack='1' else '0';
+    
+    response_param.txMode           <= THROUGH_HERMES;
+    response_param.appId            <= app_id;
+    response_param.hermesService    <= (others => '0');
+    response_param.brnocService     <= (others => '0');
+    
+    send_ack <= '1' when hermes_service_valid='1' and hermes_service=SET_PATH_SERVICE else '0';
 
 end architecture;

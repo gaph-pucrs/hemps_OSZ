@@ -62,6 +62,12 @@ architecture network_interface of network_interface is
     signal hermes_eop_in            : std_logic;
     signal hermes_credit_out        : std_logic;
 
+    signal hermes_tx                : std_logic;
+    signal hermes_tx_ck             : std_logic;
+    signal hermes_data_out          : regflit;
+    signal hermes_eop_out           : std_logic;
+    signal hermes_credit_in         : std_logic;
+
     -------------------
     -- Table Signals --
     -------------------
@@ -71,6 +77,14 @@ architecture network_interface of network_interface is
 
     signal tableIn_txOut    : TableSecondaryInput;
     signal tableOut_txIn    : TableSecondaryOutput;
+
+    --------------------------------
+    -- Response Request Interface --
+    --------------------------------
+
+    signal response_req     : std_logic;
+    signal response_param   : ResponseParametersType;
+    signal tx_status        : TransmissionStatusType;
 
 begin
 
@@ -83,6 +97,12 @@ begin
     hermes_data_in              <= hermes_primary_data_in;
     hermes_eop_in               <= hermes_primary_eop_in;
     hermes_primary_credit_out   <= hermes_credit_out;
+
+    hermes_primary_tx           <= hermes_tx;
+    hermes_primary_tx_clk       <= '1';
+    hermes_primary_data_out     <= hermes_data_out;
+    hermes_primary_eop_out      <= hermes_eop_out;
+    hermes_credit_in            <= hermes_primary_credit_in;
 
     -----------
     -- Table --
@@ -117,7 +137,34 @@ begin
         hermes_credit_out   => hermes_credit_out,
 
         tableIn             => tableOut_rxIn,
-        tableOut            => tableIn_rxOut
+        tableOut            => tableIn_rxOut,
+
+        response_req        => response_req,
+        response_param      => response_param,
+        tx_status           => tx_status
+    );
+
+    -------------------------
+    -- Transmission Module --
+    -------------------------
+
+    ModuleTX: entity work.ni_packet_builder
+    port map
+    (
+        clock               => clock,
+        reset               => reset,
+
+        hermes_tx           => hermes_tx,
+        hermes_data_out     => hermes_data_out,
+        hermes_eop_out      => hermes_eop_out,
+        hermes_credit_in    => hermes_credit_in,
+
+        tableIn             => tableOut_txIn,
+        tableOut            => tableIn_txOut,
+
+        response_req        => response_req,
+        response_param_in   => response_param,
+        status              => tx_status
     );
 
 end network_interface;
