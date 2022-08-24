@@ -22,7 +22,11 @@ entity ni_packet_builder is
 
         response_req        : in    std_logic;
         response_param_in   : in    ResponseParametersType;
-        status              : out   TransmissionStatusType
+        status              : out   TransmissionStatusType;
+
+        buffer_rdata        : in    regflit;
+        buffer_ren          : out   std_logic;
+        buffer_empty        : in    std_logic
     );
 end entity;
 

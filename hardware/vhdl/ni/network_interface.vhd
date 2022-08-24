@@ -86,6 +86,30 @@ architecture network_interface of network_interface is
     signal response_param   : ResponseParametersType;
     signal tx_status        : TransmissionStatusType;
 
+    --------------------
+    -- Buffer Signals --
+    --------------------
+
+    -- buffer out
+
+    signal buffer_o_wen     : std_logic;
+    signal buffer_o_datain  : regflit;
+
+    signal buffer_o_ren     : std_logic;
+    signal buffer_o_dataout : regflit;
+
+    signal buffer_o_status  : BufferStatusType;
+
+    -- buffer in
+
+    signal buffer_i_wen     : std_logic;
+    signal buffer_i_datain  : regflit;
+
+    signal buffer_i_ren     : std_logic;
+    signal buffer_i_dataout : regflit;
+
+    signal buffer_i_status  : BufferStatusType;
+
 begin
 
     --------------------
@@ -141,7 +165,11 @@ begin
 
         response_req        => response_req,
         response_param      => response_param,
-        tx_status           => tx_status
+        tx_status           => tx_status,
+
+        buffer_wdata        => buffer_o_datain,
+        buffer_wen          => buffer_o_wen,
+        buffer_full         => buffer_o_status.full
     );
 
     -------------------------
@@ -164,7 +192,65 @@ begin
 
         response_req        => response_req,
         response_param_in   => response_param,
-        status              => tx_status
+        status              => tx_status,
+
+        buffer_rdata        => buffer_i_dataout,
+        buffer_ren          => buffer_i_ren,
+        buffer_empty        => buffer_i_status.empty
+    );
+
+    -------------
+    -- Buffers --
+    -------------
+
+    OutputBuffer: entity work.ni_fifo
+    port map
+    (
+        clock   => clock,
+        reset   => reset,
+
+        w_en    => buffer_o_wen,
+        data_i  => buffer_o_datain,
+
+        r_en    => buffer_o_ren,
+        data_o  => buffer_o_dataout,
+
+        status  => buffer_o_status
+    );
+
+    InputBuffer: entity work.ni_fifo
+    port map
+    (
+        clock   => clock,
+        reset   => reset,
+
+        w_en    => buffer_i_wen,
+        data_i  => buffer_i_datain,
+
+        r_en    => buffer_i_ren,
+        data_o  => buffer_i_dataout,
+
+        status  => buffer_i_status
+    );
+
+    ----------------
+    -- Peripheral --
+    ----------------
+
+    DummyPeripheral: entity work.dummy_peripheral
+    port map
+    (
+        clock               =>  clock,
+        reset               =>  reset,
+
+        r_en                => buffer_o_ren,
+        w_en                => buffer_i_wen,
+
+        data_in             => buffer_o_dataout,
+        data_out            => buffer_i_datain,
+
+        space_unavailable   => buffer_i_status.full,
+        data_unavailable    => buffer_o_status.empty
     );
 
 end network_interface;

@@ -17,6 +17,8 @@ package ni_pkg is
     constant TABLE_SIZE             : integer := 4;
     constant MAX_FLITS_PER_PKT      : integer := 255;
 
+    constant FIFO_SIZE              : integer := 32;
+
     constant APPID_SIZE             : integer := 10;
     constant KEYPERIPH_SIZE         : integer := APPID_SIZE;
     constant BSIZE_SIZE             : integer := 6;
@@ -135,6 +137,16 @@ package ni_pkg is
         busy            : std_logic;
         accepted        : std_logic;
         rejected        : std_logic;
+    end record;
+
+    ---------------------------
+    -- FIFO BUFFER INTERFACE --
+    ---------------------------
+
+    type BufferStatusType is record
+        empty           : std_logic;
+        full            : std_logic;
+        err             : std_logic;
     end record;
     
 end package ni_pkg;

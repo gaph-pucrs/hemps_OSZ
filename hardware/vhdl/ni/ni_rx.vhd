@@ -22,7 +22,11 @@ entity ni_rx is
 
         response_req        : out   std_logic;
         response_param      : out   ResponseParametersType;
-        tx_status           : in    TransmissionStatusType
+        tx_status           : in    TransmissionStatusType;
+
+        buffer_wdata        : out   regflit;
+        buffer_wen          : out   std_logic;
+        buffer_full         : in    std_logic
     );
 end entity;
 
