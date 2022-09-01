@@ -149,7 +149,7 @@ begin
     -- Reception Module --
     ----------------------
 
-    ModuleRX: entity work.ni_rx
+    ModuleRX: entity work.ni_packet_handler
     port map
     (
         clock               => clock,

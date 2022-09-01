@@ -31,7 +31,7 @@ STAND_NI	=ni_pkg
 SEEK_VHD 	=seek_pkg logging router_seek
 #SEEK_VHD 	=seek_pkg router_seek
 ROUTER_VHD 	=Hermes_buffer Hermes_crossbar Hermes_switchcontrol_SR mux_control RouterCC_SR
-NI_VHD		=ni_table ni_rx ni_packet_builder ni_fifo dummy_peripheral network_interface
+NI_VHD		=ni_table ni_packet_handler ni_packet_builder ni_fifo dummy_peripheral network_interface
 
 TOP_SRC	    			= $(addprefix sc/, 									$(TOP:=.cpp)  $(TOP:=.h) 			)
 PE_SRC					= $(addprefix sc/pe/, 								$(PE:=.cpp) $(PE:=.h)  				)

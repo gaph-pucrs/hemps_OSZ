@@ -44,6 +44,8 @@ package ni_pkg is
     constant REQUEST_PERIPH_SERVICE             : regword := x"45542323";
     constant REQUEST_PERIPH_SERVICE_APPID_FLIT  : integer := 9;
     constant REQUEST_PERIPH_SERVICE_BSIZE_FLIT  : integer := 19;
+
+    constant IO_WRITE_SERVICE                   : regword := x"09902020";
     
     --------------------------------
     -- TABLE READ-WRITE INTERFACE --
