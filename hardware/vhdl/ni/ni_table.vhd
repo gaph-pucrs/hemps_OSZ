@@ -110,7 +110,9 @@ begin
 
             when FETCHING =>
 
-                if match='1' then
+                if tableIn.request='0' then
+                    next_state <= WAITING;
+                elsif match='1' then
                     next_state <= READY;
                 elsif slot_is_last='1' then
                     next_state <= FAILED;
@@ -120,7 +122,9 @@ begin
             
             when FETCHING_CRYPTO =>
 
-                if match='1' then
+                if tableIn.request='0' then
+                    next_state <= WAITING;
+                elsif match='1' then
                     next_state <= READY;
                 elsif slot_is_last='1' then
                     next_state <= FAILED;
@@ -130,7 +134,9 @@ begin
 
             when FETCHING_NEW =>
             
-                if match='1' then
+                if tableIn.request='0' then
+                    next_state <= WAITING;
+                elsif match='1' then
                     next_state <= READY;
                 elsif slot_is_last='1' then
                     next_state <= FAILED;
@@ -142,7 +148,7 @@ begin
 
                 if tableIn.request='0' then
                     next_state <= WAITING;
-                elsif tableIn.clearSlot='0' then
+                elsif tableIn.clearSlot='1' then
                     next_state <= SLOT_FREED;
                 else
                     next_state <= READY;
