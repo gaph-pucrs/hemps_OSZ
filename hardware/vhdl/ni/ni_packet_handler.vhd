@@ -82,6 +82,7 @@ architecture ni_packet_handler of ni_packet_handler is
     -- PACKET INFO REGISTERS --
     ---------------------------
 
+    signal routing_header_flit  : integer range 0 to XY_HEADER_SIZE;
     signal header_flit          : integer range 0 to HEADER_SIZE;
     signal path_flit            : intN_pathIndex;
 
@@ -113,6 +114,7 @@ architecture ni_packet_handler of ni_packet_handler is
         acceptingFlit           : std_logic;
         payloadIsPath           : std_logic;
         payloadIsData           : std_logic;
+        receivingRoutingHeader  : std_logic;
         receivingHeader         : std_logic;
         receivingPath           : std_logic;
         receivingData           : std_logic;
@@ -120,6 +122,8 @@ architecture ni_packet_handler of ni_packet_handler is
         endOfHeader             : std_logic;
         endOfPacket             : std_logic;
         receivedEndOfPacket     : std_logic;
+        sourceRoutingPacket     : std_logic;
+        sourceRoutingFlit       : std_logic;
     end record;
 
     signal hermesControl    : HermesControlSignals;
@@ -427,6 +431,19 @@ begin
     -- PACKET PARSING --
     --------------------
 
+    CountRoutingHeaderFlits: process(clock, reset)
+    begin
+        if reset='1' then
+            routing_header_flit <= 0;
+        elsif rising_edge(clock) then
+            if end_of_handling='1' then
+                routing_header_flit <= 0;
+            elsif hermesControl.receivingRoutingHeader='1' and hermesControl.acceptingFlit='1' and routing_header_flit/=XY_HEADER_SIZE then
+                routing_header_flit <= routing_header_flit + 1;
+            end if;
+        end if;
+    end process;
+
     CountHeaderFlits: process(clock, reset)
     begin
         if reset='1' then
@@ -434,7 +451,7 @@ begin
         elsif rising_edge(clock) then
             if end_of_handling='1' then
                 header_flit <= 0;
-            elsif hermesControl.receivingHeader='1' and hermesControl.acceptingFlit='1' then
+            elsif hermesControl.receivingHeader='1' and hermesControl.acceptingFlit='1' and hermesControl.receivingRoutingHeader='0' then
                 header_flit <= header_flit + 1;
             end if;
         end if;
@@ -606,18 +623,34 @@ begin
     hermesControl.receivingData     <= '1' when stage=RECEIVE_DATA      and (data_state=CONSUME_DATA_FLIT)                                      else '0';
     hermesControl.droppingPackage   <= '1' when stage=FINISH_RECEPTION  and (finish_rx_state=DROP_FLIT)                                         else '0';
 
-    hermesControl.endOfHeader <= '1' when header_flit=HEADER_SIZE-1 else '0';
+    hermesControl.endOfHeader <= '1' when header_flit=END_OF_HEADER_FLIT else '0';
     hermesControl.endOfPacket <= hermes_eop_in;
 
-    EndOfPacketRegister: process(clock, reset)
+    hermesControl.sourceRoutingFlit <= '1' when hermesControl.receivingRoutingHeader='1' and hermes_data_in(TAM_FLIT-1 downto TAM_FLIT-4)=x"7" else '0';
+
+    hermesControl.receivingRoutingHeader <= '1' when hermesControl.receivingHeader='1' and (
+        (hermesControl.sourceRoutingPacket='0' and routing_header_flit/=XY_HEADER_SIZE) or (hermesControl.sourceRoutingPacket='1' and hermesControl.sourceRoutingFlit='1')
+    ) else '0';
+
+    HermesControlRegisters: process(clock, reset)
     begin
         if reset='1' then
-            hermesControl.receivedEndOfPacket <= '0';
+            hermesControl.receivedEndOfPacket   <= '0';
+            hermesControl.sourceRoutingPacket   <= '0';
         elsif rising_edge(clock) then
             if end_of_handling='1' then
-                hermesControl.receivedEndOfPacket <= '0';
-            elsif hermesControl.endOfPacket='1' then
-                hermesControl.receivedEndOfPacket <= '1';
+                hermesControl.receivedEndOfPacket   <= '0';
+                hermesControl.sourceRoutingPacket   <= '0';
+            else
+            
+                if hermesControl.endOfPacket='1' then
+                    hermesControl.receivedEndOfPacket <= '1';
+                end if;
+
+                if hermesControl.sourceRoutingFlit='1' then
+                    hermesControl.sourceRoutingPacket <= '1';
+                end if;
+
             end if;
         end if;
     end process;

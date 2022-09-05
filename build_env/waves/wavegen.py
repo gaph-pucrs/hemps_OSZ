@@ -200,7 +200,7 @@ for it in map(lambda sd: ni_table_pfx + sd, ni_table_sds):
 
 #NI_RX SIGNALS
 ni_rx_pfx="add wave -noupdate -group NI_RX /test_bench/NI/network_interface/ModuleRX/"
-ni_rx_sds=["stage", "start_rx_state", "table_state", "data_state", "finish_rx_state", "respond_state", "header_flit", "path_flit", "hermes_service", "app_id", "crypto_tag", "key_periph", "burst_size", "hermesControl", "tableControl", "unknown_service", "authenticated", "response_necessary", "data_to_write_on_table", "end_of_handling"]
+ni_rx_sds=["stage", "start_rx_state", "table_state", "data_state", "finish_rx_state", "respond_state", "routing_header_flit", "header_flit", "path_flit", "hermes_service", "app_id", "crypto_tag", "key_periph", "burst_size", "hermesControl", "tableControl", "unknown_service", "authenticated", "response_necessary", "data_to_write_on_table", "end_of_handling"]
 for it in map(lambda sd: ni_rx_pfx + sd, ni_rx_sds):
 	print (it)
 
