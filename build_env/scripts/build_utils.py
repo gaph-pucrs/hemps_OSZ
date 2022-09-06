@@ -1,4 +1,5 @@
 #!/usr/bin/python
+from ast import Or
 import sys
 import os
 import filecmp
@@ -11,11 +12,12 @@ from math import ceil
 #------------ Python classes. See more in: http://www.tutorialspoint.com/python/python_classes_objects.htm
 #This class is used to store the start time information of applications, usefull into repository generation process
 class ApplicationStartTime:
-    def __init__(self, name, start_time_ms, repo_address, secure):
+    def __init__(self, name, start_time_ms, repo_address, secure, shape):#AQUI**********************************
         self.name = name
         self.start_time_ms = start_time_ms #Stores the application descriptor repository address
         self.repo_address = repo_address
         self.secure = secure
+        self.shape = shape
 
 #This class stores the repository lines in a generic way, this class as well as StaticTask are used in the app_builder module
 class RepoLine:
@@ -179,3 +181,51 @@ def delete_if_exists( path_dir ):
 def create_ifn_exists( path_dir ):
     if not os.path.exists(path_dir):
         os.mkdir(path_dir)
+
+def find_IO_comm_for_each_task(testcase_path, app_name, task_name):
+    peripherals_comm = []
+    source_file = testcase_path + "/applications/" + app_name + "/" + task_name +".c"
+
+    f = open(source_file)
+
+    source_lines = f.readlines()
+    comment = 0
+    for line in source_lines :
+        #start of func remove comments
+        line = line.split("//")[0]
+        while (("/*" in line) or ("*/" in line) or (comment == 1)):
+            if (("/*" in line) and not ("*/" in line)):
+                line = line.split("/*",1)[0]
+                comment = 1
+            elif ((comment == 1) and not ("/*" in line) and not ("*/" in line)):
+                line = ""
+                break
+            elif ((comment == 1) and ("*/" in line)):
+                line = line.split("*/",1)[1]
+                comment = 0
+            elif ((comment == 0) and ("/*" in line) and ("*/" in line)):
+                x = line.split("/*",1)
+                y = x[1].split("*/",1)[1]
+                line = x[0] + " " + y
+        #end of func remove comments
+        line = str.upper(line)
+        while ("IOSEND" in line) or ("IORECEIVE" in line):
+            line = line.replace(" ","")
+            if ("IOSEND" in line):
+                peripheral = line.split("IOSEND",1)[1].split(",",1)[1].split(");",1)[0]
+                line = line.split("IOSEND",1)[0] + line.split("IOSEND",1)[1].split(");",1)[1]
+            else:
+                peripheral = line.split("IORECEIVE",1)[1].split(",",1)[1].split(");",1)[0]
+                line = line.split("IORECEIVE",1)[0] + line.split("IORECEIVE",1)[1].split(");",1)[1]
+                
+            if peripheral not in peripherals_comm:
+                peripherals_comm.append(peripheral)
+ 
+    #for i in range(len(peripherals_comm)):
+    #    print("\n\tTask - Peripheral:(" + task_name + " - " + peripherals_comm[i] + ")\n")    
+
+    #if not peripherals_comm:
+    #    print("\n\tTask - Peripheral:( )\n")
+
+    f.close()
+    return peripherals_comm

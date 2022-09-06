@@ -20,6 +20,10 @@
 #include "seek.h" 
 #include "packet.h"
 
+#ifdef BLOQUEIO_IO
+#include "../../include/kernel_pkg.h"
+#endif
+
 
 //extern unsigned int app_id_counter;
 unsigned int address_go, address_back;
@@ -76,107 +80,129 @@ int get_static_SZ(int appID){
 	return 0;	
 }
 
-
-int create_shapes(int task_pe, int tasks_app){
-  int nb_shapes = 0, t, nb_pe;
-  for(t=1; t <= task_pe; t++ )
-     { 
+int create_shapes(int task_pe, int tasks_app, int app_id, int tasks_with_comm){
+    int nb_shapes = 0, t, nb_pe;
+#ifdef SOMBREAMENTO
+    int PEs_remove = 0;  
+#endif
+    for(t=1; t <= task_pe; t++ ){ 
         nb_pe = tasks_app/t ;
 
-        if( nb_pe < tasks_app )  nb_pe++;   // ceil
-
-        nb_shapes =  create_valid_shapes(nb_pe, nb_shapes);
-     } 
-     return nb_shapes;
+        if( nb_pe < tasks_app ) nb_pe++;   // ceil
+#ifdef SOMBREAMENTO
+        if (OSZ_shape[app_id] == 0){
+            PEs_remove = (tasks_with_comm-1);
+        }
+        if (nb_pe < ((tasks_with_comm * tasks_with_comm)-PEs_remove)){
+            nb_pe = ((tasks_with_comm * tasks_with_comm)-PEs_remove);
+        }
+        puts("Necessary PEs:(");puts(itoa(nb_pe));puts(")\n");
+#endif
+        nb_shapes =  create_valid_shapes(nb_pe, nb_shapes, app_id, tasks_with_comm);
+    } 
+    return nb_shapes;
 }
 
 //////////////////////////////////////////////////////////////////
-int create_valid_shapes(int PEs, int cont)
-{
-  int x, y, ix1, ix2, delta1, delta2, swap, contador;
+int create_valid_shapes(int PEs, int cont, int app_id, int tasks_with_comm){
+    int x, y, ix1, ix2, delta1, delta2, swap, contador;
 
 #ifdef GRAY_AREA
 //   create all possible shapes
   //printf("\ncall:");
-  for( y = 1 ; y<= PEs; y++)
-    {   x = PEs/y;
+    for( y = 1 ; y<= PEs; y++){
+        x = PEs/y;
         while (x*y < PEs)   x++;
         shapes[cont+y-1].X_size = x;
         shapes[cont+y-1].Y_size = y;
         shapes[cont+y-1].valid = 1;   // all shapes are valid
         // puts("\nShape:(");puts(itoa(x));puts(" x ");puts(itoa(y));puts(")\n");
     }
-
 #else
   // create all possible shapes
   //printf("\ncall:");
-  for( x = 1 ; x<= PEs; x++)
-    {   y = PEs/x;
+    for( x = 1 ; x<= PEs; x++){
+        y = PEs/x;
         while (x*y < PEs)   y++;
         shapes[cont+x-1].X_size = x;
         shapes[cont+x-1].Y_size = y;
         shapes[cont+x-1].valid = 1;   // all shapes are valid
+        //puts("\nShape:(");puts(itoa(x));puts(" x ");puts(itoa(y));puts(")\n");
         //printf("\nShape: (%2d x %2d)", x, y);
     }
 
   // simple bubble sort according to the delta - we want a rectangular shape
-   for (ix1 = 0 ; ix1 < PEs-1 ; ix1++)
-    for (ix2 = 0 ; ix2 < PEs - ix1 - 1; ix2++)
-       {
-         if ( shapes[cont+ix2].X_size > shapes[cont+ix2].Y_size) 
-              delta1 = shapes[cont+ix2].X_size - shapes[cont+ix2].Y_size;
-         else delta1 = shapes[cont+ix2].Y_size - shapes[cont+ix2].X_size;
+    for (ix1 = 0 ; ix1 < PEs-1 ; ix1++)
+        for (ix2 = 0 ; ix2 < PEs - ix1 - 1; ix2++){
+            if ( shapes[cont+ix2].X_size > shapes[cont+ix2].Y_size) 
+                delta1 = shapes[cont+ix2].X_size - shapes[cont+ix2].Y_size;
+            else delta1 = shapes[cont+ix2].Y_size - shapes[cont+ix2].X_size;
 
-         if ( shapes[cont+ix2+1].X_size > shapes[cont+ix2+1].Y_size) 
-              delta2 = shapes[cont+ix2+1].X_size - shapes[cont+ix2+1].Y_size;
-         else delta2 = shapes[cont+ix2+1].Y_size - shapes[cont+ix2+1].X_size;
+            if ( shapes[cont+ix2+1].X_size > shapes[cont+ix2+1].Y_size) 
+                delta2 = shapes[cont+ix2+1].X_size - shapes[cont+ix2+1].Y_size;
+            else delta2 = shapes[cont+ix2+1].Y_size - shapes[cont+ix2+1].X_size;
 
-         if ( delta1 > delta2 )
-         {
-           swap            = shapes[cont+ix2].X_size;
-           shapes[cont+ix2].X_size   = shapes[cont+ix2+1].X_size;
-           shapes[cont+ix2+1].X_size = swap;
+            if ( delta1 > delta2 ){
+                swap            = shapes[cont+ix2].X_size;
+                shapes[cont+ix2].X_size   = shapes[cont+ix2+1].X_size;
+                shapes[cont+ix2+1].X_size = swap;
 
-           swap            = shapes[cont+ix2].Y_size;
-           shapes[cont+ix2].Y_size   = shapes[cont+ix2+1].Y_size;
-           shapes[cont+ix2+1].Y_size = swap;
-         }
-      } 
+                swap            = shapes[cont+ix2].Y_size;
+                shapes[cont+ix2].Y_size   = shapes[cont+ix2+1].Y_size;
+                shapes[cont+ix2+1].Y_size = swap;
+            }
+        } 
 #endif
 
-  // suppress invalid shapes -  those that are enclosed in other shapes 
-  for( ix1= 0; ix1<PEs-1; ix1++)
-       if  (shapes[cont+ix1].Y_size == shapes[cont+ix1+1].Y_size)  shapes[cont+ix1+1].valid=0;
+    // suppress invalid shapes -  those that are enclosed in other shapes 
+    for( ix1= 0; ix1<PEs-1; ix1++){
+        if  (shapes[cont+ix1].Y_size == shapes[cont+ix1+1].Y_size){
+            shapes[cont+ix1+1].valid=0;
+        }
+    }
 
-  // suppress invalid shapes -  that are larger than the cluster size //ADD - LARGER THAN SecureArea
-  #ifdef GRAY_AREA
-  if ((ga.cols[MAX_GRAY_COLS-1] == XCLUSTER -1) || (ga.cols[0] == 0)){ // If GrayArea at the sides 
-    for( ix1=0; ix1<PEs; ix1++){
-        if( (shapes[cont+ix1].X_size > (XCLUSTER - MAX_GRAY_COLS)) || (shapes[cont+ix1].Y_size > (YCLUSTER - MAX_GRAY_ROWS))){
+#ifndef GRAY_AREA
+#ifdef SOMBREAMENTO
+    // suppress invalid shapes -  that are smaller than the tasks_with_comm size
+    for( ix1= 0; ix1<PEs; ix1++){
+        if ((shapes[cont+ix1].Y_size < tasks_with_comm) || (shapes[cont+ix1].X_size < tasks_with_comm)){
             shapes[cont+ix1].valid=0;
         }
     }
-  }
-//   else{ //TODO: Caso GrayArea for no meio 
-//   }
-  #else
-  for( ix1=0; ix1<PEs; ix1++)
-    if( shapes[cont+ix1].X_size>XCLUSTER || shapes[cont+ix1].Y_size>YCLUSTER)
-        shapes[cont+ix1].valid=0; 
-  #endif
-  
-  // recreate the list and the correct number of shapes
-  for( contador=x=0; x<PEs; x++)
-      if (shapes[cont+x].valid)
-        { shapes[cont+contador].X_size = shapes[cont+x].X_size;
-          shapes[cont+contador].Y_size = shapes[cont+x].Y_size;
-          shapes[cont+contador].valid = shapes[cont+x].valid;
-          shapes[cont+contador].processors = shapes[cont+contador].X_size * shapes[cont+contador].Y_size;
-          shapes[cont+contador].excess = ((shapes[cont+x].X_size) *  (shapes[cont+x].Y_size))-PEs;
+#endif
+#endif
 
-          contador++;
+  // suppress invalid shapes -  that are larger than the cluster size //ADD - LARGER THAN SecureArea
+#ifdef GRAY_AREA
+    if ((ga.cols[MAX_GRAY_COLS-1] == XCLUSTER -1) || (ga.cols[0] == 0)){ // If GrayArea at the sides 
+        for( ix1=0; ix1<PEs; ix1++){
+            if( (shapes[cont+ix1].X_size > (XCLUSTER - MAX_GRAY_COLS)) || (shapes[cont+ix1].Y_size > (YCLUSTER - MAX_GRAY_ROWS))){
+                shapes[cont+ix1].valid=0;
+            }
         }
-  return( cont+contador );
+    }//else{ //TODO: Caso GrayArea for no meio 
+    //}
+#else
+    for( ix1=0; ix1<PEs; ix1++)
+        if( shapes[cont+ix1].X_size>XCLUSTER || shapes[cont+ix1].Y_size>YCLUSTER)
+            shapes[cont+ix1].valid=0; 
+#endif
+  
+    // recreate the list and the correct number of shapes
+    for( contador=x=0; x<PEs; x++)
+        if (shapes[cont+x].valid){
+            shapes[cont+contador].X_size = shapes[cont+x].X_size;
+            shapes[cont+contador].Y_size = shapes[cont+x].Y_size;
+            shapes[cont+contador].valid = shapes[cont+x].valid;
+            shapes[cont+contador].processors = shapes[cont+contador].X_size * shapes[cont+contador].Y_size;
+            if (OSZ_shape[app_id] == 0){
+                shapes[cont+contador].excess = ((shapes[cont+x].X_size) *  (shapes[cont+x].Y_size))-PEs;
+            } else{
+                shapes[cont+contador].excess = 0;
+            }
+            contador++;
+        }
+    return( cont+contador );
 }
 
 //////////////////////////////////////////////////////////////////////////////////////
@@ -194,24 +220,24 @@ void print_shapes_found(int nb_shapes){
 
 //////////////////////////////////////////////////////////////////////////////////////
 int search_shape(int valid_shapes){
-  int x, used_looking, indice;
+    int x, used_looking, indice;
 
-  for(used_looking = 0; used_looking <= MAX_MIGRATIONS; used_looking++){
-      if( used_looking == 1){
-        puts("Inverting... \n"); 
-        shapes_invert_order(shapes, valid_shapes);
-      }
+    for(used_looking = 0; used_looking <= MAX_MIGRATIONS; used_looking++){
+        if( used_looking == 1){
+            puts("Inverting... \n"); 
+            shapes_invert_order(shapes, valid_shapes);
+        }
 
-      for(x = 0; x < valid_shapes; x++){
-          indice = search_shape_in_cluster(shapes[x].X_size, shapes[x].Y_size, shapes, x, used_looking);
-          if(indice != -1){
+        for(x = 0; x < valid_shapes; x++){
+            indice = search_shape_in_cluster(shapes[x].X_size, shapes[x].Y_size, shapes, x, used_looking);
+            if(indice != -1){
                 //return x;
                 shape_index = x;
                 return shapes[x].position;
-          }          
-      }
-  }
-  return -1;
+            }          
+        }
+    }
+    return -1;
 }
 //////////////////////////////////////////////////////////////////////////////////////
 void shapes_invert_order(Shapes shapes[], int nb_valid_shapes){
@@ -247,7 +273,7 @@ int search_shape_in_cluster(int X_size, int Y_size, Shapes shape[], int cont, in
         for(x = 0; x<=XCLUSTER-X_size; x++){
 #else // SWS TOP-RIGHT left
     for(y = YCLUSTER-Y_size; y >= 0; y--){
-      for(x = XCLUSTER-X_size; x >= 0; x--){
+        for(x = XCLUSTER-X_size; x >= 0; x--){
 #endif
 
         used_in_SWS = shape_recog(X_size, Y_size, x, y);
@@ -276,28 +302,33 @@ int search_shape_in_cluster(int X_size, int Y_size, Shapes shape[], int cont, in
 
 //////////////////////////////////////////////////////////////////////////////////////
 int shape_recog(int X_size, int Y_size, int X_init, int Y_init){
-  int  x, y, desl_Y, used;
-  int XMASTER, YMASTER;
+    int  x, y, desl_Y, used;
+    int XMASTER, YMASTER;
 
-  XMASTER = (get_net_address() >> 8) & 0xFF;
-  YMASTER = get_net_address() & 0xFF;
+    XMASTER = (get_net_address() >> 8) & 0xFF;
+    YMASTER = get_net_address() & 0xFF;
 
-  used = 0;
-  for(y = Y_init; y < Y_size + Y_init; y++){
-    desl_Y = y * XCLUSTER;
-    for(x = X_init; x < X_size + X_init; x++){
-        used += MAX_LOCAL_TASKS - processors[x+desl_Y].free_pages;
-        if((x == XMASTER) && (y == YMASTER))
-            return  100;
-        if(PE_belong_SZ(x,y) == 1)
-            return 100;
-        #ifdef GRAY_AREA
-        if(PE_belong_GA(x,y) == 1)
-            return 100;
-        #endif
+    used = 0;
+    for(y = Y_init; y < Y_size + Y_init; y++){
+        desl_Y = y * XCLUSTER;
+        for(x = X_init; x < X_size + X_init; x++){
+            used += MAX_LOCAL_TASKS - processors[x+desl_Y].free_pages;
+            if((x == XMASTER) && (y == YMASTER))
+                return  100;
+            if(PE_belong_SZ(x,y) == 1)
+                return 100;
+            #ifdef GRAY_AREA
+            if(PE_belong_GA(x,y) == 1)
+                return 100;
+            #elif BLOQUEIO_IO
+            if(PE_belong_SZ_shadow(x,y) == 1)
+                return 100;
+            if(PE_belong_IO_shadow(x,y) == 1)
+                return 100;
+            #endif
+        }
     }
-  }
-  return used;
+    return used;
 }
 
 //////////////////////////////////////////////////////////////////////////////////////
@@ -478,7 +509,6 @@ int PE_belong_SZ(int PE_x, int PE_y){
                 yi =   Secure_Zone[i].position  & 0XFF;
                 xf =  xi + Secure_Zone[i].X_size;
                 yf =  yi + Secure_Zone[i].Y_size;
-
                 if(Secure_Zone[i].cut != -1){
                     xi_cut =  (Secure_Zone[i].cut >> 8) & 0XFF;
                     yi_cut =   Secure_Zone[i].cut  & 0XFF;
@@ -496,6 +526,40 @@ int PE_belong_SZ(int PE_x, int PE_y){
         }
     return 0;
 }
+
+#ifdef BLOQUEIO_IO
+//////////////////////////////////////////////////////////////////////////////////////
+int PE_belong_SZ_shadow(int PE_x, int PE_y){
+    int i;
+    int xi, yi, xf, yf;
+
+    for(i = 0; i < MAX_SHAPES; i++){
+        if(Secure_Zone[i].occuped == 1){
+            xi =  ((Secure_Zone[i].position >> 8) & 0XFF)-1;
+            yi =   (Secure_Zone[i].position  & 0XFF)-1;
+            xf =  xi + Secure_Zone[i].X_size+1;
+            yf =  yi + Secure_Zone[i].Y_size+1;
+
+            if(((PE_x >= xi) && (PE_x < xf)) && ((PE_y >= yi) && (PE_y < yf))  )
+                return 1;
+        }
+    }
+    return 0;
+}
+
+//////////////////////////////////////////////////////////////////////////////////////
+int PE_belong_IO_shadow(int PE_x, int PE_y){
+    int i;
+    int xi, yi, xf, yf;
+
+    if(((PE_x == 0) && (PEs_With_IO[1] == 1))||((PE_x == (XDIMENSION-1))&&(PEs_With_IO[2] == 1))||
+       ((PE_y == 0) && (PEs_With_IO[0] == 1))||((PE_y == (YDIMENSION-1))&&(PEs_With_IO[3] == 1))){
+        return 1;
+    }else{
+        return 0;
+    }
+}
+#endif
 
 //////////////////////////////////////////////////////////////////////////////////////
 void open_wrapper_IO_SZ(int peripheral_id, int io_service){ // io_service: 0 - request; 1 - delivery

@@ -3,11 +3,18 @@
 # HEMPS CONFIGURATION
 ###################################################
 
+<<<<<<< HEAD:source_hemps
+export HEMPS_PATH=/home/andre.hofer/TCC_Andre/TCC_Andre
+export HEMPS_HOME=/home/andre.hofer/TCC_Andre/TCC_Andre
+=======
 export HEMPS_PATH=
 export HEMPS_HOME=/casa/hemps_OSZ
+>>>>>>> upstream/master:build_env/gui_router_seek/source_gui
 export PATH=${HEMPS_PATH}/build_env/bin:${PATH}
 
 module load systemc/2.3.3
 module load modelsim/2021
 #module load questa/10.6e 
 module load mips-elf/4.1.1-hemps
+
+

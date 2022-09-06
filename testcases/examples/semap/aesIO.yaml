@@ -7,13 +7,10 @@ hw:
   noc_buffer_size: 8       # must be power of 2 
   mpsoc_dimension: [5,4]     # for while, must be a square shape
   cluster_dimension: [5,4] # for while, must be a square shape
-  master_location: LT     # LB
-  gray_area:
-    rows: [3]
-    cols: [0]
+  master_location: LB
   open_port:
-    - port: [Injector,90,0,3,N,0,2,W] 
-    - port: [io_peripheral,80,4,3,N]
+    - port: [Injector,90,0,0,S,0,1,W] 
+    - port: [io_peripheral,80,1,0,S]
 apps:                
   - name: aes_IO
     start_time_ms: 0 #any unsigned integer number

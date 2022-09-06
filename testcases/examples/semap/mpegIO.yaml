@@ -3,20 +3,21 @@ hw:
   tasks_per_PE: 1     
   repository_size_MB:  1
   physical_channels: 2
-  model_description: hybrid    # sc (gcc) | scmod (questa) | vhdl | hybrid (top module sc, internal vhdl)
-  noc_buffer_size: 8       # must be power of 2 
-  mpsoc_dimension: [4,4]     # for while, must be a square shape
-  cluster_dimension: [4,4] # for while, must be a square shape
-  master_location: LT     # LB
-  gray_area:
-    rows: [3]
-    cols: [0]
+  model_description: hybrid
+  noc_buffer_size: 8
+  mpsoc_dimension: [4,4]
+  cluster_dimension: [4,4]
+  master_location: LB
   open_port:
-    - port: [Injector,90,0,3,N,0,2,W] 
-    - port: [io_peripheral,80,3,3,N]
-    - port: [io_peripheral2,70,2,3,N] 
-   # - port: [sabotage,70,3,3,E] 
-apps:                
+    - port: [Injector,90,0,0,S,1,0,S] 
+    - port: [io_peripheral,80,0,2,W]
+    - port: [io_peripheral2,70,3,2,E] 
+apps:
   - name: mpeg_IO
-    start_time_ms: 0 #any unsigned integer number
+    start_time_ms: 0
     secure: yes
+
+
+
+
+ 

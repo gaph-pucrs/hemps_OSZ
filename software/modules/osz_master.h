@@ -51,7 +51,7 @@ int get_static_SZ();
     Dependências:
 */
 
-int create_shapes(int task_pe, int tasks_app); //processor.c - 733
+int create_shapes(int task_pe, int tasks_app, int app_id, int tasks_with_comm); //processor.c - 733
 /*  Origem: processors.c
     Instância: handle_new_app() > kernel_master.c
     Variáveis Globais:
@@ -59,7 +59,8 @@ int create_shapes(int task_pe, int tasks_app); //processor.c - 733
         create_valid_shapes()
 */
 
-int create_valid_shapes(int PEs, int cont); //processor.c - 587
+
+int create_valid_shapes(int PEs, int cont, int app_id, int tasks_with_comm); //processor.c - 587
 /*  Origem: processors.c
     Instância: create_shapes()
     Variáveis Globais:
@@ -158,3 +159,6 @@ int PE_belong_SZ(int PE_x, int PE_y);
     Variáveis Globais:
         Secure_Zone > processors.c
 */
+
+int PE_belong_SZ_shadow(int PE_x, int PE_y);
+int PE_belong_IO_shadow(int PE_x, int PE_y);

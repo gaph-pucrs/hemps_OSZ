@@ -369,6 +369,125 @@ int map_task(int last_proc_address, int task_id, int AppSec){
 	return -1;
 }
 
+/** Maps a task into a cluster processor. This function only selects the processor not modifying any management structure
+ * The mapping heuristic is based on the processor's utilization (slack time) and the number of free_pages
+ * \param task_id ID of the task to be mapped
+ * \return Address of the selected processor
+ */
+int map_task_with_IO(int last_proc_address, int task_id, int AppSec){
+
+	int proc_address;
+	int canditate_proc = -1;
+	int max_slack_time = -1;
+	int slack_time;
+
+	//putsv("Mapping call for task id ", task_id);
+
+
+#if MAX_STATIC_TASKS
+	//Test if the task is statically mapped
+	for(int i=0; i<MAX_STATIC_TASKS; i++){
+
+		//Test if task_id is statically mapped
+		if (static_map[i][0] == task_id){
+			puts("Task id "); puts(itoa(static_map[i][0])); puts(" statically mapped at processor"); puts(itoh(static_map[i][1])); puts("\n");
+
+			proc_address = static_map[i][1];
+
+			if (get_proc_free_pages(proc_address) <= 0){
+				puts("ERROR: Processor not have free resources\n");
+				while(1);
+			}
+
+			return proc_address;
+		}
+	}
+#endif
+
+	if(AppSec == 1){ 
+		int desl_Y, y, x;
+		int i, flag, init_cut_index, end_cut_index;
+		int xi, yi, xf, yf;
+
+
+		xi =  (shapes[shape_index].position >> 8) & 0XFF;
+		yi =   shapes[shape_index].position  & 0XFF;
+		xf =  xi + shapes[shape_index].X_size;
+		yf =  yi + shapes[shape_index].Y_size;
+
+
+		if(last_proc_address == 0){
+			y = yf-1;
+			x = xi;
+		}
+		else{
+			y = (last_proc_address & 0xFF) - 1;
+			x = (last_proc_address >> 8) + 1;
+		}
+
+		init_cut_index = (shapes[shape_index].cut & 0XFFFF);
+		init_cut_index = ((init_cut_index & 0XFF) * XCLUSTER) + (init_cut_index >> 8);
+
+		end_cut_index = (shapes[shape_index].cut >> 16);
+		end_cut_index = ((end_cut_index & 0XFF) * XCLUSTER) + (end_cut_index >> 8);
+
+		for( ; ((y >= yi) && (x < xf)) ; y--, x++){
+			// puts("\n\n\t X - Y: ");puts(itoa(x))puts(" - ");;puts(itoa(y));puts("\n");
+			desl_Y = (y)*XCLUSTER ;
+		
+			//----------- avoid the SZ excess ----------------
+			flag = 0;
+			for(i = init_cut_index; i <= end_cut_index; i += XCLUSTER){
+				if((x+desl_Y) == i)
+					flag = 1;
+			}
+			if(flag == 1){
+				continue;
+			}
+			//-----------------------------------------------
+			proc_address = get_proc_address(x+desl_Y);
+
+			//puts("Task mapping for task "), puts(itoa(task_id)); puts(" maped at proc "); puts(itoh(proc_address)); puts("\n");
+	
+			if (get_proc_free_pages(proc_address) > 0)
+				return proc_address;
+			else
+				continue;
+		}
+	}
+	//Else (not secure), map the task following a CPU utilization based algorithm
+	else{ 
+		for(int i=0; i<MAX_CLUSTER_PEs; i++){
+	
+			proc_address = get_proc_address(i);
+	
+		#ifdef GRAY_AREA
+			if ((get_proc_free_pages(proc_address) > 0) && (PE_belong_SZ(proc_address>>8, proc_address&0XFF) != 1) && (PE_belong_GA(proc_address>>8, proc_address&0XFF) == 1))
+		#else
+			if ((get_proc_free_pages(proc_address) > 0) && (PE_belong_SZ(proc_address>>8, proc_address&0XFF) != 1))
+		#endif
+			{
+				slack_time = get_proc_slack_time(proc_address);
+	
+				if (max_slack_time < slack_time){
+					canditate_proc = proc_address;
+					max_slack_time = slack_time;
+				}
+			}
+	
+			if (canditate_proc != -1){
+	
+				puts("Task mapping for task "); puts(itoa(task_id)); puts(" maped at proc "); puts(itoh(canditate_proc)); puts("\n");
+	
+				return canditate_proc;
+			}
+		}
+	}
+	putsv("WARNING: no resources available in cluster to map task ", task_id);
+	return -1;
+}
+
+
 /**This heuristic maps all task of an application
  * Note that some task can not be mapped due the cluster is full or the processors not satisfies the
  * task requiriments. In this case, the reclustering will be used after the application_mapping funcion calling
@@ -384,14 +503,58 @@ int application_mapping(int cluster_id, int app_id){
 	Task *t;
 	int prev_proc_io, prev_proc, proc_address;
 
-	proc_address = prev_proc_io = prev_proc =  0;
+#ifndef GRAY_AREA
+	#ifdef SOMBREAMENTO
+	int flagIO = 0;
+	int cont_with_task_IO, cont_without_task_IO, index_task;
+	int task_with_IO_comm[MAX_TASKS_APP];//app->tasks_number
+	int task_without_IO_comm[MAX_TASKS_APP];//app->tasks_number
+	int task_sequence[MAX_TASKS_APP];//app->tasks_number
+
+	cont_with_task_IO = cont_without_task_IO = index_task = 0;
+	#endif
+#endif
+
+	proc_address = prev_proc_io = prev_proc = 0;
 	app = get_application_ptr(app_id);
 
 	//puts("\napplication_mapping\n");
+#ifndef GRAY_AREA
+	#ifdef SOMBREAMENTO
+		for (index_task = 0; index_task < MAX_TASKS_APP; index_task++){
+			task_with_IO_comm[index_task] = (-1);
+			task_without_IO_comm[index_task] = (-1);
+			task_sequence[index_task] = (-1);
+		}
 
+		for (index_task = 0; index_task < app->tasks_number; index_task++){
+			if ((task_comm_io_info[((app_id * MAX_TASKS_APP) + index_task)].peripheral_id[0]) != (-1)){
+				task_with_IO_comm[cont_with_task_IO] = task_comm_io_info[((app_id * APP_NUMBER) + index_task)].task_id;
+				task_sequence[(cont_with_task_IO)] = index_task;
+				// puts("\n\n\t Task no IO ");puts(itoh(i));puts("\n");
+				cont_with_task_IO = cont_with_task_IO + 1;
+			}
+		}
+
+		for (index_task = 0; index_task < app->tasks_number; index_task++){
+			if ((task_comm_io_info[((app_id * MAX_TASKS_APP) + index_task)].peripheral_id[0]) == (-1)){
+				task_without_IO_comm[cont_without_task_IO] = task_comm_io_info[((app_id * APP_NUMBER) + index_task)].task_id;
+				task_sequence[(cont_with_task_IO + cont_without_task_IO)] = index_task;
+				// puts("\n\n\t Task no IO ");puts(itoh(i));puts("\n");
+				cont_without_task_IO = cont_without_task_IO + 1;
+			}
+		}
+	#endif
+#endif
+	
 	for(int i=0; i<app->tasks_number; i++){
-
-		t = &app->tasks[i];
+		#ifdef GRAY_AREA
+			t = &app->tasks[i];
+		#elif SOMBREAMENTO
+			t = &app->tasks[task_sequence[i]];
+		#else
+			t = &app->tasks[i];
+		#endif
 
 		//putsv("Vai mapear task id: ", t->id);
 
@@ -408,6 +571,19 @@ int application_mapping(int cluster_id, int app_id){
 			prev_proc = map_task(prev_proc, t->id, app->secure);
 			proc_address = prev_proc;
 			puts("Proc mapeado ");puts(itoh(proc_address));puts("\n");
+		}
+		#elif SOMBREAMENTO
+		if (cont_with_task_IO > 0) {
+			proc_address = map_task_with_IO(proc_address, t->id, app->secure);
+			cont_with_task_IO = cont_with_task_IO - 1;
+			flagIO = 1;
+		} else {
+			if (flagIO == 1){
+				proc_address = 0;
+				flagIO = 0;
+			}
+			proc_address = map_task(proc_address, t->id, app->secure);
+			cont_without_task_IO = cont_without_task_IO - 1;
 		}
 		#else
 		proc_address = map_task(proc_address, t->id, app->secure);

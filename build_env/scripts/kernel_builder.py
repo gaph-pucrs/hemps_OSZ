@@ -1,4 +1,5 @@
 #!/usr/bin/python
+from ast import If
 import sys
 import math
 import os
@@ -44,6 +45,7 @@ def generate_sw_pkg( yaml_r ):
     y_cluster_dim =     get_cluster_y_dim(yaml_r)
     master_location =   get_master_location(yaml_r)
     apps_list =         get_apps_name_list(yaml_r)
+    apps_start_list =   get_app_start_time_list(yaml_r)
     static_mapping_list = get_static_mapping_list(yaml_r)
     io_number =         get_io_number(yaml_r)
     open_ports =        get_open_ports(yaml_r)
@@ -96,6 +98,10 @@ def generate_sw_pkg( yaml_r ):
     file_lines.append("#define APP_NUMBER                  "+str(apps_number)+"     //max number of APPs described into testcase file\n")
     file_lines.append("#define MAX_STATIC_TASKS            "+static_lenght+"      //max number of tasks mapped statically \n\n")
     file_lines.append("#define IO_NUMBER                   "+str(io_number)+"\n")
+    #Adicionado TCC André
+    file_lines.append("\n#define SOMBREAMENTO              1\n\n")
+    file_lines.append("\n#define BLOQUEIO_IO               1\n\n")
+
 
     if gray_area_rows:
         file_lines.append("\n//Gray Area enabled\n")
@@ -161,7 +167,21 @@ def generate_sw_pkg( yaml_r ):
         file_lines.append("//Stores the task static mapping. It is a list of tuple = {task_id, mapped_proc}\n")
         file_lines.append("extern unsigned int static_map[MAX_STATIC_TASKS][2];\n\n")
 
-    
+    file_lines.append("//This structure stores information about application tasks and their communication with peripherals.\n")
+    file_lines.append("typedef struct {\n")
+    file_lines.append("    int app_id;                      //ID of the application\n")
+    file_lines.append("    int task_id;                     //ID of the task\n")
+    file_lines.append("    int peripheral_id[IO_NUMBER];    //Array of periferal IDs\n")
+    file_lines.append("} Task_Comm_IO_Info;\n\n")
+
+    file_lines.append("extern Task_Comm_IO_Info task_comm_io_info[(APP_NUMBER * MAX_TASKS_APP)];\n\n")
+
+    file_lines.append("//This array stores whether the safe zone is rectangular(1) or rectilinear(0).\n")
+    file_lines.append("int OSZ_shape[APP_NUMBER];    //rectangular(1) or rectilinear(0)\n\n")
+
+    file_lines.append("//This array stores edges of the MPSOC Who have PEs communicating with IO.\n")
+    file_lines.append("int PEs_With_IO[4];    //0-S, 1-W, 2-E, 3-N\n\n")
+ 
     file_lines.append("#endif\n")
     
     #Use this function to create any file into testcase, it automatically only updates the old file if necessary
@@ -227,7 +247,79 @@ def generate_sw_pkg( yaml_r ):
                            ", "+ str(aux_port) +                           
                            ", "+ str(0)+"},")
     file_lines.append("\n};\n\n")
-    
+
+
+    file_lines.append("Task_Comm_IO_Info task_comm_io_info[APP_NUMBER * MAX_TASKS_APP] = {")
+    app_index  = 0
+    for app in apps_start_list :
+        task_name_list = get_app_task_name_list(".", app.name)
+        task_index = 0
+        for task in task_name_list:
+            #print("\nApp - Task: (" + app.name + " - " + task + ")\n")
+            peripherals_comm = find_IO_comm_for_each_task(".", app.name, task)
+            relative_id =  app_index << 8 | task_index
+            file_lines.append("\n\t{" + str(app_index) + ", " + str(relative_id) + ", {")
+
+            for index in range(io_number): 
+                if not peripherals_comm:
+                    file_lines.append(str(-1))
+                else:
+                    for port in open_ports:
+                        if str.upper(port[0]) == peripherals_comm[0]:
+                            file_lines.append(str(port[1]))
+                    del peripherals_comm[0]
+                if index != (io_number - 1):
+                    file_lines.append(", ")
+                else:
+                    file_lines.append("}},")
+            task_index += 1
+        app_index += 1
+        while task_index < max_task_per_app:
+            file_lines.append("\n\t{-1, -1, {")
+            for index in range(io_number):
+                if index != (io_number - 1):
+                    file_lines.append("-1, ")
+                else:
+                    file_lines.append("-1}},")
+            task_index += 1
+    file_lines.append("\n};\n\n")
+
+    app_index = 0
+    file_lines.append("int OSZ_shape[APP_NUMBER] = {\n\t")
+    for app in apps_start_list:
+        app_index += 1
+        file_lines.append(str(app.shape))
+        if app_index != (apps_number):
+            file_lines.append(", ")
+    file_lines.append("\n};\n\n")
+
+    South = "0"
+    West = "0"
+    East = "0"
+    North = "0"
+    for port in open_ports:
+        if len(port) > 5:
+            if (port[2] == 0 or port[5] == 0):
+                West = "1"
+            elif (port[2] == (x_mpsoc_dim-1) or port[5] == (x_mpsoc_dim-1)):
+                East = "1"
+            if (port[3] == 0 or port[6] == 0):
+                South = "1"
+            elif (port[3] == (y_mpsoc_dim-1) or port[6] == (y_mpsoc_dim-1)):
+                North = "1"
+        else:
+            if (port[2] == 0):
+                West = "1"
+            elif (port[2] == (x_mpsoc_dim-1)):
+                East = "1"
+            if (port[3] == 0):
+                South = "1"
+            elif (port[3] == (y_mpsoc_dim-1)):
+                North = "1"
+    file_lines.append("int PEs_With_IO[4] = {\n\t" +
+        South + ", " + West + ", " + East + ", " + North + "\n};\n")
+
+
     if gray_area_rows:
         file_lines.append("GrayArea ga = {\n")
         file_lines.append("\t{")

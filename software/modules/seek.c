@@ -287,7 +287,6 @@ int ProcessTurns(unsigned int backtrack, unsigned int backtrack1, unsigned int b
 	SR_Table[slot_seek].path[0] = 0x70007000;
 	for(i=0;i<=j;i++){
 		SR_Table[slot_seek].path[i/6] = SR_Table[slot_seek].path[i/6]|((port[i]&0x0f) << shift);
-
 		switch(shift){
 			case 16:
 				shift = 8;

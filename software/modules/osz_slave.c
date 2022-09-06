@@ -956,7 +956,7 @@ void send_wrapper_close_back__open_forward(int CM_index){ //Tentar inverter a or
 
 	ServiceHeader *p = get_service_header_slot();
 
-	// puts("\nCM_index: "); puts(itoa(CM_index)); puts("\n");
+	//  puts("\nCM_index: "); puts(itoa(CM_index)); puts("\n");
 
 	peripheral_ID = get_CM_peripheral_ID(CM_index);
 	io_service = get_CM_IO_service(CM_index); // 0 - REQUEST; 1 - DELIVERY
@@ -966,8 +966,8 @@ void send_wrapper_close_back__open_forward(int CM_index){ //Tentar inverter a or
 	if(aux == -1)
 		return;
 
-  // puts("peripheral_ID: "); puts(itoa(peripheral_ID)); puts("\n");
-  // puts("io_service: "); puts(itoa(io_service)); puts("\n");
+  //  puts("peripheral_ID: "); puts(itoa(peripheral_ID)); puts("\n");
+  //  puts("io_service: "); puts(itoa(io_service)); puts("\n");
 
   //-----------------------------------------------------------------------------
 	p->header[MAX_SOURCE_ROUTING_PATH_SIZE-2] = (0x1 << 28) | ((0X3F00 & address_go) << 14) | ((0X003F & address_go) << 16)| address_go;
