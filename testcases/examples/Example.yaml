@@ -1,3 +1,24 @@
+<<<<<<< HEAD
+hw:
+  page_size_KB:  64
+  tasks_per_PE: 1    
+  repository_size_MB:  1
+  physical_channels: 2
+  model_description: hybrid
+  noc_buffer_size: 8
+  mpsoc_dimension: [4,3]
+  cluster_dimension: [4,3]
+  master_location: LB
+  open_port:
+    - port: [Injector,90,0,0,W,0,1,W]
+    - port: [io_peripheral,80,1,0,S]
+    - port: [io_peripheral2,70,2,0,S]
+apps:                
+  - name: prod_cons
+    start_time_ms: 0
+    secure: yes
+  
+=======
 hw:
   page_size_KB:  64
   tasks_per_PE: 1    
@@ -25,3 +46,4 @@ apps:
       cons: [0,1]
       prod: [0,2]
 
+>>>>>>> upstream/master

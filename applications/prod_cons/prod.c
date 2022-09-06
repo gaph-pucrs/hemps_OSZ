@@ -79,6 +79,12 @@ int main()
 		Send(&msg, cons);
 		//IOSend(&msg, 8);		// caimi test Working :-)
 		//IOReceive(&msg, IO_PERIPHERAL);  	//
+		//IOSend(&msg, 8);		// caimi test Working :-)
+		/*IOReceive(&msg, IO_PERIPHERAL);  	*/
+		/*IOReceive(&msg, IO_PERIPHERAL);  	*/
+		/*IOReceive(&msg, IO_PERIPHERAL);  	
+		IOReceive(&msg, IO_PERIPHERAL);  	*/
+		/*IOReceive*/ /* (&msg, IO_PERIPHERAL);  	*/
 		Echo(itoa(msg.msg[0]));
 		Echo(itoa(msg.msg[msg.length]));
 		//Echo(itoa(GetTick()));

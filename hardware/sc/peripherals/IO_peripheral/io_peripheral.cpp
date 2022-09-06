@@ -61,7 +61,11 @@ void io_peripheral::SR_path_FSM(){
                     // if (reg_msg_size % 2 == 1)
                     //     SR_size[SR_index]  = reg_msg_size - 9;
                     // else
+<<<<<<< HEAD
+                        SR_size[SR_index]  = reg_msg_size - 9;
+=======
                     SR_size[SR_index]  = reg_msg_size - 10;
+>>>>>>> upstream/master
                     SR_used[SR_index]   = 1;
                     for(i = 0; i < SR_size[SR_index]; i++){
                         SR_path[SR_index][i]  = buffer_in_flit[i];

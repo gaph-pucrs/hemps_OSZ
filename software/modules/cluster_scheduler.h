@@ -26,6 +26,8 @@ void page_released(int, int, int);
 
 int map_task(int, int, int);
 
+int map_task_with_IO(int, int, int);
+
 int application_mapping(int, int);
 
 int get_master_address(int );

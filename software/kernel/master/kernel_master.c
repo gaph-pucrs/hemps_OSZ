@@ -34,7 +34,7 @@
 #include "../../modules/lfsr.h"
 
 #include "../../modules/osz_master.h"
-
+#include "../../../include/kernel_pkg.h"
 
 NewTask * pending_new_task;
 
@@ -155,6 +155,7 @@ void send_task_release(Application * app){
 
 	while(MemoryRead(DMNI_SEND_ACTIVE));
 }
+
 void send_tasks_location(Application * app){
 	int flag = 0;
 	ServiceHeader *p;
@@ -765,6 +766,19 @@ void initialize_clusters(){
 	reclustering_setup(0);
 }
 
+#ifdef SOMBREAMENTO
+int cont_tasks_comm(int app_id, int tasks_number){
+	int cont = 0;
+	for (int i = 0; i < tasks_number; i++){
+			if ((task_comm_io_info[((app_id * MAX_TASKS_APP) + i)].peripheral_id[0]) != (-1)){
+				cont = cont + 1;
+			}
+	}
+	puts("App ");puts(itoa(app_id));puts(" have ");puts(itoa(cont));puts(" task who communicate with peripherals.\n");
+	return cont;
+}
+#endif
+
 /** Handles a new application incoming from the global manager or by repository
  * \param app_ID Application ID to be handled
  * \param ref_address Pointer to the application descriptor. It can point to a array (local manager) or the repository directly (global manager)
@@ -777,6 +791,8 @@ void handle_new_app(int app_ID, volatile unsigned int *ref_address, unsigned int
 
 	int PEs_number;
 	int xi_initial=0, yi_initial=0, xf_initial=0, yf_initial=0;
+	
+	int tasks_with_comm = 0;
 
 	int  shape_location = 0;
 	//INICIO DO PROTOCOLO
@@ -793,9 +809,12 @@ void handle_new_app(int app_ID, volatile unsigned int *ref_address, unsigned int
 	if(application->secure == 1){
 
 		shape_location = get_static_SZ(app_id_counter-1); // passar por parametro
-
+#ifdef SOMBREAMENTO
+		tasks_with_comm = cont_tasks_comm(app_ID, application->tasks_number);
+#endif
 		if( shape_location == 0 ){
-  			PEs_number = create_shapes(MAX_LOCAL_TASKS, application->tasks_number);
+			putsv("Start shape search - ", MemoryRead(TICK_COUNTER));
+  			PEs_number = create_shapes(MAX_LOCAL_TASKS, application->tasks_number, application->app_ID, tasks_with_comm);
   			print_shapes_found(PEs_number);
   			shape_location = search_shape(PEs_number);
   		}
@@ -826,7 +845,7 @@ void handle_new_app(int app_ID, volatile unsigned int *ref_address, unsigned int
 	}
 
 	pending_app_to_map++;
-
+	putsv("Start mapping tasks - ", MemoryRead(TICK_COUNTER));
 	mapping_completed = application_mapping(clusterID, application->app_ID);//
 
 	if (mapping_completed){

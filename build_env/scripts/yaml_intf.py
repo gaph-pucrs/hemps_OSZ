@@ -133,8 +133,6 @@ def get_task_order(yaml_reader):
 
     return ordering_list
 
-
-
 def get_apps_number(yaml_reader):
     number = len(get_apps_name_list(yaml_reader))
     return number
@@ -249,10 +247,17 @@ def get_app_start_time_list(yaml_reader):
             secure = int(app_reader["secure"])
         except:
             secure = 0
+        try:
+            if (app_reader["shape"] == "rectangular"):
+                shape = 1
+            else:
+                shape = 0
+        except:
+            shape = 0
 
         repo_address = "-1"
 
-        app_start_time_list.append( ApplicationStartTime(app_name, start_time_ms.zfill(8), repo_address, secure) )
+        app_start_time_list.append( ApplicationStartTime(app_name, start_time_ms.zfill(8), repo_address, secure, shape) )#AQUI**********************************
 
     #Sort objects by start time. See more in : https://wiki.python.org/moin/HowTo/Sorting
     sorted_list = sorted(app_start_time_list, key=attrgetter('start_time_ms'))
