@@ -130,7 +130,7 @@ def check_page_size(file_path, page_size_KB):
 
     f.close()
 
-    file_size_KB = ( file_size_KB + (file_size_KB * 0.4) )
+    file_size_KB = ( file_size_KB + (file_size_KB * 0.5) )
 
     file_size_KB = ceil( (file_size_KB / 1024.0) )
 

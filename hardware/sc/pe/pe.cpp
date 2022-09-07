@@ -76,6 +76,10 @@ void pe::mem_mapped_registers(){
 				cpu_mem_data_read.write(out_reg_backtrack_seek_local.read());
 				// in_sel_reg_backtrack_seek_local.write(0);
 			break;
+			case APP_ID_REG:
+				cpu_mem_data_read.write(app_reg.read());
+				// in_sel_reg_backtrack_seek_local.write(0);
+			break;
 			// case SEEK_BACKTRACK1:
 			// 	cpu_mem_data_read.write(out_reg_backtrack_seek_local.read());
 			// 	// in_sel_reg_backtrack_seek_local.write(2);
@@ -162,7 +166,9 @@ void pe::comb_assignments(){
 	l_irq_status[0] = (!dmni_send_active_sig.read() && pending_service.read());
 	
 	irq_status.write(l_irq_status);
-	result_rx = rx_ni & mask_local_tx_output_local;
+	// result_rx = rx_ni & mask_local_tx_output_local;
+	result_rx = rx_ni;
+
 
 }
 
@@ -182,6 +188,7 @@ void pe::sequential_attr(){
 		tick_counter.write(0);
 		pending_service.write(0);
 		slack_update_timer.write(0);
+		app_reg.write(0);
 	} else {
 
 		if(cpu_mem_pause.read() == 0) {
@@ -465,6 +472,9 @@ void pe::wrapper_register_handle(){
 			ap_mask[i].write(l_ap_mask[i]);
 		}
 	}
+	if ((cpu_mem_address_reg.read() == APP_ID_REG) and (write_enable.read()==1) ) {
+		app_reg = cpu_mem_data_write_reg.read();
+	}
 
 }
 
@@ -526,7 +536,7 @@ void pe::src_tgt_control(){
 		MEM_target[addr].write(target.read());
 	}
 }
-void pe::waiting_seek_trigger(){
+void pe::waiting_seek_trigger(){ // Analisar essa parte P/ vhdl
 	waiting_seek.write(		(MEM_waiting[0].read() & router_fail_in[0].read()) |
 							(MEM_waiting[1].read() & router_fail_in[1].read()) |
 							(MEM_waiting[2].read() & router_fail_in[2].read()) |
@@ -743,7 +753,8 @@ void pe::seek_receive(){
 						int_seek.write(1);
 					break;
 					case 0x1F:
-						cout << "RCV_FREEZE_TASK_SERVICE";
+						// cout << "RCV_FREEZE_TASK_SERVICE";
+						cout << "BR_TO_APP";
 						int_seek.write(1);
 					break;				
 					default:
@@ -764,49 +775,48 @@ void pe::seek_receive(){
 }
 
 
-// controls the input at the access point
-void pe::keyCheck(){
-	static bool	auxPass[NPORT];
-	if (reset.read() == 1) {
-		for(i=0;i<NPORT-1;i++){
-			ap_mask[i].write(1);
-			pass[i].write(1);
-			auxPass[i] = 0;
-		}
-	}else{
-		for(i=0;i<NPORT-1;i++){
-			if (ap_mask[i].read() == 0){
-				if (((data_in[i].read()) == (kap.read() | 0x6000)) && (pass[i].read() == 1))	{
+// // controls the input at the access point
+// void pe::keyCheck(){
+// 	static bool	auxPass[NPORT];
+// 	if (reset.read() == 1) {
+// 		for(i=0;i<NPORT-1;i++){
+// 			ap_mask[i].write(1);
+// 			pass[i].write(1);
+// 			auxPass[i] = 0;
+// 		}
+// 	}else{
+// 		for(i=0;i<NPORT-1;i++){
+// 			if (ap_mask[i].read() == 0){
+// 				if (((data_in[i].read()) == (kap.read() | 0x6000)) && (pass[i].read() == 1))	{
 
-					pass[i].write(0);
+// 					pass[i].write(0);
 
-				} else if ((eop_in[i].read() == 1) && (pass[i].read() == 0)){
+// 				} else if ((eop_in[i].read() == 1) && (pass[i].read() == 0)){
 
-					auxPass[i] = 1;
+// 					auxPass[i] = 1;
 
-				} else if ((eop_in[i].read() == 0) && (auxPass[i] == 1)){
+// 				} else if ((eop_in[i].read() == 0) && (auxPass[i] == 1)){
 
-					pass[i].write(1);
-					auxPass[i] = 0;
+// 					pass[i].write(1);
+// 					auxPass[i] = 0;
 
-				}
-			}
-		}
-	}
-}
+// 				}
+// 			}
+// 		}
+// 	}
+// }
 
-//generates the fail_out and fail_in accordin to external_fail_in and external_fail_out
-void pe::fail_out_generation(){
+// //generates the fail_out and fail_in accordin to external_fail_in and external_fail_out
+// void pe::fail_out_generation(){
+// 	for(i=0;i<NPORT-1;i++){
+// 		// fail_out[i].write(router_fail_out[i].read() | external_fail_out[i].read() | (wrapper_reg[i].read() & ( wrapper_mask_router_out.read()[i] | io_packet_mask | pass[i])));
+// 		access_o[i].write((wrapper_reg[i].read() & (pass[i])));
+
+// 	}
+// }
+void pe::fail_in_generation(){ // analisar a tranferência p/ VHDL
 	for(i=0;i<NPORT-1;i++){
-		// fail_out[i].write(router_fail_out[i].read() | external_fail_out[i].read() | (wrapper_reg[i].read() & ( wrapper_mask_router_out.read()[i] | io_packet_mask | pass[i])));
-		fail_out[i].write((wrapper_reg[i].read() & (pass[i])));
-
-	}
-}
-void pe::fail_in_generation(){
-	for(i=0;i<NPORT-1;i++){
-		// router_fail_in[i].write(fail_in[i].read() | external_fail_in[i].read() | ( wrapper_reg[i].read() & wrapper_mask_router_in.read()[i]));
-		router_fail_in[i].write(fail_in[i].read() | ( wrapper_reg[i].read() & ap_mask[i].read()));
+		router_fail_in[i].write(unreachable[i].read());
 	}
 }
 void pe::clock_stop(){

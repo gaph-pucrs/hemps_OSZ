@@ -35,6 +35,10 @@ typedef struct
 Shapes shapes[MAX_SHAPES];
 Shapes Secure_Zone[MAX_SHAPES];
 
+// Chaves de Segurança k0
+unsigned int k0table[XDIMENSION][YDIMENSION];
+unsigned int k0NItable[IO_NUMBER];
+
 //Funções
 void init_Secure_Zone();
 /*  Origem: processors.c

@@ -56,6 +56,8 @@
 #define SET_SZ_RECEIVED_SERVICE         29
 #define SET_EXCESS_SZ_SERVICE           30
 #define	RCV_FREEZE_TASK_SERVICE			31
+#define	BR_TO_APPID_SERVICE				31
+
 #define	MSG_DELIVERY_CONTROL		    19
 #define	MSG_REQUEST_CONTROL				20
 

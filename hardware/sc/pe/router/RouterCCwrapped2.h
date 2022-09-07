@@ -19,13 +19,14 @@ SC_MODULE(RouterCCwrapped) {
 		sc_out<bool > eop_out[NPORT];
 		sc_out<regflit > data_out[NPORT];
 		sc_in<bool > credit_i[NPORT];
-		sc_in<bool >  fail_in[NPORT];
-		sc_out<bool >  fail_out[NPORT];
+		sc_in<bool >  access_i[NPORT];
+		sc_out<bool >  access_o[NPORT];
 
-		sc_out<bool> 		mask_local_tx_output;
-    	sc_out<bool > 		io_packet_mask;
     	sc_out< sc_uint<12> > 		ke;
 		sc_in<bool > 		ap[NPORT];
+		sc_in<bool > 		sz[NPORT];
+
+		sc_out<bool > 		unreachable[NPORT];
 
 		sc_out<regflit> 			source;
 		sc_out<regflit> 			target;
@@ -44,10 +45,11 @@ SC_MODULE(RouterCCwrapped) {
 		sc_signal<regNport > eop_out_internal;
 		sc_signal<regNport > credit_i_internal;
 		sc_signal<regNport > ap_internal;
-		sc_signal<regNport > fail_in_internal;
-		sc_signal<regNport > fail_out_internal;
+		sc_signal<regNport > sz_internal;
+		sc_signal<regNport > unreachable_internal;
+		sc_signal<regNport > access_i_internal;
+		sc_signal<regNport > access_o_internal;
 
-		sc_signal<bool > io_packet_mask_internal;
 
 
 		RouterCC *router;
@@ -61,9 +63,10 @@ SC_MODULE(RouterCCwrapped) {
 		void upd_eop_out();
 		void upd_credit_i();
 		void upd_ap();
-		void upd_fail_in();
-		void upd_fail_out();
-		void upd_io_packet_mask();
+		void upd_sz();
+		void upd_unreach();
+		void upd_access_i();
+		void upd_access_o();
 
 		//Traffic monitor
 		sc_in<sc_uint<32 > > tick_counter;
@@ -92,7 +95,7 @@ SC_MODULE(RouterCCwrapped) {
 			generic_list[0] = strdup("address=x\"AAAA\"");
 			sprintf((char*) generic_list[0],"address=x\"%.4x\"",(int)address);
 
-			router = new RouterCC("RouterCC", "RouterCC", 1, generic_list);
+			router = new RouterCC("RouterCC_AP", "RouterCC_AP", 1, generic_list);
 
 			#ifdef DUPLICATED_CHANNEL
 				router->reset(reset);
@@ -100,8 +103,8 @@ SC_MODULE(RouterCCwrapped) {
 				router->clock_rx(clock_rx_internal);
 				router->rx(rx_internal);
 				router->eop_in(eop_in_internal);
-				router->fail_in(fail_in_internal);
-				router->fail_out(fail_out_internal);
+				router->access_i(access_i_internal);
+				router->access_o(access_o_internal);
 				//ports interconnection are mixed due to an issue in SystemC - VHDL integration
 				router->data_in[LOCAL1](data_in[EAST0]);
 				router->data_in[LOCAL0](data_in[EAST1]);
@@ -142,6 +145,8 @@ SC_MODULE(RouterCCwrapped) {
 
 				router->credit_i(credit_i_internal);
 				router->ap(ap_internal);
+				router->sz(sz_internal);
+				router->unreachable(unreachable_internal);
 			#else
 				router->reset(reset);
 				router->clock(clock);
@@ -165,10 +170,8 @@ SC_MODULE(RouterCCwrapped) {
 				router->credit_i(credit_i_internal);
 			#endif
 
-				router->io_packet_mask(io_packet_mask_internal);
 				router->ke(ke);
 				// router->ap(ap);
-				router->mask_local_tx_output(mask_local_tx_output);
 				router->target(target);
 				router->source(source);
 				router->w_source_target(w_source_target);
@@ -179,9 +182,9 @@ SC_MODULE(RouterCCwrapped) {
 			for (i = 0; i < 1; i++)
 				free((char*)generic_list[i]);
 
-			SC_METHOD(upd_fail_in);
+			SC_METHOD(upd_access_i);
 			for (i = 0; i < NPORT; i++){
-				sensitive << fail_in[i];
+				sensitive << access_i[i];
 			}
 
 			SC_METHOD(upd_clock_rx);
@@ -192,7 +195,7 @@ SC_MODULE(RouterCCwrapped) {
 			SC_METHOD(upd_rx);
 			for (i = 0; i < NPORT; i++){
 				sensitive << rx[i];
-				sensitive << fail_out[i];
+				sensitive << access_o[i];
 			}
 
 			SC_METHOD(upd_eop_in);
@@ -203,7 +206,7 @@ SC_MODULE(RouterCCwrapped) {
 			SC_METHOD(upd_credit_i);
 			for (i = 0; i < NPORT; i++){
 				sensitive << credit_i[i];
-				sensitive << fail_in[i];
+				sensitive << access_i[i];
 			}
 
 			SC_METHOD(upd_ap);
@@ -211,15 +214,26 @@ SC_MODULE(RouterCCwrapped) {
 				sensitive << ap[i];
 			}
 
+			SC_METHOD(upd_sz);
+			for (i = 0; i < NPORT; i++){
+				sensitive << sz[i];
+			}
+
+			SC_METHOD(upd_unreach);
+			sensitive << unreachable_internal;
+			// for (i = 0; i < NPORT; i++){
+			// 	sensitive << unreachable[i];
+			// }
+
 			//output
 
-			SC_METHOD(upd_fail_out);
-			sensitive << fail_out_internal;
+			SC_METHOD(upd_access_o);
+			sensitive << access_o_internal;
 
 			SC_METHOD(upd_credit_o);
 			sensitive << credit_o_internal;
 			for (i = 0; i < NPORT; i++){
-				sensitive << fail_out[i];
+				sensitive << access_o[i];
 			}
 
 			SC_METHOD(upd_clock_tx);
@@ -228,7 +242,7 @@ SC_MODULE(RouterCCwrapped) {
 			SC_METHOD(upd_tx);
 			sensitive << tx_internal;
 			for (i = 0; i < NPORT; i++){
-				sensitive << fail_in[i];
+				sensitive << access_i[i];
 			}
 
 			SC_METHOD(traffic_monitor);
@@ -238,8 +252,6 @@ SC_MODULE(RouterCCwrapped) {
 			SC_METHOD(upd_eop_out);
 			sensitive << eop_out_internal;
 
-			SC_METHOD(upd_io_packet_mask);
-			sensitive << io_packet_mask_internal;			
 
 		}
 		~RouterCCwrapped()

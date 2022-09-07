@@ -25,6 +25,10 @@
 unsigned int address_go, address_back;
 unsigned int port_go, port_back;  // 0-EAST; 1 - WEST ; 2 - NORTH; 3 - SOUTH
 
+int get_k0(int proc_addr){
+    return k0table[(proc_addr>>8)][(proc_addr & 0xff)];
+}
+
 ////////////////////////////////////////////
 void init_Secure_Zone(){
     int i;

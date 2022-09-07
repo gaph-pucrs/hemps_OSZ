@@ -410,7 +410,7 @@ void io_peripheral::out_proc_FSM(){
                     buffer_out_flit[i+2] = 0;                         //size
                     buffer_out_flit[i+3] = 11 + (SR_size[SR_PATH_index] -2) + payload_size;                //header size + 0 de"payload"
                     buffer_out_flit[i+4] = 0;                     //service
-                    buffer_out_flit[i+5] = 0X26;                  //service
+                    buffer_out_flit[i+5] = 0X33;                  //service
                     buffer_out_flit[i+6] = 0;                     //consumer ID
                     buffer_out_flit[i+7] = reg_task_ID;           //consumer ID
                     buffer_out_flit[i+8] = 0;                    //producer ID

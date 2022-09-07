@@ -16,8 +16,8 @@ public:
     sc_in<regNport > eop_in;
     sc_in<regflit > data_in[NPORT];
     
-    sc_in<regNport >  fail_in;
-    sc_out<regNport >  fail_out;
+    sc_in<regNport >  access_i;
+    sc_out<regNport >  access_o;
 
     sc_out<regNport > credit_o;
     sc_out<regNport > clock_tx;
@@ -25,10 +25,11 @@ public:
     sc_out<regNport > eop_out;
     sc_out<regflit > data_out[NPORT];
     sc_in<regNport > credit_i;
-    sc_out<bool>      mask_local_tx_output;
-    sc_out<bool > io_packet_mask;
+
     sc_out< sc_uint<12> > 		ke;
+    sc_in<regNport > sz;
     sc_in<regNport > ap;
+    sc_out<regNport > unreachable;
 
     
     sc_out<regflit>                 source;
@@ -45,18 +46,20 @@ public:
        reset("reset"),
        clock_rx("clock_rx"),
        rx("rx"),
-       eop_in("eop_in"),
-       fail_in("fail_in"),
-       fail_out("fail_out"),
+       //data_in
        credit_o("credit_o"),
+       eop_in("eop_in"),
+       access_i("access_i"),
+       access_o("access_o"),
        clock_tx("clock_tx"),
        tx("tx"),
-       eop_out("eop_out"),
+       //data_out
        credit_i("credit_i"),
-       mask_local_tx_output("mask_local_tx_output"),
-       io_packet_mask("io_packet_mask"),
+       eop_out("eop_out"),
        ke("ke"),
+       sz("sz"),
        ap("ap"),
+       unreachable("unreachable"),
        target("target"),
        source("source"),
        w_source_target("w_source_target"),

@@ -28,7 +28,7 @@ HEMPS_PKG	=hemps_pkg
 STAND		=standards
 SEEK_VHD 	=seek_pkg logging router_seek
 #SEEK_VHD 	=seek_pkg router_seek
-ROUTER_VHD 	=Hermes_buffer Hermes_crossbar Hermes_switchcontrol_SR mux_control RouterCC_SR
+ROUTER_VHD 	=Hermes_buffer Hermes_crossbar Hermes_switchcontrol_SR mux_control RouterCC_SR Access_Point RouterCC_AP 
 
 TOP_SRC	    			= $(addprefix sc/, 									$(TOP:=.cpp)  $(TOP:=.h) 			)
 PE_SRC					= $(addprefix sc/pe/, 								$(PE:=.cpp) $(PE:=.h)  				)

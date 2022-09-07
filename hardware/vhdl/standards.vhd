@@ -163,6 +163,12 @@ package standards is
         constant TAM_LINHA : integer := 2; --4;
 
 ---------------------------------------------------------
+-- CONSTANT ACCESS POINT
+---------------------------------------------------------
+        constant SERVICE_F1     : integer := 6; --4;
+        constant SERVICE_F2     : integer := 7; --4;
+
+---------------------------------------------------------
 -- SUBTIPOS, TIPOS E FUNCOES
 ---------------------------------------------------------
 

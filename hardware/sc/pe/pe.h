@@ -74,7 +74,6 @@ SC_MODULE(pe) {
 //	sc_signal 	<bool > 						in_nack_router_seek_local;
 	sc_signal 	<bool > 						in_opmode_router_seek_local;
 	sc_signal 	<bool > 						in_fail_router_seek_local;
-	sc_signal   <bool > 						mask_local_tx_output_local;
 	sc_signal   <bool > 						cpu_mask_clear;
 	sc_signal   <bool > 						mask_tx;
 	sc_signal   <bool > 						result_rx;
@@ -201,9 +200,12 @@ SC_MODULE(pe) {
 
 	//Access Point
 	sc_signal <bool >			pass[NPORT];
-	sc_signal <bool >			ap_mask[NPORT];
+	sc_signal <bool >			ap_mask[NPORT]; 
+	sc_signal <bool >			unreachable[NPORT];
 	sc_signal <	sc_uint <12 >> 	ke;
 	sc_signal <	sc_uint <12 >> 	kap;
+	sc_signal <reg_seek_payload > 	app_reg;
+	
 	
 
 	//pending service signal
@@ -259,9 +261,6 @@ SC_MODULE(pe) {
 
 	sc_signal <sc_uint <10 > >				wrapper_mask_router_in;
 	sc_signal <sc_uint <10 > >				wrapper_mask_router_out;
-
-	sc_signal <bool >						io_packet_mask;
-
 
 	unsigned char shift_mem_page;
 
@@ -420,8 +419,8 @@ SC_MODULE(pe) {
 		router->reset(reset);
 		#ifdef DUPLICATED_CHANNEL
 			for(i=0;i<NPORT-2;i++){
-				router->fail_in[i](router_fail_in[i]);
-				router->fail_out[i](router_fail_out[i]);
+				router->access_i[i](fail_in[i]);
+				router->access_o[i](fail_out[i]);
 				router->clock_rx[i](clock_rx[i]);
 				router->clock_tx[i](clock_tx[i]);
 				router->tx[i](tx[i]);
@@ -435,14 +434,13 @@ SC_MODULE(pe) {
 				fail_wrapper_module->eop_out_router_ports[i](eop_out[i]);
 				fail_wrapper_module->eop_in_router_ports[i](eop_in[i]);
 			}
-			fail_wrapper_module->io_packet_mask(io_packet_mask);
-			router->ke		(ke);
+			router->ke		(kap);
 			// router->ap		(ap_mask);
 
-			router->fail_in				[LOCAL0](router_fail_in[LOCAL0]);
-			router->fail_in				[LOCAL1](router_fail_in[LOCAL1]);
-			router->fail_out			[LOCAL0](router_fail_out[LOCAL0]);
-			router->fail_out			[LOCAL1](router_fail_out[LOCAL1]);
+			router->access_i				[LOCAL0](router_fail_in[LOCAL0]);
+			router->access_i				[LOCAL1](router_fail_in[LOCAL1]);
+			router->access_o			[LOCAL0](router_fail_out[LOCAL0]);
+			router->access_o			[LOCAL1](router_fail_out[LOCAL1]);
 
 			router->clock_rx 		[LOCAL0](clock);
 			router->clock_tx 		[LOCAL0](clock_rx_local0);
@@ -471,17 +469,17 @@ SC_MODULE(pe) {
 			router->credit_i 		[LOCAL1](credit_o_ni);
 			router->eop_out		[LOCAL1](eop_in_ni);
 			
-			router->mask_local_tx_output(mask_local_tx_output_local);
 			router->target(target);
 			router->source(source);
 			router->w_source_target(w_source_target);
 			router->w_addr(w_addr);
-			router->io_packet_mask(io_packet_mask);
 			fail_wrapper_module->wrapper_mask_go_from_CPU(wrapper_mask_go_reg);
 			fail_wrapper_module->wrapper_mask_back_from_CPU(wrapper_mask_back_reg);
 			for(i=0;i<NPORT;i++){
 				router->rot_table[i](rot_table[i]);
 				router->ap[i]		(ap_mask[i]);
+				router->sz[i]	(wrapper_reg[i]);
+				router->unreachable[i]	(unreachable[i]);
 			}
 			seek->clock(clock);
 			seek->reset(reset);
@@ -561,6 +559,7 @@ SC_MODULE(pe) {
 			seek->out_reg_backtrack_seek(in_reg_backtrack_fifopdn_local);
 			seek->out_req_send_kernel_seek(out_req_send_kernel_seek_local);
 			seek->in_ack_send_kernel_seek(in_ack_send_kernel_seek_local);
+			seek->in_AppID_reg(app_reg);
 			//seek->out_target_send_seek(out_target_send_seek_local);
 			// FIFO_PDN to SEEK
 			fifo_pdn->clock(clock);
@@ -630,7 +629,7 @@ SC_MODULE(pe) {
 		sensitive << cpu_set_op << cpu_set_size << cpu_set_address << cpu_set_address_2 << cpu_set_size_2 << cpu_send_kernel << cpu_fail_kernel<< cpu_wait_kernel << dmni_enable_internal_ram;
 		sensitive << mem_data_read << cpu_enable_ram << cpu_mem_write_byte_enable_reg << dmni_mem_write_byte_enable << mem_address_service_header_kernel;
 		sensitive << dmni_mem_data_write << ni_intr << slack_update_timer;
-		sensitive << rx_ni << mask_local_tx_output_local;
+		sensitive << rx_ni;
 		
 		SC_METHOD(mem_mapped_registers);
 		sensitive << cpu_mem_address_reg;
@@ -672,27 +671,22 @@ SC_MODULE(pe) {
 		// // sensitive << reset;
 		// for(i=0;i<NPORT-2;i++){
 		// 	sensitive << MEM_waiting[i];
-		// 	sensitive << fail_in[i];
+		// 	sensitive << access_i[i];
 		// }
 		// sensitive << MEM_waiting[10];
-		SC_METHOD(keyCheck);
-		sensitive << reset;
-		sensitive << clock.pos();
-		SC_METHOD(fail_out_generation);
-		sensitive << io_packet_mask;
-		for(i=0;i<NPORT-1;i++){
-			// sensitive << wrapper_mask_router_out[i];
-			sensitive << router_fail_out[i];
-			sensitive << external_fail_out[i];
-			sensitive << wrapper_reg[i];
-			sensitive << pass[i];
-		}
+		// SC_METHOD(keyCheck);
+		// sensitive << reset;
+		// sensitive << clock.pos();
+		// SC_METHOD(fail_out_generation);
+		// for(i=0;i<NPORT-1;i++){
+		// 	// sensitive << wrapper_mask_router_out[i];
+		// 	sensitive << router_fail_out[i];
+		// 	sensitive << wrapper_reg[i];
+		// 	sensitive << pass[i];
+		// }
 		SC_METHOD(fail_in_generation);
 		for(i=0;i<NPORT-1;i++){
-			sensitive << fail_in[i];
-			sensitive << ap_mask[i];
-			sensitive << wrapper_reg[i];
-			sensitive << wrapper_mask_router_in;
+			sensitive << unreachable[i];
 		}
 		SC_METHOD(wrapper_register_handle);
 		sensitive << clock.pos();

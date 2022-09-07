@@ -35,6 +35,7 @@ SC_MODULE(router_seek_wrapped) {
 //source, target, service, hop | in_port, my_hop,outport | pending, used
 		sc_in<sc_uint<2> >					in_sel_reg_backtrack_seek;
 		sc_out<sc_uint<32> >				out_reg_backtrack_seek;
+		sc_in<reg_seek_payload >			in_AppID_reg;
 		
 		sc_out<bool >						out_req_send_kernel_seek;
 		sc_in <bool >						in_ack_send_kernel_seek;
@@ -148,6 +149,7 @@ SC_MODULE(router_seek_wrapped) {
 				seek->out_ack_router_seek(out_ack_router_seek_internal);
 				seek->out_nack_router_seek(out_nack_router_seek_internal);
 				seek->out_opmode_router_seek(out_opmode_router_seek_internal);
+				seek->in_AppID_reg(in_AppID_reg);
 			//end coment
 
 		
@@ -187,7 +189,6 @@ SC_MODULE(router_seek_wrapped) {
 
 			SC_METHOD(upd_out_opmode_router_seek);
 			sensitive << out_opmode_router_seek_internal;
-			
 		}
 		~router_seek_wrapped()
 		{}

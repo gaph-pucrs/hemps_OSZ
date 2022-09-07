@@ -479,7 +479,7 @@ int read_packet(ServiceHeader *p){
 }
 
 #ifdef GRAY_AREA
-int pathToIO(int peripheral_id){
+int pathToIO(int peripheral_id, int* positionAP){
   unsigned int my_X_addr, my_Y_addr;
   unsigned int PER_X_addr, PER_Y_addr, port_io, i;
   unsigned int RH_X_addr, RH_Y_addr;
@@ -560,6 +560,7 @@ int pathToIO(int peripheral_id){
       auxPosX ++;
     }; // Mais um pra "sair" da OSZ   
   }
+  *positionAP = (shift/2) -1;
   //Arrived on the AccessPoint - Now travel to the IO
   //UP
   while (auxPosY < PER_Y_addr)

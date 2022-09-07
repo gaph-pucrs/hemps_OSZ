@@ -26,6 +26,10 @@ unsigned int port_go, port_back;  // 0-EAST; 1 - WEST ; 2 - NORTH; 3 - SOUTH
 
 extern int LOCAL_left_low_corner;
 extern int LOCAL_right_high_corner;
+extern int cut_X = -1;
+extern int cut_Y_RH = -1; 
+extern int cut_Y_LL = -1;
+
 
 
 #ifdef GRAY_AREA
@@ -100,7 +104,7 @@ void Set_Secure_Zone(unsigned int left_low_corner, unsigned int right_high_corne
 	if(isolated_ports != 0){
 		wrapper_value = isolated_ports;
 		MemoryWrite(WRAPPER_REGISTER,isolated_ports);
-    MemoryWrite(AP_MASK, 0x3FF);
+    MemoryWrite(AP_MASK, 0x0);
     seek_puts("[Set Secure Zone] LOCAL_right_high_corner = "); seek_puts(itoa(LOCAL_right_high_corner)); puts("\n");
 		if((my_X_addr == RH_X_addr) && (my_Y_addr == RH_Y_addr)){
       #ifdef GRAY_AREA
@@ -151,6 +155,10 @@ void Unset_Secure_Zone(unsigned int left_low_corner, unsigned int right_high_cor
   if ((right_high_corner == left_low_corner) && (LOCAL_right_high_corner == right_high_corner)){
     noCut = 1;
     // puts("Não tem corte\n");
+  }else{
+    cut_X = LL_X_addr;
+    cut_Y_RH = RH_Y_addr; 
+    cut_Y_LL = LL_Y_addr;
   }
 
   if (noCut){ //Caso não precise de CUT
@@ -225,6 +233,7 @@ void Unset_Secure_Zone(unsigned int left_low_corner, unsigned int right_high_cor
 if(!noCut){
 // This is to uncut at LL position
 // set wrapper port WEST
+
   if( (my_X_addr == LL_X_addr + 1) && (my_Y_addr >=  LL_Y_addr) &&  (my_Y_addr <=  RH_Y_addr) )
       isolated_ports = isolated_ports + 0x0C;
 
@@ -725,6 +734,15 @@ int find_SZ_position_and_direction_to_IO(int peripheral_id){
 
     }
 
+    if(cut_X != -1){ // Se houver CUT
+      if(my_X_addr == cut_X){
+        LL_Y_addr = cut_Y_RH +1;
+      }
+      if( (my_Y_addr <= cut_Y_RH) && (my_Y_addr >= cut_Y_LL)){
+        LL_X_addr = cut_X+1;
+      }
+    }
+
     if (port_io == OUT_NORTH){
         if(PER_X_addr < LL_X_addr){    
             address_go   = ( LL_X_addr << 8 ) | my_Y_addr;
@@ -765,7 +783,7 @@ int find_SZ_position_and_direction_to_IO(int peripheral_id){
             port_back = 3;
         }
     }
-    if (port_io == OUT_WEST){
+    if (port_io == OUT_WEST){ // Incorporar o CUT // colocar defines 
         if(PER_Y_addr < LL_Y_addr){    
             address_go   = ( LL_X_addr << 8 ) | my_Y_addr;
             address_back = ( my_X_addr << 8 ) | LL_Y_addr;
@@ -804,6 +822,7 @@ int find_SZ_position_and_direction_to_IO(int peripheral_id){
             port_go = 0;
             port_back = 0;                 
         }
+    }
     }
     // puts("address_go: ");puts(itoa(address_go));puts("\n");
     // puts("address_back: ");puts(itoa(address_back));puts("\n");

@@ -96,6 +96,7 @@
 // Access Point registers
 #define KAP_REGISTER          0x20000560
 #define AP_MASK               0x20000564
+#define APP_ID_REG            0x20000568
 
 
 //Kernel pending service FIFO
