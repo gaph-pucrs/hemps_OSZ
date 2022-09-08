@@ -99,18 +99,11 @@ void Set_Secure_Zone(unsigned int left_low_corner, unsigned int right_high_corne
   puts("write wrapper: ");puts(itoh(isolated_ports));puts("\n");
 	if(isolated_ports != 0){
 		wrapper_value = isolated_ports;
-		MemoryWrite(WRAPPER_REGISTER,isolated_ports);
-    MemoryWrite(AP_MASK, 0x3FF);
+		//MemoryWrite(WRAPPER_REGISTER,isolated_ports);
     seek_puts("[Set Secure Zone] LOCAL_right_high_corner = "); seek_puts(itoa(LOCAL_right_high_corner)); puts("\n");
 		if((my_X_addr == RH_X_addr) && (my_Y_addr == RH_Y_addr)){
-      #ifdef GRAY_AREA
-      puts("ENDSZ RH:");puts(itoh(LOCAL_right_high_corner));puts("\n");
-      Seek(SECURE_ZONE_CLOSED_SERVICE, get_net_address(), master_PE, LOCAL_right_high_corner);
-      config_AP_SZ();
-      #else 
 			Seek(SET_SZ_RECEIVED_SERVICE, get_net_address(), master_PE, right_high_corner);
-			seek_puts("SET SZ RH: ");seek_puts(itoh(LOCAL_right_high_corner));seek_puts("\n");
-      #endif	
+			seek_puts("SET SZ RH: ");seek_puts(itoh(LOCAL_right_high_corner));seek_puts("\n");	
 		}
 		seek_puts("wrapper: ");seek_puts(itoh(isolated_ports));seek_puts("\n");
 	}
@@ -200,9 +193,6 @@ void Unset_Secure_Zone(unsigned int left_low_corner, unsigned int right_high_cor
   //     	  right_high_corner = ((get_net_address() >> 4)& 0XF0) | (get_net_address() &  0X0F);
   //         Seek(SECURE_ZONE_CLOSED_SERVICE, get_net_address(), master_PE, LOCAL_right_high_corner);
   //         //puts("ENDSZ RH:");puts(itoh(LOCAL_right_high_corner));puts("\n"); 
-  //         seek_puts("Without CUT - wrapper: ");seek_puts(itoh(isolated_ports));seek_puts("\n");
-  //         seek_puts("RH address: ");seek_puts(itoh(right_high_corner));seek_puts("\n");
-  //         // return;
   // }
 
 // This is to uncut at RH position
@@ -221,6 +211,7 @@ void Unset_Secure_Zone(unsigned int left_low_corner, unsigned int right_high_cor
 //  // UNSET wrapper port NORTH
 //  if( (my_Y_addr == RH_Y_addr) && (my_X_addr == RH_X_addr ))
 //      isolated_ports = isolated_ports - 0x30;    
+
 
 if(!noCut){
 // This is to uncut at LL position
@@ -869,7 +860,6 @@ void config_AP_SZ(){ // io_service: 0 - request; 1 - delivery
 
     puts("AP address: "); puts(itoh(address_go)); puts("\n");
 
-  Seek(SET_AP_SERVICE, get_net_address(), address_go, port_go);
     //-----------------------------------------------------------------------------
     //OUT_WRAPPER
 	p->header[MAX_SOURCE_ROUTING_PATH_SIZE-2] = (0x1 << 28) | (KE_OSZ << 16) | address_go;
@@ -885,7 +875,7 @@ void config_AP_SZ(){ // io_service: 0 - request; 1 - delivery
 
 	p->io_direction = OUTPUT_DIRECTION;
 
-  // send_packet(p, 0, 0); //!
+  send_packet(p, 0, 0); //!
 
     //------------------------------------------------------------------------------
     //IN_WRAPPER
@@ -895,7 +885,7 @@ void config_AP_SZ(){ // io_service: 0 - request; 1 - delivery
 	p->io_port = port_back;
 	p->io_direction = INPUT_DIRECTION;
 
-	// send_packet(p, 0, 0); //!
+	send_packet(p, 0, 0); //!
 
 }
 #else

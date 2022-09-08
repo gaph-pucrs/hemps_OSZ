@@ -1,9 +1,8 @@
 #ifndef _SCGENMOD_RouterCC_
 #define _SCGENMOD_RouterCC_
 
-#include <systemc.h>
+#include "systemc.h"
 
-#include "../../standards.h"
 #define ROUTER_VHD
 
 class RouterCC : public sc_foreign_module
@@ -28,7 +27,6 @@ public:
     sc_out<bool>      mask_local_tx_output;
     sc_out<bool > io_packet_mask;
     sc_out< sc_uint<12> > 		ke;
-    sc_in<regNport > ap;
 
     
     sc_out<regflit>                 source;
@@ -56,7 +54,6 @@ public:
        mask_local_tx_output("mask_local_tx_output"),
        io_packet_mask("io_packet_mask"),
        ke("ke"),
-       ap("ap"),
        target("target"),
        source("source"),
        w_source_target("w_source_target"),

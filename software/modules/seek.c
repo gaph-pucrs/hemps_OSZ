@@ -159,7 +159,7 @@ void Seek(unsigned int service, unsigned int source, unsigned int target, unsign
 		MemoryWrite(SEEK_SOURCE_REGISTER,source);
 		MemoryWrite(SEEK_PAYLOAD_REGISTER, payload);
 		switch(service){
-			case SET_AP_SERVICE:
+			case PACKET_RESEND_SERVICE:
 			case CLEAR_SERVICE:
 			case END_TASK_SERVICE:
 			case END_TASK_OTHER_CLUSTER_SERVICE:
@@ -215,7 +215,7 @@ int ProcessTurns(unsigned int backtrack, unsigned int backtrack1, unsigned int b
 	unsigned int next_port;
 	unsigned int port[MAX_SOURCE_ROUTING_DESTINATIONS];//used for storing hops
 	unsigned char algorithm;
-	int shift;
+	unsigned int shift;
 	int addrX, addrY;
 	addrX=0;
 	addrY=0;
@@ -300,20 +300,6 @@ int ProcessTurns(unsigned int backtrack, unsigned int backtrack1, unsigned int b
 			break;
 		}
 	}
-
-	while (shift >= 0)
-	{
-		SR_Table[slot_seek].path[i/6] = SR_Table[slot_seek].path[i/6]|((0xE) << shift);
-		switch(shift){
-			case 16:
-				shift = 8;
-			break;
-			default:
-				shift = shift - 4;
-			break;
-		}
-		i++;
-	}
 	// print_SR_Table(slot_seek);
 	return slot_seek;
 }
@@ -321,7 +307,7 @@ int adjust_backtrack_IO(unsigned int backtrack, unsigned int backtrack1, unsigne
 	unsigned int next_port;
 	unsigned int port[MAX_SOURCE_ROUTING_DESTINATIONS];//used for storing hops
 	unsigned char algorithm;
-	int shift;
+	unsigned int shift;
 	int addrX, addrY, x, j, i = 0, slot_seek = 0;
 	int last_hop;
 
@@ -397,6 +383,7 @@ int adjust_backtrack_IO(unsigned int backtrack, unsigned int backtrack1, unsigne
 	if(slot_seek < 0)
 		slot_seek = 0;
 	SR_Table[slot_seek].path[0] = 0x70007000;
+
 	for(i=0;i<=j;i++){
 		SR_Table[slot_seek].path[i/6] = SR_Table[slot_seek].path[i/6]|((port[i]&0x0f) << shift);
 		switch(shift){
@@ -412,21 +399,6 @@ int adjust_backtrack_IO(unsigned int backtrack, unsigned int backtrack1, unsigne
 			break;
 		}
 	}
-
-	while (shift >= 0)
-	{
-		SR_Table[slot_seek].path[i/6] = SR_Table[slot_seek].path[i/6]|((0xE) << shift);
-		switch(shift){
-			case 16:
-				shift = 8;
-			break;
-			default:
-				shift = shift - 4;
-			break;
-		}
-		i++;
-	}
-	
 
 	return slot_seek;
 }

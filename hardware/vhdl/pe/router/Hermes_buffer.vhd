@@ -87,7 +87,6 @@ signal data_read: regflit;
 
 --signal for controlling header_routing low or high flits
 signal header_high 				: std_logic;
-signal flit_discard 				: std_logic;
 
 -- Flit Buffer implemented using array.
 signal flit_buff: buff;
@@ -116,10 +115,7 @@ signal flit_counter : std_logic_vector(2 downto 0);
 	end component;
 							   
 begin 
-
-	flit_discard <= '1' when (flit_counter = "10" and data_in = x"7FFF" and fail_in = '1') else
-					'0';
-
+	
 	-- Flit Buffer implemented using LUT RAM.	
 	buffer_RTL: if buffer_type = "RTL" generate	
 		flit_buff: for i in 0 to TAM_FLIT-1 generate
@@ -170,15 +166,14 @@ begin
 				end if;
 				eop(CONV_INTEGER(last)) <= eop_in;
 
-				-- if not(flit_counter = "10" and data_in = x"7FFF") then
-				if not(flit_discard) then
+				if not(flit_counter = "10" and data_in = x"7FFF") then
 					last <= last + 1;
 					last_var := last + 1;
 				end if;
 
 				if eop_in = '1' then
 					flit_counter <= (others=>'0');
-				elsif not(flit_discard) then
+				elsif not(flit_counter = "10" and data_in = x"7FFF") then
 					flit_counter <= flit_counter + '1';
 				end if;
 
@@ -191,19 +186,17 @@ begin
 						if data_in /= x"7FFF" then
 							header_routing 	<= data_in & header_routing(15 downto 0);
 						end if;
-						if fail_in = '0' and data_in(15 downto 12) = "0111" then
-							flit_buff(CONV_INTEGER(last)) <= header_fixed(31 downto 16);
-							header_routing 	<= header_fixed(31 downto 16) & header_routing(15 downto 0);
-						end if;
 					when "011" =>--gets lower bits from header routing
 						header_routing 	<= header_routing(31 downto 16) & data_in;
-						if fail_in = '0' and data_in(15 downto 12) = "0111" then
-							flit_buff(CONV_INTEGER(last)) <= header_fixed(15 downto 0);
-							header_routing 	<= header_routing(31 downto 16) & header_fixed(15 downto 0);
-						end if;
 					when others =>
 				
 				end case ;
+
+
+
+			--   elsif fail_in = '1' and available_slot = '1' then
+			--  	eop(CONV_INTEGER(last-1)) <= '1';
+			--  	flit_counter <= (others=>'0');
 			end if;
 
 			-- Verifies if a flit is transmited.

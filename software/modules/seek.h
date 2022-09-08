@@ -31,8 +31,7 @@
 #define	SEARCHPATH_SERVICE				5
 #define END_TASK_SERVICE				6
 #define SET_SECURE_ZONE_SERVICE 		7
-// #define	PACKET_RESEND_SERVICE			8
-#define	SET_AP_SERVICE					8
+#define	PACKET_RESEND_SERVICE			8
 #define WARD_SERVICE                    9
 #define OPEN_SECURE_ZONE_SERVICE        10
 #define SECURE_ZONE_CLOSED_SERVICE      11

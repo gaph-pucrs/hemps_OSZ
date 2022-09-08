@@ -111,30 +111,30 @@ begin
         end process;
 
         ------------------------------------------------------------------------------------------------------
-        -- PARTE COMBINACIONAL PARA DEFINIR O PRÓXIMO ESTADO DA MÁQUINA.
+        -- PARTE COMBINACIONAL PARA DEFINIR O PR�XIMO ESTADO DA M�QUINA.
         --
-        -- SO -> O estado S0 é o estado de inicializaçãoo da máquina. Este estado somente é
-        --       atingido quando o sinal reset é ativado.
-        -- S1 -> O estado S1 é o estado de espera por requisição de chaveamento. Quando o
-        --       árbitro recebe uma ou mais requisições o sinal ask é ativado fazendo a
-        --       máquina avançar para o estado S2.
-        -- S2 -> No estado S2 a porta de entrada que solicitou chaveamento é selecionada. Se
-        --       houver mais de uma, aquela com maior prioridade é a selecionada.
-        -- S3 -> No estado S3 é realizado algoritmo de chaveamento XY. O algoritmo de chaveamento
-        --       XY faz a comparação do endereço da chave atual com o endereço da chave destino do
+        -- SO -> O estado S0 � o estado de inicializa��o da m�quina. Este estado somente �
+        --       atingido quando o sinal reset � ativado.
+        -- S1 -> O estado S1 � o estado de espera por requisi��o de chaveamento. Quando o
+        --       �rbitro recebe uma ou mais requisi��es o sinal ask � ativado fazendo a
+        --       m�quina avan�ar para o estado S2.
+        -- S2 -> No estado S2 a porta de entrada que solicitou chaveamento � selecionada. Se
+        --       houver mais de uma, aquela com maior prioridade � a selecionada.
+        -- S3 -> No estado S3 � realizado algoritmo de chaveamento XY. O algoritmo de chaveamento
+        --       XY faz a compara��o do endere�o da chave atual com o endere�o da chave destino do
         --       pacote (armazenado no primeiro flit do pacote). O pacote deve ser chaveado para a
-        --       porta Local da chave quando o endereço xLyL* da chave atual for igual ao endereço
-        --       xTyT* da chave destino do pacote. Caso contrário, é realizada, primeiramente, a
-        --       comparação horizontal de endereços. A comparação horizontal determina se o pacote
-        --       deve ser chaveado para o Leste (xL<xT), para o Oeste (xL>xT), ou se o mesmo já
-        --       está horizontalmente alinhado é chave destino (xL=xT). Caso esta última condição
-        --       seja verdadeira é realizada a comparação vertical que determina se o pacote deve
+        --       porta Local da chave quando o endere�o xLyL* da chave atual for igual ao endere�o
+        --       xTyT* da chave destino do pacote. Caso contr�rio, � realizada, primeiramente, a
+        --       compara��o horizontal de endere�os. A compara��o horizontal determina se o pacote
+        --       deve ser chaveado para o Leste (xL<xT), para o Oeste (xL>xT), ou se o mesmo j�
+        --       est� horizontalmente alinhado � chave destino (xL=xT). Caso esta �ltima condi��o
+        --       seja verdadeira � realizada a compara��o vertical que determina se o pacote deve
         --       ser chaveado para o Sul (yL<yT) ou para o Norte (yL>yT). Caso a porta vertical
-        --       escolhida esteja ocupada, é realizado o bloqueio dos flits do pacote até que o
+        --       escolhida esteja ocupada, � realizado o bloqueio dos flits do pacote at� que o
         --       pacote possa ser chaveado.
-        -- S4, S5 e S6 -> Nestes estados é estabelecida a conexão da porta de entrada com a de
-        --       de saída através do preenchimento dos sinais mux_in e mux_out.
-        -- S7 -> O estado S7 é necessário para que a porta selecionada para roteamento baixe o sinal
+        -- S4, S5 e S6 -> Nestes estados � estabelecida a conex�o da porta de entrada com a de
+        --       de sa�da atrav�s do preenchimento dos sinais mux_in e mux_out.
+        -- S7 -> O estado S7 � necess�rio para que a porta selecionada para roteamento baixe o sinal
         --       h.
         --
         process(ES,ask,h,lx,ly,tx,ty,auxfree,dirx,diry)
@@ -155,13 +155,13 @@ begin
         end process;
 
         ------------------------------------------------------------------------------------------------------
-        -- executa as ações correspondente ao estado atual da méquina de estados
+        -- executa as a��es correspondente ao estado atual da m�quina de estados
         ------------------------------------------------------------------------------------------------------
         process (clock)
         begin
                 if clock'event and clock='1' then
                         case ES is
-                                -- Zera variáveis
+                                -- Zera vari�veis
                                 when S0 =>
                                         sel <= 0;
                                         ack_h <= (others => '0');
@@ -175,19 +175,19 @@ begin
                                 -- Seleciona quem tera direito a requisitar roteamento
                                 when S2=>
                                         sel <= prox;
-                                -- Estabelece a conexão com a porta LOCAL
+                                -- Estabelece a conex�o com a porta LOCAL
                                 when S4 =>
                                         source(CONV_INTEGER(incoming)) <= CONV_VECTOR(LOCAL);
                                         mux_out(LOCAL) <= incoming;
                                         auxfree(LOCAL) <= '0';
                                         ack_h(sel)<='1';
-                                -- Estabelece a conexão com a porta EAST ou WEST
+                                -- Estabelece a conex�o com a porta EAST ou WEST
                                 when S5 =>
                                         source(CONV_INTEGER(incoming)) <= CONV_VECTOR(dirx);
                                         mux_out(dirx) <= incoming;
                                         auxfree(dirx) <= '0';
                                         ack_h(sel)<='1';
-                                -- Estabelece a conexão com a porta NORTH ou SOUTH
+                                -- Estabelece a conex�o com a porta NORTH ou SOUTH
                                 when S6 =>
                                         source(CONV_INTEGER(incoming)) <= CONV_VECTOR(diry);
                                         mux_out(diry) <= incoming;

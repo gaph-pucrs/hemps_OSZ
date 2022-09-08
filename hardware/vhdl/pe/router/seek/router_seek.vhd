@@ -680,8 +680,6 @@ process(EA_manager, req_task , source_table, service_table, target_table, payloa
 				elsif (int_in_ack_router_seek(LOCAL) = '1'  and  service_table(sel) = WAIT_KERNEL_SERVICE_ACK ) then
 					PE_manager <= INIT_CLEAR;	
 				elsif (int_in_ack_router_seek(LOCAL) = '1'  and  service_table(sel) = MSG_DELIVERY_CONTROL ) then
-					PE_manager <= INIT_CLEAR;
-				elsif (int_in_ack_router_seek(LOCAL) = '1'  and  service_table(sel) = SET_AP_SERVICE ) then
 					PE_manager <= INIT_CLEAR;	
 				elsif (int_in_ack_router_seek(LOCAL) = '1'  and  service_table(sel) = MSG_REQUEST_CONTROL ) then
 					PE_manager <= INIT_CLEAR;		

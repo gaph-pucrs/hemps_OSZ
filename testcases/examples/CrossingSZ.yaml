@@ -19,7 +19,7 @@ apps:
       prod: [2,2]
   - name: prod_cons
     start_time_ms: 0 #any unsigned integer number
-    secure: no
+    #secure: yes
     static_mapping:
       cons: [0,1]
       prod: [3,1]

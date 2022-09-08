@@ -71,12 +71,6 @@ void io_peripheral::SR_path_FSM(){
                         SR_path[SR_index][i]  = buffer_in_flit[i];
                     }
 
-                    // if ((SR_path[SR_index][i-1] & 0x00ff ) == 0xee){ // Se os dois caminhos forem vazios, adiciona
-                    if ((SR_path[SR_index][i-1] & 0xff ) != 0xee){
-                        SR_size[SR_index]++;
-                        SR_path[SR_index][i] = 0x7eee;
-                    }
-
                     for(i = 0; i < IO_SR_PATHS; i++){
                         if((previous_target[i] == reg_task_ID )&&(previous_message_sent[i] != 2)){
                             if(previous_message_sent[i] == 0)

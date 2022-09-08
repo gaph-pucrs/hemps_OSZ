@@ -78,7 +78,7 @@ port(
 	mask_local_tx_output	: out std_logic;
 	io_packet_mask			: out std_logic;
 	ke						: out std_logic_vector(11 downto 0);
-	ap						: in regNport;
+
 
 	target                  : out regflit;
 	source                  : out regflit;
@@ -105,7 +105,6 @@ signal table                                    		: matrixNportNport_std_logic;
 --signals from mux_ctrl to crossbar
 signal out_mux_buffer       : arrayNport_regflit;
 signal enable_shift         : regNport;
-signal bufferAP				: regNport;
 
 signal tx_internal         	: regNport;
 begin
@@ -133,7 +132,7 @@ begin
 			credit_in 		=> data_ack(i),
 			next_flit 		=> next_flit(i),
 			credit_out 		=> credit_o(i),
-			fail_in			=> ap(i)
+			fail_in			=> fail_in(i)
 			);
 	end generate ; -- fifo_generation
 

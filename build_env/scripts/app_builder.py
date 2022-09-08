@@ -179,18 +179,15 @@ def generate_repository(yaml_r, secure_apps_list):
             comment = "communication load {task id, comm load in flits}"
             for i in range(0, MAX_DEPENDENCES):
                 
-                if (i < len(dependenc_list)):
-                    repo_lines.append( RepoLine(toX(task_id), comment) )
+                if ((i+1) < len(dependenc_list)):
+                    repo_lines.append( RepoLine(toX(dependenc_list[i]), comment) )
                     comment = ""
-                    repo_lines.append( RepoLine(toX(dependenc_list[i][1]), comment) )                
-                # if ((i+1) < len(dependenc_list)):
-                #     repo_lines.append( RepoLine(toX(dependenc_list[i]), comment) )
-                #     comment = ""
-                #     repo_lines.append( RepoLine(toX(dependenc_list[i+1]), comment) )
+                    repo_lines.append( RepoLine(toX(dependenc_list[i+1]), comment) )
                 else:
                     repo_lines.append( RepoLine("ffffffff", comment) )
                     comment = ""
                     repo_lines.append( RepoLine("ffffffff", comment) )
+                    
                     
             task_id = task_id + 1
             

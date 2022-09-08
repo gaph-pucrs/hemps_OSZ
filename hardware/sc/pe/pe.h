@@ -199,11 +199,9 @@ SC_MODULE(pe) {
 	sc_signal <	bool> 			cpu_repo_acess;
 	sc_signal <	bool> 			dmni_timeout_ni;
 
-	//Access Point
+	//ke
 	sc_signal <bool >			pass[NPORT];
-	sc_signal <bool >			ap_mask[NPORT];
 	sc_signal <	sc_uint <12 >> 	ke;
-	sc_signal <	sc_uint <12 >> 	kap;
 	
 
 	//pending service signal
@@ -437,7 +435,7 @@ SC_MODULE(pe) {
 			}
 			fail_wrapper_module->io_packet_mask(io_packet_mask);
 			router->ke		(ke);
-			// router->ap		(ap_mask);
+
 
 			router->fail_in				[LOCAL0](router_fail_in[LOCAL0]);
 			router->fail_in				[LOCAL1](router_fail_in[LOCAL1]);
@@ -481,7 +479,6 @@ SC_MODULE(pe) {
 			fail_wrapper_module->wrapper_mask_back_from_CPU(wrapper_mask_back_reg);
 			for(i=0;i<NPORT;i++){
 				router->rot_table[i](rot_table[i]);
-				router->ap[i]		(ap_mask[i]);
 			}
 			seek->clock(clock);
 			seek->reset(reset);
@@ -690,7 +687,7 @@ SC_MODULE(pe) {
 		SC_METHOD(fail_in_generation);
 		for(i=0;i<NPORT-1;i++){
 			sensitive << fail_in[i];
-			sensitive << ap_mask[i];
+			sensitive << external_fail_in[i];
 			sensitive << wrapper_reg[i];
 			sensitive << wrapper_mask_router_in;
 		}

@@ -1,7 +1,7 @@
 #ifndef _SCGENMOD_routerCCWrapped_
 #define _SCGENMOD_routerCCWrapped_
 
-#include <systemc.h>
+#include "systemc.h"
 
 #include "../../standards.h"
 #include "RouterCCwrapped.h"
@@ -25,7 +25,6 @@ SC_MODULE(RouterCCwrapped) {
 		sc_out<bool> 		mask_local_tx_output;
     	sc_out<bool > 		io_packet_mask;
     	sc_out< sc_uint<12> > 		ke;
-		sc_in<bool > 		ap[NPORT];
 
 		sc_out<regflit> 			source;
 		sc_out<regflit> 			target;
@@ -43,7 +42,6 @@ SC_MODULE(RouterCCwrapped) {
 		sc_signal<regNport > tx_internal;
 		sc_signal<regNport > eop_out_internal;
 		sc_signal<regNport > credit_i_internal;
-		sc_signal<regNport > ap_internal;
 		sc_signal<regNport > fail_in_internal;
 		sc_signal<regNport > fail_out_internal;
 
@@ -60,7 +58,6 @@ SC_MODULE(RouterCCwrapped) {
 		void upd_tx();
 		void upd_eop_out();
 		void upd_credit_i();
-		void upd_ap();
 		void upd_fail_in();
 		void upd_fail_out();
 		void upd_io_packet_mask();
@@ -141,7 +138,6 @@ SC_MODULE(RouterCCwrapped) {
 				router->rot_table[EAST0](rot_table[LOCAL1]);
 
 				router->credit_i(credit_i_internal);
-				router->ap(ap_internal);
 			#else
 				router->reset(reset);
 				router->clock(clock);
@@ -167,7 +163,6 @@ SC_MODULE(RouterCCwrapped) {
 
 				router->io_packet_mask(io_packet_mask_internal);
 				router->ke(ke);
-				// router->ap(ap);
 				router->mask_local_tx_output(mask_local_tx_output);
 				router->target(target);
 				router->source(source);
@@ -204,11 +199,6 @@ SC_MODULE(RouterCCwrapped) {
 			for (i = 0; i < NPORT; i++){
 				sensitive << credit_i[i];
 				sensitive << fail_in[i];
-			}
-
-			SC_METHOD(upd_ap);
-			for (i = 0; i < NPORT; i++){
-				sensitive << ap[i];
 			}
 
 			//output

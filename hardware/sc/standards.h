@@ -109,9 +109,6 @@
 #define SLACK_MONITOR_WINDOW 	50000
 #define KERNEL_DEBUG_STATE    0x20000558
 
-// Access Point Key register
-#define KAP_REGISTER          0x20000560
-#define AP_MASK               0x20000564
 
 //DMNI config code
 #define CODE_CS_NET 		1
@@ -163,7 +160,6 @@ typedef sc_uint<(3*NPORT)> 		reg_mux;
 #define NORTH 2
 #define SOUTH 3
 #define LOCAL 4
-
 #define SOURCE_ROUTING_TYPE 7
 typedef sc_uint<TAM_SERVICE_SEEK>     reg_seek_service;
 typedef sc_uint<SOURCE_SIZE>          reg_seek_source;
@@ -181,8 +177,7 @@ typedef sc_uint<32>                   reg_seek_reg_backtrack;
 #define SEARCHPATH_SERVICE              5
 #define END_TASK_SERVICE                6
 #define SET_SECURE_ZONE_SERVICE         7
-// #define PACKET_RESEND_SERVICE           8
-#define SET_AP_SERVICE                  8
+#define PACKET_RESEND_SERVICE           8
 #define WARD_SERVICE                    9
 #define OPEN_SECURE_ZONE_SERVICE        10
 #define SECURE_ZONE_CLOSED_SERVICE      11
