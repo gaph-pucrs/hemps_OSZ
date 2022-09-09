@@ -36,7 +36,7 @@ architecture ni_packet_builder of ni_packet_builder is
     -- FSM SIGNALS --
     -----------------
 
-    type PacketBuilderState is (WAIT_REQ, CHECK_TABLE, HERMES_FIXED_HEADER, HERMES_PATH, HERMES_HEADER, REJECT_REQUEST);
+    type PacketBuilderState is (WAIT_REQ, CHECK_TABLE, HERMES_FIXED_HEADER, HERMES_PATH, HERMES_HEADER, DATA_PAYLOAD, REJECT_REQUEST);
 
     signal state                : PacketBuilderState;
     signal next_state           : PacketBuilderState;
@@ -47,9 +47,9 @@ architecture ni_packet_builder of ni_packet_builder is
 
     signal response_param_reg   : ResponseParametersType;
 
-    --------------------------------------------
-    -- HERMES FLIT COUNTERS (AND AUX) SIGNALS --
-    --------------------------------------------
+    ---------------------------
+    -- HERMES HEADER SIGNALS --
+    ---------------------------
     
     signal fixed_header_flit    : integer range 0 to FIXED_HEADER_SIZE;
     signal path_flit            : integer range 0 to MAX_PATH_FLITS;
@@ -58,6 +58,24 @@ architecture ni_packet_builder of ni_packet_builder is
     signal fixed_header_end     : std_logic;
     signal path_end             : std_logic;
     signal header_end           : std_logic;
+
+    signal header_tx            : std_logic;
+    signal header_eop           : std_logic;
+
+    --------------------------
+    -- DATA PAYLOAD SIGNALS --
+    --------------------------
+
+    signal send_data            : std_logic;
+
+    signal data_words_to_read   : integer range 0 to MAX_WORDS_PER_DELIVERY;
+    signal data_flit_low        : std_logic;
+    signal data_flit_ready      : std_logic;
+    signal last_data_flit       : std_logic;
+    signal data_flit_blocked    : std_logic;
+    
+    signal data_tx              : std_logic;
+    signal data_eop             : std_logic;
 
 begin
 
@@ -74,7 +92,7 @@ begin
         end if;
     end process;
 
-    NextState: process(state, response_req, response_param_reg, tableIn, fixed_header_end, path_end, header_end)
+    NextState: process(state, response_req, response_param_reg, tableIn, fixed_header_end, path_end, header_end, data_eop, hermes_tx)
     begin
         case state is
 
@@ -98,7 +116,7 @@ begin
 
             when HERMES_FIXED_HEADER =>
 
-                if fixed_header_end='1' then
+                if fixed_header_end='1' and hermes_tx='1' then
                     next_state <= HERMES_PATH;
                 else
                     next_state <= HERMES_FIXED_HEADER;
@@ -106,7 +124,7 @@ begin
 
             when HERMES_PATH =>
 
-                if path_end='1' then
+                if path_end='1' and hermes_tx='1' then
                     next_state <= HERMES_HEADER;
                 else
                     next_state <= HERMES_PATH;
@@ -114,10 +132,22 @@ begin
 
             when HERMES_HEADER =>
 
-                if header_end='1' then
-                    next_state <= WAIT_REQ;
+                if header_end='1' and hermes_tx='1' then
+                    if send_data='1' then
+                        next_state <= DATA_PAYLOAD;
+                    else
+                        next_state <= WAIT_REQ;
+                    end if;
                 else
                     next_state <= HERMES_HEADER;
+                end if;
+
+            when DATA_PAYLOAD =>
+
+                if data_eop='1' and hermes_tx='1' then
+                    next_state <= WAIT_REQ;
+                else
+                    next_state <= DATA_PAYLOAD;
                 end if;
 
             when REJECT_REQUEST =>
@@ -149,6 +179,8 @@ begin
     end process;
 
     tableOut.tag <= response_param_reg.appId;
+
+    send_data <= '1' when response_param_reg.txMode=THROUGH_HERMES and response_param_reg.hermesService=IO_DELIVERY_SERVICE else '0';
 
     ----------------------------
     -- OUTPUT FLIT GENERATION --
@@ -201,7 +233,7 @@ begin
 
     header_end <= '1' when header_flit=DYNAMIC_HEADER_SIZE-1 else '0';
 
-    FlitGenerator: process(state, fixed_header_flit, path_flit, header_flit, tableIn)
+    FlitGenerator: process(state, fixed_header_flit, path_flit, header_flit, tableIn, data_flit_ready, response_param_reg, buffer_rdata)
     begin
 
         ---- FIXED HEADER ----
@@ -224,8 +256,43 @@ begin
 
         elsif state=HERMES_HEADER then
 
-            if header_flit=0 then
+            if response_param_reg.hermesService=IO_DELIVERY_SERVICE then
+
+                if header_flit=PACKET_SIZE_FLIT then
+                    hermes_data_out <= conv_std_logic_vector(DEFAULT_WORDS_PER_DELIVERY + 11, hermes_data_out'length);
+
+                elsif header_flit=SERVICE_FLIT then
+                    hermes_data_out <= IO_DELIVERY_SERVICE(TAM_WORD-1 downto TAM_FLIT);
+
+                elsif header_flit=SERVICE_FLIT+1 then
+                    hermes_data_out <= IO_DELIVERY_SERVICE(TAM_FLIT-1 downto 0);
+
+                elsif header_flit=IO_DELIVERY_SERVICE_PERPH_ID_FLIT then
+                    hermes_data_out <= x"0050"; -- hardcoded for prod_cons_ni testcase
+
+                elsif header_flit=IO_DELIVERY_SERVICE_TASK_ID_FLIT then
+                    hermes_data_out <= response_param_reg.appId; -- using task granularity for now
+
+                elsif header_flit=IO_DELIVERY_SERVICE_PE_SRC_FLIT then
+                    hermes_data_out <= x"0202"; -- hardcoded for prod_cons_ni testcase
+
+                elsif header_flit=IO_DELIVERY_SERVICE_PAYLD_SZ_FLIT then
+                    hermes_data_out <= conv_std_logic_vector(DEFAULT_WORDS_PER_DELIVERY, hermes_data_out'length);
+
+                else
+                    hermes_data_out <= x"0000";
+                end if;
+
+            else
                 hermes_data_out <= x"0000";
+            end if;
+
+        ---- DATA PAYLOAD ----
+
+        elsif state=DATA_PAYLOAD then
+
+            if data_flit_ready='1' then
+                hermes_data_out <= buffer_rdata;
             else
                 hermes_data_out <= x"0000";
             end if;
@@ -240,12 +307,58 @@ begin
 
     end process;
 
+    ---------------
+    -- READ DATA --
+    ---------------
+
+    NewDataFlitRegister: process(clock, reset)
+    begin
+        if reset='1' then
+            data_flit_ready <= '0';
+        elsif rising_edge(clock) and data_flit_blocked='0' then
+            data_flit_ready <= buffer_ren;
+        end if;
+    end process;
+
+    DecrementWordsToRead: process(clock, reset)
+    begin
+        if reset='1' then
+            data_flit_low <= '0';
+            data_words_to_read <= DEFAULT_WORDS_PER_DELIVERY;
+        elsif rising_edge(clock) then
+            if state=WAIT_REQ then
+                data_flit_low <= '0';
+                data_words_to_read <= DEFAULT_WORDS_PER_DELIVERY;
+            elsif state=DATA_PAYLOAD and data_flit_ready='1' then
+                data_flit_low <= not data_flit_low;
+                if data_flit_low='1' then
+                    data_words_to_read <= data_words_to_read - 1;
+                end if;
+            end if;
+        end if;
+    end process;
+
+    last_data_flit <= '1' when data_words_to_read=1 and data_flit_low='1' else '0';
+
+    data_flit_blocked <= data_flit_ready and not data_tx;
+
+    buffer_ren <= '1' when state=DATA_PAYLOAD and buffer_empty='0' and data_flit_blocked='0' and last_data_flit='0' else '0';
+
     ---------------------------------
     -- HERMES TRANSMISSION CONTROL --
     ---------------------------------
 
-    hermes_tx <= '1' when (state=HERMES_FIXED_HEADER or state=HERMES_PATH or state=HERMES_HEADER) and hermes_credit_in='1' else '0';
+    header_tx   <= hermes_credit_in;
+    data_tx     <= data_flit_ready and hermes_credit_in;
 
-    hermes_eop_out <= '1' when state=HERMES_HEADER and header_end='1' else '0';
+    hermes_tx <=
+        header_tx   when (state=HERMES_FIXED_HEADER or state=HERMES_PATH or state=HERMES_HEADER)    else
+        data_tx     when (state=DATA_PAYLOAD)                                                       else
+        '0';
+
+    header_eop      <= '1' when state=HERMES_HEADER and header_end='1' and send_data='0' else '0';
+    data_eop        <= data_flit_ready and last_data_flit;
+
+    hermes_eop_out  <= header_eop when (state=HERMES_HEADER) else data_eop when (state=DATA_PAYLOAD) else '0';
 
 end architecture;

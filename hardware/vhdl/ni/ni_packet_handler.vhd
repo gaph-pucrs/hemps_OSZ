@@ -545,6 +545,23 @@ begin
 
                     end if;
 
+                    ---- IO_REQUEST ----
+
+                    if hermes_service = IO_REQUEST_SERVICE then
+
+                        if header_flit = IO_REQUEST_SERVICE_APPID_FLIT then
+                            crypto_tag <= hermes_data_in(APPID_SIZE-1 downto 0);
+                            crypto_tag_valid <= '1';
+                        end if;
+
+                    end if;
+
+                    ---- IO_DELIVERY ----
+
+                    if hermes_service = IO_DELIVERY_SERVICE then
+
+                    end if;
+
                 end if;
 
             end if;
@@ -616,7 +633,7 @@ begin
     hermesControl.acceptingFlit <= hermes_rx and hermes_credit_out;
 
     hermesControl.payloadIsPath <= '1' when hermes_service_valid='1'    and (hermes_service=CONFIG_PERIPH_SERVICE or hermes_service=SET_PATH_SERVICE)   else '0';
-    hermesControl.payloadIsData <= '1' when hermes_service_valid='1'    and (hermes_service=IO_WRITE_SERVICE)                                           else '0';
+    hermesControl.payloadIsData <= '1' when hermes_service_valid='1'    and (hermes_service=IO_DELIVERY_SERVICE)                                        else '0';
 
     hermesControl.receivingHeader   <= '1' when stage=START_RECEPTION   and (start_rx_state=WAIT_REQUEST or start_rx_state=PARSE_HERMES_HEADER) else '0';
     hermesControl.receivingPath     <= '1' when stage=ACCESS_TABLE      and (table_state=SAVE_PATH)                                             else '0';
@@ -659,7 +676,9 @@ begin
 
     tableControl.fetchNewSlot   <= '1' when hermes_service_valid='1'    and (hermes_service=CONFIG_PERIPH_SERVICE)  else '0';
     tableControl.fetchPlaintext <= '1' when hermes_service_valid='1'    and (hermes_service=SET_PATH_SERVICE)       else '0';
-    tableControl.fetchCrypto    <= '1' when hermes_service_valid='1'    and (hermes_service=REQUEST_PERIPH_SERVICE) else '0';
+    tableControl.fetchCrypto    <= '1' when hermes_service_valid='1'    and (
+        hermes_service=REQUEST_PERIPH_SERVICE or hermes_service=IO_REQUEST_SERVICE
+    ) else '0';
 
     tableControl.fetchExistingSlot <= tableControl.fetchPlaintext or tableControl.fetchCrypto;
     
@@ -682,12 +701,13 @@ begin
         hermes_service=CONFIG_PERIPH_SERVICE or
         hermes_service=SET_PATH_SERVICE or
         hermes_service=REQUEST_PERIPH_SERVICE or
-        hermes_service=IO_WRITE_SERVICE
+        hermes_service=IO_REQUEST_SERVICE or
+        hermes_service=IO_DELIVERY_SERVICE
     ) else '1';
 
     authenticated <= tableControl.slotAvailable;
 
-    response_necessary <= '1' when hermes_service_valid='1' and hermes_service=SET_PATH_SERVICE else '0';
+    response_necessary <= '1' when hermes_service_valid='1' and hermes_service=IO_REQUEST_SERVICE else '0';
 
     data_to_write_on_table <= tableControl.saveAppId or tableControl.saveKeyPeriph or tableControl.saveBurstSize;
 
@@ -699,11 +719,10 @@ begin
 
     response_req <= '1' when stage=RESPOND and respond_state=REQUEST_RESPONSE else '0';
 
-    -- dummy response for testing
-    response_param.txMode           <= THROUGH_HERMES;
-    response_param.appId            <= app_id;
-    response_param.hermesService    <= (others => '0');
-    response_param.brnocService     <= (others => '0');
+    response_param.txMode <= THROUGH_HERMES;
+    response_param.appId <= app_id;
+    response_param.hermesService <= IO_DELIVERY_SERVICE when hermes_service_valid='1' and hermes_service=IO_REQUEST_SERVICE else IO_ACK_SERVICE;
+    response_param.brnocService <= (others => '0');
 
     ----------------
     -- WRITE DATA --

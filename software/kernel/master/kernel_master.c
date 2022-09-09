@@ -732,23 +732,31 @@ void initialize_slaves(){
 #ifdef GRAY_AREA
 void initialize_IO(int peripheralID){
 
-	unsigned int path[2];
-	
-	ServiceHeader *p1 = get_service_header_slot();
-	p1->service = 0x02000010;
-	p1->app_ID = 0x24F;
-	p1->key_periph = 0x67;
-	path[0] = 0x11112222;
-	path[1] = 0x43443300;
-	send_packet_io(p1, (unsigned int) path, 2, peripheralID);
+	static int done = 0;
 
-	ServiceHeader *p2 = get_service_header_slot();
-	p2->service = 0x02000010;
-	p2->app_ID = 0x186;
-	p2->key_periph = 0x12;
+	if(done)
+		return;
+	
+	done = 1;
+
+	unsigned int path[6];
+	
+	ServiceHeader *confProd = get_service_header_slot();
+	confProd->service = 0x02000010;
+	confProd->app_ID = 0;
+	confProd->key_periph = 0;
+	path[0] = 0x75577701;
+	send_packet_io(confProd, (unsigned int) path, 1, peripheralID);
+
+	/*
+
+	ServiceHeader *confCons = get_service_header_slot();
+	confCons->service = 0x02000010;
+	confCons->app_ID = 0x186;
+	confCons->key_periph = 0;
 	path[0] = 0x22223333;
 	path[1] = 0x43443300;
-	send_packet_io(p2, (unsigned int) path, 2, peripheralID);
+	send_packet_io(confCons, (unsigned int) path, 2, peripheralID);
 
 	ServiceHeader *p3 = get_service_header_slot();
 	p3->service = 0xfedc1234;
@@ -763,6 +771,8 @@ void initialize_IO(int peripheralID){
 	p4->app_ID = 0x228;
 	p4->burst_size = 0x0F;
 	send_packet_io(p4, 0, 0, peripheralID);
+
+	*/
 }
 #endif
 

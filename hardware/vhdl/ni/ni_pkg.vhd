@@ -22,7 +22,7 @@ package ni_pkg is
 
     constant FIFO_SIZE              : integer := 32;
 
-    constant APPID_SIZE             : integer := 10;
+    constant APPID_SIZE             : integer := 16;
     constant KEYPERIPH_SIZE         : integer := APPID_SIZE;
     constant BSIZE_SIZE             : integer := 6;
     constant MAX_PATH_FLITS         : integer := 6;    
@@ -33,7 +33,19 @@ package ni_pkg is
     type    regN_path       is array(MAX_PATH_FLITS-1 downto 0) of regflit;
     subtype intN_pathSize   is integer range 0 to MAX_PATH_FLITS;
     subtype intN_pathIndex  is integer range 0 to MAX_PATH_FLITS-1;
-    
+
+    ---------------------------------------
+    -- MESSAGE DELIVERY SERVICE SETTINGS --
+    ---------------------------------------
+
+    constant DEFAULT_WORDS_PER_DELIVERY         : integer := 10;
+    constant MAX_WORDS_PER_DELIVERY             : integer := 64;
+
+    --------------------------------
+    -- SERVICES AND FLIT POSITION --
+    --------------------------------
+
+    constant PACKET_SIZE_FLIT                   : integer := 1;
     constant SERVICE_FLIT                       : integer := 2;
     constant END_OF_HEADER_FLIT                 : integer := 21;
     
@@ -48,8 +60,17 @@ package ni_pkg is
     constant REQUEST_PERIPH_SERVICE_APPID_FLIT  : integer := 5;
     constant REQUEST_PERIPH_SERVICE_BSIZE_FLIT  : integer := 15;
 
-    constant IO_WRITE_SERVICE                   : regword := x"09902020";
-    
+    constant IO_REQUEST_SERVICE                 : regword := x"00000015";
+    constant IO_REQUEST_SERVICE_APPID_FLIT      : integer := 5;
+
+    constant IO_DELIVERY_SERVICE                : regword := x"00000025";
+    constant IO_DELIVERY_SERVICE_PERPH_ID_FLIT  : integer := 5;
+    constant IO_DELIVERY_SERVICE_TASK_ID_FLIT   : integer := 7;
+    constant IO_DELIVERY_SERVICE_PE_SRC_FLIT    : integer := 9;
+    constant IO_DELIVERY_SERVICE_PAYLD_SZ_FLIT  : integer := 15;
+
+    constant IO_ACK_SERVICE                     : regword := x"00000026";
+
     --------------------------------
     -- TABLE READ-WRITE INTERFACE --
     --------------------------------
