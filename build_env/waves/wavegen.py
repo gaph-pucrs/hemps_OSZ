@@ -210,6 +210,12 @@ ni_tx_sds=["state", "fixed_header_flit", "fixed_header_end", "path_flit", "path_
 for it in map(lambda sd: ni_tx_pfx + sd, ni_tx_sds):
 	print (it)
 
+#NI_FIFO_IN SIGNALS
+ni_fifo_in_pfx="add wave -noupdate -group NI_FIFO_IN /test_bench/NI/network_interface/InputBuffer/"
+ni_fifo_in_sds=["fifo_buffer", "counter", "r_ptr","w_ptr", "underflow","overflow"]
+for it in map(lambda sd: ni_fifo_in_pfx + sd, ni_fifo_in_sds):
+	print (it)
+
 print ("TreeUpdate [SetDefaultTree]\n\
 WaveRestoreCursors {{Cursor 1} {10 ps} 0}\n\
 quietly wave cursor active 1\n\
