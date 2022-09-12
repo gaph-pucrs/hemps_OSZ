@@ -240,6 +240,8 @@ SC_MODULE(hemps) {
 				sensitive << data_out[j][i];
 				sensitive << credit_i[j][i];
 				sensitive << clock_rx[j][i];
+				sensitive << eop_in[i][j];
+				sensitive << eop_out[i][j];
 				sensitive << data_in[j][i];
 				sensitive << rx[j][i];
 				sensitive << credit_o[j][i];
@@ -250,6 +252,7 @@ SC_MODULE(hemps) {
 			sensitive << sig_rx_io[i];
 			sensitive << sig_data_in_io[i];
 			sensitive << sig_credit_i_io[i];
+			sensitive << sig_eop_in_io[i];
 		}
 
 		SC_METHOD(io_interconnection);
@@ -262,6 +265,8 @@ SC_MODULE(hemps) {
 			sensitive << sig_tx_io[i];
 			sensitive << sig_data_out_io[i];
 			sensitive << credit_i_io[i];
+			sensitive << sig_eop_out_io[i];
+			sensitive << eop_in_io[i];
 			sensitive << data_in_io[i];
 			sensitive << clock_rx_io[i];
 			sensitive << rx_io[i];
