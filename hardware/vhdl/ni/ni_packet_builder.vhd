@@ -241,7 +241,7 @@ begin
         if state=HERMES_FIXED_HEADER then
 
             if fixed_header_flit=0 then
-                hermes_data_out <= x"0000";
+                hermes_data_out <= x"6021";
             else
                 hermes_data_out <= x"0000";
             end if;
