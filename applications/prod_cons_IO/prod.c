@@ -10,7 +10,6 @@
 #include "prod_cons_std.h"
 
 Message msg;
-Message msgIO;
 
 int main()
 {
@@ -65,32 +64,25 @@ int main()
 	// Echo("eb app 890my app 890my app 890my app 890my app 890my app 890my app 890my app 890my app 890my app 890my app 890my app 890my app 890my app 890my app 890my app 890my app 890my app 890my app 890my app 890my app 890my app 890my app 890my app 890my app 890my app 890my app 890my app 890my app 890my app 890my app 890my app 890my app 890my app 890my apmy app 890my app 890my app 890my app 890my app 890my app 890abcdefgij");
 	// Echo("ec app 890my y app 890my app 890my app 890my apmy app 890my app 890my app 890my app 890my app 890my app 890abcdefgij");
 
-
-
 	Echo("Inicio da aplicacao prod");
 	Echo(itoa(GetTick()));
 
-	msgIO.length = 10;
-
 	msg.length = 10;
-	for(i=0;i<msg.length;i++) msg.msg[i]= 0XF0+i;
-
-	//msg.msg[9] = 0xB0A;
 
 	for(i=0; i<PROD_CONS_ITERATIONS; i++){
 		Echo(itoa(i));
-		IOReceive(&msgIO, IO_PERIPHERAL);
+		IOReceive(&msg, IO_PERIPHERAL);
 		Send(&msg, cons);
-		//IOSend(&msg, 8);		// caimi test Working :-)
-		//IOReceive(&msg, IO_PERIPHERAL);  	//
+
 		Echo(itoa(msg.msg[0]));
 		Echo(itoa(msg.msg[msg.length]));
-		//Echo(itoa(GetTick()));
+		Echo(itoa(GetTick()));
 	}
 
 
 	Echo("Fim da aplicacao prod");
 	Echo(itoa(GetTick()));
+	
 	exit();
 
 }

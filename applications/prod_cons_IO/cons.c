@@ -9,10 +9,7 @@
 #include <stdlib.h>
 #include "prod_cons_std.h"
 
-
 Message msg;
-Message msgIO;
-
 
 int main()
 {
@@ -70,16 +67,15 @@ int main()
 	Echo("Inicio da aplicacao cons");
 	Echo(itoa(GetTick()));
 
-	msgIO.length = 10;
+	msg.length = 10;
 
 	for(i=0; i<PROD_CONS_ITERATIONS; i++){
 		Echo(itoa(i));
 		Receive(&msg, prod);
-		IOSend(&msgIO, IO_PERIPHERAL);
-		//IOSend(&msg, IO_PERIPHERAL);		// caimi test Working :-)
-		//IOReceive(&msg, IO_PERIPHERAL);  	//
-		//Echo(itoa(msg.msg[0]));
-		//Echo(itoa(msg.msg[msg.length]));
+		IOSend(&msg, IO_PERIPHERAL);
+		
+		Echo(itoa(msg.msg[0]));
+		Echo(itoa(msg.msg[msg.length]));
 		Echo(itoa(GetTick()));
 	}
 
