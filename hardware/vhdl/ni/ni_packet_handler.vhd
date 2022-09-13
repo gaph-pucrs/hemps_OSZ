@@ -560,6 +560,10 @@ begin
 
                     if hermes_service = IO_DELIVERY_SERVICE then
 
+                        if header_flit = IO_DELIVERY_SERVICE_PERPH_ID_FLIT then
+                            crypto_tag <= hermes_data_in(APPID_SIZE-1 downto 0);
+                            crypto_tag_valid <= '1';
+                        end if;
                     end if;
 
                 end if;
@@ -677,7 +681,7 @@ begin
     tableControl.fetchNewSlot   <= '1' when hermes_service_valid='1'    and (hermes_service=CONFIG_PERIPH_SERVICE)  else '0';
     tableControl.fetchPlaintext <= '1' when hermes_service_valid='1'    and (hermes_service=SET_PATH_SERVICE)       else '0';
     tableControl.fetchCrypto    <= '1' when hermes_service_valid='1'    and (
-        hermes_service=REQUEST_PERIPH_SERVICE or hermes_service=IO_REQUEST_SERVICE
+        hermes_service=REQUEST_PERIPH_SERVICE or hermes_service=IO_REQUEST_SERVICE or hermes_service=IO_DELIVERY_SERVICE
     ) else '0';
 
     tableControl.fetchExistingSlot <= tableControl.fetchPlaintext or tableControl.fetchCrypto;
@@ -707,7 +711,7 @@ begin
 
     authenticated <= tableControl.slotAvailable;
 
-    response_necessary <= '1' when hermes_service_valid='1' and hermes_service=IO_REQUEST_SERVICE else '0';
+    response_necessary <= '1' when hermes_service_valid='1' and (hermes_service=IO_REQUEST_SERVICE or hermes_service=IO_DELIVERY_SERVICE) else '0';
 
     data_to_write_on_table <= tableControl.saveAppId or tableControl.saveKeyPeriph or tableControl.saveBurstSize;
 
@@ -720,7 +724,7 @@ begin
     response_req <= '1' when stage=RESPOND and respond_state=REQUEST_RESPONSE else '0';
 
     response_param.txMode <= THROUGH_HERMES;
-    response_param.appId <= app_id;
+    response_param.appId <= tableIn.appId;
     response_param.hermesService <= IO_DELIVERY_SERVICE when hermes_service_valid='1' and hermes_service=IO_REQUEST_SERVICE else IO_ACK_SERVICE;
     response_param.brnocService <= (others => '0');
 
@@ -729,6 +733,6 @@ begin
     ----------------
 
     buffer_wdata <= hermes_data_in;
-    buffer_wen <= '1' when stage=RECEIVE_DATA and data_state=CONSUME_DATA_FLIT and buffer_full='0' else '0';
+    buffer_wen <= '1' when stage=RECEIVE_DATA and data_state=CONSUME_DATA_FLIT and hermesControl.acceptingFlit='1' else '0';
     
 end architecture;

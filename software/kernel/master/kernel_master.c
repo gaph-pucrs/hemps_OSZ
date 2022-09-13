@@ -743,36 +743,19 @@ void initialize_IO(int peripheralID){
 	
 	ServiceHeader *confProd = get_service_header_slot();
 	confProd->service = 0x02000010;
-	confProd->app_ID = 0;
+	confProd->app_ID = 1;
 	confProd->key_periph = 0;
 	path[0] = 0x75577701;
 	send_packet_io(confProd, (unsigned int) path, 1, peripheralID);
 
-	/*
-
 	ServiceHeader *confCons = get_service_header_slot();
 	confCons->service = 0x02000010;
-	confCons->app_ID = 0x186;
+	confCons->app_ID = 0;
 	confCons->key_periph = 0;
-	path[0] = 0x22223333;
-	path[1] = 0x43443300;
+	path[0] = 0x75577700;
+	path[1] = 0x71EE7EEE;
 	send_packet_io(confCons, (unsigned int) path, 2, peripheralID);
 
-	ServiceHeader *p3 = get_service_header_slot();
-	p3->service = 0xfedc1234;
-	p3->app_ID = 0x24F;
-	p3->key_periph = 0x67;
-	path[0] = 0x33334444;
-	path[1] = 0x43443300;
-	send_packet_io(p3, (unsigned int) path, 2, peripheralID);
-
-	ServiceHeader *p4 = get_service_header_slot();
-	p4->service = 0x45542323;
-	p4->app_ID = 0x228;
-	p4->burst_size = 0x0F;
-	send_packet_io(p4, 0, 0, peripheralID);
-
-	*/
 }
 #endif
 

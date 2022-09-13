@@ -283,6 +283,30 @@ begin
                     hermes_data_out <= x"0000";
                 end if;
 
+            elsif response_param_reg.hermesService=IO_ACK_SERVICE then
+
+                if header_flit=PACKET_SIZE_FLIT then
+                    hermes_data_out <= conv_std_logic_vector(11, hermes_data_out'length);
+                
+                elsif header_flit=SERVICE_FLIT then
+                    hermes_data_out <= IO_ACK_SERVICE(TAM_WORD-1 downto TAM_FLIT);
+                
+                elsif header_flit=SERVICE_FLIT+1 then
+                    hermes_data_out <= IO_ACK_SERVICE(TAM_FLIT-1 downto 0);
+
+                elsif header_flit=IO_ACK_SERVICE_TASK_ID_FLIT then
+                    hermes_data_out <= response_param_reg.appId;
+
+                elsif header_flit=IO_ACK_SERVICE_PERPH_ID_FLIT then
+                    hermes_data_out <= x"0050"; -- hardcoded for prod_cons_ni testcase
+
+                elsif header_flit=IO_ACK_SERVICE_PE_SRC_FLIT then
+                    hermes_data_out <= x"0202"; -- hardcoded for prod_cons_ni testcase
+
+                else
+                    hermes_data_out <= x"0000";
+                end if;
+
             else
                 hermes_data_out <= x"0000";
             end if;

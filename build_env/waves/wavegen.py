@@ -216,6 +216,12 @@ ni_fifo_in_sds=["fifo_buffer", "counter", "r_ptr","w_ptr", "underflow","overflow
 for it in map(lambda sd: ni_fifo_in_pfx + sd, ni_fifo_in_sds):
 	print (it)
 
+#NI_FIFO_OUT SIGNALS
+ni_fifo_out_pfx="add wave -noupdate -group NI_FIFO_OUT /test_bench/NI/network_interface/OutputBuffer/"
+ni_fifo_out_sds=["fifo_buffer", "counter", "r_ptr","w_ptr", "underflow","overflow"]
+for it in map(lambda sd: ni_fifo_out_pfx + sd, ni_fifo_out_sds):
+	print (it)
+
 print ("TreeUpdate [SetDefaultTree]\n\
 WaveRestoreCursors {{Cursor 1} {10 ps} 0}\n\
 quietly wave cursor active 1\n\

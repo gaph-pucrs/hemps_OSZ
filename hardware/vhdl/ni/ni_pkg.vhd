@@ -70,6 +70,9 @@ package ni_pkg is
     constant IO_DELIVERY_SERVICE_PAYLD_SZ_FLIT  : integer := 15;
 
     constant IO_ACK_SERVICE                     : regword := x"00000026";
+    constant IO_ACK_SERVICE_TASK_ID_FLIT        : integer := 5;
+    constant IO_ACK_SERVICE_PERPH_ID_FLIT       : integer := 7;
+    constant IO_ACK_SERVICE_PE_SRC_FLIT         : integer := 9;
 
     --------------------------------
     -- TABLE READ-WRITE INTERFACE --
