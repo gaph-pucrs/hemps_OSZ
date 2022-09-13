@@ -27,6 +27,10 @@ unsigned int port_go, port_back;  // 0-EAST; 1 - WEST ; 2 - NORTH; 3 - SOUTH
 extern int LOCAL_left_low_corner;
 extern int LOCAL_right_high_corner;
 
+extern int cut_X = -1;
+extern int cut_Y_RH = -1; 
+extern int cut_Y_LL = -1;
+
 
 #ifdef GRAY_AREA
 extern GrayArea ga;
@@ -144,7 +148,12 @@ void Unset_Secure_Zone(unsigned int left_low_corner, unsigned int right_high_cor
   if ((right_high_corner == left_low_corner) && (LOCAL_right_high_corner == right_high_corner)){
     noCut = 1;
     // puts("Não tem corte\n");
+  }else{
+    cut_X = LL_X_addr;
+    cut_Y_RH = RH_Y_addr; 
+    cut_Y_LL = LL_Y_addr;
   }
+
 
   if (noCut){ //Caso não precise de CUT
     if((my_X_addr == LOCAL_RH_X_addr) && (my_Y_addr == LOCAL_RH_Y_addr)){ //Se eu for RH local
@@ -689,7 +698,7 @@ int find_SZ_position_and_direction_to_IO(int peripheral_id){
     unsigned int PER_X_addr, PER_Y_addr, port_io, i;
     unsigned int RH_X_addr, RH_Y_addr;
     unsigned int LL_X_addr, LL_Y_addr;
-
+    unsigned int cut_aux = 0;
 
     RH_X_addr = (LOCAL_right_high_corner & 0xF0) >> 4;
     RH_Y_addr = LOCAL_right_high_corner & 0x0F;
@@ -715,7 +724,7 @@ int find_SZ_position_and_direction_to_IO(int peripheral_id){
         //while(1){};
 
     }
-
+    
     if (port_io == OUT_NORTH){
         if(PER_X_addr < LL_X_addr){    
             address_go   = ( LL_X_addr << 8 ) | my_Y_addr;
@@ -796,10 +805,41 @@ int find_SZ_position_and_direction_to_IO(int peripheral_id){
             port_back = 0;                 
         }
     }
-    // puts("address_go: ");puts(itoa(address_go));puts("\n");
-    // puts("address_back: ");puts(itoa(address_back));puts("\n");
-    // puts("port_go: ");puts(itoa(port_go));puts("\n");
-    // puts("port_back: ");puts(itoa(port_back));puts("\n");  
+
+    if(cut_X != -1){ // Se houver CUT
+      if(port_go == 1){
+        if(((address_go & 0xFF) >= cut_Y_LL )  &&  ((address_go & 0xFF) <= cut_Y_RH))
+          address_go = ((cut_X+1) << 8) + (address_go & 0xff);
+      }
+      if(port_back == 1){
+        if(((address_back & 0xFF) >= cut_Y_LL )  &&  ((address_back & 0xFF) <= cut_Y_RH))
+          address_back = ((cut_X+1) << 8) + (address_back & 0xff);
+      }
+      if(port_go == 3){
+        if ((address_go >> 8) == cut_X )
+          address_go = (address_go & 0xff00) + (cut_Y_RH+1);
+      }
+      if(port_back == 3){
+        if ((address_back >> 8) == cut_X )
+          address_back = (address_back & 0xff00) + (cut_Y_RH+1);
+      }
+      if(port_back == 0 && my_X_addr == cut_X){
+        if(((address_back & 0xFF) >= cut_Y_LL )  &&  ((address_back & 0xFF) <= cut_Y_RH)){
+          address_back = ((cut_X) << 8) + (cut_Y_RH +1);
+          port_back = 3;
+        }
+      }
+      if(port_go == 2 && my_X_addr > cut_X){
+        if((my_Y_addr >= cut_Y_LL )  &&  (my_Y_addr <= cut_Y_RH)){
+          address_go = ((cut_X+1) << 8) + (my_Y_addr);
+          port_go = 1;
+        }
+      }
+    }
+    puts("port_go = ");puts(itoa(port_go));
+    puts(">>> address_go: ");puts(itoa(address_go >> 8));puts(itoa(address_go & 0xff));puts("\n");
+    puts("port_back: ");puts(itoa(port_back)); 
+    puts(">>> address_back: ");puts(itoa(address_back >> 8));puts(itoa(address_back & 0xff));puts("\n");
     return 1;
 }
 #ifdef GRAY_AREA

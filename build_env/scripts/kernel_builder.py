@@ -98,7 +98,7 @@ def generate_sw_pkg( yaml_r ):
     file_lines.append("#define APP_NUMBER                  "+str(apps_number)+"     //max number of APPs described into testcase file\n")
     file_lines.append("#define MAX_STATIC_TASKS            "+static_lenght+"      //max number of tasks mapped statically \n\n")
     file_lines.append("#define IO_NUMBER                   "+str(io_number)+"\n")
-    #Adicionado TCC André
+    #Adicionado TCC Andre
     file_lines.append("\n#define SOMBREAMENTO              1\n\n")
     file_lines.append("\n#define BLOQUEIO_IO               1\n\n")
 

@@ -19,8 +19,4 @@ hw:
 apps:                
   - name: dtw_IO
     start_time_ms: 0 #any unsigned integer number
-<<<<<<< HEAD:testcases/IO/dtwIO.yaml
     secure: yes
-=======
-    secure: yes
->>>>>>> upstream/master:testcases/examples/semap/dtwIO.yaml
