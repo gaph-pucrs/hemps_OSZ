@@ -498,6 +498,7 @@ begin
             ---- HERMES PACKET ----
 
             elsif hermesControl.receivingHeader='1' and hermesControl.acceptingFlit='1' then
+            elsif hermesControl.receivingHeader='1' and hermesControl.receivingRoutingHeader='0' and hermesControl.acceptingFlit='1' then
 
                 if header_flit = SERVICE_FLIT then
                     hermes_service_hi <= hermes_data_in;
