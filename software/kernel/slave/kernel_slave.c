@@ -554,8 +554,8 @@ int Syscall(unsigned int service, unsigned int arg0, unsigned int arg1, unsigned
   							auxBT >> 64 & 0xffffFFFF,
 							(PER_X_addr << 8) | PER_Y_addr);
 						// puts("--slot_adjust: ");puts(itoa(slotSR)); puts("\n");
-						// auxBT = pathFromIO(auxBT);
-						auxBT = IOtoAP(arg1);
+						auxBT = pathFromIO(auxBT);
+						//auxBT = IOtoAP(arg1);
 						puts("-- enviando caminho:");puts(itoh(auxBT)); puts("\n");
 						slotSR = GetFreeSlotSourceRouting(get_net_address());
 						// puts("--slot: ");puts(itoa(slotSR)); puts("\n");
@@ -612,8 +612,8 @@ int Syscall(unsigned int service, unsigned int arg0, unsigned int arg1, unsigned
   							auxBT >> 64 & 0xffffFFFF,
 							(PER_X_addr << 8) | PER_Y_addr);
 						// puts("--slot_adjust: ");puts(itoa(slotSR)); puts("\n");
-						// auxBT = pathFromIO(auxBT);
-						auxBT = IOtoAP(arg1);
+						auxBT = pathFromIO(auxBT);
+						//auxBT = IOtoAP(arg1);
 						puts("-- enviando caminho:");puts(itoh(auxBT)); puts("\n");
 						slotSR = GetFreeSlotSourceRouting(get_net_address());
 						// puts("--slot: ");puts(itoa(slotSR)); puts("\n");
