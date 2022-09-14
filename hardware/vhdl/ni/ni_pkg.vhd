@@ -49,7 +49,7 @@ package ni_pkg is
     constant SERVICE_FLIT                       : integer := 2;
     constant END_OF_HEADER_FLIT                 : integer := 21;
     
-    constant CONFIG_PERIPH_SERVICE              : regword := x"02000010";
+    constant CONFIG_PERIPH_SERVICE              : regword := x"00000300";
     constant CONFIG_PERIPH_SERVICE_APPID_FLIT   : integer := 5;
     constant CONFIG_PERIPH_SERVICE_KEYP_FLIT    : integer := 7;
 

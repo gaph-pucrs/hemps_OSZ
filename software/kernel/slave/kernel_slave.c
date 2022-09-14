@@ -565,7 +565,7 @@ int Syscall(unsigned int service, unsigned int arg0, unsigned int arg1, unsigned
 							auxBT & 0xffffFFFF,
   							auxBT >> 32 & 0xffffFFFF,
   							auxBT >> 64 & 0xffffFFFF);
-						send_peripheral_SR_path(slotSR, arg1, current->secure);
+						send_peripheral_SR_path(slotSR, arg1, current->secure, producer_task);
 						puts("--slot_adjust: ");puts(itoa(slotSR)); puts("\n");
 						ClearSlotSourceRouting(get_net_address());
 					}
@@ -623,7 +623,7 @@ int Syscall(unsigned int service, unsigned int arg0, unsigned int arg1, unsigned
 							auxBT & 0xffffFFFF,
   							auxBT >> 32 & 0xffffFFFF,
   							auxBT >> 64 & 0xffffFFFF);
-						send_peripheral_SR_path(slotSR, arg1, current->secure);
+						send_peripheral_SR_path(slotSR, arg1, current->secure, consumer_task);
 						puts("--slot_adjust: ");puts(itoa(slotSR)); puts("\n");
 						ClearSlotSourceRouting(get_net_address());
 					}
@@ -1486,7 +1486,7 @@ int SeekInterruptHandler(){
 				peripheral_id = find_io_peripheral(get_net_address());
 				if(peripheral_id){
 					puts(" SR Peripheral\n"); 
-					send_peripheral_SR_path(slot_seek, peripheral_id, target);
+					send_peripheral_SR_path(slot_seek, peripheral_id, target, 0); //should not happen with semap, sends task_id=0 to ni
 				}
 			}
 		break;

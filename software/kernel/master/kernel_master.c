@@ -732,30 +732,6 @@ void initialize_slaves(){
 #ifdef GRAY_AREA
 void initialize_IO(int peripheralID){
 
-	static int done = 0;
-
-	if(done)
-		return;
-	
-	done = 1;
-
-	unsigned int path[6];
-	
-	ServiceHeader *confProd = get_service_header_slot();
-	confProd->service = 0x02000010;
-	confProd->app_ID = 1;
-	confProd->key_periph = 0;
-	path[0] = 0x75577701;
-	send_packet_io(confProd, (unsigned int) path, 1, peripheralID);
-
-	ServiceHeader *confCons = get_service_header_slot();
-	confCons->service = 0x02000010;
-	confCons->app_ID = 0;
-	confCons->key_periph = 0;
-	path[0] = 0x75577700;
-	path[1] = 0x71EE7EEE;
-	send_packet_io(confCons, (unsigned int) path, 2, peripheralID);
-
 }
 #endif
 
