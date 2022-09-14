@@ -50,9 +50,13 @@ SC_MODULE(io_peripheral)
 
     SC_HAS_PROCESS(io_peripheral); //TODO: What does this line do? Can I remove it?
 
-	io_peripheral(sc_module_name name_, int io_id_ = 0) : sc_module(name_)
-	{	 
-		network_interface = new NetworkInterface("network_interface", "network_interface");
+	io_peripheral(sc_module_name name_, int io_id = 0) : sc_module(name_)
+	{
+        const char* generic_list[1];
+        generic_list[0] = strdup("NI_ID=x\"AAAA\"");
+        sprintf((char*) generic_list[0], "NI_ID=x\"%.4x\"", io_id);
+
+		network_interface = new NetworkInterface("network_interface", "network_interface", 1, generic_list);
         
         network_interface->clock(clock);
         network_interface->reset(reset);

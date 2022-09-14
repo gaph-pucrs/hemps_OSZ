@@ -7,6 +7,10 @@ use work.seek_pkg.all;
 use work.ni_pkg.all;
 
 entity ni_packet_builder is
+    generic
+    (
+        NI_ID   : regflit
+    );
     port
     (
         clock               : in    std_logic;
@@ -268,7 +272,7 @@ begin
                     hermes_data_out <= IO_DELIVERY_SERVICE(TAM_FLIT-1 downto 0);
 
                 elsif header_flit=IO_DELIVERY_SERVICE_PERPH_ID_FLIT then
-                    hermes_data_out <= x"0050"; -- hardcoded for prod_cons_ni testcase
+                    hermes_data_out <= NI_ID;
 
                 elsif header_flit=IO_DELIVERY_SERVICE_TASK_ID_FLIT then
                     hermes_data_out <= response_param_reg.appId; -- using task granularity for now
@@ -298,7 +302,7 @@ begin
                     hermes_data_out <= response_param_reg.appId;
 
                 elsif header_flit=IO_ACK_SERVICE_PERPH_ID_FLIT then
-                    hermes_data_out <= x"0050"; -- hardcoded for prod_cons_ni testcase
+                    hermes_data_out <= NI_ID;
 
                 elsif header_flit=IO_ACK_SERVICE_PE_SRC_FLIT then
                     hermes_data_out <= x"0202"; -- hardcoded for prod_cons_ni testcase

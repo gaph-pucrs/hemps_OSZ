@@ -7,6 +7,10 @@ use work.seek_pkg.all;
 use work.ni_pkg.all;
 
 entity network_interface is
+    generic
+    (
+        NI_ID   : regflit
+    );
     port
     (
         clock   : in    std_logic;
@@ -177,6 +181,10 @@ begin
     -------------------------
 
     ModuleTX: entity work.ni_packet_builder
+    generic map
+    (
+        NI_ID               => NI_ID
+    )
     port map
     (
         clock               => clock,
