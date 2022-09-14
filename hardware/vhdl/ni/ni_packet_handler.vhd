@@ -82,9 +82,13 @@ architecture ni_packet_handler of ni_packet_handler is
     -- PACKET INFO REGISTERS --
     ---------------------------
 
+    -- flit counters:
+
     signal routing_header_flit  : integer range 0 to XY_HEADER_SIZE;
     signal header_flit          : integer range 0 to HEADER_SIZE;
     signal path_flit            : intN_pathIndex;
+
+    -- registers:
 
     signal app_id               : regN_appID;
     signal app_id_valid         : std_logic;
@@ -102,6 +106,12 @@ architecture ni_packet_handler of ni_packet_handler is
     signal hermes_service_valid : std_logic;
     alias  hermes_service_hi    : regflit is hermes_service(TAM_WORD-1 downto TAM_FLIT);
     alias  hermes_service_lo    : regflit is hermes_service(TAM_FLIT-1 downto 0);
+
+    signal packet_source        : regflit;
+    signal packet_source_valid  : std_logic;
+
+    signal packet_target        : regflit;
+    signal packet_target_valid  : std_logic;
 
     ---------------------
     -- CONTROL SIGNALS --
@@ -476,6 +486,12 @@ begin
             hermes_service          <= (others => '0');
             hermes_service_valid    <= '0';
 
+            packet_source           <= (others => '0');
+            packet_source_valid     <= '0';
+
+            packet_target           <= (others => '0');
+            packet_target_valid     <= '0';
+
         elsif rising_edge(clock) then
 
             if end_of_handling='1' then
@@ -495,9 +511,23 @@ begin
                 hermes_service          <= (others => '0');
                 hermes_service_valid    <= '0';
             
-            ---- HERMES PACKET ----
+                packet_source           <= (others => '0');
+                packet_source_valid     <= '0';
 
-            elsif hermesControl.receivingHeader='1' and hermesControl.acceptingFlit='1' then
+                packet_target           <= (others => '0');
+                packet_target_valid     <= '0';
+            
+            ---- HERMES PACKET HEADER (FIXED AND ROUTING) ----
+
+            elsif hermesControl.receivingHeader='1' and hermesControl.receivingRoutingHeader='1' and hermesControl.acceptingFlit='1' then
+
+                if routing_header_flit=1 then
+                    packet_target <= hermes_data_in;
+                    packet_target_valid <= '1';
+                end if;
+
+            ---- HERMES PACKET HEADER (DYNAMIC) ----
+
             elsif hermesControl.receivingHeader='1' and hermesControl.receivingRoutingHeader='0' and hermesControl.acceptingFlit='1' then
 
                 if header_flit = SERVICE_FLIT then
@@ -553,6 +583,9 @@ begin
                         if header_flit = IO_REQUEST_SERVICE_APPID_FLIT then
                             crypto_tag <= hermes_data_in(APPID_SIZE-1 downto 0);
                             crypto_tag_valid <= '1';
+                        elsif header_flit = IO_REQUEST_SERVICE_PE_SRC_FLIT then
+                            packet_source <= hermes_data_in;
+                            packet_source_valid <= '1';
                         end if;
 
                     end if;
@@ -564,7 +597,11 @@ begin
                         if header_flit = IO_DELIVERY_SERVICE_PERPH_ID_FLIT then
                             crypto_tag <= hermes_data_in(APPID_SIZE-1 downto 0);
                             crypto_tag_valid <= '1';
+                        elsif header_flit = IO_DELIVERY_SERVICE_PE_SRC_FLIT then
+                            packet_source <= hermes_data_in;
+                            packet_source_valid <= '1';
                         end if;
+
                     end if;
 
                 end if;
@@ -728,6 +765,9 @@ begin
     response_param.appId <= tableIn.appId;
     response_param.hermesService <= IO_DELIVERY_SERVICE when hermes_service_valid='1' and hermes_service=IO_REQUEST_SERVICE else IO_ACK_SERVICE;
     response_param.brnocService <= (others => '0');
+
+    response_param.source <= packet_target;
+    response_param.target <= packet_source;
 
     ----------------
     -- WRITE DATA --

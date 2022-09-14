@@ -247,7 +247,7 @@ begin
             if fixed_header_flit=0 then
                 hermes_data_out <= x"6021";
             else
-                hermes_data_out <= x"0000";
+                hermes_data_out <= response_param_reg.target;
             end if;
 
         ---- PATH ----
@@ -278,7 +278,7 @@ begin
                     hermes_data_out <= response_param_reg.appId; -- using task granularity for now
 
                 elsif header_flit=IO_DELIVERY_SERVICE_PE_SRC_FLIT then
-                    hermes_data_out <= x"0202"; -- hardcoded for prod_cons_ni testcase
+                    hermes_data_out <= response_param_reg.source;
 
                 elsif header_flit=IO_DELIVERY_SERVICE_PAYLD_SZ_FLIT then
                     hermes_data_out <= conv_std_logic_vector(DEFAULT_WORDS_PER_DELIVERY, hermes_data_out'length);
@@ -305,7 +305,7 @@ begin
                     hermes_data_out <= NI_ID;
 
                 elsif header_flit=IO_ACK_SERVICE_PE_SRC_FLIT then
-                    hermes_data_out <= x"0202"; -- hardcoded for prod_cons_ni testcase
+                    hermes_data_out <= response_param_reg.source;
 
                 else
                     hermes_data_out <= x"0000";

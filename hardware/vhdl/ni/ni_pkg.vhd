@@ -62,6 +62,7 @@ package ni_pkg is
 
     constant IO_REQUEST_SERVICE                 : regword := x"00000015";
     constant IO_REQUEST_SERVICE_APPID_FLIT      : integer := 5;
+    constant IO_REQUEST_SERVICE_PE_SRC_FLIT     : integer := 9;
 
     constant IO_DELIVERY_SERVICE                : regword := x"00000025";
     constant IO_DELIVERY_SERVICE_PERPH_ID_FLIT  : integer := 5;
@@ -160,6 +161,8 @@ package ni_pkg is
         appId           : regN_appID;
         hermesService   : regword;
         brnocService    : seek_bitN_service;
+        source          : regflit;
+        target          : regflit;
     end record;
 
     type TransmissionStatusType is record
