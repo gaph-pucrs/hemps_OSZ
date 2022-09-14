@@ -19,9 +19,9 @@ ROUTER_SC 				=RouterCCwrapped2
 SEEK_SC  				=router_seek_wrapped2
 FIFO_PDN_SC 			=fifo_pdn
 FAIL_WRAPPER_MODULE_SC 	=fail_wrapper_module
-IO_PERIPHERAL_SC 		=io_peripheral
+#IO_PERIPHERAL_SC 		=io_peripheral			#temporarily disabled, using NI instead
 INJECTOR_SC 			=injector
-NI_SC			 		=NetworkInterfaceWrapped2
+NI_SC			 		=io_peripheral
 
 
 #vhdl files
@@ -40,10 +40,10 @@ MEMORY_SRC				= $(addprefix sc/pe/memory/,						$(MEMORY:=.cpp) $(MEMORY:=.h)		)
 PROCESSOR_SRC			= $(addprefix sc/pe/processor/plasma/, 				$(PROCESSOR:=.cpp) $(PROCESSOR:=.h)	)
 ROUTER_SC_SRC			= $(addprefix sc/pe/router/, 						$(ROUTER_SC:=.cpp) 					)
 SEEK_SC_SRC				= $(addprefix sc/pe/router/seek/, 					$(SEEK_SC:=.cpp) $(SEEK_SC:=.h)		)
-NI_SC_SCR				= $(addprefix sc/ni/,								$(NI_SC:=.h)						)
 FIFO_PDN_SRC			= $(addprefix sc/pe/fifo_pdn/, 						$(FIFO_PDN_SC:=.cpp) $(FIFO_PDN_SC:=.h)		)
 FAIL_WRAPPER_MODULE_SRC	= $(addprefix sc/pe/fail_wrapper_module/, 			$(FAIL_WRAPPER_MODULE_SC:=.cpp) $(FAIL_WRAPPER_MODULE_SC:=.h)	)
-IO_PERIPHERAL_SRC		= $(addprefix sc/peripherals/IO_peripheral/, 	$(IO_PERIPHERAL_SC:=.cpp) $(IO_PERIPHERAL_SC:=.h)		)
+NI_SC_SCR				= $(addprefix sc/peripherals/IO_peripheral/,		$(NI_SC:=.h)						)
+#IO_PERIPHERAL_SRC		= $(addprefix sc/peripherals/IO_peripheral/, 	$(IO_PERIPHERAL_SC:=.cpp) $(IO_PERIPHERAL_SC:=.h)		)
 INJECTOR_SRC			= $(addprefix sc/peripherals/IO_peripheral/, 	$(INJECTOR_SC:=.cpp) $(INJECTOR_SC:=.h)		)
 
 #vhdl files
@@ -67,7 +67,7 @@ SEEK_TGT				=$(addprefix $(TGT_SCCOM_PATH), $(SEEK_SC:=.o))
 NI_TGT					=$(addprefix $(TGT_SCCOM_PATH), $(NI_SC:=.o))
 FIFO_PDN_TGT			=$(addprefix $(TGT_SCCOM_PATH), $(FIFO_PDN_SC:=.o))
 FAIL_WRAPPER_MODULE_TGT	=$(addprefix $(TGT_SCCOM_PATH), $(FAIL_WRAPPER_MODULE_SC:=.o))
-IO_PERIPHERAL_TGT		=$(addprefix $(TGT_SCCOM_PATH), $(IO_PERIPHERAL_SC:=.o))
+#IO_PERIPHERAL_TGT		=$(addprefix $(TGT_SCCOM_PATH), $(IO_PERIPHERAL_SC:=.o))
 INJECTOR_TGT			=$(addprefix $(TGT_SCCOM_PATH), $(INJECTOR_SC:=.o))
 
 default: lib $(HEMPS_PKG) $(STAND) $(ROUTER_VHD) $(SEEK_VHD) $(STAND_NI) $(NI_VHD) $(ROUTER_TGT) $(SEEK_TGT) $(FIFO_PDN_TGT) $(FAIL_WRAPPER_MODULE_TGT) $(PROCESSOR_TGT) $(DMNI_TGT) $(MEMORY_TGT) $(PE_TGT) $(IO_PERIPHERAL_TGT) $(INJECTOR_TGT)  $(TOP_TGT)
@@ -131,10 +131,10 @@ $(FAIL_WRAPPER_MODULE_TGT): $(FAIL_WRAPPER_MODULE_SRC)
 	@printf "${COR}Compiling SystemC source: %s ...${NC}\n" "$(dir $<)$(notdir $*).cpp"
 	$(SC_C) $(dir $<)$(notdir $*).cpp	
 
-$(IO_PERIPHERAL_TGT): $(IO_PERIPHERAL_SRC)
-$(IO_PERIPHERAL_TGT): $(IO_PERIPHERAL_SRC)
-	@printf "${COR}Compiling SystemC source: %s ...${NC}\n" "$(dir $<)$(notdir $*).cpp"
-	$(SC_C) $(dir $<)$(notdir $*).cpp
+#$(IO_PERIPHERAL_TGT): $(IO_PERIPHERAL_SRC)
+#$(IO_PERIPHERAL_TGT): $(IO_PERIPHERAL_SRC)
+#	@printf "${COR}Compiling SystemC source: %s ...${NC}\n" "$(dir $<)$(notdir $*).cpp"
+#	$(SC_C) $(dir $<)$(notdir $*).cpp
 
 $(INJECTOR_TGT): $(INJECTOR_SRC)
 $(INJECTOR_TGT): $(INJECTOR_SRC)

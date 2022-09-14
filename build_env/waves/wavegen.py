@@ -181,43 +181,43 @@ for it in map(lambda sd: injectors_pfx + sd, injectors_sds):
 	print (it)
 
 #IO_PERIPHERAL SIGNALS
-io_peripheral_pfx="add wave -noupdate -group IO_PERIPHERAL /test_bench/IO_PERIPHERAL/"
-io_peripheral_sds=["clock", "reset", "in_source_router_seek_primary", "in_target_router_seek_primary", "in_payload_router_seek_primary", "in_service_router_seek_primary", "in_req_router_seek_primary", "in_ack_router_seek_primary", "in_opmode_router_seek_primary", "out_service_router_seek_primary", "out_source_router_seek_primary", "out_target_router_seek_primary", "out_payload_router_seek_primary", "out_ack_router_seek_primary", "out_req_router_seek_primary", "out_nack_router_seek_primary", "out_opmode_router_seek_primary", "clock_tx_primary", "tx_primary", "data_out_primary", "credit_i_primary", "eop_in_primary", "clock_rx_primary", "rx_primary", "data_in_primary", "credit_o_primary", "eop_out_primary", "EA_in", "EA_out", "SR_path"]
-for it in map(lambda sd: io_peripheral_pfx + sd, io_peripheral_sds):
-	print (it)
+# io_peripheral_pfx="add wave -noupdate -group IO_PERIPHERAL /test_bench/IO_PERIPHERAL/"
+# io_peripheral_sds=["clock", "reset", "in_source_router_seek_primary", "in_target_router_seek_primary", "in_payload_router_seek_primary", "in_service_router_seek_primary", "in_req_router_seek_primary", "in_ack_router_seek_primary", "in_opmode_router_seek_primary", "out_service_router_seek_primary", "out_source_router_seek_primary", "out_target_router_seek_primary", "out_payload_router_seek_primary", "out_ack_router_seek_primary", "out_req_router_seek_primary", "out_nack_router_seek_primary", "out_opmode_router_seek_primary", "clock_tx_primary", "tx_primary", "data_out_primary", "credit_i_primary", "eop_in_primary", "clock_rx_primary", "rx_primary", "data_in_primary", "credit_o_primary", "eop_out_primary", "EA_in", "EA_out", "SR_path"]
+# for it in map(lambda sd: io_peripheral_pfx + sd, io_peripheral_sds):
+# 	print (it)
 
 #NI SIGNALS
-ni_pfx="add wave -noupdate -group NI /test_bench/NI/network_interface/"
+ni_pfx="add wave -noupdate -group NI /test_bench/IO_PERIPHERAL/network_interface/"
 ni_sds=["clock", "reset", "hermes_rx", "hermes_data_in", "hermes_eop_in", "hermes_credit_out", "hermes_tx", "hermes_data_out", "hermes_eop_out", "hermes_credit_in", "tableIn_rxOut", "tableOut_rxIn", "tableIn_txOut", "tableOut_txIn", "response_req", "response_param", "tx_status"]
 for it in map(lambda sd: ni_pfx + sd, ni_sds):
 	print (it)
 
 #NI_TABLE SIGNALS
-ni_table_pfx="add wave -noupdate -group NI_Table /test_bench/NI/network_interface/Table/"
+ni_table_pfx="add wave -noupdate -group NI_Table /test_bench/IO_PERIPHERAL/network_interface/Table/"
 ni_table_sds=["state", "is_fetching", "match", "match_regular", "match_crypto", "match_new", "slot", "reset_slot", "enable_counter", "slot_is_last", "read_enable", "table", "read_only_slot", "secondary_match"]
 for it in map(lambda sd: ni_table_pfx + sd, ni_table_sds):
 	print (it)
 
 #NI_RX SIGNALS
-ni_rx_pfx="add wave -noupdate -group NI_RX /test_bench/NI/network_interface/ModuleRX/"
+ni_rx_pfx="add wave -noupdate -group NI_RX /test_bench/IO_PERIPHERAL/network_interface/ModuleRX/"
 ni_rx_sds=["stage", "start_rx_state", "table_state", "data_state", "finish_rx_state", "respond_state", "routing_header_flit", "header_flit", "path_flit", "hermes_service", "app_id", "crypto_tag", "key_periph", "burst_size", "hermesControl", "tableControl", "unknown_service", "authenticated", "response_necessary", "data_to_write_on_table", "end_of_handling"]
 for it in map(lambda sd: ni_rx_pfx + sd, ni_rx_sds):
 	print (it)
 
 #NI_TX SIGNALS
-ni_tx_pfx="add wave -noupdate -group NI_TX /test_bench/NI/network_interface/ModuleTX/"
+ni_tx_pfx="add wave -noupdate -group NI_TX /test_bench/IO_PERIPHERAL/network_interface/ModuleTX/"
 ni_tx_sds=["state", "fixed_header_flit", "fixed_header_end", "path_flit", "path_end", "header_flit", "header_end", "response_param_reg"]
 for it in map(lambda sd: ni_tx_pfx + sd, ni_tx_sds):
 	print (it)
 
 #NI_FIFO_IN SIGNALS
-ni_fifo_in_pfx="add wave -noupdate -group NI_FIFO_IN /test_bench/NI/network_interface/InputBuffer/"
+ni_fifo_in_pfx="add wave -noupdate -group NI_FIFO_IN /test_bench/IO_PERIPHERAL/network_interface/InputBuffer/"
 ni_fifo_in_sds=["fifo_buffer", "counter", "r_ptr","w_ptr", "underflow","overflow"]
 for it in map(lambda sd: ni_fifo_in_pfx + sd, ni_fifo_in_sds):
 	print (it)
 
 #NI_FIFO_OUT SIGNALS
-ni_fifo_out_pfx="add wave -noupdate -group NI_FIFO_OUT /test_bench/NI/network_interface/OutputBuffer/"
+ni_fifo_out_pfx="add wave -noupdate -group NI_FIFO_OUT /test_bench/IO_PERIPHERAL/network_interface/OutputBuffer/"
 ni_fifo_out_sds=["fifo_buffer", "counter", "r_ptr","w_ptr", "underflow","overflow"]
 for it in map(lambda sd: ni_fifo_out_pfx + sd, ni_fifo_out_sds):
 	print (it)
