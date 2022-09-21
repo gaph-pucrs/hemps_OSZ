@@ -357,7 +357,7 @@ begin
             if state=WAIT_REQ then
                 data_flit_low <= '0';
                 data_words_to_read <= DEFAULT_WORDS_PER_DELIVERY;
-            elsif state=DATA_PAYLOAD and data_flit_ready='1' then
+            elsif state=DATA_PAYLOAD and buffer_ren='1' then
                 data_flit_low <= not data_flit_low;
                 if data_flit_low='1' then
                     data_words_to_read <= data_words_to_read - 1;
@@ -366,7 +366,7 @@ begin
         end if;
     end process;
 
-    last_data_flit <= '1' when data_words_to_read=1 and data_flit_low='1' else '0';
+    last_data_flit <= '1' when data_words_to_read=0 else '0';
 
     data_flit_blocked <= data_flit_ready and not data_tx;
 
