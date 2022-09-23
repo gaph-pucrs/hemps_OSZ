@@ -1,0 +1,20 @@
+hw:
+  page_size_KB:  64
+  tasks_per_PE: 1
+  repository_size_MB:  1
+  physical_channels: 2
+  model_description: hybrid
+  noc_buffer_size: 8
+  mpsoc_dimension: [3,3]
+  cluster_dimension: [3,3]
+  master_location: LT
+  gray_area:
+    rows: [2]
+    cols: [0]
+  open_port:
+    - port: [Injector,90,0,2,N,0,0,W] 
+    - port: [io_peripheral,81,2,2,N]
+apps:
+  - name: prod_cons_IO
+    start_time_ms: 0
+    secure: yes

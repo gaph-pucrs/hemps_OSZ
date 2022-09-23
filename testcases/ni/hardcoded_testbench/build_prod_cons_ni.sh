@@ -1,7 +1,7 @@
 hemps_root=/home/gustavo.comaru/hemps_OSZ
 
 testcase_name=prod_cons_ni
-testcases=$hemps_root/testcases/ni
+testcases=$hemps_root/testcases/ni/hardcoded_testbench
 
 cd $testcases
 rm -rf $testcases/$testcase_name
