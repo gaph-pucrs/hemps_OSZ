@@ -14,7 +14,6 @@ testcases/examples/*
 *__pycache__
 **/*.kate-swp
 **/*.o
-**/*.pyc
 include
 **/dist-newstyle
 vhdl_ls.toml
