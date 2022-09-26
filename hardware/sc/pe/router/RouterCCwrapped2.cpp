@@ -98,6 +98,17 @@ void RouterCCwrapped::upd_sz(){
 	 sz_internal.write(l_sz_internal);
 }
 
+// void RouterCCwrapped::upd_keys(){
+// 	sc_uint<regflit > l_sz_internal;
+
+// 	 for(i=0;i<NPORT;i++){
+// 		//modified to add faults
+// 		l_sz_internal[i] = (sz[i].read());
+// 	 }
+
+// 	 sz_internal.write(l_sz_internal);
+// }
+
 void RouterCCwrapped::upd_unreach(){
 	int i;
 	sc_uint<NPORT > l_sz_unreachable;

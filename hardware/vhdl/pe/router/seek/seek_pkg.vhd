@@ -24,7 +24,7 @@ package seek_pkg is
 	constant	TARGET_SIZE								: integer := 16;
 	constant	SOURCE_SIZE								: integer := 32;
 	constant	SEEK_PAYLOAD_SIZE						: integer := 8;
-	constant	TAM_SERVICE_SEEK						: integer := 5;
+	constant	TAM_SERVICE_SEEK						: integer := 6;
 
 	constant	EAST									: integer := 0;
 	constant	WEST									: integer := 1;
@@ -47,42 +47,41 @@ package seek_pkg is
 -- ordem SET_SECURE_ZONE_SERVICE, SET_EXCESS_SZ_SERVICE, SECURE_ZONE_CLOSED_SERVICE
 -- OPEN_SECURE_ZONE_SERVICE, SECURE_ZONE_OPENED_SERVICE
 -- PDN services
-    constant    START_APP_SERVICE                       : std_logic_vector(TAM_SERVICE_SEEK-1 downto 0) := "00001";
-    constant    TARGET_UNREACHABLE_SERVICE              : std_logic_vector(TAM_SERVICE_SEEK-1 downto 0) := "00010";
-    constant    CLEAR_SERVICE                           : std_logic_vector(TAM_SERVICE_SEEK-1 downto 0) := "00011";
-    constant    BACKTRACK_SERVICE                       : std_logic_vector(TAM_SERVICE_SEEK-1 downto 0) := "00100";
-    constant    SEARCHPATH_SERVICE                      : std_logic_vector(TAM_SERVICE_SEEK-1 downto 0) := "00101";
-    constant    END_TASK_SERVICE                        : std_logic_vector(TAM_SERVICE_SEEK-1 downto 0) := "00110";
-    constant    SET_SECURE_ZONE_SERVICE                 : std_logic_vector(TAM_SERVICE_SEEK-1 downto 0) := "00111";
-    constant    SET_AP_SERVICE                          : std_logic_vector(TAM_SERVICE_SEEK-1 downto 0) := "01000";
-    -- constant    PACKET_RESEND_SERVICE                   : std_logic_vector(TAM_SERVICE_SEEK-1 downto 0) := "01000";
-    constant    WARD_SERVICE                            : std_logic_vector(TAM_SERVICE_SEEK-1 downto 0) := "01001";
-    constant    OPEN_SECURE_ZONE_SERVICE                : std_logic_vector(TAM_SERVICE_SEEK-1 downto 0) := "01010";
-    constant    SECURE_ZONE_CLOSED_SERVICE              : std_logic_vector(TAM_SERVICE_SEEK-1 downto 0) := "01011";
-    constant    SECURE_ZONE_OPENED_SERVICE              : std_logic_vector(TAM_SERVICE_SEEK-1 downto 0) := "01100";
-    constant    FREEZE_TASK_SERVICE                     : std_logic_vector(TAM_SERVICE_SEEK-1 downto 0) := "01101";
-    constant    UNFREEZE_TASK_SERVICE                   : std_logic_vector(TAM_SERVICE_SEEK-1 downto 0) := "01110";
-    constant    MASTER_CANDIDATE_SERVICE                : std_logic_vector(TAM_SERVICE_SEEK-1 downto 0) := "01111";
-    constant    TASK_ALLOCATED_SERVICE                  : std_logic_vector(TAM_SERVICE_SEEK-1 downto 0) := "10000";
-    constant    INITIALIZE_SLAVE_SERVICE                : std_logic_vector(TAM_SERVICE_SEEK-1 downto 0) := "10001";
-    constant    INITIALIZE_CLUSTER_SERVICE              : std_logic_vector(TAM_SERVICE_SEEK-1 downto 0) := "10010";
-    constant    MSG_DELIVERY_CONTROL                    : std_logic_vector(TAM_SERVICE_SEEK-1 downto 0) := "10011";
-    constant    MSG_REQUEST_CONTROL                     : std_logic_vector(TAM_SERVICE_SEEK-1 downto 0) := "10100";
-    --constant    LOAN_PROCESSOR_REQUEST_SERVICE          : std_logic_vector(TAM_SERVICE_SEEK-1 downto 0) := "10011"; --
-    --constant    LOAN_PROCESSOR_RELEASE_SERVICE          : std_logic_vector(TAM_SERVICE_SEEK-1 downto 0) := "10100"; --
-    constant    END_TASK_OTHER_CLUSTER_SERVICE          : std_logic_vector(TAM_SERVICE_SEEK-1 downto 0) := "10101";
-    constant    WAIT_KERNEL_SERVICE                     : std_logic_vector(TAM_SERVICE_SEEK-1 downto 0) := "10110";
-    constant    SEND_KERNEL_SERVICE                     : std_logic_vector(TAM_SERVICE_SEEK-1 downto 0) := "10111";
-    constant    WAIT_KERNEL_SERVICE_ACK                 : std_logic_vector(TAM_SERVICE_SEEK-1 downto 0) := "11000";
-    constant    FAIL_KERNEL_SERVICE                     : std_logic_vector(TAM_SERVICE_SEEK-1 downto 0) := "11001";
-    constant    NEW_APP_SERVICE                         : std_logic_vector(TAM_SERVICE_SEEK-1 downto 0) := "11010";
-    constant    NEW_APP_ACK_SERVICE                     : std_logic_vector(TAM_SERVICE_SEEK-1 downto 0) := "11011";
-    constant    GMV_READY_SERVICE                       : std_logic_vector(TAM_SERVICE_SEEK-1 downto 0) := "11100";
-    constant    SET_SZ_RECEIVED_SERVICE                 : std_logic_vector(TAM_SERVICE_SEEK-1 downto 0) := "11101";
-    constant    SET_EXCESS_SZ_SERVICE                   : std_logic_vector(TAM_SERVICE_SEEK-1 downto 0) := "11110";
-    --constant    RCV_FREEZE_TASK_SERVICE                 : std_logic_vector(TAM_SERVICE_SEEK-1 downto 0) := "11111";
-    constant    BR_TO_APPID_SERVICE                     : std_logic_vector(TAM_SERVICE_SEEK-1 downto 0) := "11111";
-
+    constant    START_APP_SERVICE                       : std_logic_vector(TAM_SERVICE_SEEK-1 downto 0) := "000001";
+    constant    TARGET_UNREACHABLE_SERVICE              : std_logic_vector(TAM_SERVICE_SEEK-1 downto 0) := "000010";
+    constant    CLEAR_SERVICE                           : std_logic_vector(TAM_SERVICE_SEEK-1 downto 0) := "000011";
+    constant    BACKTRACK_SERVICE                       : std_logic_vector(TAM_SERVICE_SEEK-1 downto 0) := "000100";
+    constant    SEARCHPATH_SERVICE                      : std_logic_vector(TAM_SERVICE_SEEK-1 downto 0) := "000101";
+    constant    END_TASK_SERVICE                        : std_logic_vector(TAM_SERVICE_SEEK-1 downto 0) := "000110";
+    constant    SET_SECURE_ZONE_SERVICE                 : std_logic_vector(TAM_SERVICE_SEEK-1 downto 0) := "000111";
+    constant    PACKET_RESEND_SERVICE                   : std_logic_vector(TAM_SERVICE_SEEK-1 downto 0) := "001000";
+    constant    WARD_SERVICE                            : std_logic_vector(TAM_SERVICE_SEEK-1 downto 0) := "001001";
+    constant    OPEN_SECURE_ZONE_SERVICE                : std_logic_vector(TAM_SERVICE_SEEK-1 downto 0) := "001010";
+    constant    SECURE_ZONE_CLOSED_SERVICE              : std_logic_vector(TAM_SERVICE_SEEK-1 downto 0) := "001011";
+    constant    SECURE_ZONE_OPENED_SERVICE              : std_logic_vector(TAM_SERVICE_SEEK-1 downto 0) := "001100";
+    constant    FREEZE_TASK_SERVICE                     : std_logic_vector(TAM_SERVICE_SEEK-1 downto 0) := "001101";
+    constant    UNFREEZE_TASK_SERVICE                   : std_logic_vector(TAM_SERVICE_SEEK-1 downto 0) := "001110";
+    constant    MASTER_CANDIDATE_SERVICE                : std_logic_vector(TAM_SERVICE_SEEK-1 downto 0) := "001111";
+    constant    TASK_ALLOCATED_SERVICE                  : std_logic_vector(TAM_SERVICE_SEEK-1 downto 0) := "010000";
+    constant    INITIALIZE_SLAVE_SERVICE                : std_logic_vector(TAM_SERVICE_SEEK-1 downto 0) := "010001";
+    constant    INITIALIZE_CLUSTER_SERVICE              : std_logic_vector(TAM_SERVICE_SEEK-1 downto 0) := "010010";
+    constant    LOAN_PROCESSOR_REQUEST_SERVICE          : std_logic_vector(TAM_SERVICE_SEEK-1 downto 0) := "010011"; --
+    constant    LOAN_PROCESSOR_RELEASE_SERVICE          : std_logic_vector(TAM_SERVICE_SEEK-1 downto 0) := "010100"; --
+    constant    END_TASK_OTHER_CLUSTER_SERVICE          : std_logic_vector(TAM_SERVICE_SEEK-1 downto 0) := "010101";
+    constant    WAIT_KERNEL_SERVICE                     : std_logic_vector(TAM_SERVICE_SEEK-1 downto 0) := "010110";
+    constant    SEND_KERNEL_SERVICE                     : std_logic_vector(TAM_SERVICE_SEEK-1 downto 0) := "010111";
+    constant    WAIT_KERNEL_SERVICE_ACK                 : std_logic_vector(TAM_SERVICE_SEEK-1 downto 0) := "011000";
+    constant    FAIL_KERNEL_SERVICE                     : std_logic_vector(TAM_SERVICE_SEEK-1 downto 0) := "011001";
+    constant    NEW_APP_SERVICE                         : std_logic_vector(TAM_SERVICE_SEEK-1 downto 0) := "011010";
+    constant    NEW_APP_ACK_SERVICE                     : std_logic_vector(TAM_SERVICE_SEEK-1 downto 0) := "011011";
+    constant    GMV_READY_SERVICE                       : std_logic_vector(TAM_SERVICE_SEEK-1 downto 0) := "011100";
+    constant    SET_SZ_RECEIVED_SERVICE                 : std_logic_vector(TAM_SERVICE_SEEK-1 downto 0) := "011101";
+    constant    SET_EXCESS_SZ_SERVICE                   : std_logic_vector(TAM_SERVICE_SEEK-1 downto 0) := "011110";
+    constant    RCV_FREEZE_TASK_SERVICE                 : std_logic_vector(TAM_SERVICE_SEEK-1 downto 0) := "011111";
+    constant    BR_TO_APPID_SERVICE                     : std_logic_vector(TAM_SERVICE_SEEK-1 downto 0) := "100000";
+    constant    SET_AP_SERVICE                          : std_logic_vector(TAM_SERVICE_SEEK-1 downto 0) := "100001";
+    constant    MSG_DELIVERY_CONTROL                    : std_logic_vector(TAM_SERVICE_SEEK-1 downto 0) := "100010";
+    constant    MSG_REQUEST_CONTROL                     : std_logic_vector(TAM_SERVICE_SEEK-1 downto 0) := "100011";
 
 	subtype		regNtarget								is std_logic_vector((TARGET_SIZE-1) downto 0);
 	subtype		regNsource								is std_logic_vector((SOURCE_SIZE-1) downto 0);

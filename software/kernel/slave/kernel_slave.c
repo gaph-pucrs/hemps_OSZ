@@ -63,7 +63,7 @@ Message 		msg_write_pipe;				//!< Message variable which is used to copy a messa
 lfsr_t glfsr_d0;
 lfsr_t glfsr_c0;
 lfsr_t glfsr_app;
-unsigned int k0;
+unsigned int k0, k1, k2;
 
 Message waitingMessages[10];
 
@@ -354,7 +354,9 @@ int Syscall(unsigned int service, unsigned int arg0, unsigned int arg1, unsigned
 
 			//puts("WRITEPIPE - prod: "); puts(itoa(producer_task)); putsv(" consumer ", consumer_task);
 
+			// consumer_PE = get_task_location(consumer_task);
 			consumer_PE = get_task_location(consumer_task);
+			
 
 			//Test if the consumer task is not allocated
 			if (consumer_PE == -1){
@@ -758,6 +760,8 @@ int handle_packet(volatile ServiceHeader * p) {
 		//puts("source:");puts(itoh(p->source_PE)); puts("\n");
 	
 
+	p->service= (p->service & 0xFFFF); // Limpar a chave para não bugar
+	
 	switch (p->service) {
 
 	case MESSAGE_REQUEST: //MR_HANDLER
@@ -1045,7 +1049,7 @@ int handle_packet(volatile ServiceHeader * p) {
 			//received a packet with incomplete payload; discard it
 			need_scheduling = 0;
 			MemoryWrite(DMNI_TIMEOUT_SIGNAL,0);
-			//puts("payload incompleto...\n");
+			puts("payload incompleto...\n");
 		}
 		else{
 			//puts("payload Completo...\n");
@@ -1215,7 +1219,7 @@ int handle_packet(volatile ServiceHeader * p) {
 
 		puts("TASK_RELEASE F1 e F2: ");puts(itoh(p->k0));puts("\n");
 		int KappID = p->k0 ^ k0; // Decrypt LO
-		int nt1, nt2, k1, k2;
+		int nt1, nt2;
 		nt1 = (KappID & 0xffff) >> 8; // Get turns
 		nt2 = (KappID & 0xff);	
 		KappID = (KappID >> 16) ^ k0; // Decrypt HI
@@ -1546,14 +1550,15 @@ int SeekInterruptHandler(){
 
 		case SET_AP_SERVICE:
 			puts("Received SET_AP_SERVICE"); seek_puts("\n");
-			MemoryWrite(KAP_REGISTER, 0x021);
+			MemoryWrite(K1_REG, k1);
+			MemoryWrite(K2_REG, k2);
 			puts("--source(caller): "); puts(itoh(source)); puts("\n");
 			puts("--target(AP addr): "); puts(itoh(target)); puts("\n");
 			puts("--payload(port): "); puts(itoh(payload)); puts("\n");
 			puts("--ApID(port): "); puts(itoh(MemoryRead(APP_ID_REG))); puts("\n");
 
 			MemoryWrite(AP_MASK, (3 << (payload*2))); // Mascarar as duas portas, 01 - E, 23 - W, 45-N, 67-S 
-			Seek(BR_TO_APPID_SERVICE, ((MemoryRead(TICK_COUNTER)<<16) | (get_net_address()&0xffff)), (get_net_address()&0xffff), (unsigned int)MemoryRead(APP_ID_REG));
+			Seek(BR_TO_APPID_SERVICE, ((MemoryRead(TICK_COUNTER)<<16) | (get_net_address()&0xffff)), (unsigned int)MemoryRead(APP_ID_REG), payload);
 		break;
 
 		#ifdef SESSION_MANAGER
@@ -1825,10 +1830,12 @@ int SeekInterruptHandler(){
 			return aux;
 		break;
 
-		case BR_TO_APPID_SERVICE:
+		case BR_TO_APPID_SERVICE: // Expand here to flexible AccessPoit configuration
 			puts("Received BR_TO_APPID_SERVICE");
-			puts(itoa(payload)); puts ("\n");
-
+			
+			puts(itoa(source & 0xffff)); puts ("\n"); // Location of the AP	
+			puts(itoa(payload)); puts ("\n");	// Port of the AP
+			break;
 
 		case UNFREEZE_TASK_SERVICE: //enviado pelo Mastre WARD do cluster
 			puts("Received UNFREEZE_TASK_SERVICE"); puts("\n");

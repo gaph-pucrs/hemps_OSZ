@@ -1,5 +1,8 @@
 //#include <stdio.h>
 //#include <stdlib.h>
+#ifndef DEFINE_PAIRS_H_
+#define DEFINE_PAIRS_H_
+#include "../../include/kernel_pkg.h"
 
 #define MAX_PAIRS 20
 #include "../../include/kernel_pkg.h"
@@ -70,3 +73,5 @@ int get_task1_candidate_other_cluster();
 
 int  get_slave_candidate_other_cluster();
 void set_slave_candidate_other_cluster(int net_address_to_send, int task);
+
+#endif

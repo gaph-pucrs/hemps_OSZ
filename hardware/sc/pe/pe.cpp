@@ -463,8 +463,11 @@ void pe::wrapper_register_handle(){
 			wrapper_reg[i].write(l_wrapper_reg[i]);
 		}
 	}
-	if ((cpu_mem_address_reg.read() == KAP_REGISTER) and (write_enable.read()==1) ) {
-		kap = cpu_mem_data_write_reg.read();
+	if ((cpu_mem_address_reg.read() == K1_REG) and (write_enable.read()==1) ) {
+		k1 = cpu_mem_data_write_reg.read();
+	}
+	if ((cpu_mem_address_reg.read() == K2_REG) and (write_enable.read()==1) ) {
+		k2 = cpu_mem_data_write_reg.read();
 	}
 	if ((cpu_mem_address_reg.read() == AP_MASK) and (write_enable.read()==1) ) {
 		l_ap_mask = cpu_mem_data_write_reg.read();
@@ -509,14 +512,8 @@ void pe::seek_fault_middle_packet(){
 		if(local_rot_table != 0){
 			for(j=0;j<NPORT;j++){
 				// if((local_rot_table[j] & router_fail_in[j].read()) == 1  && MEM_waiting[j].read() == 0){
-				if((local_rot_table[j] & router_fail_in[j].read()) == 1 ){//&& MEM_waiting[addr].read() == 0){
-					// cout << "ROUTER:" << hex << router_address;
-					// cout << ":error transmitting from " << source.read() << " to " << target.read() << endl;
-					// cout << ":NEW error transmitting from " << MEM_source[j].read() << " to " << MEM_target[j].read() << endl;
-					// MEM_waiting[addr].write(1);
+				if((local_rot_table[j] & router_fail_in[j].read()) == 1 ){ // Se o roteamento aponta para uma porta que esteja bloqueada - gerar UNREACHABLE
 					MEM_waiting[j].write(1);
-					// MEM_source[addr].write(source.read());
-					// MEM_target[addr].write(target.read());
 				}
 				else if ((local_rot_table[j] & router_fail_in[j].read()) == 0)
 				{
@@ -753,10 +750,25 @@ void pe::seek_receive(){
 						int_seek.write(1);
 					break;
 					case 0x1F:
-						// cout << "RCV_FREEZE_TASK_SERVICE";
+						cout << "RCV_FREEZE_TASK_SERVICE";
+						int_seek.write(1);
+					break;
+					case 0x20:
 						cout << "BR_TO_APP";
 						int_seek.write(1);
-					break;				
+					break;		
+					case 0x21:
+						cout << "SET_AP_SERVICE";
+						int_seek.write(1);
+					break;
+					case 0x22:
+						cout << "MSG_DELIVERY_CONTROL";
+						int_seek.write(1);
+					break;	
+					case 0x23:
+						cout << "MSG_REQUEST_CONTROL";
+						int_seek.write(1);
+					break;		
 					default:
 						cout << out_service_router_seek_local.read() << " unknown --- ERROR! " ;
 						in_ack_router_seek_local.write(1);
@@ -774,46 +786,6 @@ void pe::seek_receive(){
 	}
 }
 
-
-// // controls the input at the access point
-// void pe::keyCheck(){
-// 	static bool	auxPass[NPORT];
-// 	if (reset.read() == 1) {
-// 		for(i=0;i<NPORT-1;i++){
-// 			ap_mask[i].write(1);
-// 			pass[i].write(1);
-// 			auxPass[i] = 0;
-// 		}
-// 	}else{
-// 		for(i=0;i<NPORT-1;i++){
-// 			if (ap_mask[i].read() == 0){
-// 				if (((data_in[i].read()) == (kap.read() | 0x6000)) && (pass[i].read() == 1))	{
-
-// 					pass[i].write(0);
-
-// 				} else if ((eop_in[i].read() == 1) && (pass[i].read() == 0)){
-
-// 					auxPass[i] = 1;
-
-// 				} else if ((eop_in[i].read() == 0) && (auxPass[i] == 1)){
-
-// 					pass[i].write(1);
-// 					auxPass[i] = 0;
-
-// 				}
-// 			}
-// 		}
-// 	}
-// }
-
-// //generates the fail_out and fail_in accordin to external_fail_in and external_fail_out
-// void pe::fail_out_generation(){
-// 	for(i=0;i<NPORT-1;i++){
-// 		// fail_out[i].write(router_fail_out[i].read() | external_fail_out[i].read() | (wrapper_reg[i].read() & ( wrapper_mask_router_out.read()[i] | io_packet_mask | pass[i])));
-// 		access_o[i].write((wrapper_reg[i].read() & (pass[i])));
-
-// 	}
-// }
 void pe::fail_in_generation(){ // analisar a tranferência p/ VHDL
 	for(i=0;i<NPORT-1;i++){
 		router_fail_in[i].write(unreachable[i].read());

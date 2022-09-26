@@ -104,7 +104,7 @@ void Set_Secure_Zone(unsigned int left_low_corner, unsigned int right_high_corne
 	if(isolated_ports != 0){
 		wrapper_value = isolated_ports;
 		MemoryWrite(WRAPPER_REGISTER,isolated_ports);
-    MemoryWrite(AP_MASK, 0x0);
+    // MemoryWrite(AP_MASK, 0x0);
     seek_puts("[Set Secure Zone] LOCAL_right_high_corner = "); seek_puts(itoa(LOCAL_right_high_corner)); puts("\n");
 		if((my_X_addr == RH_X_addr) && (my_Y_addr == RH_Y_addr)){
       #ifdef GRAY_AREA
@@ -734,15 +734,6 @@ int find_SZ_position_and_direction_to_IO(int peripheral_id){
 
     }
 
-    if(cut_X != -1){ // Se houver CUT
-      if(my_X_addr == cut_X){
-        LL_Y_addr = cut_Y_RH +1;
-      }
-      if( (my_Y_addr <= cut_Y_RH) && (my_Y_addr >= cut_Y_LL)){
-        LL_X_addr = cut_X+1;
-      }
-    }
-
     if (port_io == OUT_NORTH){
         if(PER_X_addr < LL_X_addr){    
             address_go   = ( LL_X_addr << 8 ) | my_Y_addr;
@@ -823,7 +814,6 @@ int find_SZ_position_and_direction_to_IO(int peripheral_id){
             port_back = 0;                 
         }
     }
-    }
     // puts("address_go: ");puts(itoa(address_go));puts("\n");
     // puts("address_back: ");puts(itoa(address_back));puts("\n");
     // puts("port_go: ");puts(itoa(port_go));puts("\n");
@@ -888,7 +878,7 @@ void config_AP_SZ(){ // io_service: 0 - request; 1 - delivery
 
     puts("AP address: "); puts(itoh(address_go)); puts("\n");
 
-  Seek(SET_AP_SERVICE, get_net_address(), address_go, port_go);
+  // Seek(SET_AP_SERVICE, get_net_address(), address_go, port_go);
     //-----------------------------------------------------------------------------
     //OUT_WRAPPER
 	p->header[MAX_SOURCE_ROUTING_PATH_SIZE-2] = (0x1 << 28) | (KE_OSZ << 16) | address_go;
@@ -1102,38 +1092,3 @@ void send_wrapper_open_forward(int peripheral_ID, int io_service){
 
 }
 #endif
-
-// int configureNewIO(int peripheral_id){
-//   unsigned int i, slotSR;
-//   unsigned long int auxBT;
-//   for(i = 0; i < IO_NUMBER; i++){
-//     if(io_info[i].peripheral_id == arg1){
-//       PER_X_addr = io_info[i].default_address_x ;
-//       PER_Y_addr = io_info[i].default_address_y;
-//       auxSlot = SearchSourceRoutingDestination((PER_X_addr << 8) | PER_Y_addr);
-//       if (auxSlot = -1){
-//         auxBT = pathToIO(arg1);
-//         slotSR = GetFreeSlotSourceRouting((PER_X_addr << 8) | PER_Y_addr);
-//         SR_Table[slotSR].target = (PER_X_addr << 8) | PER_Y_addr;
-//           SR_Table[slotSR].tableSlotStatus = SR_USADO;
-//         adjust_backtrack_IO(
-//           auxBT & 0xffffFFFF,
-//             auxBT >> 32 & 0xffffFFFF,
-//             auxBT >> 64 & 0xffffFFFF,
-//           (PER_X_addr << 8) | PER_Y_addr);
-
-//         auxBT = pathFromIO(auxBT);
-//         slotSR = GetFreeSlotSourceRouting(get_net_address());
-//         SR_Table[slotSR].target = get_net_address();
-//         SR_Table[slotSR].tableSlotStatus = SR_USADO;
-//         ProcessTurns(
-//           auxBT & 0xffffFFFF,
-//           auxBT >> 32 & 0xffffFFFF,
-//           auxBT >> 64 & 0xffffFFFF);
-//         send_peripheral_SR_path(slotSR, arg1, current->secure);
-//         ClearSlotSourceRouting(get_net_address());
-//       }
-//     break;
-//     }
-//   }
-// }

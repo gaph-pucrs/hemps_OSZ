@@ -139,10 +139,15 @@ void send_task_release(Application * app){
 		app_tasks_location[i] = app->tasks[i].allocated_proc;
 	}
 
-	appID_rand = (MemoryRead(TICK_COUNTER) & 0xFFFF); // HI == appID
-	turns = (MemoryRead(TICK_COUNTER) & 0x0F0F); // LO == turns pra k1 e k2	 (4 bits cada pra n ficar mto)
-	// kaux = 0x0000481e;
-	puts("AppID rand: ");puts(itoh(kaux));puts("\n");
+
+	// appID_rand = (MemoryRead(TICK_COUNTER) & 0xFFFF); // HI == appID
+	// turns = (MemoryRead(TICK_COUNTER) & 0x0F0F); // LO == turns pra k1 e k2	 (4 bits cada pra n ficar mto)
+
+	appID_rand = 0x00007782;
+	turns = 0x00000704;
+
+	puts("AppID rand: ");puts(itoh(appID_rand));puts("\n");
+	puts("turns: ");puts(itoh(turns));puts("\n");
 
 	for (int i =0; i<app->tasks_number; i++){
 		if(app->tasks[i].status == REQUESTED){
@@ -1126,6 +1131,7 @@ int SeekInterruptHandler(){
 						//puts("RH_addr: "); puts(itoh(RH_addr)); puts("\n");
 						//puts("LL_addr: "); puts(itoh(LL_addr)); puts("\n");
 						set_RH_Address(app->app_ID, RH_addr);
+						set_AccessPoint(RH_addr, LL_addr, app->ap);
 						//get_Secure_Zone_index(RH_addr);
 						puts("SET_SECURE_ZONE at time: "); puts(itoa(MemoryRead(TICK_COUNTER))); puts("\n");
 						//Seek(SET_SECURE_ZONE_SERVICE, (get_Secure_Zone_index(RH_addr)<<16 | get_net_address()), LL_addr, RH_addr);

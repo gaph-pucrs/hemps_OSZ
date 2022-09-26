@@ -399,17 +399,17 @@ begin
 	                        	end if;
 	                    	end if;
 	                    	
-	                    -- Packet is switched to EAST or WEST 
+	                    -- Packet is switched to EAST or WEST
 	                    elsif lx /= tx then
-	                        if free_port(dirx+1) = '1' then
+	                        if free_port(dirx) = '1' then						-- Verifies if the channel 0 is free 
 	                            ack_routing(sel) <= '1';
-	                            rot_table(sel)(dirx+1) <= '1';
+	                            rot_table(sel)(dirx) <= '1';
 	                            EA <= S3;
 
 								w_source_target <= '1';
-	                        elsif free_port(dirx) = '1' then
+	                        elsif free_port(dirx+1) = '1' then
 	                            ack_routing(sel) <= '1';
-	                            rot_table(sel)(dirx) <= '1';
+	                            rot_table(sel)(dirx+1) <= '1';
 	                            EA <= S3;
 
 								w_source_target <= '1';                 
@@ -419,17 +419,17 @@ begin
 	                        end if;
 	                                      
 	                    -- Packet is switched to NORTH or SOUTH 
-	                    -- Verifies if the channel 1 is free
-	                    elsif free_port(diry+1) = '1' then
+	                    -- Verifies if the channel 0 is free
+	                    elsif free_port(diry) = '1' then
 	                        ack_routing(sel) <= '1';
-	                        rot_table(sel)(diry+1) <= '1'; 
+	                        rot_table(sel)(diry) <= '1'; 
 	                        EA <= S3;
 
 
 							w_source_target <= '1';
-	                    elsif free_port(diry) = '1' then		
+	                    elsif free_port(diry+1) = '1' then		
 	                        ack_routing(sel) <= '1';
-	                        rot_table(sel)(diry) <= '1'; 
+	                        rot_table(sel)(diry+1) <= '1'; 
 	                        EA <= S3;
 
 

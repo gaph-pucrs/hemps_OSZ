@@ -26,7 +26,8 @@ public:
     sc_out<regflit > data_out[NPORT];
     sc_in<regNport > credit_i;
 
-    sc_out< sc_uint<12> > 		ke;
+    sc_in<regflit >  k1;
+    sc_in<regflit >  k2;
     sc_in<regNport > sz;
     sc_in<regNport > ap;
     sc_out<regNport > unreachable;
@@ -56,7 +57,8 @@ public:
        //data_out
        credit_i("credit_i"),
        eop_out("eop_out"),
-       ke("ke"),
+       k1("k1"),
+       k2("k2"),
        sz("sz"),
        ap("ap"),
        unreachable("unreachable"),

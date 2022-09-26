@@ -36,7 +36,8 @@ port(
 	credit_i                :  in regNport;
 	eop_out					: out regNport;
 
-	ke						: in  std_logic_vector(11 downto 0);
+	k1						: in regflit;
+	k2						: in regflit;
 	sz						: in regNport;
 	ap						: in regNport;
 
@@ -158,7 +159,8 @@ begin
 			--Mem Mapped Regs from PE
 			enable					=> ap(i*2),
 			sz						=> sz(i*2),
-			key						=> ke
+			k1						=> k1,
+			k2						=> k2
 		);
 
 

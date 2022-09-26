@@ -30,6 +30,7 @@
 
 #include "dmni.h"
 
+#define ABORTED_PACKET_SIZE 5
 
 void dmni::arbiter(){
 	if (reset.read() == 1){
@@ -174,11 +175,11 @@ void dmni::receive(){
 				flag_middle_eop.write(0);
 				cout << "ROUTER:" << hex << address_router << ": flag_middle_eop";
 				cout << " time:" << sc_time_stamp() << endl;
-				//Clearing the buffer f
-				// add_buffer.write(0); 
-				// last.write(last.read() - ABORTED_PACKET_SIZE);
-				// cont.write(0);
-				// SR.write(HEADER);
+				// Clearing the buffer f
+				add_buffer.write(0); 
+				last.write(last.read() - ABORTED_PACKET_SIZE);
+				cont.write(0);
+				SR.write(HEADER);
 			}
 	
 			if (cont.read() == 0) {//32 bits high flit
@@ -267,7 +268,7 @@ void dmni::receive(){
 						if (payload_size.read() == 0 || eop_in.read() == 1){ // MELHORAR AQUI
 							if (eop_in.read() == 1 && payload_size.read() > 5){ // Did not interrupt, but the buffer is empty? overwritten?
 								flag_middle_eop.write(1);
-								cout << "ROUTER:" << hex << address_router << ": EOP 5,";
+								cout << "Packet incomplete (from AP):" << hex << address_router;
 								cout << " time:" << sc_time_stamp() << endl;
 							}
 							SR.write(HEADER);

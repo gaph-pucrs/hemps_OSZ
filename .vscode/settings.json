@@ -4,6 +4,8 @@
         "random": "cpp",
         "*.tcc": "cpp",
         "algorithm": "c",
-        "iostream": "cpp"
+        "iostream": "cpp",
+        "applications.h": "c",
+        "kernel_pkg.h": "c"
     }
 }

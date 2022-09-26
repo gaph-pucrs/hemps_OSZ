@@ -202,9 +202,9 @@ SC_MODULE(pe) {
 	sc_signal <bool >			pass[NPORT];
 	sc_signal <bool >			ap_mask[NPORT]; 
 	sc_signal <bool >			unreachable[NPORT];
-	sc_signal <	sc_uint <12 >> 	ke;
-	sc_signal <	sc_uint <12 >> 	kap;
-	sc_signal <reg_seek_payload > 	app_reg;
+	sc_signal <	regflit> 		k1;
+	sc_signal <	regflit> 		k2;
+	sc_signal < reg_seek_target> 	app_reg;
 	
 	
 
@@ -310,7 +310,6 @@ SC_MODULE(pe) {
 	void seek_send();
 	void seek_receive();
 	void waiting_seek_trigger();
-	void keyCheck();
 	void fail_in_generation();
 	void fail_out_generation();
 	void wrapper_register_handle();
@@ -434,8 +433,9 @@ SC_MODULE(pe) {
 				fail_wrapper_module->eop_out_router_ports[i](eop_out[i]);
 				fail_wrapper_module->eop_in_router_ports[i](eop_in[i]);
 			}
-			router->ke		(kap);
-			// router->ap		(ap_mask);
+			router->k1		(k1);
+			router->k2		(k2);
+
 
 			router->access_i				[LOCAL0](router_fail_in[LOCAL0]);
 			router->access_i				[LOCAL1](router_fail_in[LOCAL1]);
@@ -674,9 +674,6 @@ SC_MODULE(pe) {
 		// 	sensitive << access_i[i];
 		// }
 		// sensitive << MEM_waiting[10];
-		// SC_METHOD(keyCheck);
-		// sensitive << reset;
-		// sensitive << clock.pos();
 		// SC_METHOD(fail_out_generation);
 		// for(i=0;i<NPORT-1;i++){
 		// 	// sensitive << wrapper_mask_router_out[i];

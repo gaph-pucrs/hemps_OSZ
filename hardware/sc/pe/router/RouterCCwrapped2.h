@@ -22,7 +22,8 @@ SC_MODULE(RouterCCwrapped) {
 		sc_in<bool >  access_i[NPORT];
 		sc_out<bool >  access_o[NPORT];
 
-    	sc_out< sc_uint<12> > 		ke;
+    	sc_in<regflit> 		k1;
+		sc_in<regflit> 		k2;
 		sc_in<bool > 		ap[NPORT];
 		sc_in<bool > 		sz[NPORT];
 
@@ -46,6 +47,8 @@ SC_MODULE(RouterCCwrapped) {
 		sc_signal<regNport > credit_i_internal;
 		sc_signal<regNport > ap_internal;
 		sc_signal<regNport > sz_internal;
+		sc_signal<regNport > k1_internal;
+		sc_signal<regNport > k2_internal;
 		sc_signal<regNport > unreachable_internal;
 		sc_signal<regNport > access_i_internal;
 		sc_signal<regNport > access_o_internal;
@@ -64,6 +67,7 @@ SC_MODULE(RouterCCwrapped) {
 		void upd_credit_i();
 		void upd_ap();
 		void upd_sz();
+		// void upd_keys();
 		void upd_unreach();
 		void upd_access_i();
 		void upd_access_o();
@@ -170,7 +174,8 @@ SC_MODULE(RouterCCwrapped) {
 				router->credit_i(credit_i_internal);
 			#endif
 
-				router->ke(ke);
+				router->k1(k1);
+				router->k2(k2);
 				// router->ap(ap);
 				router->target(target);
 				router->source(source);
@@ -218,6 +223,9 @@ SC_MODULE(RouterCCwrapped) {
 			for (i = 0; i < NPORT; i++){
 				sensitive << sz[i];
 			}
+
+			// SC_METHOD(upd_keys);
+			// 	sensitive << k1 << k2;
 
 			SC_METHOD(upd_unreach);
 			sensitive << unreachable_internal;

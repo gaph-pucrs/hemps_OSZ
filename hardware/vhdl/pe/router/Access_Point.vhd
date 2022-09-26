@@ -54,7 +54,8 @@ port(
 	-- PE -> AP
 	enable					: in  std_logic;
 	sz						: in  std_logic;
-	key						: in  std_logic_vector(11 downto 0)
+	k1						: in  regflit;
+	k2						: in  regflit
 );
 end Access_Point;
 
@@ -79,7 +80,7 @@ begin
 	credit_i_router <= credit_i OR (NOT mask);
 
 	-- Wrapper filters (from local)
-	access_o <= sz AND pass;
+	access_o <= sz AND (NOT enable);
 	
 	-- Connecting the sides
 	-- Input
@@ -94,19 +95,9 @@ begin
 	eop_out		<=	eop_out_router;
 
 	ap 	<=	enable;
-	
-	keyCheck: process(clock,reset)
-	begin
-		if (reset = '1') then
-			pass <= '1';
-		elsif rising_edge(clock) then
-			if 	(data_in = (x"6" & key)) AND (pass = '1')then
-				pass <= '0';
-			elsif (eop_in = '1') AND (pass = '0')then
-				pass <= '1';
-			end if;
-		end if;
-	end process; 
+
+	pass <= '1' when (reg_F1 XOR k1) = k2 else
+			'0';
 
 	-- Authentication process
 	packetAuth: process(clock, reset)
@@ -114,6 +105,7 @@ begin
 	begin		  	   
 		if (reset = '1') then
 			counter	:= 0;
+			reg_F1	<= (others => '0');	
 			reg_F2	<= (others => '0');	
 			terminate <= '0';
 			eop_ap <= '0';
@@ -128,7 +120,7 @@ begin
 						reg_F2 <= data_in;
 						-- terminate <= '1';
 					when SERVICE_F2 + 1 => -- After having the Service
-						if (reg_F2 = x"0025" NOR reg_F2 = x"0026") then -- Service /= IO_DELIVERY or _ACK
+						if (pass = '0') then -- Service /= IO_DELIVERY or _ACK
 							terminate <= '1'; -- Cancel sending
 							eop_ap <= '1';	  -- Force EOP						
 						end if; -- ELSE, terminate is not set, following the eop_in

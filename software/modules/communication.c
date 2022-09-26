@@ -720,7 +720,7 @@ void send_message_request_(int producer_task, int consumer_task, unsigned int pr
 
 	volatile ServiceHeader *p = get_service_header_slot();
 
-	p->header[MAX_SOURCE_ROUTING_PATH_SIZE-1] = get_task_location(producer_task);
+	p->header[MAX_SOURCE_ROUTING_PATH_SIZE-1] = get_task_location_FAKE(producer_task);
 
 	p->service = MESSAGE_REQUEST;
 
