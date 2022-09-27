@@ -111,7 +111,7 @@ void send_message_io(int, int, Message *, int);
 
 void send_io_request(int, int, unsigned int, int);
 
-void send_peripheral_SR_path(int, int, int);
+void send_peripheral_SR_path(int, int, int, int);
 
 #define send_message_request(producer_task, consumer_task, producer_PE, sourcePE) send_message_request_(producer_task, consumer_task, producer_PE, sourcePE, 1)
 	

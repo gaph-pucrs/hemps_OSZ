@@ -4,9 +4,13 @@ use ieee.std_logic_unsigned.all;
 use ieee.std_logic_arith.all;
 use work.standards.all;
 use work.seek_pkg.all;
-use work.ni_defines.all;
+use work.ni_pkg.all;
 
 entity network_interface is
+    generic
+    (
+        NI_ID   : regflit
+    );
     port
     (
         clock   : in    std_logic;
@@ -52,114 +56,209 @@ end network_interface;
 
 architecture network_interface of network_interface is
 
+    ----------------------------
+    -- Port Selection Signasl --
+    ----------------------------
+    
+    signal hermes_rx                : std_logic;
+    signal hermes_rx_ck             : std_logic;
+    signal hermes_data_in           : regflit;
+    signal hermes_eop_in            : std_logic;
+    signal hermes_credit_out        : std_logic;
+
+    signal hermes_tx                : std_logic;
+    signal hermes_tx_ck             : std_logic;
+    signal hermes_data_out          : regflit;
+    signal hermes_eop_out           : std_logic;
+    signal hermes_credit_in         : std_logic;
+
     -------------------
     -- Table Signals --
     -------------------
 
-    type column_appId       is array(TABLE_SIZE-1 downto 0) of regN_appID;
-    type column_keyPerith   is array(TABLE_SIZE-1 downto 0) of regN_keyPerith;
-    type column_burstSize   is array(TABLE_SIZE-1 downto 0) of regN_burstSize;
-    type column_srcRouting  is array(TABLE_SIZE-1 downto 0) of std_logic;
-    type column_path        is array(TABLE_SIZE-1 downto 0) of regN_path;
-    type column_free        is array(TABLE_SIZE-1 downto 0) of std_logic;
+    signal tableIn_rxOut    : TableInput;
+    signal tableOut_rxIn    : TableOutput;
 
-    type table_record is record
-        app_id      : column_appId;
-        key_periph  : column_keyPeriph;
-        burst_size  : column_burstSize;
-        src_routing : column_srcRouting;
-        path        : column_path;
-        free        : column_free;
-    end record table_record;
+    signal tableIn_txOut    : TableSecondaryInput;
+    signal tableOut_txIn    : TableSecondaryOutput;
 
-    signal table            : table_record;
-    signal table_is_full    : std_logic;
-    signal next_free_slot   : integer range 0 to TABLE_SIZE-1;
+    --------------------------------
+    -- Response Request Interface --
+    --------------------------------
 
-    ---------------------------
-    -- Hermes In FSM Signals --
-    ---------------------------
+    signal response_req     : std_logic;
+    signal response_param   : ResponseParametersType;
+    signal tx_status        : TransmissionStatusType;
 
-    type HermesInStateType is (HIS_WAIT_PACKET, HIS_HEADER, HIS_SERVICE, HIS_WAIT_EOP);
+    --------------------
+    -- Buffer Signals --
+    --------------------
 
-    signal HermesIn_PS  : HermesInStateType;
-    signal HermesIn_NS  : HermesInStateType;
+    -- buffer out
 
-    signal hermes_rx        : std_logic;
-    signal hermes_rx_ck     : std_logic;
-    signal hermes_eop_in    : std_logic;
+    signal buffer_o_wen     : std_logic;
+    signal buffer_o_datain  : regflit;
 
-    signal recvd_flits
+    signal buffer_o_ren     : std_logic;
+    signal buffer_o_dataout : regflit;
+
+    signal buffer_o_status  : BufferStatusType;
+
+    -- buffer in
+
+    signal buffer_i_wen     : std_logic;
+    signal buffer_i_datain  : regflit;
+
+    signal buffer_i_ren     : std_logic;
+    signal buffer_i_dataout : regflit;
+
+    signal buffer_i_status  : BufferStatusType;
 
 begin
+
+    --------------------
+    -- Port Selection --
+    --------------------
+
+    hermes_rx                   <= hermes_primary_rx;
+    hermes_rx_ck                <= hermes_primary_rx_clk;
+    hermes_data_in              <= hermes_primary_data_in;
+    hermes_eop_in               <= hermes_primary_eop_in;
+    hermes_primary_credit_out   <= hermes_credit_out;
+
+    hermes_primary_tx           <= hermes_tx;
+    hermes_primary_tx_clk       <= '1';
+    hermes_primary_data_out     <= hermes_data_out;
+    hermes_primary_eop_out      <= hermes_eop_out;
+    hermes_credit_in            <= hermes_primary_credit_in;
 
     -----------
     -- Table --
     -----------
 
-    table_is_full <= nor table.free;
+    Table: entity work.ni_table
+    port map
+    (
+        clock           => clock,
+        reset           => reset,
 
-    FreeSlotsProc: process(table.free)
-    begin
-        for i in 0 to TABLE_SIZE-1 loop
-            if table.free(i)='1' then
-                next_free_slot <= i;
-                exit;
-            end if;
-        end loop;
-    end process;
+        tableIn         => tableIn_rxOut,
+        tableOut        => tableOut_rxIn,
 
-    ---------------
-    -- Hermes In --
-    ---------------
-    
-    hermes_rx       <= hermes_primary_rx;
-    hermes_rx_ck    <= hermes_primary_rx_clk;
-    hermes_eop_in   <= hermes_primary_eop_in;
+        secondaryIn     => tableIn_txOut,
+        secondaryOut    => tableOut_txIn
+    );
 
-    HermesInFSM_ChangeState: process(reset, clock, hermes_rx)
-    begin
-        if reset='1' then
-            HermesIn_PS <= HIS_WAIT_PACKET;
-        elsif clock'event and clock='1' and hermes_rx='1' then
-            HermesIn_PS <= HermesIn_NS;
-        end if;
-    end process;
+    ----------------------
+    -- Reception Module --
+    ----------------------
 
-    HermesInFSM_NextStateCC: process(HermesIn_PS, hermes_rx, hermes_eop_in)
-    begin
-        case HermesIn_PS is
+    ModuleRX: entity work.ni_packet_handler
+    port map
+    (
+        clock               => clock,
+        reset               => reset,
 
-            when HIS_WAIT_PACKET =>
+        hermes_rx           => hermes_rx,
+        hermes_data_in      => hermes_data_in,
+        hermes_eop_in       => hermes_eop_in,
+        hermes_credit_out   => hermes_credit_out,
 
-                if hermes_rx='1' then
-                    HermesIn_NS <= HIS_HEADER;
-                else
-                    HermesIn_NS <= HIS_WAIT_PACKET;
-                end if;
-            
-            when HIS_HEADER =>
+        tableIn             => tableOut_rxIn,
+        tableOut            => tableIn_rxOut,
 
-                if then
-                    HermesIn_NS <= HIS_SERVICE;
-                else
-                    HermesIn_NS <= HIS_HEADER;
-                end if;
+        response_req        => response_req,
+        response_param      => response_param,
+        tx_status           => tx_status,
 
-            when HIS_WAIT_EOP =>
+        buffer_wdata        => buffer_o_datain,
+        buffer_wen          => buffer_o_wen,
+        buffer_full         => buffer_o_status.full
+    );
 
-                if hermes_eop_in='1' then
-                    HermesIn_NS <= HIS_WAIT_PACKET;
-                else
-                    HermesIn_NS <= HIS_WAIT_EOP;
-                end if;
+    -------------------------
+    -- Transmission Module --
+    -------------------------
 
-        end case;
-    end process;
+    ModuleTX: entity work.ni_packet_builder
+    generic map
+    (
+        NI_ID               => NI_ID
+    )
+    port map
+    (
+        clock               => clock,
+        reset               => reset,
 
-  
-    
+        hermes_tx           => hermes_tx,
+        hermes_data_out     => hermes_data_out,
+        hermes_eop_out      => hermes_eop_out,
+        hermes_credit_in    => hermes_credit_in,
 
-    
+        tableIn             => tableOut_txIn,
+        tableOut            => tableIn_txOut,
+
+        response_req        => response_req,
+        response_param_in   => response_param,
+        status              => tx_status,
+
+        buffer_rdata        => buffer_i_dataout,
+        buffer_ren          => buffer_i_ren,
+        buffer_empty        => buffer_i_status.empty
+    );
+
+    -------------
+    -- Buffers --
+    -------------
+
+    OutputBuffer: entity work.ni_fifo
+    port map
+    (
+        clock   => clock,
+        reset   => reset,
+
+        w_en    => buffer_o_wen,
+        data_i  => buffer_o_datain,
+
+        r_en    => buffer_o_ren,
+        data_o  => buffer_o_dataout,
+
+        status  => buffer_o_status
+    );
+
+    InputBuffer: entity work.ni_fifo
+    port map
+    (
+        clock   => clock,
+        reset   => reset,
+
+        w_en    => buffer_i_wen,
+        data_i  => buffer_i_datain,
+
+        r_en    => buffer_i_ren,
+        data_o  => buffer_i_dataout,
+
+        status  => buffer_i_status
+    );
+
+    ----------------
+    -- Peripheral --
+    ----------------
+
+    DummyPeripheral: entity work.dummy_peripheral
+    port map
+    (
+        clock               =>  clock,
+        reset               =>  reset,
+
+        r_en                => buffer_o_ren,
+        w_en                => buffer_i_wen,
+
+        data_in             => buffer_o_dataout,
+        data_out            => buffer_i_datain,
+
+        space_unavailable   => buffer_i_status.full,
+        data_unavailable    => buffer_o_status.empty
+    );
 
 end network_interface;

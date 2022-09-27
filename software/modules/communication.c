@@ -797,7 +797,7 @@ void send_io_request(int peripheral_ID, int consumer_task, unsigned int sourcePE
 	send_packet_io(p, 0, 0, peripheral_ID);
 }
 
-void send_peripheral_SR_path(int slot_seek, int peripheral_ID, int secure){
+void send_peripheral_SR_path(int slot_seek, int peripheral_ID, int secure, int task_ID){
 	int i;
 	volatile ServiceHeader *p = get_service_header_slot();
 
@@ -809,9 +809,9 @@ void send_peripheral_SR_path(int slot_seek, int peripheral_ID, int secure){
 	
 	p->service = IO_SR_PATH;
 
-	p->SR_target = SR_Table[slot_seek].target;
+	p->task_ID = task_ID;
 
-	p->peripheral_ID = peripheral_ID;
+	p->key_periph = 0;
 
 	puts("\nTarget: "); puts(itoh(SR_Table[slot_seek].target));
 	puts("\nHeader: \n");

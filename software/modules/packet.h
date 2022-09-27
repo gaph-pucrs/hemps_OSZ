@@ -80,6 +80,7 @@ typedef struct {
 		unsigned int allocated_processor;
 		unsigned int requesting_processor;
 	   	unsigned int io_direction;
+		unsigned int burst_size;
 	};
 
 	union {								//!<Generic union

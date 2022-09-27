@@ -210,7 +210,7 @@ int i;
 	//cout << "open_io = " << open_io[i] << endl;
 	//		// cout << "grounding EAST in seek: " << i << endl;
  	//}	
- 	for(i=0;i<IO_NUMBER ;i++){
+ 	for(i=0; i<2; i++){
 		clock_tx_io[i].write(sig_clock_tx_io[i].read());
 		tx_io[i].write(sig_tx_io[i].read());
 		data_out_io[i].write(sig_data_out_io[i].read());
@@ -246,6 +246,43 @@ int i;
 
 }
 
+void hemps::ni_interconnection(){
+
+ 	for(i=2; i<IO_NUMBER; i++) {
+		
+		clock_tx_io[i].write(sig_clock_tx_io[i].read());
+		tx_io[i].write(sig_tx_io[i].read());
+		data_out_io[i].write(sig_data_out_io[i].read());
+		sig_credit_i_io[i].write(credit_i_io[i].read());
+		sig_eop_in_io[i].write(eop_in_io[i].read());
+	
+		sig_data_in_io[i].write(data_in_io[i].read());
+		sig_clock_rx_io[i].write(clock_rx_io[i].read());
+		sig_rx_io[i].write(rx_io[i].read());
+		credit_o_io[i].write(sig_credit_o_io[i].read());
+		eop_out_io[i].write(sig_eop_out_io[i].read());
+
+		out_req_router_seek_io[i].write(sig_out_req_router_seek_io[i].read());
+		out_ack_router_seek_io[i].write(sig_out_ack_router_seek_io[i].read());
+		out_nack_router_seek_io[i].write(sig_out_nack_router_seek_io[i].read());
+		out_opmode_router_seek_io[i].write(sig_out_opmode_router_seek_io[i].read());
+		out_service_router_seek_io[i].write(sig_out_service_router_seek_io[i].read());
+		out_source_router_seek_io[i].write(sig_out_source_router_seek_io[i].read());
+		out_target_router_seek_io[i].write(sig_out_target_router_seek_io[i].read());
+		out_payload_router_seek_io[i].write(sig_out_payload_router_seek_io[i].read());
+
+		sig_in_req_router_seek_io[i].write(in_req_router_seek_io[i].read());
+		sig_in_ack_router_seek_io[i].write(in_ack_router_seek_io[i].read());
+		sig_in_nack_router_seek_io[i].write(in_nack_router_seek_io[i].read());
+		sig_in_opmode_router_seek_io[i].write(in_opmode_router_seek_io[i].read());
+		sig_in_service_router_seek_io[i].write(in_service_router_seek_io[i].read());
+		sig_in_source_router_seek_io[i].write(in_source_router_seek_io[i].read());
+		sig_in_target_router_seek_io[i].write(in_target_router_seek_io[i].read());
+		sig_in_payload_router_seek_io[i].write(in_payload_router_seek_io[i].read());
+
+	}
+}
+
 void hemps::pes_interconnection(){
  	int i, io_count;
  	io_count = 0;
@@ -256,8 +293,8 @@ void hemps::pes_interconnection(){
 		if(open_io[i] == 0 && (RouterPosition(i) == BR || RouterPosition(i) == CRX || RouterPosition(i) == TR)){
 	//	if((RouterPosition(i) == BR || RouterPosition(i) == CRX || RouterPosition(i) == TR)){
 			#ifdef DUPLICATED_CHANNEL
-			//	credit_i				[i][EAST0].write(sig_credit_i_io[io_count].read());
-				credit_i				[i][EAST0].write(1);
+				credit_i				[i][EAST0].write(sig_credit_i_io[io_count].read());
+				//credit_i				[i][EAST0].write(1);
 				credit_i				[i][EAST1].write(0);
 				clock_rx				[i][EAST0].write(sig_clock_rx_io[io_count].read());
 				clock_rx				[i][EAST1].write(0);
@@ -362,8 +399,8 @@ void hemps::pes_interconnection(){
 		//if((RouterPosition(i) == BL || RouterPosition(i) == CL || RouterPosition(i) == TL)){
 		if(open_io[i] == 1 && (RouterPosition(i) == BL || RouterPosition(i) == CL || RouterPosition(i) == TL)){
 				#ifdef DUPLICATED_CHANNEL
-				credit_i				[i][WEST0].write(1);
-				//credit_i				[i][WEST0].write(sig_credit_i_io[io_count].read());
+				//credit_i				[i][WEST0].write(1);
+				credit_i				[i][WEST0].write(sig_credit_i_io[io_count].read());
 				credit_i				[i][WEST1].write(0);
 				clock_rx				[i][WEST0].write(sig_clock_rx_io[io_count].read());
 				clock_rx				[i][WEST1].write(0);
@@ -467,8 +504,8 @@ void hemps::pes_interconnection(){
 		if(open_io[i] == 2 && (RouterPosition(i) == TL || RouterPosition(i) == TC || RouterPosition(i) == TR)){
 		//if((RouterPosition(i) == TL || RouterPosition(i) == TC || RouterPosition(i) == TR)){
 			#ifdef DUPLICATED_CHANNEL
-				credit_i				[i][NORTH0].write(1);
-				//credit_i				[i][NORTH0].write(sig_credit_i_io[io_count].read());
+				//credit_i				[i][NORTH0].write(1);
+				credit_i				[i][NORTH0].write(sig_credit_i_io[io_count].read());
 				credit_i				[i][NORTH1].write(0);
 				clock_rx				[i][NORTH0].write(sig_clock_rx_io[io_count].read());
 				clock_rx				[i][NORTH1].write(0);
@@ -571,8 +608,8 @@ void hemps::pes_interconnection(){
  		//if((RouterPosition(i) == BL || RouterPosition(i) == BC || RouterPosition(i) == BR)){
  		if(open_io[i] == 3 && (RouterPosition(i) == BL || RouterPosition(i) == BC || RouterPosition(i) == BR)){
 			#ifdef DUPLICATED_CHANNEL
-				//credit_i				[i][SOUTH0].write(sig_credit_i_io[io_count].read());
-				credit_i				[i][SOUTH0].write(1);
+				credit_i				[i][SOUTH0].write(sig_credit_i_io[io_count].read());
+				//credit_i				[i][SOUTH0].write(1);
 				credit_i				[i][SOUTH1].write(0);
 				clock_rx				[i][SOUTH0].write(sig_clock_rx_io[io_count].read());
 				clock_rx				[i][SOUTH1].write(0);

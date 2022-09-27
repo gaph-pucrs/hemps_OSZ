@@ -561,9 +561,9 @@ int Syscall(unsigned int service, unsigned int arg0, unsigned int arg1, unsigned
 							(PER_X_addr << 8) | PER_Y_addr,
 							positionAP);
 						// puts("--slot_adjust: ");puts(itoa(slotSR)); puts("\n");
-						// auxBT = pathFromIO(auxBT);
-						auxBT = IOtoAP(arg1);
-						// puts("-- enviando caminho:");puts(itoh(auxBT)); puts("\n");
+						auxBT = pathFromIO(auxBT);
+						//auxBT = IOtoAP(arg1);
+						puts("-- enviando caminho:");puts(itoh(auxBT)); puts("\n");
 						slotSR = GetFreeSlotSourceRouting(get_net_address());
 						// puts("--slot: ");puts(itoa(slotSR)); puts("\n");
 						SR_Table[slotSR].target = get_net_address();
@@ -572,8 +572,8 @@ int Syscall(unsigned int service, unsigned int arg0, unsigned int arg1, unsigned
 							auxBT & 0xffffFFFF,
   							auxBT >> 32 & 0xffffFFFF,
   							auxBT >> 64 & 0xffffFFFF);
-						send_peripheral_SR_path(slotSR, arg1, current->secure);
-						// puts("--slot_adjust: ");puts(itoa(slotSR)); puts("\n");
+						send_peripheral_SR_path(slotSR, arg1, current->secure, producer_task);
+						puts("--slot_adjust: ");puts(itoa(slotSR)); puts("\n");
 						ClearSlotSourceRouting(get_net_address());
 					}
 				break;
@@ -620,9 +620,9 @@ int Syscall(unsigned int service, unsigned int arg0, unsigned int arg1, unsigned
 							(PER_X_addr << 8) | PER_Y_addr,
 							positionAP);
 						// puts("--slot_adjust: ");puts(itoa(slotSR)); puts("\n");
-						// auxBT = pathFromIO(auxBT);
-						auxBT = IOtoAP(arg1);
-						// puts("-- enviando caminho:");puts(itoh(auxBT)); puts("\n");
+						auxBT = pathFromIO(auxBT);
+						//auxBT = IOtoAP(arg1);
+						puts("-- enviando caminho:");puts(itoh(auxBT)); puts("\n");
 						slotSR = GetFreeSlotSourceRouting(get_net_address());
 						// puts("--slot: ");puts(itoa(slotSR)); puts("\n");
 						SR_Table[slotSR].target = get_net_address();
@@ -631,8 +631,8 @@ int Syscall(unsigned int service, unsigned int arg0, unsigned int arg1, unsigned
 							auxBT & 0xffffFFFF,
   							auxBT >> 32 & 0xffffFFFF,
   							auxBT >> 64 & 0xffffFFFF);
-						send_peripheral_SR_path(slotSR, arg1, current->secure);
-						// puts("--slot_adjust: ");puts(itoa(slotSR)); puts("\n");
+						send_peripheral_SR_path(slotSR, arg1, current->secure, consumer_task);
+						puts("--slot_adjust: ");puts(itoa(slotSR)); puts("\n");
 						ClearSlotSourceRouting(get_net_address());
 					}
 				break;
@@ -1538,7 +1538,7 @@ int SeekInterruptHandler(){
 				peripheral_id = find_io_peripheral(get_net_address());
 				if(peripheral_id){
 					puts(" SR Peripheral\n"); 
-					send_peripheral_SR_path(slot_seek, peripheral_id, target);
+					send_peripheral_SR_path(slot_seek, peripheral_id, target, 0); //should not happen with semap, sends task_id=0 to ni
 				}
 			}
 		break;
