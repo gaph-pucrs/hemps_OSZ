@@ -183,9 +183,13 @@ begin
     ----------------
 
     match_regular   <= nor (tableIn.tag xor table.app_id(slot));
-    match_crypto    <= nor (tableIn.tag xor table.app_id(slot) xor table.key2(slot));
+    match_crypto    <= nor (tableIn.tag xor table.app_id(slot) xor table.key2(slot)); -- 
     match_new       <= not (table.used(slot));
     
+    -- match_crypto    <= '1' when ((tableIn.tag xor table.key1(slot)) xor tableIn.tag2) == table.app_id(slot) else
+    --                    '0';
+
+
     match <=    match_regular   when state = FETCHING else
                 match_crypto    when state = FETCHING_CRYPTO else
                 match_new       when state = FETCHING_NEW else

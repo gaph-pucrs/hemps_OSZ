@@ -807,11 +807,13 @@ void send_peripheral_SR_path(int slot_seek, int peripheral_ID, int secure, int t
 	}
 	#endif
 	
-	p->service = IO_SR_PATH;
+	// p->service = appID;
 
-	p->task_ID = task_ID;
+	p->task_ID = IO_SR_PATH;
 
-	p->key_periph = 0;
+	// p->k0 = 0;
+	p->k0 = ((K1_REG << 16) | K_REG);
+
 
 	puts("\nTarget: "); puts(itoh(SR_Table[slot_seek].target));
 	puts("\nHeader: \n");
