@@ -61,13 +61,12 @@ generic( address: regmetadeflit_32);
 port(
 	clock                   : in  std_logic;
 	reset                   : in  std_logic;
+
 	clock_rx                : in  regNport;
 	rx                      : in  regNport;
 	data_in                 : in  arrayNport_regflit;
 	credit_o                : out regNport;
 	eop_in					: in  regNport;
-	fail_in					: in  regNport;
-	fail_out				: out regNport;
 
 	clock_tx                : out regNport;
 	tx                      : out regNport;
@@ -75,9 +74,6 @@ port(
 	credit_i                :  in regNport;
 	eop_out					: out regNport;
 
-	mask_local_tx_output	: out std_logic;
-	io_packet_mask			: out std_logic;
-	ke						: out std_logic_vector(11 downto 0);
 	ap						: in regNport;
 
 	target                  : out regflit;
@@ -111,7 +107,7 @@ signal tx_internal         	: regNport;
 begin
 	
 	rot_table	<= table;
-	fail_out <= "0000000000";
+	-- fail_out <= "0000000000";
 
 	fifo_generation : for i in 0 to NPORT-1 generate
 		Fifo : Entity work.Hermes_buffer
@@ -147,15 +143,12 @@ begin
 		req_routing     => h,
 		eop_in			=> eop_in,
 		ack_routing     => ack_h,
-		io_mask_wrapper => io_packet_mask,
 		data_in_header_fixed  => buffer_wire_SC,
 		data_in_header  => header_routing,
 		sender          => sender,
-		ke				=> ke,
 		next_flit       => next_flit,
 		enable_shift    => enable_shift,
 		table           => table,
-		mask_local_tx_output => mask_local_tx_output,
 		tx_internal		=> tx_internal,
 		target          => target,
 		source          => source,

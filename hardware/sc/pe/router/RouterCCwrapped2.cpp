@@ -17,15 +17,15 @@
 //input signals
 //read from in, write in internal
 
-void RouterCCwrapped::upd_fail_in(){
+void RouterCCwrapped::upd_access_i(){
 	int i;
-	sc_uint<NPORT > l_fail_in_internal;
+	sc_uint<NPORT > l_access_i_internal;
 
 	for(i=0;i<NPORT;i++){
-		l_fail_in_internal[i] = fail_in[i].read();
+		l_access_i_internal[i] = access_i[i].read();
 	}
 
-	fail_in_internal.write(l_fail_in_internal);
+	access_i_internal.write(l_access_i_internal);
 }
 
 void RouterCCwrapped::upd_clock_rx(){
@@ -45,7 +45,7 @@ void RouterCCwrapped::upd_eop_in(){
 
 		for(i=0;i<NPORT;i++){
 				//modified to add faults
-				l_eop_in_internal[i] = eop_in[i].read();// & ~fail_in[i].read();
+				l_eop_in_internal[i] = eop_in[i].read();// & ~access_i[i].read();
 	 }
 	 eop_in_internal.write(l_eop_in_internal);
 }
@@ -56,7 +56,7 @@ void RouterCCwrapped::upd_rx(){
 
 		for(i=0;i<NPORT;i++){
 				//modified to add faults
-				l_rx_internal[i] = rx[i].read() & ~fail_out[i].read();
+				l_rx_internal[i] = rx[i].read() & ~access_o[i].read();
 	 }
 	 rx_internal.write(l_rx_internal);
 }
@@ -67,7 +67,8 @@ void RouterCCwrapped::upd_credit_i(){
 
 	 for(i=0;i<NPORT;i++){
 		//modified to add faults
-		l_credit_i_internal[i] = (credit_i[i].read() | fail_in[i].read());
+		// l_credit_i_internal[i] = (credit_i[i].read() | access_i[i].read());
+		l_credit_i_internal[i] = (credit_i[i].read());
 	 }
 
 	 credit_i_internal.write(l_credit_i_internal);
@@ -85,18 +86,51 @@ void RouterCCwrapped::upd_ap(){
 	 ap_internal.write(l_ap_internal);
 }
 
+void RouterCCwrapped::upd_sz(){
+	int i;
+	sc_uint<NPORT > l_sz_internal;
+
+	 for(i=0;i<NPORT;i++){
+		//modified to add faults
+		l_sz_internal[i] = (sz[i].read());
+	 }
+
+	 sz_internal.write(l_sz_internal);
+}
+
+// void RouterCCwrapped::upd_keys(){
+// 	sc_uint<regflit > l_sz_internal;
+
+// 	 for(i=0;i<NPORT;i++){
+// 		//modified to add faults
+// 		l_sz_internal[i] = (sz[i].read());
+// 	 }
+
+// 	 sz_internal.write(l_sz_internal);
+// }
+
+void RouterCCwrapped::upd_unreach(){
+	int i;
+	sc_uint<NPORT > l_sz_unreachable;
+
+	l_sz_unreachable = unreachable_internal.read();
+	 for(i=0;i<NPORT;i++){
+		//modified to add faults
+		unreachable[i] = (l_sz_unreachable[i]);
+	 }
+}
 
 //output signals
 //read from internal, write in output
 
-void RouterCCwrapped::upd_fail_out(){
+void RouterCCwrapped::upd_access_o(){
 	int i;
-	sc_uint<NPORT > l_fail_out_internal;
+	sc_uint<NPORT > l_access_o_internal;
 
-	l_fail_out_internal = fail_out_internal.read();
+	l_access_o_internal = access_o_internal.read();
 
 	for(i=0;i<NPORT;i++){
-		fail_out[i].write(l_fail_out_internal[i]);
+		access_o[i].write(l_access_o_internal[i]);
 	}
 }
 
@@ -108,7 +142,7 @@ void RouterCCwrapped::upd_credit_o(){
 
 	for(i=0;i<NPORT;i++){
 			//modified to add faults
-			credit_o[i].write(l_credit_o_internal[i] | fail_out[i].read());
+			credit_o[i].write(l_credit_o_internal[i] | access_o[i].read());
 	}
 }
 
@@ -131,7 +165,8 @@ void RouterCCwrapped::upd_tx(){
 
 	for(i=0;i<NPORT;i++){
 		//modified to add faults
-		tx[i].write(l_tx_internal[i] & ~fail_in[i].read());
+		// tx[i].write(l_tx_internal[i] & ~access_i[i].read());
+		tx[i].write(l_tx_internal[i]);
 	}
 }
 
@@ -143,23 +178,8 @@ void RouterCCwrapped::upd_eop_out(){
 
 	for(i=0;i<NPORT;i++){
 		//modified to add faults
-		eop_out[i].write(l_eop_out_internal[i]);// & ~fail_out[i].read());
+		eop_out[i].write(l_eop_out_internal[i]);// & ~access_o[i].read());
 	}
-}
-
-void RouterCCwrapped::upd_io_packet_mask(){
-	// int i;
-	// sc_signal<bool> l_io_packet_mask_internal;
-
-	io_packet_mask.write(io_packet_mask_internal.read());
-	
-	// l_io_packet_mask_internal = io_packet_mask_internal.read();
-
-	// io_packet_mask.write(l_io_packet_mask_internal);
-
-	// for(i=0;i<NPORT;i++){
-	// 	io_packet_mask[i].write(l_io_packet_mask_internal[i]);
-	// }
 }
 
 

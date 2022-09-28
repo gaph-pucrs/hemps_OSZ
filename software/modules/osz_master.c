@@ -25,6 +25,10 @@
 unsigned int address_go, address_back;
 unsigned int port_go, port_back;  // 0-EAST; 1 - WEST ; 2 - NORTH; 3 - SOUTH
 
+int get_k0(int proc_addr){
+    return k0table[(proc_addr>>8)][(proc_addr & 0xff)];
+}
+
 ////////////////////////////////////////////
 void init_Secure_Zone(){
     int i;
@@ -546,6 +550,52 @@ void open_wrapper_IO_SZ(int peripheral_id, int io_service){ // io_service: 0 - r
 		p->io_service = IO_ACK;
 
 	send_packet(p, 0, 0);
+
+}
+
+//////////////////////////////////////////////////////////////////////////////////////
+int set_AccessPoint(int RH_addr, int LL_addr, AccessPoint* ap){
+    unsigned int RH_X_addr, RH_Y_addr;
+    unsigned int LL_X_addr, LL_Y_addr;
+    unsigned int medium_X;
+
+
+    RH_X_addr = (RH_addr & 0xF0) >> 4;
+    RH_Y_addr = RH_addr & 0x0F;
+
+    LL_X_addr = (LL_addr & 0xF0) >> 4;
+    LL_Y_addr = LL_addr & 0x0F;
+
+
+    if (ga.rows[0]-1 == RH_Y_addr)
+    {
+      puts("Colocando AP no topo\n");
+      medium_X = LL_X_addr + ((RH_X_addr - LL_X_addr)/2);
+      ap->address_go   = ( medium_X << 8 ) | RH_Y_addr;
+      ap->address_back = ( medium_X << 8 ) | RH_Y_addr;
+      ap->port_go = NORTH;
+      ap->port_back = NORTH;
+    } else if(ga.cols[MAX_GRAY_COLS-1] < LL_X_addr){        
+      puts("--Gray Area a esquerda\n");
+      ap->address_go   = ( LL_X_addr << 8 ) | RH_Y_addr;
+      ap->address_back = ( LL_X_addr << 8 ) | RH_Y_addr;
+      ap->port_go = WEST;
+      ap->port_back = WEST;
+    }
+    else if(ga.cols[0] > RH_X_addr){
+      puts("--Gray Area a direita\n");
+      ap->address_go   = ( RH_X_addr << 8 ) | RH_Y_addr;
+      ap->address_back = ( RH_X_addr << 8 ) | RH_Y_addr;
+      ap->port_go = EAST;
+      ap->port_back = EAST;            
+    }
+    else{
+      puts("--Gray Area nao encontrada\n");
+    }
+        
+    puts("Found AP address: "); puts(itoh(ap->address_go)); puts("\n");
+    Seek(SET_AP_SERVICE, (ap->address_go << 16) | get_net_address(), ap->address_go, ap->port_go);
+    return 1;
 
 }
 

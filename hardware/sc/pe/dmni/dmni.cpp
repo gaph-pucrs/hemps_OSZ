@@ -30,6 +30,7 @@
 
 #include "dmni.h"
 
+#define ABORTED_PACKET_SIZE 5
 
 void dmni::arbiter(){
 	if (reset.read() == 1){
@@ -169,9 +170,16 @@ void dmni::receive(){
 
 
 			intr_counter_temp = intr_count.read();
-			if(flag_middle_eop.read() == 1 && intr_counter_temp > 0){
-				intr_counter_temp = intr_counter_temp - 1;
+			if(flag_middle_eop.read() == 1 && intr_counter_temp > 0){ // Received a packet cut by AP
+				intr_counter_temp = intr_counter_temp - 1; // Removing interruption
 				flag_middle_eop.write(0);
+				cout << "ROUTER:" << hex << address_router << ": flag_middle_eop";
+				cout << " time:" << sc_time_stamp() << endl;
+				// Clearing the buffer f
+				add_buffer.write(0); 
+				last.write(last.read() - ABORTED_PACKET_SIZE);
+				cont.write(0);
+				SR.write(HEADER);
 			}
 	
 			if (cont.read() == 0) {//32 bits high flit
@@ -189,6 +197,8 @@ void dmni::receive(){
 				//if received, indicates that there was a fault in middle of a transmittion
 				//and the whole packet shall be discarded, then we mark it with a eop
 				if(eop_in.read() == 1){
+					cout << "ROUTER:" << hex << address_router << ": EOP 2";
+					cout << " time:" << sc_time_stamp() << endl;
 					buffer[last.read()].write((buffer_high.read(),data_in.read()));
 					buffer_eop[last.read()].write(eop_in.read());
 					add_buffer.write(0);
@@ -255,7 +265,12 @@ void dmni::receive(){
 						is_header[last.read()] = 0;
 						cont.write(0);
 						
-						if (payload_size.read() == 0 || eop_in.read() == 1){
+						if (payload_size.read() == 0 || eop_in.read() == 1){ // MELHORAR AQUI
+							if (eop_in.read() == 1 && payload_size.read() > 5){ // Did not interrupt, but the buffer is empty? overwritten?
+								flag_middle_eop.write(1);
+								cout << "Packet incomplete (from AP):" << hex << address_router;
+								cout << " time:" << sc_time_stamp() << endl;
+							}
 							SR.write(HEADER);
 						} 
 						else{

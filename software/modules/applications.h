@@ -63,6 +63,17 @@ typedef struct {
 	Dependence dependences[MAX_TASK_DEPENDENCES];	//!< Stores task dependence array with a size equal to MAX_TASK_DEPENDENCES
 } Task;
 
+/** \brief This structure store variables useful to the kernel master manage the Access Point
+ */
+typedef struct 
+{
+    unsigned int address_go;
+    unsigned int address_back;
+    unsigned int port_go;
+    unsigned int port_back;
+} AccessPoint;
+
+
 /** \brief This structure store variables useful to the kernel master manage an application instance
  */
 typedef struct {
@@ -75,6 +86,8 @@ typedef struct {
 
 	int secure;					//!< Indicates if the Application run in secure zone
 	int RH_Address;				//!< Stores the Right High corner of secure zone when secure xone is used
+
+	AccessPoint ap;
 
 } Application;
 

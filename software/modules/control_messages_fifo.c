@@ -39,6 +39,7 @@ void insert_CM_FIFO(volatile ServiceHeader *p, unsigned int initial_address, uns
 		case LOAN_PROCESSOR_REQUEST:
 		case INITIALIZE_CLUSTER:
 		case IO_INIT:
+		case AUTHENTICATE_PE:
 		case INITIALIZE_SLAVE:
 				if( search_Service(p->service) == -1 )
 					return; 								// @suppress("No break at end of case")

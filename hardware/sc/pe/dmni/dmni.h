@@ -26,6 +26,7 @@
 #define DMNI_TIMER 16
 #define WORD_SIZE	4
 #define FAIL_RECEPTION_TIMEOUT 0x0400
+#define ABORTED_PACKET_SIZE 5
 
 SC_MODULE(dmni){
 	sc_in<bool>					clock;

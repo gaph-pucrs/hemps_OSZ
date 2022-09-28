@@ -57,7 +57,8 @@ extern int shape_index;
 
 lfsr_t glfsr_d0;
 lfsr_t glfsr_c0;
-
+lfsr_t glfsr_app;
+int kInit = 0x1234;
 
 /** Assembles and sends a APP_TERMINATED packet to the global master
  *  \param app The Applications address
@@ -76,6 +77,26 @@ void send_app_terminated(Application *app, unsigned int * terminated_task_list){
 	p->app_task_number = app->tasks_number;
 
 	send_packet(p, (unsigned int) terminated_task_list, app->tasks_number);
+
+	while (MemoryRead(DMNI_SEND_ACTIVE));
+
+}
+
+/** Assembles and sends a APP_TERMINATED packet to the global master
+ *  \param app The Applications address
+ *  \param terminated_task_list The terminated task list of the application
+ */
+void send_authenticate_pe(int proc_addr, int k0){
+
+	ServiceHeader *p = get_service_header_slot();
+
+	p->header[MAX_SOURCE_ROUTING_PATH_SIZE-1] = proc_addr;
+
+	p->service = AUTHENTICATE_PE;
+
+	p->app_ID = k0;
+
+	send_packet(p, 0, 0);
 
 	while (MemoryRead(DMNI_SEND_ACTIVE));
 
@@ -111,16 +132,26 @@ void send_task_allocation(NewTask * new_t){
 void send_task_release(Application * app){
 	int flag = 0;
 	ServiceHeader *p;
+	int appID_rand, turns, kaux;
 	unsigned int app_tasks_location[app->tasks_number];
 
 	for (int i =0; i<app->tasks_number; i++){
 		app_tasks_location[i] = app->tasks[i].allocated_proc;
 	}
-	
+
+
+	// appID_rand = (MemoryRead(TICK_COUNTER) & 0xFFFF); // HI == appID
+	// turns = (MemoryRead(TICK_COUNTER) & 0x0F0F); // LO == turns pra k1 e k2	 (4 bits cada pra n ficar mto)
+
+	appID_rand = 0x00007782;
+	turns = 0x00000704;
+
+	puts("AppID rand: ");puts(itoh(appID_rand));puts("\n");
+	puts("turns: ");puts(itoh(turns));puts("\n");
+
 	for (int i =0; i<app->tasks_number; i++){
-
 		if(app->tasks[i].status == REQUESTED){
-
+			
 			p = get_service_header_slot();
 			p->header[MAX_SOURCE_ROUTING_PATH_SIZE-1] = app->tasks[i].allocated_proc;
 
@@ -133,7 +164,10 @@ void send_task_release(Application * app){
 			p->data_size = app->tasks[i].data_size;
 	
 			p->bss_size = app->tasks[i].bss_size;
-	
+
+			kaux = get_k0(app->tasks[i].allocated_proc);
+			p->k0 = ((appID_rand ^ kaux) << 16) | (turns ^ kaux) ; // Dividir em 2 HI e LO, pq tem 32
+
 			p->secure = app->secure;
 
 			//puts("\nsecure: "); puts(itoh(p->secure));
@@ -693,7 +727,7 @@ void initialize_slaves(){
 
 	int proc_address; //, index_counter;
 	unsigned int LL_addr, RH_addr;	
-
+	int k0rand = 0;
 	init_processors();
 
 	//init_shapes();
@@ -713,8 +747,20 @@ void initialize_slaves(){
 			}
 			else
 				add_processor(proc_address);
+
+			// Send k0 to the PEs
+			while(k0rand == 0 || k0rand == 0xffff)
+				k0rand = (MemoryRead(TICK_COUNTER) & 0xffff);
+
+			send_authenticate_pe(proc_address,k0rand);
+			puts("Authenticated PE"); puts(itoh(proc_address));  puts("\n");
+			k0table[i][j] = k0rand;
+			puts("K0: ");  puts(itoh(k0table[i][j]));  puts("\n");
+			k0rand =0;
 		}
 	}
+
+	
 
 	//print_processors();
 
@@ -730,8 +776,33 @@ void initialize_slaves(){
 }
 
 #ifdef GRAY_AREA
-void initialize_IO(int peripheralID){
+void initialize_IO(){ 	// TODO  peripheral recieve k0
 
+	int i =0, k0rand;
+	ServiceHeader *p = get_service_header_slot();
+
+	p->service = IO_INIT;
+
+	p->requesting_processor = get_net_address();
+
+	// p->task_ID = consumer_task;
+
+	// p->peripheral_ID = peripheralID;
+
+	//add_msg_request(p->header[MAX_SOURCE_ROUTING_PATH_SIZE-1], consumer_task, peripheral_ID); //caimi: arrumar header
+
+	// TODO  peripheral recieve k0
+	for(i=0;i<IO_NUMBER;i++){
+		while(k0rand == 0 || k0rand == 0xffff)
+			k0rand = (MemoryRead(TICK_COUNTER) & 0xffff);
+
+		puts("Authenticated NI"); puts(itoh(i));  puts("\n");
+		k0NItable[i] = k0rand;
+		puts("K0: ");  puts(itoh(k0NItable[i]));  puts("\n");
+		k0rand =0;
+	}
+
+	// send_packet_io(p, 0, 0, peripheralID);
 }
 #endif
 
@@ -766,9 +837,24 @@ void handle_new_app(int app_ID, volatile unsigned int *ref_address, unsigned int
 	int xi_initial=0, yi_initial=0, xf_initial=0, yf_initial=0;
 
 	int  shape_location = 0;
+
+	// Key exchange
+	// lfsr_t glfsr_app;
+	// 16-bit	16,15,13,4 = 1101 0000 0000 1000 - 0xD008
+
+	lfsr_data_t k0=0x1;
+	GLFSR_init(&glfsr_app, (lfsr_data_t)0xD008, k0);
+
+	for (int i = 0; i < 16; i++)
+	{
+		GLFSR_next(&glfsr_app);
+		puts("k0 = ");puts(itoh(glfsr_app.data));puts("\n");
+
+	}
+	
+	//
 	//INICIO DO PROTOCOLO
 	putsv("#### BEGIN PROTOCOL OVERHEAD - ", MemoryRead(TICK_COUNTER));
-
 	//Cuidado com app_descriptor_size muito grande, pode estourar a memoria
 	unsigned int app_descriptor[app_descriptor_size];
 
@@ -804,12 +890,6 @@ void handle_new_app(int app_ID, volatile unsigned int *ref_address, unsigned int
 	//Fills the cluster load
 	for(int k=0; k < application->tasks_number; k++){
 		cluster_load[clusterID] += application->tasks[k].computation_load;
-		#ifdef GRAY_AREA
-		for (int i = 0; i < application->tasks[k].dependences_number; i++){
-			initialize_IO(application->tasks[k].dependences[i].flits);
-	    	puts("Enviado INITIALIZE para IO: ");  puts(itoa(application->tasks[k].dependences[i].flits)); puts("\n");
-		}
-		#endif
 	}
 
 	pending_app_to_map++;
@@ -1051,6 +1131,7 @@ int SeekInterruptHandler(){
 						//puts("RH_addr: "); puts(itoh(RH_addr)); puts("\n");
 						//puts("LL_addr: "); puts(itoh(LL_addr)); puts("\n");
 						set_RH_Address(app->app_ID, RH_addr);
+						set_AccessPoint(RH_addr, LL_addr, app->ap);
 						//get_Secure_Zone_index(RH_addr);
 						puts("SET_SECURE_ZONE at time: "); puts(itoa(MemoryRead(TICK_COUNTER))); puts("\n");
 						//Seek(SET_SECURE_ZONE_SERVICE, (get_Secure_Zone_index(RH_addr)<<16 | get_net_address()), LL_addr, RH_addr);
@@ -1140,6 +1221,8 @@ int main() {
 
 		initialize_cluster_load();
 
+		initialize_IO();
+
 	} else {
 
 		puts("This kernel is local master\n");
@@ -1159,7 +1242,7 @@ int main() {
 
 	//send ready by brnoc
 	if (is_global_master){
-		Seek(GMV_READY_SERVICE, get_net_address(), 0, 0);
+		Seek(GMV_READY_SERVICE, (kInit << 16) | get_net_address(), 0, 0);
 		puts("Kernel GMV Initialized\n");
 		Seek(CLEAR_SERVICE, get_net_address(), 0, 0);
 	}

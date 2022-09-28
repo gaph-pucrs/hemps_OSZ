@@ -117,7 +117,7 @@ signal flit_counter : std_logic_vector(2 downto 0);
 							   
 begin 
 
-	flit_discard <= '1' when (flit_counter = "10" and data_in = x"7FFF" and fail_in = '1') else
+	flit_discard <= '1' when (flit_counter = "10" and data_in = x"7FFF" and fail_in = '0') else
 					'0';
 
 	-- Flit Buffer implemented using LUT RAM.	
@@ -191,16 +191,16 @@ begin
 						if data_in /= x"7FFF" then
 							header_routing 	<= data_in & header_routing(15 downto 0);
 						end if;
-						-- if fail_in = '0' and data_in(15 downto 12) = "0111" then
-						-- 	flit_buff(CONV_INTEGER(last)) <= header_fixed(31 downto 16);
-						-- 	header_routing 	<= header_fixed(31 downto 16) & header_routing(15 downto 0);
-						-- end if;
+						if fail_in = '1' and data_in(15 downto 12) = "0111" then
+							flit_buff(CONV_INTEGER(last)) <= header_fixed(31 downto 16);
+							header_routing 	<= header_fixed(31 downto 16) & header_routing(15 downto 0);
+						end if;
 					when "011" =>--gets lower bits from header routing
 						header_routing 	<= header_routing(31 downto 16) & data_in;
-						-- if fail_in = '0' and data_in(15 downto 12) = "0111" then
-						-- 	flit_buff(CONV_INTEGER(last)) <= header_fixed(15 downto 0);
-						-- 	header_routing 	<= header_routing(31 downto 16) & header_fixed(15 downto 0);
-						-- end if;
+						if fail_in = '1' and data_in(15 downto 12) = "0111" then
+							flit_buff(CONV_INTEGER(last)) <= header_fixed(15 downto 0);
+							header_routing 	<= header_routing(31 downto 16) & header_fixed(15 downto 0);
+						end if;
 					when others =>
 				
 				end case ;

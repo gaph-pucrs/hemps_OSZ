@@ -109,9 +109,11 @@
 #define SLACK_MONITOR_WINDOW 	50000
 #define KERNEL_DEBUG_STATE    0x20000558
 
-// Access Point Key register
-#define KAP_REGISTER          0x20000560
-#define AP_MASK               0x20000564
+// Access Point registers
+#define K1_REG                0x20000560
+#define K2_REG                0x20000564
+#define AP_MASK               0x20000568
+#define APP_ID_REG            0x20000570
 
 //DMNI config code
 #define CODE_CS_NET 		1
@@ -156,7 +158,7 @@ typedef sc_uint<(3*NPORT)> 		reg_mux;
 #define SOURCE_SIZE 32
 #define TARGET_SIZE 16
 #define SEEK_PAYLOAD_SIZE 8
-#define TAM_SERVICE_SEEK 5
+#define TAM_SERVICE_SEEK 6
 //these definitions are needed in the seek module
 #define EAST 0
 #define WEST 1

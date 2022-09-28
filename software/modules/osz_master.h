@@ -12,6 +12,9 @@
  *
  */
 
+#ifndef OSZ_MASTER_H_
+#define OSZ_MASTER_H_
+
 #include "../../include/kernel_pkg.h"
 
 #define MAX_SHAPES     13
@@ -34,6 +37,11 @@ typedef struct
 //Variáveis
 Shapes shapes[MAX_SHAPES];
 Shapes Secure_Zone[MAX_SHAPES];
+
+
+// Chaves de Segurança k0
+unsigned int k0table[XDIMENSION][YDIMENSION];
+unsigned int k0NItable[IO_NUMBER];
 
 //Funções
 void init_Secure_Zone();
@@ -158,3 +166,5 @@ int PE_belong_SZ(int PE_x, int PE_y);
     Variáveis Globais:
         Secure_Zone > processors.c
 */
+
+#endif

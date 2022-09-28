@@ -56,6 +56,8 @@
 #define     IO_OPEN_WRAPPER                 0x00000295
 #define 	IO_SR_PATH        				0x00000300
 #define 	IO_INIT        				    0x00000305
+#define 	AUTHENTICATE_PE    				0x00000310
+
 
 
 #endif

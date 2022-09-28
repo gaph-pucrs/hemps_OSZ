@@ -537,6 +537,11 @@ begin
                     hermes_service_valid <= '1';
                 else
 
+                    -- Initialize NI -- 
+                    -- receber k0
+
+                    -- Key Evolve --
+                    
                     ---- CONFIG_PERIPHERAL ----
 
                     if hermes_service = CONFIG_PERIPH_SERVICE then
@@ -546,6 +551,7 @@ begin
                             app_id_valid <= '1';
                         elsif header_flit = CONFIG_PERIPH_SERVICE_KEYP_FLIT then
                             key_periph <= hermes_data_in(KEYPERIPH_SIZE-1 downto 0);
+                            -- key_periph 2
                             key_periph_valid <= '1';
                         end if;
 

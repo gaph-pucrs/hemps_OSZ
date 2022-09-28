@@ -33,7 +33,7 @@ public:
 
 		sc_in<sc_uint<2> >								in_sel_reg_backtrack_seek;
 		sc_out<sc_uint<32> >							out_reg_backtrack_seek;
-
+		sc_in<reg_seek_target >								in_AppID_reg;
 		sc_out<bool >										 out_req_send_kernel_seek;
 		sc_in<bool >											in_ack_send_kernel_seek;
 
@@ -55,7 +55,8 @@ public:
 			in_sel_reg_backtrack_seek("in_sel_reg_backtrack_seek"),
 			out_reg_backtrack_seek("out_reg_backtrack_seek"),
 			out_req_send_kernel_seek("out_req_send_kernel_seek"),
-			in_ack_send_kernel_seek("in_ack_send_kernel_seek")
+			in_ack_send_kernel_seek("in_ack_send_kernel_seek"),
+			in_AppID_reg("in_AppID_reg")
 		{
 			elaborate_foreign_module(hdl_name, num_generics, generic_list);
 		}

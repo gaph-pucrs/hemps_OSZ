@@ -54,8 +54,8 @@ typedef struct {
 	   	unsigned int master_ID;
 	   	unsigned int hops;
 	   	unsigned int period;
-		unsigned int io_port; 
-		unsigned int key_periph;
+		unsigned int io_port;
+		unsigned int k0; 
 	};
 
 	unsigned int source_PE;				//!<Store the packet source PE address
@@ -146,7 +146,7 @@ void send_wrapper_close_forward(int );
 
 int read_packet(ServiceHeader *);
 
-int pathToIO(int );
+int pathToIO(int, int*);
 
 int pathFromIO(long unsigned int);
 

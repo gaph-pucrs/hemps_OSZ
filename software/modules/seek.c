@@ -263,7 +263,7 @@ int ProcessTurns(unsigned int backtrack, unsigned int backtrack1, unsigned int b
 	// seek_puts("SR_Table[slot_seek].path_size:");seek_puts(itoh(SR_Table[slot_seek].path_size));seek_puts("\n");
 	// seek_puts("i:");seek_puts(itoh(i));seek_puts("\n");
 	//in number of hops
-	algorithm = EAST_FIRST;//initialize with west first
+	algorithm = WEST_FIRST;//initialize with west first
 	for(j=0;j<i;j++){//calculate the channel to comply with the routing algorithm
 		if(algorithm == WEST_FIRST){
 			if((port[j] == SOUTH || port[j] == NORTH) && port[j+1] == WEST){//turns prohibited by WEST FIRST :SW and NW
@@ -277,6 +277,8 @@ int ProcessTurns(unsigned int backtrack, unsigned int backtrack1, unsigned int b
 			port[j] = port[j]+4;
 		}
 	}
+	port[j-2] = port[j-2] & 0xF; // Coordenada de entrada no AP é a penúltima porta (mascarada para sempre ch0)
+	port[j-1] = port[j-1] & 0xF; // Última porta é o criterio de parada (também colocado em ch0)
 	//for (j=0; j<=i; j++){
 	//	print_port(port[j]);
 	//}
@@ -286,7 +288,7 @@ int ProcessTurns(unsigned int backtrack, unsigned int backtrack1, unsigned int b
 	//16 bits flit
 	SR_Table[slot_seek].path[0] = 0x70007000;
 	for(i=0;i<=j;i++){
-		SR_Table[slot_seek].path[i/6] = SR_Table[slot_seek].path[i/6]|((port[i]&0x0f) << shift);
+		SR_Table[slot_seek].path[(int)(i/6)] = SR_Table[slot_seek].path[(int)(i/6)]|((port[i]&0x0f) << shift);
 
 		switch(shift){
 			case 16:
@@ -294,7 +296,7 @@ int ProcessTurns(unsigned int backtrack, unsigned int backtrack1, unsigned int b
 			break;
 			case 0:
 				shift = 24;
-				SR_Table[slot_seek].path[i/6+1] = 0x70007000;
+				SR_Table[slot_seek].path[(int)(i/6)+1] = 0x70007000;
 			break;
 			default:
 				shift = shift - 4;
@@ -304,7 +306,7 @@ int ProcessTurns(unsigned int backtrack, unsigned int backtrack1, unsigned int b
 
 	while (shift >= 0)
 	{
-		SR_Table[slot_seek].path[i/6] = SR_Table[slot_seek].path[i/6]|((0xE) << shift);
+		SR_Table[slot_seek].path[(int)(i/6)] = SR_Table[slot_seek].path[(int)(i/6)]|((0xE) << shift);
 		switch(shift){
 			case 16:
 				shift = 8;
@@ -318,7 +320,7 @@ int ProcessTurns(unsigned int backtrack, unsigned int backtrack1, unsigned int b
 	// print_SR_Table(slot_seek);
 	return slot_seek;
 }
-int adjust_backtrack_IO(unsigned int backtrack, unsigned int backtrack1, unsigned int backtrack2, unsigned int target){
+int adjust_backtrack_IO(unsigned int backtrack, unsigned int backtrack1, unsigned int backtrack2, unsigned int target, int positionAP){
 	unsigned int next_port;
 	unsigned int port[MAX_SOURCE_ROUTING_DESTINATIONS];//used for storing hops
 	unsigned char algorithm;
@@ -370,7 +372,7 @@ int adjust_backtrack_IO(unsigned int backtrack, unsigned int backtrack1, unsigne
 
 	SR_Table[slot_seek].path_size = ((i)/6)+1;
 
-	algorithm = EAST_FIRST;//initialize with west first
+	algorithm = WEST_FIRST;//initialize with west first
 	for(j=0;j<i;j++){//calculate the channel to comply with the routing algorithm
 		if(algorithm == WEST_FIRST){
 			if((port[j] == SOUTH || port[j] == NORTH) && port[j+1] == WEST){//turns prohibited by WEST FIRST :SW and NW
@@ -385,13 +387,9 @@ int adjust_backtrack_IO(unsigned int backtrack, unsigned int backtrack1, unsigne
 		}
 	}
 
-	// puts("Backtrack Montado:");
-	// for (j=0; j<=i; j++){
-	// 	print_port(port[j]);
-	// }
-	// puts("\n");
 
-	port[i-1] = port[i-1] & 0x3;
+	port[i-1] = port[i-1] & 0x03;
+	port[positionAP] = port[positionAP] & 0x03; // Pacote deve usar o ch0 no roteador com AP
 
 	shift=24;
 
@@ -399,14 +397,15 @@ int adjust_backtrack_IO(unsigned int backtrack, unsigned int backtrack1, unsigne
 		slot_seek = 0;
 	SR_Table[slot_seek].path[0] = 0x70007000;
 	for(i=0;i<=j;i++){
-		SR_Table[slot_seek].path[i/6] = SR_Table[slot_seek].path[i/6]|((port[i]&0x0f) << shift);
+		SR_Table[slot_seek].path[(int)(i/6)] = SR_Table[slot_seek].path[(int)(i/6)]|((port[i]&0x0f) << shift);
+
 		switch(shift){
 			case 16:
 				shift = 8;
 			break;
 			case 0:
 				shift = 24;
-				SR_Table[slot_seek].path[i/6+1] = 0x70007000;
+				SR_Table[slot_seek].path[(int)(i/6)+1] = 0x70007000;
 			break;
 			default:
 				shift = shift - 4;
@@ -416,7 +415,7 @@ int adjust_backtrack_IO(unsigned int backtrack, unsigned int backtrack1, unsigne
 
 	while (shift >= 0)
 	{
-		SR_Table[slot_seek].path[i/6] = SR_Table[slot_seek].path[i/6]|((0xE) << shift);
+		SR_Table[slot_seek].path[(int)(i/6)] = SR_Table[slot_seek].path[(int)(i/6)]|((0xE) << shift);
 		switch(shift){
 			case 16:
 				shift = 8;
@@ -427,6 +426,8 @@ int adjust_backtrack_IO(unsigned int backtrack, unsigned int backtrack1, unsigne
 		}
 		i++;
 	}
+	// print_SR_Table(slot_seek);
+	return slot_seek;
 	
 
 	return slot_seek;

@@ -13,7 +13,7 @@
  * Well-known polynomials:
  * CRC-12   : x^12 + x^11 + x^3 + x^2 + x + 1
  * CRC-16-IBM   : x^16 + x^15 + x^2 + 1
- * CRC-16-DECT  : x^16 + x^10 + x^8 + x^7 + x^3 + 1
+ * CRC-16-DECT  : x^16 + x^10 + x^8 + x^7 + x^3 + 1 - 0x82C4 - 1000 0010 1100 0101
  * CCITT    : x^16 + x^12 + x^5 + 1
  * CRC-32-IEEE  : x^32 + x^26 + x^23 + x^22 + x^16 + x^12 + x^11 + x^10 + x^8 + x^7 + x^5 + x^4 + x^2 + x + 1
  *
@@ -46,30 +46,34 @@ void GLFSR_init(lfsr_t *glfsr, lfsr_data_t polynom, lfsr_data_t seed_value) {
     lfsr_data_t seed_mask;
     unsigned int shift = 8 * sizeof (lfsr_data_t) - 1;
 
-    glfsr->polynomial = polynom | 1;
+    // glfsr->polynomial = polynom | 1;
+    glfsr->polynomial = polynom;
     glfsr->data = seed_value;
 
     seed_mask = 1;
-    seed_mask <<= shift;
+    // seed_mask <<= shift;
 
-    while (shift--) {
-        if (polynom & seed_mask) {
-            glfsr->mask = seed_mask;
-            break;
-        }
-        seed_mask >>= 1;
-    }
+    // while (shift--) {
+    //     if (polynom & seed_mask) {
+    //         glfsr->mask = seed_mask;
+    //         break;
+    //     }
+    //     seed_mask >>= 1;
+    // }
     return;
 }
 
 unsigned char GLFSR_next(lfsr_t *glfsr) {
     unsigned char retval = 0;
 
-    glfsr->data <<= 1;
+    // glfsr->data >>= 1;
 
-    if (glfsr->data & glfsr->mask) {
+    if (glfsr->data & 1) {
         retval = 1;
+        glfsr->data >>= 1;
         glfsr->data ^= glfsr->polynomial;
+    }else{
+        glfsr->data >>= 1;
     }
 
     return retval ;

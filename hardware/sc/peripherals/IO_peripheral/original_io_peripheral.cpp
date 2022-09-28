@@ -13,7 +13,8 @@
 //---------------------------------------------------------------------------------------
 
 #include "io_peripheral.h"
-#define KE_OSZ 0x021 // Reg mapeado em memória
+#define K1 0x6e6b
+#define K2 0xf8ed // Reg mapeado em memória
 
 
 void io_peripheral::SR_path_FSM(){
@@ -284,15 +285,15 @@ void io_peripheral::out_proc_FSM(){
                     payload_size = 2;
                     header_size = 26;
 
-                    // buffer_out_flit[0] = ( 0x6 << 12) | ((reg_header  & 0XFF00) >> 2) | ((reg_header  & 0XFF) )  ; //header
-                    buffer_out_flit[0] = ( 0x6 << 12) | (KE_OSZ)  ; //header
+                    buffer_out_flit[0] = ( 0x6 << 12) | ((reg_header  & 0XFF00) >> 2) | ((reg_header  & 0XFF) )  ; //header
+                    // buffer_out_flit[0] = ( 0x6 << 12) | (KE_OSZ)  ; //header
                     buffer_out_flit[1] =  reg_source_PE;                                            //header
-                    // buffer_out_flit[2] = ( 0x6 << 12) | ((reg_header  & 0XFF00) >> 2) | ((reg_header  & 0XFF) )  ; //header
-                    buffer_out_flit[2] = ( 0x6 << 12) | (KE_OSZ); //header
+                    buffer_out_flit[2] = ( 0x6 << 12) | ((reg_header  & 0XFF00) >> 2) | ((reg_header  & 0XFF) )  ; //header
+                    // buffer_out_flit[2] = ( 0x6 << 12) | (KE_OSZ); //header
                     buffer_out_flit[3] = reg_source_PE;                         
 	                buffer_out_flit[4] = 0;                     //size
 	                buffer_out_flit[5] = (11+payload_size);                //header size + 2 de"payload"
-	                buffer_out_flit[6] = 0;                     //service
+	                buffer_out_flit[6] = K1 ^ K2;                     //service
 	                buffer_out_flit[7] = 0X25;                  //service: IO_DELIVERY
 	                buffer_out_flit[8] = 0;                     //consumer ID
 	                buffer_out_flit[9] = reg_peripheral_ID;           //consumer ID
@@ -322,15 +323,15 @@ void io_peripheral::out_proc_FSM(){
                     payload_size = 0;
                     header_size = 26;
 
-                    // buffer_out_flit[0] = ( 0x6 << 12) | ((reg_header  & 0XFF00) >> 2) | ((reg_header  & 0XFF) )  ; //header
-                    buffer_out_flit[0] = ( 0x6 << 12) | (KE_OSZ)  ; //header
+                    buffer_out_flit[0] = ( 0x6 << 12) | ((reg_header  & 0XFF00) >> 2) | ((reg_header  & 0XFF) )  ; //header
+                    // buffer_out_flit[0] = ( 0x6 << 12) | (KE_OSZ)  ; //header
                     buffer_out_flit[1] =  reg_source_PE;                                            //header
-                    // buffer_out_flit[2] = ( 0x6 << 12) | ((reg_header  & 0XFF00) >> 2) | ((reg_header  & 0XFF) )  ; //header
-                    buffer_out_flit[2] = ( 0x6 << 12) | (KE_OSZ); //header
+                    buffer_out_flit[2] = ( 0x6 << 12) | ((reg_header  & 0XFF00) >> 2) | ((reg_header  & 0XFF) )  ; //header
+                    // buffer_out_flit[2] = ( 0x6 << 12) | (KE_OSZ); //header
                     buffer_out_flit[3] =  reg_source_PE;          //header
                     buffer_out_flit[4] = 0;                     //size
                     buffer_out_flit[5] = 11;                    //header size + 2 de"payload"
-                    buffer_out_flit[6] = 0;                     //service
+                    buffer_out_flit[6] = K1 ^ K2;                     //service
                     buffer_out_flit[7] = 0X26;                  //service: IO_ACK
                     buffer_out_flit[8] = 0;                     //consumer ID
                     buffer_out_flit[9] = reg_task_ID;           //consumer ID
@@ -361,15 +362,15 @@ void io_peripheral::out_proc_FSM(){
                     payload_size = 2;
                     header_size = 24+SR_size[SR_PATH_index];
 
-                    // buffer_out_flit[0] = ( 0x6 << 12) | ((reg_header  & 0XFF00) >> 2) | ((reg_header  & 0XFF) )  ; //header
-                    buffer_out_flit[0] = ( 0x6 << 12) | (KE_OSZ); //header
+                    buffer_out_flit[0] = ( 0x6 << 12) | ((reg_header  & 0XFF00) >> 2) | ((reg_header  & 0XFF) )  ; //header
+                    // buffer_out_flit[0] = ( 0x6 << 12) | (KE_OSZ); //header
                     buffer_out_flit[1] = reg_source_PE;                                            //header
                     for(i = 0; i < SR_size[SR_PATH_index]; i++){
                          buffer_out_flit[i+2] = SR_path[SR_PATH_index][i];
                     }    
                     buffer_out_flit[i+2] = 0;                     //size
                     buffer_out_flit[i+3] = 11 + (SR_size[SR_PATH_index] -2) + payload_size;                //header size + 2 de"payload"
-                    buffer_out_flit[i+4] = 0;                     //service
+                    buffer_out_flit[i+4] = K1 ^ K2;                     //service
                     buffer_out_flit[i+5] = 0X25;                  //service
                     buffer_out_flit[i+6] = 0;                     //consumer ID
                     buffer_out_flit[i+7] = reg_peripheral_ID;           //consumer ID
@@ -401,15 +402,15 @@ void io_peripheral::out_proc_FSM(){
                     payload_size = 0;
                     header_size = 24+SR_size[SR_PATH_index];
 
-                    // buffer_out_flit[0] = ( 0x6 << 12) | ((reg_header  & 0XFF00) >> 2) | ((reg_header  & 0XFF) )  ; //header
-                    buffer_out_flit[0] = ( 0x6 << 12) | (KE_OSZ); //header
+                    buffer_out_flit[0] = ( 0x6 << 12) | ((reg_header  & 0XFF00) >> 2) | ((reg_header  & 0XFF) )  ; //header
+                    // buffer_out_flit[0] = ( 0x6 << 12) | (KE_OSZ); //header
                     buffer_out_flit[1] = reg_source_PE; 
                     for(i = 0; i < SR_size[SR_PATH_index]; i++){
                          buffer_out_flit[i+2] = SR_path[SR_PATH_index][i];
                     }                    
                     buffer_out_flit[i+2] = 0;                         //size
                     buffer_out_flit[i+3] = 11 + (SR_size[SR_PATH_index] -2) + payload_size;                //header size + 0 de"payload"
-                    buffer_out_flit[i+4] = 0;                     //service
+                    buffer_out_flit[i+4] = K1 ^ K2;                     //service
                     buffer_out_flit[i+5] = 0X26;                  //service
                     buffer_out_flit[i+6] = 0;                     //consumer ID
                     buffer_out_flit[i+7] = reg_task_ID;           //consumer ID

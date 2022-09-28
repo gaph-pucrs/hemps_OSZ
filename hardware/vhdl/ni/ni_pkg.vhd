@@ -51,6 +51,8 @@ package ni_pkg is
     
     constant CONFIG_PERIPH_SERVICE              : regword := x"00000300";
     constant CONFIG_PERIPH_SERVICE_APPID_FLIT   : integer := 5;
+    --constant CONFIG_PERIPH_SERVICE_K1   : 6
+    --constant CONFIG_PERIPH_SERVICE_K2   : 7
     constant CONFIG_PERIPH_SERVICE_KEYP_FLIT    : integer := 7;
 
     constant SET_PATH_SERVICE                   : regword := x"FEDC1234";

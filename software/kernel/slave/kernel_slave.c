@@ -62,6 +62,8 @@ Message 		msg_write_pipe;				//!< Message variable which is used to copy a messa
 
 lfsr_t glfsr_d0;
 lfsr_t glfsr_c0;
+lfsr_t glfsr_app;
+unsigned int k0, k1, k2;
 
 Message waitingMessages[10];
 
@@ -263,6 +265,7 @@ int Syscall(unsigned int service, unsigned int arg0, unsigned int arg1, unsigned
 
 	unsigned int auxSlot, PER_X_addr, PER_Y_addr;
 	long int auxBT;
+	int positionAP;
 
 	schedule_after_syscall = 0;
 
@@ -307,6 +310,7 @@ int Syscall(unsigned int service, unsigned int arg0, unsigned int arg1, unsigned
 
 			// adjust appID e taskID to 6 bits
 			aux_appID_task_ID = ((current->id >> 4) & 0xF0) | (current->id & 0x0F);
+			// CLEAR APP_REG
 			Seek(END_TASK_SERVICE, ((current->master_address<<16) | (get_net_address()&0xffff)), current->master_address, aux_appID_task_ID);
 			if(current->master_address != cluster_master_address){
 			 	Seek(END_TASK_OTHER_CLUSTER_SERVICE, ((cluster_master_address<<16) | (get_net_address()&0xffff)), cluster_master_address, aux_appID_task_ID);
@@ -350,7 +354,9 @@ int Syscall(unsigned int service, unsigned int arg0, unsigned int arg1, unsigned
 
 			//puts("WRITEPIPE - prod: "); puts(itoa(producer_task)); putsv(" consumer ", consumer_task);
 
+			// consumer_PE = get_task_location(consumer_task);
 			consumer_PE = get_task_location(consumer_task);
+			
 
 			//Test if the consumer task is not allocated
 			if (consumer_PE == -1){
@@ -542,8 +548,8 @@ int Syscall(unsigned int service, unsigned int arg0, unsigned int arg1, unsigned
 					auxSlot = SearchSourceRoutingDestination((PER_X_addr << 8) | PER_Y_addr);
 					if (auxSlot == -1){
 						puts("Configurando novo IO:");puts(itoa(arg1)); puts("\n");
-						auxBT = pathToIO(arg1);
-						puts("--path: ");puts(itoh(auxBT)); puts("\n");
+						auxBT = pathToIO(arg1, &positionAP);
+						// puts("--path: ");puts(itoh(auxBT)); puts("\n");
 						slotSR = GetFreeSlotSourceRouting((PER_X_addr << 8) | PER_Y_addr);
 						// puts("--slot: ");puts(itoa(slotSR)); puts("\n");
 						SR_Table[slotSR].target = (PER_X_addr << 8) | PER_Y_addr;
@@ -552,7 +558,8 @@ int Syscall(unsigned int service, unsigned int arg0, unsigned int arg1, unsigned
 							auxBT & 0xffffFFFF,
   							auxBT >> 32 & 0xffffFFFF,
   							auxBT >> 64 & 0xffffFFFF,
-							(PER_X_addr << 8) | PER_Y_addr);
+							(PER_X_addr << 8) | PER_Y_addr,
+							positionAP);
 						// puts("--slot_adjust: ");puts(itoa(slotSR)); puts("\n");
 						auxBT = pathFromIO(auxBT);
 						//auxBT = IOtoAP(arg1);
@@ -600,8 +607,8 @@ int Syscall(unsigned int service, unsigned int arg0, unsigned int arg1, unsigned
 					auxSlot = SearchSourceRoutingDestination((PER_X_addr << 8) | PER_Y_addr);
 					if (auxSlot == -1){
 						puts("Configurando novo IO:");puts(itoa(arg1)); puts("\n");
-						auxBT = pathToIO(arg1);
-						puts("--path: ");puts(itoh(auxBT)); puts("\n");
+						auxBT = pathToIO(arg1, &positionAP);
+						// puts("--path: ");puts(itoh(auxBT)); puts("\n");
 						slotSR = GetFreeSlotSourceRouting((PER_X_addr << 8) | PER_Y_addr);
 						// puts("--slot: ");puts(itoa(slotSR)); puts("\n");
 						SR_Table[slotSR].target = (PER_X_addr << 8) | PER_Y_addr;
@@ -610,7 +617,8 @@ int Syscall(unsigned int service, unsigned int arg0, unsigned int arg1, unsigned
 							auxBT & 0xffffFFFF,
   							auxBT >> 32 & 0xffffFFFF,
   							auxBT >> 64 & 0xffffFFFF,
-							(PER_X_addr << 8) | PER_Y_addr);
+							(PER_X_addr << 8) | PER_Y_addr,
+							positionAP);
 						// puts("--slot_adjust: ");puts(itoa(slotSR)); puts("\n");
 						auxBT = pathFromIO(auxBT);
 						//auxBT = IOtoAP(arg1);
@@ -752,6 +760,8 @@ int handle_packet(volatile ServiceHeader * p) {
 		//puts("source:");puts(itoh(p->source_PE)); puts("\n");
 	
 
+	p->service= (p->service & 0xFFFF); // Limpar a chave para não bugar
+	
 	switch (p->service) {
 
 	case MESSAGE_REQUEST: //MR_HANDLER
@@ -1039,7 +1049,7 @@ int handle_packet(volatile ServiceHeader * p) {
 			//received a packet with incomplete payload; discard it
 			need_scheduling = 0;
 			MemoryWrite(DMNI_TIMEOUT_SIGNAL,0);
-			//puts("payload incompleto...\n");
+			puts("payload incompleto...\n");
 		}
 		else{
 			//puts("payload Completo...\n");
@@ -1079,7 +1089,7 @@ int handle_packet(volatile ServiceHeader * p) {
 
 		tcb_ptr = searchTCB(p->task_ID);
 
-		puts("[ALLOCATION] searching TCB:"); puts(itoa(p->task_ID));puts("\n");
+		// puts("[ALLOCATION] searching TCB:"); puts(itoa(p->task_ID));puts("\n");
 		if(tcb_ptr == 0){  //task allocation before task_release
 
 			tcb_ptr = search_free_TCB();
@@ -1100,7 +1110,7 @@ int handle_packet(volatile ServiceHeader * p) {
 		tcb_ptr->text_lenght = code_lenght;
 
 		tcb_ptr->master_address = p->master_ID;
-		puts("MasterID "); puts(itoa(tcb_ptr->master_address)); puts("\n");
+		// puts("MasterID "); puts(itoa(tcb_ptr->master_address)); puts("\n");
 
 		tcb_ptr->proc_to_migrate = -1;
 
@@ -1170,8 +1180,8 @@ int handle_packet(volatile ServiceHeader * p) {
 				tcb_ptr->scheduling_ptr->status = BLOCKED;
 
 			send_task_allocated(tcb_ptr);
-			puts("[AFTER]Task id: "); puts(itoa(tcb_ptr->id)); puts("\n");
-			puts("[AFTER]MasterID "); puts(itoa(tcb_ptr->master_address)); puts("\n");
+			// puts("[AFTER]Task id: "); puts(itoa(tcb_ptr->id)); puts("\n");
+			// puts("[AFTER]MasterID "); puts(itoa(tcb_ptr->master_address)); puts("\n");
 
 			putsv("Send Task Allocated (TA): ", tcb_ptr->id);
 		}
@@ -1206,6 +1216,39 @@ int handle_packet(volatile ServiceHeader * p) {
 		else
 			tcb_ptr->secure = 0;
 		//tcb_ptr->secure = p->secure;
+
+		puts("TASK_RELEASE F1 e F2: ");puts(itoh(p->k0));puts("\n");
+		int KappID = p->k0 ^ k0; // Decrypt LO
+		int nt1, nt2;
+		nt1 = (KappID & 0xffff) >> 8; // Get turns
+		nt2 = (KappID & 0xff);	
+		KappID = (KappID >> 16) ^ k0; // Decrypt HI
+
+		glfsr_app.data = KappID;
+
+		while (nt1 > 0)
+		{
+			GLFSR_next(&glfsr_app);
+			// puts("-----k1 = ");puts(itoh(glfsr_app.data));puts("\n");
+			nt1--;
+		}
+		k1 = glfsr_app.data;
+		
+		while (nt2 > 0)
+		{
+			GLFSR_next(&glfsr_app);
+			// puts("-----k2 = ");puts(itoh(glfsr_app.data));puts("\n");
+			nt2--;
+		}
+		k2 = glfsr_app.data;
+		
+		
+		puts("Recuperação do AppID: ");puts(itoh(KappID));puts("\n");
+		puts("-----k1 = ");puts(itoh(k1));puts("\n");
+		puts("-----k2 = ");puts(itoh(k2));puts("\n");
+		MemoryWrite(APP_ID_REG, KappID & 0x3);
+
+
 
 		DMNI_read_data( (unsigned int) app_tasks_location, p->app_task_number);
 
@@ -1290,7 +1333,16 @@ int handle_packet(volatile ServiceHeader * p) {
 		puts("Km: ");  puts(itoh(Km));  puts("\n");
 
 		break;
+	
+	case AUTHENTICATE_PE:
 
+		k0 = p->app_ID;
+
+		puts("Received K0");  puts("\n");
+		puts("K0: ");  puts(itoh(k0));  puts("\n");
+
+		GLFSR_init(&glfsr_app, (lfsr_data_t)0xD008, 0); //configura o lfsr
+		break;
 
 	case KE_VALUE:
 
@@ -1498,13 +1550,15 @@ int SeekInterruptHandler(){
 
 		case SET_AP_SERVICE:
 			puts("Received SET_AP_SERVICE"); seek_puts("\n");
-			MemoryWrite(KAP_REGISTER, 0x021);
+			MemoryWrite(K1_REG, k1);
+			MemoryWrite(K2_REG, k2);
 			puts("--source(caller): "); puts(itoh(source)); puts("\n");
 			puts("--target(AP addr): "); puts(itoh(target)); puts("\n");
 			puts("--payload(port): "); puts(itoh(payload)); puts("\n");
+			puts("--ApID(port): "); puts(itoh(MemoryRead(APP_ID_REG))); puts("\n");
 
-			MemoryWrite(AP_MASK, ~(3 << (payload*2))); // Mascarar as duas portas, 01 - E, 23 - W, 45-N, 67-S 
-
+			MemoryWrite(AP_MASK, (3 << (payload*2))); // Mascarar as duas portas, 01 - E, 23 - W, 45-N, 67-S 
+			Seek(BR_TO_APPID_SERVICE, ((MemoryRead(TICK_COUNTER)<<16) | (get_net_address()&0xffff)), (unsigned int)MemoryRead(APP_ID_REG), payload);
 		break;
 
 		#ifdef SESSION_MANAGER
@@ -1776,6 +1830,13 @@ int SeekInterruptHandler(){
 			return aux;
 		break;
 
+		case BR_TO_APPID_SERVICE: // Expand here to flexible AccessPoit configuration
+			puts("Received BR_TO_APPID_SERVICE");
+			
+			puts(itoa(source & 0xffff)); puts ("\n"); // Location of the AP	
+			puts(itoa(payload)); puts ("\n");	// Port of the AP
+			break;
+
 		case UNFREEZE_TASK_SERVICE: //enviado pelo Mastre WARD do cluster
 			puts("Received UNFREEZE_TASK_SERVICE"); puts("\n");
 			aux = unfreeze_tasks_of_App(target);
@@ -1799,6 +1860,10 @@ int SeekInterruptHandler(){
 		
 		case GMV_READY_SERVICE: // remover
 		// 	puts("Kernel GMV Serbvice Recebido\n"); //Testando se chegou isso
+			// kInit = (source >> 16);
+
+			// puts("kInit: ");puts(itoh(kInit));puts("\n");
+
 		break;
 		case NEW_APP_SERVICE:
 		case NEW_APP_ACK_SERVICE:
@@ -1844,7 +1909,8 @@ void OS_InterruptServiceRoutine(unsigned int status) {
 
 	if ( status & IRQ_NOC ){
 		auxTime = MemoryRead(TICK_COUNTER);
-		// puts("Tempo da Interrupção irq: ");puts(itoa(auxTime));puts("\n");
+		
+		// puts("Chegou pacote: ");puts(itoa(auxTime));puts("\n");
 		//printar o tempo do novo tratamento
 		if (read_packet(&p) != -1){
 			if (MemoryRead(DMNI_SEND_ACTIVE) && (p.service == MESSAGE_REQUEST || p.service == TASK_MIGRATION) ){
@@ -1984,8 +2050,11 @@ int main(){
 
 	// printGray();
 
+	initSRstructs();
 
 	initFTStructs();
+
+	// init APP_REG -1
 
 	initSessions();
 

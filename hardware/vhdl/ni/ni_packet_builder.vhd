@@ -262,6 +262,10 @@ begin
 
             if response_param_reg.hermesService=IO_DELIVERY_SERVICE then
 
+                -- = F1 (2)
+                -- hermes_data_out <= k1 XOR k2
+                -- = F2 (3)
+                -- hermes_data out <= appID XOR k2
                 if header_flit=PACKET_SIZE_FLIT then
                     hermes_data_out <= conv_std_logic_vector(DEFAULT_WORDS_PER_DELIVERY + 11, hermes_data_out'length);
 

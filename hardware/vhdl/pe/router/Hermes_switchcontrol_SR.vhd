@@ -34,8 +34,6 @@ port(
     req_routing     : in  regNport;
 	eop_in          : in  regNport;
     ack_routing     : out regNport;     
-    io_mask_wrapper : out std_logic;
-	ke				: out std_logic_vector(11 downto 0);
     data_in_header  : in  arrayNport_regflit_32;
     data_in_header_fixed  : in  arrayNport_regflit_32;
     sender 		    : in  regNport;	
@@ -45,7 +43,6 @@ port(
 
     tx_internal		: in regNport;--needed by SR
 
-    mask_local_tx_output : out std_logic;  -- needed to mask tx on IO_OPEN_WRAPPER message
     --signals for writing source target pair
     target          : out regflit;
     source          : out regflit;
@@ -80,10 +77,6 @@ signal target_internal : regflit;
 signal shift_counter	: std_logic_vector(3 downto 0);
 signal aux_cont    : integer range 15 downto 0;
 
---access point soft verification
-signal ke_reg	:  std_logic_vector(11 downto 0);
-
-signal header_ke	:	std_logic_vector(11 downto 0);
 --alias target:regmetadeflit                      is header(METADEFLIT-1 downto 0);
 
 alias Xsource:std_logic_vector(5 downto 0)		is header_fixed(FLIT16+11 downto FLIT16+6);
@@ -104,8 +97,6 @@ begin
 	source <= "00" & Xsource & "00" & Ysource;
 	target <= header_fixed(FLIT16-1 downto 0);
 	target_internal	<= "000" & header(12 downto 8) & "000" & header(4 downto 0);
-	header_ke <= header_fixed(27 downto 16);
-	ke <= ke_reg;
 	--input port
 	--w_addr <= std_logic_vector(to_unsigned(sel, 4));
 
@@ -137,8 +128,6 @@ begin
 
     dirx <= WEST0 when lx > tx else EAST0;
     diry <= NORTH0 when ly < ty else SOUTH0;
-
-	io_mask_wrapper <= '1' when ke_reg = x"000" else '0';
 
     -- Round Robin: seleciona uma das portas de entrada para o roteamento (prox).	
 	process(sel,req_routing)
@@ -275,15 +264,12 @@ begin
 		if reset = '1' then
 			sel             <= LOCAL0;
             ack_routing     <= (others => '0');
-            -- io_mask_wrapper <= (others => '0');
 			rot_table       <= (others=>(others=>'0'));	
 			next_flit       <= (others => '0');
-			ke_reg			<= (others=> '0');
             counter        := 0;
 			try_again       <= false;
 			EA              <= S0;
 			w_source_target <= '0';
-            mask_local_tx_output <= '1';
 			enable_shift	<= (others => '0');
 			shift_counter 	<= (others=>'0');
 
@@ -304,11 +290,6 @@ begin
 					else
 						EA <= S0;
                     end if;
-
-                    if mask_local_tx_output  = '0' and  free_port(LOCAL1) = '1' then
-                        mask_local_tx_output <= '1';
-                    end if;
-
 
                     
 					-- Updates the switch table.
@@ -373,8 +354,6 @@ begin
                                     ack_routing(sel) <= '1';
                                     EA <= S3;
                                     w_source_target <= '1';
-                                    mask_local_tx_output <= '0';
-									ke_reg <= header_ke;
                                 else
                                     EA <= S0;
                                 end if;
@@ -420,17 +399,17 @@ begin
 	                        	end if;
 	                    	end if;
 	                    	
-	                    -- Packet is switched to EAST or WEST 
+	                    -- Packet is switched to EAST or WEST
 	                    elsif lx /= tx then
-	                        if free_port(dirx+1) = '1' then
+	                        if free_port(dirx) = '1' then						-- Verifies if the channel 0 is free 
 	                            ack_routing(sel) <= '1';
-	                            rot_table(sel)(dirx+1) <= '1';
+	                            rot_table(sel)(dirx) <= '1';
 	                            EA <= S3;
 
 								w_source_target <= '1';
-	                        elsif free_port(dirx) = '1' then
+	                        elsif free_port(dirx+1) = '1' then
 	                            ack_routing(sel) <= '1';
-	                            rot_table(sel)(dirx) <= '1';
+	                            rot_table(sel)(dirx+1) <= '1';
 	                            EA <= S3;
 
 								w_source_target <= '1';                 
@@ -440,17 +419,17 @@ begin
 	                        end if;
 	                                      
 	                    -- Packet is switched to NORTH or SOUTH 
-	                    -- Verifies if the channel 1 is free
-	                    elsif free_port(diry+1) = '1' then
+	                    -- Verifies if the channel 0 is free
+	                    elsif free_port(diry) = '1' then
 	                        ack_routing(sel) <= '1';
-	                        rot_table(sel)(diry+1) <= '1'; 
+	                        rot_table(sel)(diry) <= '1'; 
 	                        EA <= S3;
 
 
 							w_source_target <= '1';
-	                    elsif free_port(diry) = '1' then		
+	                    elsif free_port(diry+1) = '1' then		
 	                        ack_routing(sel) <= '1';
-	                        rot_table(sel)(diry) <= '1'; 
+	                        rot_table(sel)(diry+1) <= '1'; 
 	                        EA <= S3;
 
 
