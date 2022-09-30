@@ -84,7 +84,7 @@ for pe in range(0,max_pe):
 
 	#pe signals
 	group_pe_signals_pfx = "add wave -noupdate -group {%s %dx%d - %d} -group pe /test_bench/HeMPS/%s%dx%d/" % (pe_type_str, posX, posY, pe, pe_type_str, posX, posY)
-	group_pe_signals_sds = ['irq','int_seek','irq_mask_reg','irq_status','cpu/mem_address','cpu/mem_byte_we','cpu/mem_data_r','cpu/mem_data_w','cpu/page','ap_mask','app_reg']
+	group_pe_signals_sds = ['irq','int_seek','irq_mask_reg','irq_status','cpu/mem_address','cpu/mem_byte_we','cpu/mem_data_r','cpu/mem_data_w','cpu/page','ap_mask','ke','kap']
 	for it in map(lambda sd: group_pe_signals_pfx + sd,group_pe_signals_sds):
 		print (it)
 	#faults signals
@@ -108,7 +108,7 @@ for pe in range(0,max_pe):
 			print(it)
 
 	signals_pfx = "add wave -noupdate -group {%s %dx%d - %d} -group seek -group signals /test_bench/HeMPS/%s%dx%d/router_seek_wrapped/router_seek/" % 			(pe_type_str, posX, posY, pe, pe_type_str, posX, posY)
-	signals_sds = ["router_address", "backtrack_id", "EA_manager", "EA_manager_input", "sel_port", "next_port", "req_int", "task", "req_task", "sel", "prox", "free_index", "source_index", "source_table", "target_table", "service_table", "payload_table", "opmode_table", "my_payload_table", "backtrack_port_table", "source_router_port_table", "used_table", "pending_table", "pending_local", "int_out_ack_router_seek", "out_nack_router_seek", "out_ack_router_seek", "in_fail_router_seek", "fail_with_mode_in", "fail_with_mode_out", "int_in_req_router_seek", "in_nack_router_seek", "in_ack_router_seek", "int_in_ack_router_seek", "in_source_router_seek", "in_target_router_seek", "in_payload_router_seek", "in_service_router_seek", "in_opmode_router_seek", "int_out_req_router_seek", "out_service_router_seek", "out_source_router_seek", "out_target_router_seek", "out_payload_router_seek", "out_opmode_router_seek", "backtrack_port", "reg_backtrack", "vector_ack_ports", "vector_nack_ports", "in_the_table", "space_aval_in_the_table", "is_my_turn_send_backtrack", "in_AppID_reg"]
+	signals_sds = ["router_address", "backtrack_id", "EA_manager", "EA_manager_input", "sel_port", "next_port", "req_int", "task", "req_task", "sel", "prox", "free_index", "source_index", "source_table", "target_table", "service_table", "payload_table", "opmode_table", "my_payload_table", "backtrack_port_table", "source_router_port_table", "used_table", "pending_table", "pending_local", "int_out_ack_router_seek", "out_nack_router_seek", "out_ack_router_seek", "in_fail_router_seek", "fail_with_mode_in", "fail_with_mode_out", "int_in_req_router_seek", "in_nack_router_seek", "in_ack_router_seek", "int_in_ack_router_seek", "in_source_router_seek", "in_target_router_seek", "in_payload_router_seek", "in_service_router_seek", "in_opmode_router_seek", "int_out_req_router_seek", "out_service_router_seek", "out_source_router_seek", "out_target_router_seek", "out_payload_router_seek", "out_opmode_router_seek", "backtrack_port", "reg_backtrack", "vector_ack_ports", "vector_nack_ports", "in_the_table", "space_aval_in_the_table", "is_my_turn_send_backtrack"]
 	for it in map(lambda sd: signals_pfx + sd, signals_sds):
 		print (it)
 		
@@ -118,11 +118,11 @@ for pe in range(0,max_pe):
 	for it in map(lambda sd: fifo_signals_pfx + sd, fifo_signals_sds):
 		print (it)
     
-	# #fail_wrapper_module signals
-	# fail_wrapper_signals_pfx = "add wave -noupdate -group {%s %dx%d - %d} -group fail_WRAPPER_module /test_bench/HeMPS/%s%dx%d/fail_WRAPPER_module/" % (pe_type_str, posX, posY, pe, pe_type_str, posX, posY)
-	# fail_wrapper_signals_sds = ["clock", "reset", "in_fail_cpu_local", "in_fail_cpu_config", "mem_address_service_fail_cpu", "in_source_wrapper_local", "in_target_wrapper_local", "in_payload_wrapper_local", "in_service_wrapper_local", "in_req_wrapper_local", "in_opmode_wrapper_local", "in_fail_wrapper_local", "out_ack_wrapper_local", "out_nack_wrapper_local", "out_source_wrapper_local", "out_target_wrapper_local", "out_payload_wrapper_local", "out_service_wrapper_local", "out_req_wrapper_local", "out_opmode_wrapper_local", "out_fail_wrapper_local", "in_ack_wrapper_local", "in_nack_wrapper_local", "in_source_router", "in_target_router", "EA_in"]
-	# for it in map(lambda sd: fail_wrapper_signals_pfx + sd, fail_wrapper_signals_sds):
-	# 	print (it)
+	#fail_wrapper_module signals
+	fail_wrapper_signals_pfx = "add wave -noupdate -group {%s %dx%d - %d} -group fail_WRAPPER_module /test_bench/HeMPS/%s%dx%d/fail_WRAPPER_module/" % (pe_type_str, posX, posY, pe, pe_type_str, posX, posY)
+	fail_wrapper_signals_sds = ["clock", "reset", "in_fail_cpu_local", "in_fail_cpu_config", "mem_address_service_fail_cpu", "in_source_wrapper_local", "in_target_wrapper_local", "in_payload_wrapper_local", "in_service_wrapper_local", "in_req_wrapper_local", "in_opmode_wrapper_local", "in_fail_wrapper_local", "out_ack_wrapper_local", "out_nack_wrapper_local", "out_source_wrapper_local", "out_target_wrapper_local", "out_payload_wrapper_local", "out_service_wrapper_local", "out_req_wrapper_local", "out_opmode_wrapper_local", "out_fail_wrapper_local", "in_ack_wrapper_local", "in_nack_wrapper_local", "in_source_router", "in_target_router", "EA_in"]
+	for it in map(lambda sd: fail_wrapper_signals_pfx + sd, fail_wrapper_signals_sds):
+		print (it)
 
 	# dmni signals
 	dmni_signals_pfx = "add wave -noupdate -group {%s %dx%d - %d} -group dmni /test_bench/HeMPS/%s%dx%d/dmni/" %  	(pe_type_str, posX, posY, pe, pe_type_str, posX, posY)
@@ -144,67 +144,30 @@ for pe in range(0,max_pe):
 	print (dmni_dividers_pfx +"DMNI_Send")
 	print (dmni_signals_pfx+"DMNI_Send")
 
-	# switch control signals
-	router_pfx = "add wave -noupdate -group {%s %dx%d - %d} -group {switch control} /test_bench/HeMPS/%s%dx%d/RouterCCwrapped/RouterCC_AP/coreRouter/SwitchControl_SR_write/" % 					(pe_type_str, posX, posY, pe, pe_type_str, posX, posY)
+	router_pfx = "add wave -noupdate -group {%s %dx%d - %d} -group {switch control} /test_bench/HeMPS/%s%dx%d/RouterCCwrapped/RouterCC/SwitchControl_SR_write/" % 					(pe_type_str, posX, posY, pe, pe_type_str, posX, posY)
 	router_sds = ["EA","ask","ack_routing","address","clock","data_in_header","data_in_header_fixed","dirx","diry","enable_shift", "free_port","header","header_fixed","lx","next_flit","prox","req_routing" ,"reset","rot_table","sel","sender","source" ,"target","target_internal","try_again","tx","w_addr","w_source_target"]
 	for it in map (lambda sd: router_pfx + sd, router_sds):
 		print (it)
 
 	# for port in range(0,8):
-	ap = 0 # Access points vao de 0 até 4, só nos canais 0
 	for port in range(0,10):
 		if port != 8: 
 			if port == 9:
 				location = "LOCAL"
 			else:
 				location = "ports"
-
+				
 			router_input_pfx = "add wave -noupdate -group {%s %dx%d - %d} -group %s -group {router %dx%d input %s} -radix hexadecimal /test_bench/HeMPS/%s%dx%d/RouterCCwrapped/" % 	(pe_type_str, posX, posY, pe,location, posX, posY, portname[port], pe_type_str, posX, posY)
 			router_input_sds = ["credit_o", "rx","data_in", "eop_in"]
 			for it in map(lambda sd: router_input_pfx + sd + f"({port:d})",router_input_sds):
 				print (it)
-
-			if (port % 2) == 0: # Caso for um CH0, tem AP
-				#Cria divisores
-				ap_dividers_pfx = "add wave -noupdate -group {%s %dx%d - %d} -group %s -group {router %dx%d input %s} -divider " % (pe_type_str, posX, posY, pe,location, posX, posY, portname[port])
-				print (ap_dividers_pfx +"AP")
-				#Printa os singals AP ~> Router
-				access_point_pfx = "add wave -noupdate -group {%s %dx%d - %d} -group %s -group {router %dx%d input %s} -radix hexadecimal /test_bench/HeMPS/%s%dx%d/RouterCCwrapped/RouterCC_AP/" % 	(pe_type_str, posX, posY, pe,location, posX, posY, portname[port], pe_type_str, posX, posY)
-				access_point_sds = ["credit_o_router", "rx_router","data_in_router", "eop_in_router"]
-			    # Incrementa pq a contagem do Ap é diferente das portas
-				for it in map(lambda sd: access_point_pfx + sd + f"({port:d})",access_point_sds):
-					print (it)
-
+			
 			router_output_pfx = "add wave -noupdate -group {%s %dx%d - %d} -group %s -group {router %dx%d output %s} -radix hexadecimal /test_bench/HeMPS/%s%dx%d/RouterCCwrapped/" % 	(pe_type_str, posX, posY, pe, location, posX, posY, portname[port], pe_type_str, posX, posY)
 			router_output_sds = ["credit_i","tx","data_out","eop_out"]
+								 
 			for it in map(lambda sd: router_output_pfx + sd + f"({port:d})",router_output_sds):
 				print (it)
-			
-			if (port % 2) == 0:
-				#Cria divisor
-				ap_dividers_pfx = "add wave -noupdate -group {%s %dx%d - %d} -group %s -group {router %dx%d output %s} -divider " % (pe_type_str, posX, posY, pe,location, posX, posY, portname[port])
-				print (ap_dividers_pfx +"AP")
-				#Printa os singals AP ~> Router
-				access_point_pfx = "add wave -noupdate -group {%s %dx%d - %d} -group %s -group {router %dx%d output %s} -radix hexadecimal /test_bench/HeMPS/%s%dx%d/RouterCCwrapped/RouterCC_AP/" % 	(pe_type_str, posX, posY, pe,location, posX, posY, portname[port], pe_type_str, posX, posY)
-				access_point_sds = ["credit_i_router","tx_router","data_out_router","eop_out_router"]
-				for it in map(lambda sd: access_point_pfx + sd + f"({port:d})",access_point_sds):
-					print (it)
 
-			# Signals internos do AP
-				access_point_pfx = "add wave -noupdate -group {%s %dx%d - %d} -group %s -group {router %dx%d AP %s} -radix hexadecimal /test_bench/HeMPS/%s%dx%d/RouterCCwrapped/RouterCC_AP/" % 	(pe_type_str, posX, posY, pe,location, posX, posY, portname[port], pe_type_str, posX, posY)
-				access_point_sds = ["k1","k2"]
-				for it in map(lambda sd: access_point_pfx + sd ,access_point_sds):
-					print (it)
-				access_point_sds = ["sz","ap","unreachable","eop_out_router"]
-				for it in map(lambda sd: access_point_pfx + sd + f"({port:d})",access_point_sds):
-					print (it)
-				access_point_pfx = "add wave -noupdate -group {%s %dx%d - %d} -group %s -group {router %dx%d AP %s} -radix hexadecimal /test_bench/HeMPS/%s%dx%d/RouterCCwrapped/RouterCC_AP/AP_gen(%d)/AP_CH0/" % 	(pe_type_str, posX, posY, pe,location, posX, posY, portname[port], pe_type_str, posX, posY,ap)
-				access_point_sds = ["pass","mask", "reg_F1", "eop_ap", "terminate" ]
-				for it in map(lambda sd: access_point_pfx + sd,access_point_sds):
-					print (it)
-				ap += 1
-
-	
 	if pe%MAX_X==MAX_X-1:
 		posX=0
 		posY=posY+1
@@ -237,7 +200,7 @@ for it in map(lambda sd: ni_table_pfx + sd, ni_table_sds):
 
 #NI_RX SIGNALS
 ni_rx_pfx="add wave -noupdate -group NI_RX /test_bench/IO_PERIPHERAL/network_interface/ModuleRX/"
-ni_rx_sds=["stage", "start_rx_state", "table_state", "data_state", "finish_rx_state", "respond_state", "routing_header_flit", "header_flit", "path_flit", "hermes_service", "app_id", "crypto_tag", "key_periph", "burst_size", "hermesControl", "tableControl", "unknown_service", "authenticated", "response_necessary", "data_to_write_on_table", "end_of_handling"]
+ni_rx_sds=["stage", "start_rx_state", "table_state", "data_state", "finish_rx_state", "respond_state", "routing_header_flit", "header_flit", "path_flit", "hermes_service", "packet_target", "f1", "f2", "k1", "k2", "packet_source" "app_id", "crypto_tag", "crypto_tag2", "k0", "hermesControl", "tableControl", "unknown_service", "authenticated", "response_necessary", "data_to_write_on_table", "end_of_handling"]
 for it in map(lambda sd: ni_rx_pfx + sd, ni_rx_sds):
 	print (it)
 

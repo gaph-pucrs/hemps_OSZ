@@ -10,12 +10,9 @@ package ni_pkg is
     constant TAM_WORD   : integer := TAM_FLIT*2;
     subtype regword is std_logic_vector(TAM_WORD-1 downto 0);
 
-    constant XY_HEADER_SIZE         : integer := 4;
-
-    -- todo: organize
     constant FIXED_HEADER_SIZE      : integer := 2;
+    constant XY_HEADER_SIZE         : integer := 4;
     constant DYNAMIC_HEADER_SIZE    : integer := 22;
-    constant HEADER_SIZE            : integer := FIXED_HEADER_SIZE*2 + DYNAMIC_HEADER_SIZE;
 
     constant TABLE_SIZE             : integer := 4;
     constant MAX_FLITS_PER_PKT      : integer := 255;
@@ -24,12 +21,10 @@ package ni_pkg is
 
     constant APPID_SIZE             : integer := 16;
     constant KEYPERIPH_SIZE         : integer := APPID_SIZE;
-    constant BSIZE_SIZE             : integer := 6;
     constant MAX_PATH_FLITS         : integer := 6;    
 
     subtype regN_appID      is std_logic_vector(APPID_SIZE-1 downto 0);
     subtype regN_keyPeriph  is std_logic_vector(KEYPERIPH_SIZE-1 downto 0);
-    subtype regN_burstSize  is std_logic_vector(BSIZE_SIZE-1 downto 0);
     type    regN_path       is array(MAX_PATH_FLITS-1 downto 0) of regflit;
     subtype intN_pathSize   is integer range 0 to MAX_PATH_FLITS;
     subtype intN_pathIndex  is integer range 0 to MAX_PATH_FLITS-1;
@@ -45,37 +40,25 @@ package ni_pkg is
     -- SERVICES AND FLIT POSITION --
     --------------------------------
 
-    constant PACKET_SIZE_FLIT                   : integer := 1;
-    constant SERVICE_FLIT                       : integer := 2;
-    constant END_OF_HEADER_FLIT                 : integer := 21;
-    
-    constant CONFIG_PERIPH_SERVICE              : regword := x"00000300";
-    constant CONFIG_PERIPH_SERVICE_APPID_FLIT   : integer := 5;
-    --constant CONFIG_PERIPH_SERVICE_K1   : 6
-    --constant CONFIG_PERIPH_SERVICE_K2   : 7
-    constant CONFIG_PERIPH_SERVICE_KEYP_FLIT    : integer := 7;
-
-    constant SET_PATH_SERVICE                   : regword := x"FEDC1234";
-    constant SET_PATH_SERVICE_APPID_FLIT        : integer := 5;
-
-    constant REQUEST_PERIPH_SERVICE             : regword := x"45542323";
-    constant REQUEST_PERIPH_SERVICE_APPID_FLIT  : integer := 5;
-    constant REQUEST_PERIPH_SERVICE_BSIZE_FLIT  : integer := 15;
-
+    constant IO_INIT_SERVICE                    : regword := x"00000305";
+    constant IO_CONFIG_SERVICE                  : regword := x"00000300";
     constant IO_REQUEST_SERVICE                 : regword := x"00000015";
-    constant IO_REQUEST_SERVICE_APPID_FLIT      : integer := 5;
-    constant IO_REQUEST_SERVICE_PE_SRC_FLIT     : integer := 9;
-
     constant IO_DELIVERY_SERVICE                : regword := x"00000025";
-    constant IO_DELIVERY_SERVICE_PERPH_ID_FLIT  : integer := 5;
-    constant IO_DELIVERY_SERVICE_TASK_ID_FLIT   : integer := 7;
-    constant IO_DELIVERY_SERVICE_PE_SRC_FLIT    : integer := 9;
-    constant IO_DELIVERY_SERVICE_PAYLD_SZ_FLIT  : integer := 15;
-
     constant IO_ACK_SERVICE                     : regword := x"00000026";
-    constant IO_ACK_SERVICE_TASK_ID_FLIT        : integer := 5;
-    constant IO_ACK_SERVICE_PERPH_ID_FLIT       : integer := 7;
-    constant IO_ACK_SERVICE_PE_SRC_FLIT         : integer := 9;
+
+    constant PACKET_SIZE_FLIT_HI                : integer := 0;
+    constant F1_FLIT                            : integer := 2;
+    constant F2_FLIT                            : integer := 3;
+    constant SERVICE_FLIT_HI                    : integer := 4;
+    constant K1_FLIT                            : integer := 6;
+    constant K2_FLIT                            : integer := 7;
+    constant PACKET_SOURCE_FLIT                 : integer := 9;
+    constant END_OF_HEADER_FLIT                 : integer := 21;
+
+    --  Service                 F1          F2
+    --  IO_INIT                 zero        k0
+    --  IO_CONFIG               zero        appId xor k0
+    --  IO_REQ/DELIVERY/ACK     k1 xor k2   appId xor k2
 
     --------------------------------
     -- TABLE READ-WRITE INTERFACE --
@@ -89,6 +72,7 @@ package ni_pkg is
         crypto          : std_logic;
         newLine         : std_logic;
         tag             : regN_appID;
+        tagAux          : regN_appID;
         clearSlot       : std_logic;
 
         -- rw
@@ -101,9 +85,6 @@ package ni_pkg is
 
         key2_w          : regN_keyPeriph;
         key2_wen        : std_logic;
-
-        burstSize_w     : regN_burstSize;
-        burstSize_wen   : std_logic;
 
         pathSize_w      : intN_pathSize;
         pathSize_wen    : std_logic;
@@ -127,7 +108,6 @@ package ni_pkg is
         appId           : regN_appID;
         key1            : regN_keyPeriph;
         key2            : regN_keyPeriph;
-        burstSize       : regN_burstSize;
         pathSize        : intN_pathSize;
         pathFlit        : regflit;
     
@@ -147,7 +127,6 @@ package ni_pkg is
         appId           : regN_appID;
         key1            : regN_keyPeriph;
         key2            : regN_keyPeriph;
-        burstSize       : regN_burstSize;
         pathSize        : intN_pathSize;
         pathFlit        : regflit;
     end record;

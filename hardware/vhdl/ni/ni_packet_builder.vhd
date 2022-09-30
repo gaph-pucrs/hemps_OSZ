@@ -262,30 +262,23 @@ begin
 
             if response_param_reg.hermesService=IO_DELIVERY_SERVICE then
 
-                -- = F1 (2)
-                -- hermes_data_out <= k1 XOR k2
-                -- = F2 (3)
-                -- hermes_data out <= appID XOR k2
-                if header_flit=PACKET_SIZE_FLIT then
+                if header_flit=PACKET_SIZE_FLIT_HI+1 then
                     hermes_data_out <= conv_std_logic_vector(DEFAULT_WORDS_PER_DELIVERY + 11, hermes_data_out'length);
+                
+                elsif header_flit=F1_FLIT then
+                    hermes_data_out <= tableIn.key1 xor tableIn.key2;
+                
+                elsif header_flit=F2_FLIT then
+                    hermes_data_out <= response_param_reg.appId xor tableIn.key2;
 
-                elsif header_flit=SERVICE_FLIT then
+                elsif header_flit=SERVICE_FLIT_HI then
                     hermes_data_out <= IO_DELIVERY_SERVICE(TAM_WORD-1 downto TAM_FLIT);
 
-                elsif header_flit=SERVICE_FLIT+1 then
+                elsif header_flit=SERVICE_FLIT_HI+1 then
                     hermes_data_out <= IO_DELIVERY_SERVICE(TAM_FLIT-1 downto 0);
 
-                elsif header_flit=IO_DELIVERY_SERVICE_PERPH_ID_FLIT then
-                    hermes_data_out <= NI_ID;
-
-                elsif header_flit=IO_DELIVERY_SERVICE_TASK_ID_FLIT then
-                    hermes_data_out <= response_param_reg.appId; -- using task granularity for now
-
-                elsif header_flit=IO_DELIVERY_SERVICE_PE_SRC_FLIT then
+                elsif header_flit=PACKET_SOURCE_FLIT then
                     hermes_data_out <= response_param_reg.source;
-
-                elsif header_flit=IO_DELIVERY_SERVICE_PAYLD_SZ_FLIT then
-                    hermes_data_out <= conv_std_logic_vector(DEFAULT_WORDS_PER_DELIVERY, hermes_data_out'length);
 
                 else
                     hermes_data_out <= x"0000";
@@ -293,22 +286,22 @@ begin
 
             elsif response_param_reg.hermesService=IO_ACK_SERVICE then
 
-                if header_flit=PACKET_SIZE_FLIT then
+                if header_flit=PACKET_SIZE_FLIT_HI+1 then
                     hermes_data_out <= conv_std_logic_vector(11, hermes_data_out'length);
+
+                elsif header_flit=F1_FLIT then
+                    hermes_data_out <= tableIn.key1 xor tableIn.key2;
                 
-                elsif header_flit=SERVICE_FLIT then
+                elsif header_flit=F2_FLIT then
+                    hermes_data_out <= response_param_reg.appId xor tableIn.key2;
+                
+                elsif header_flit=SERVICE_FLIT_HI then
                     hermes_data_out <= IO_ACK_SERVICE(TAM_WORD-1 downto TAM_FLIT);
                 
-                elsif header_flit=SERVICE_FLIT+1 then
+                elsif header_flit=SERVICE_FLIT_HI+1 then
                     hermes_data_out <= IO_ACK_SERVICE(TAM_FLIT-1 downto 0);
 
-                elsif header_flit=IO_ACK_SERVICE_TASK_ID_FLIT then
-                    hermes_data_out <= response_param_reg.appId;
-
-                elsif header_flit=IO_ACK_SERVICE_PERPH_ID_FLIT then
-                    hermes_data_out <= NI_ID;
-
-                elsif header_flit=IO_ACK_SERVICE_PE_SRC_FLIT then
+                elsif header_flit=PACKET_SOURCE_FLIT then
                     hermes_data_out <= response_param_reg.source;
 
                 else

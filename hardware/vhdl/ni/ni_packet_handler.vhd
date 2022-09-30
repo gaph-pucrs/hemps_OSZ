@@ -78,17 +78,47 @@ architecture ni_packet_handler of ni_packet_handler is
 
     signal changing_stage   : std_logic;
 
-    ---------------------------
-    -- PACKET INFO REGISTERS --
-    ---------------------------
+    ---------------
+    -- REGISTERS --
+    ---------------
 
     -- flit counters:
 
     signal routing_header_flit  : integer range 0 to XY_HEADER_SIZE;
-    signal header_flit          : integer range 0 to HEADER_SIZE;
+    signal header_flit          : integer range 0 to DYNAMIC_HEADER_SIZE;
     signal path_flit            : intN_pathIndex;
 
     -- registers:
+
+    signal packet_target        : regflit;
+    signal packet_target_valid  : std_logic;
+
+    signal f1                   : regflit;
+    signal f1_valid             : std_logic;
+
+    signal f2                   : regflit;
+    signal f2_valid             : std_logic;
+
+    signal hermes_service       : regword;
+    signal hermes_service_valid : std_logic;
+    alias  hermes_service_hi    : regflit is hermes_service(TAM_WORD-1 downto TAM_FLIT);
+    alias  hermes_service_lo    : regflit is hermes_service(TAM_FLIT-1 downto 0);
+
+    signal k1                   : regN_keyPeriph;
+    signal k1_valid             : std_logic;
+
+    signal k2                   : regN_keyPeriph;
+    signal k2_valid             : std_logic;
+
+    signal packet_source        : regflit;
+    signal packet_source_valid  : std_logic;
+
+    -- only set at the begining of times:
+
+    signal k0                   : regN_keyPeriph;
+    signal k0_valid             : std_logic;
+
+    -- decoded from registers:
 
     signal app_id               : regN_appID;
     signal app_id_valid         : std_logic;
@@ -96,22 +126,8 @@ architecture ni_packet_handler of ni_packet_handler is
     signal crypto_tag           : regN_appID;
     signal crypto_tag_valid     : std_logic;
 
-    signal key_periph           : regN_keyPeriph;
-    signal key_periph_valid     : std_logic;
-
-    signal burst_size           : regN_burstSize;
-    signal burst_size_valid     : std_logic;
-
-    signal hermes_service       : regword;
-    signal hermes_service_valid : std_logic;
-    alias  hermes_service_hi    : regflit is hermes_service(TAM_WORD-1 downto TAM_FLIT);
-    alias  hermes_service_lo    : regflit is hermes_service(TAM_FLIT-1 downto 0);
-
-    signal packet_source        : regflit;
-    signal packet_source_valid  : std_logic;
-
-    signal packet_target        : regflit;
-    signal packet_target_valid  : std_logic;
+    signal crypto_tag2          : regN_appID;
+    signal crypto_tag2_valid    : std_logic;
 
     ---------------------
     -- CONTROL SIGNALS --
@@ -145,14 +161,15 @@ architecture ni_packet_handler of ni_packet_handler is
         fetchPlaintext      : std_logic;
         fetchCrypto         : std_logic;
         fetchExistingSlot   : std_logic;
+        noTableAccess       : std_logic;
         tagAvailable        : std_logic;
         slotAvailable       : std_logic;
         accessFailed        : std_logic;
         enableWriting       : std_logic;
         enablePathWriting   : std_logic;
         saveAppId           : std_logic;
-        saveKeyPeriph       : std_logic;
-        saveBurstSize       : std_logic;
+        saveKey1            : std_logic;
+        saveKey2            : std_logic;
     end record;
 
     signal tableControl : TableControlSignals;
@@ -329,7 +346,7 @@ begin
                         next_table_state <= EXIT_STAGE;
                     end if;
                     
-                elsif tableControl.accessFailed='1' then
+                elsif tableControl.accessFailed='1' or tableControl.noTableAccess='1' then
                     next_table_state <= EXIT_STAGE;
                 else
                     next_table_state <= CHECK_TABLE_SLOT;
@@ -470,52 +487,52 @@ begin
     GetPacketInfo: process(clock, reset)
     begin
         if reset='1' then
-            
-            app_id                  <= (others => '0');
-            app_id_valid            <= '0';
-            
-            crypto_tag              <= (others => '0');
-            crypto_tag_valid        <= '0';
-            
-            key_periph              <= (others => '0');
-            key_periph_valid        <= '0';
-            
-            burst_size              <= (others => '0');
-            burst_size_valid        <= '0';
-            
-            hermes_service          <= (others => '0');
-            hermes_service_valid    <= '0';
-
-            packet_source           <= (others => '0');
-            packet_source_valid     <= '0';
 
             packet_target           <= (others => '0');
             packet_target_valid     <= '0';
+
+            f1                      <= (others => '0');
+            f1_valid                <= '0';
+        
+            f2                      <= (others => '0');
+            f2_valid                <= '0';
+        
+            hermes_service          <= (others => '0');
+            hermes_service_valid    <= '0';
+
+            k1                      <= (others => '0');
+            k1_valid                <= '0';
+        
+            k2                      <= (others => '0');
+            k2_valid                <= '0';
+
+            packet_source           <= (others => '0');
+            packet_source_valid     <= '0';
 
         elsif rising_edge(clock) then
 
             if end_of_handling='1' then
 
-                app_id                  <= (others => '0');
-                app_id_valid            <= '0';
-                
-                crypto_tag              <= (others => '0');
-                crypto_tag_valid        <= '0';
-                
-                key_periph              <= (others => '0');
-                key_periph_valid        <= '0';
-                
-                burst_size              <= (others => '0');
-                burst_size_valid        <= '0';
-                
-                hermes_service          <= (others => '0');
-                hermes_service_valid    <= '0';
-            
-                packet_source           <= (others => '0');
-                packet_source_valid     <= '0';
-
                 packet_target           <= (others => '0');
                 packet_target_valid     <= '0';
+
+                f1                      <= (others => '0');
+                f1_valid                <= '0';
+        
+                f2                      <= (others => '0');
+                f2_valid                <= '0';
+        
+                hermes_service          <= (others => '0');
+                hermes_service_valid    <= '0';
+
+                k1                      <= (others => '0');
+                k1_valid                <= '0';
+        
+                k2                      <= (others => '0');
+                k2_valid                <= '0';
+
+                packet_source           <= (others => '0');
+                packet_source_valid     <= '0';
             
             ---- HERMES PACKET HEADER (FIXED AND ROUTING) ----
 
@@ -530,86 +547,31 @@ begin
 
             elsif hermesControl.receivingHeader='1' and hermesControl.receivingRoutingHeader='0' and hermesControl.acceptingFlit='1' then
 
-                if header_flit = SERVICE_FLIT then
+                if header_flit = F1_FLIT then
+                    f1 <= hermes_data_in;
+                    f1_valid <= '1';
+                    
+                elsif header_flit = F2_FLIT then
+                    f2 <= hermes_data_in;
+                    f2_valid <= '1';
+                
+                elsif header_flit = SERVICE_FLIT_HI then
                     hermes_service_hi <= hermes_data_in;
-                elsif header_flit = SERVICE_FLIT+1 then
+                elsif header_flit = SERVICE_FLIT_HI+1 then
                     hermes_service_lo <= hermes_data_in;
                     hermes_service_valid <= '1';
-                else
-
-                    -- Initialize NI -- 
-                    -- receber k0
-
-                    -- Key Evolve --
                     
-                    ---- CONFIG_PERIPHERAL ----
+                elsif header_flit = K1_FLIT then
+                    k1 <= hermes_data_in;
+                    k1_valid <= '1';
 
-                    if hermes_service = CONFIG_PERIPH_SERVICE then
-
-                        if header_flit = CONFIG_PERIPH_SERVICE_APPID_FLIT then
-                            app_id <= hermes_data_in(APPID_SIZE-1 downto 0);
-                            app_id_valid <= '1';
-                        elsif header_flit = CONFIG_PERIPH_SERVICE_KEYP_FLIT then
-                            key_periph <= hermes_data_in(KEYPERIPH_SIZE-1 downto 0);
-                            -- key_periph 2
-                            key_periph_valid <= '1';
-                        end if;
-
-                    end if;
-
-                    ---- SET_PATH ----
-
-                    if hermes_service = SET_PATH_SERVICE then
-
-                        if header_flit = SET_PATH_SERVICE_APPID_FLIT then
-                            app_id <= hermes_data_in(APPID_SIZE-1 downto 0);
-                            app_id_valid <= '1';
-                        end if;
-
-                    end if;
-
-                    ---- REQUEST_PERIPHERAL ----
-
-                    if hermes_service = REQUEST_PERIPH_SERVICE then
-
-                        if header_flit = REQUEST_PERIPH_SERVICE_APPID_FLIT then
-                            crypto_tag <= hermes_data_in(APPID_SIZE-1 downto 0);
-                            crypto_tag_valid <= '1';
-                        elsif header_flit = REQUEST_PERIPH_SERVICE_BSIZE_FLIT then
-                            burst_size <= hermes_data_in(BSIZE_SIZE-1 downto 0);
-                            burst_size_valid <= '1';
-                        end if;
-
-                    end if;
-
-                    ---- IO_REQUEST ----
-
-                    if hermes_service = IO_REQUEST_SERVICE then
-
-                        if header_flit = IO_REQUEST_SERVICE_APPID_FLIT then
-                            crypto_tag <= hermes_data_in(APPID_SIZE-1 downto 0);
-                            crypto_tag_valid <= '1';
-                        elsif header_flit = IO_REQUEST_SERVICE_PE_SRC_FLIT then
-                            packet_source <= hermes_data_in;
-                            packet_source_valid <= '1';
-                        end if;
-
-                    end if;
-
-                    ---- IO_DELIVERY ----
-
-                    if hermes_service = IO_DELIVERY_SERVICE then
-
-                        if header_flit = IO_DELIVERY_SERVICE_PERPH_ID_FLIT then
-                            crypto_tag <= hermes_data_in(APPID_SIZE-1 downto 0);
-                            crypto_tag_valid <= '1';
-                        elsif header_flit = IO_DELIVERY_SERVICE_PE_SRC_FLIT then
-                            packet_source <= hermes_data_in;
-                            packet_source_valid <= '1';
-                        end if;
-
-                    end if;
-
+                elsif header_flit = K2_FLIT then
+                    k2 <= hermes_data_in;
+                    k2_valid <= '1';
+                
+                elsif header_flit = PACKET_SOURCE_FLIT then
+                    packet_source <= hermes_data_in;
+                    packet_source_valid <= '1';
                 end if;
 
             end if;
@@ -630,6 +592,28 @@ begin
         end if;
     end process;
 
+    KeyZeroRegister: process(clock, reset)
+    begin
+        if reset='1' then
+            k0 <= (others => '0');
+            k0_valid <= '0';
+        elsif rising_edge(clock) then
+            if hermes_service_valid='1' and hermes_service=IO_INIT_SERVICE and k0_valid='0' and f2_valid='1' then
+                k0 <= f2;
+                k0_valid <= '1';
+            end if;
+        end if;
+    end process;
+
+    app_id <= f2 xor k0;
+    app_id_valid <= '1' when hermes_service_valid='1' and hermes_service=IO_CONFIG_SERVICE and f2_valid='1' else '0';
+
+    crypto_tag <= f2;
+    crypto_tag_valid <= '1' when hermes_service_valid='1' and (hermes_service=IO_REQUEST_SERVICE or hermes_service=IO_DELIVERY_SERVICE) and f2_valid='1' else '0';
+
+    crypto_tag2 <= f1;
+    crypto_tag2_valid <= '1' when hermes_service_valid='1' and (hermes_service=IO_REQUEST_SERVICE or hermes_service=IO_DELIVERY_SERVICE) and f1_valid='1' else '0';
+
     ---------------------
     -- TABLE INTERFACE --
     ---------------------
@@ -642,6 +626,7 @@ begin
     tableOut.crypto     <= tableControl.fetchCrypto;
 
     tableOut.tag        <= crypto_tag when tableControl.fetchCrypto='1' else app_id;
+    tableOut.tagAux     <= crypto_tag2;
 
     tableOut.clearSlot  <= '0';
     
@@ -650,14 +635,11 @@ begin
     tableOut.appId_w        <= app_id;
     tableOut.appId_wen      <= tableControl.enableWriting and tableControl.saveAppId;
 
-    tableOut.key1_w         <= key_periph;
-    tableOut.key1_wen       <= tableControl.enableWriting and tableControl.saveKeyPeriph;
+    tableOut.key1_w         <= k1;
+    tableOut.key1_wen       <= tableControl.enableWriting and tableControl.saveKey1;
 
-    tableOut.key2_w         <= key_periph;
-    tableOut.key2_wen       <= tableControl.enableWriting and tableControl.saveKeyPeriph;
-
-    tableOut.burstSize_w    <= burst_size;
-    tableOut.burstSize_wen  <= tableControl.enableWriting and  tableControl.saveBurstSize;
+    tableOut.key2_w         <= k2;
+    tableOut.key2_wen       <= tableControl.enableWriting and tableControl.saveKey2;
 
     -- write path
 
@@ -680,8 +662,8 @@ begin
     hermesControl.request       <= hermes_rx;
     hermesControl.acceptingFlit <= hermes_rx and hermes_credit_out;
 
-    hermesControl.payloadIsPath <= '1' when hermes_service_valid='1'    and (hermes_service=CONFIG_PERIPH_SERVICE or hermes_service=SET_PATH_SERVICE)   else '0';
-    hermesControl.payloadIsData <= '1' when hermes_service_valid='1'    and (hermes_service=IO_DELIVERY_SERVICE)                                        else '0';
+    hermesControl.payloadIsPath <= '1' when hermes_service_valid='1'    and (hermes_service=IO_CONFIG_SERVICE)                                  else '0';
+    hermesControl.payloadIsData <= '1' when hermes_service_valid='1'    and (hermes_service=IO_DELIVERY_SERVICE)                                else '0';
 
     hermesControl.receivingHeader   <= '1' when stage=START_RECEPTION   and (start_rx_state=WAIT_REQUEST or start_rx_state=PARSE_HERMES_HEADER) else '0';
     hermesControl.receivingPath     <= '1' when stage=ACCESS_TABLE      and (table_state=SAVE_PATH)                                             else '0';
@@ -722,15 +704,15 @@ begin
 
     -- table control signals
 
-    tableControl.fetchNewSlot   <= '1' when hermes_service_valid='1'    and (hermes_service=CONFIG_PERIPH_SERVICE)  else '0';
-    tableControl.fetchPlaintext <= '1' when hermes_service_valid='1'    and (hermes_service=SET_PATH_SERVICE)       else '0';
-    tableControl.fetchCrypto    <= '1' when hermes_service_valid='1'    and (
-        hermes_service=REQUEST_PERIPH_SERVICE or hermes_service=IO_REQUEST_SERVICE or hermes_service=IO_DELIVERY_SERVICE
-    ) else '0';
+    tableControl.fetchPlaintext <= '0';
+    tableControl.fetchCrypto    <= '1' when hermes_service_valid='1'    and (hermes_service=IO_REQUEST_SERVICE or hermes_service=IO_DELIVERY_SERVICE)   else '0';
+    tableControl.fetchNewSlot   <= '1' when hermes_service_valid='1'    and (hermes_service=IO_CONFIG_SERVICE)                                          else '0';
 
     tableControl.fetchExistingSlot <= tableControl.fetchPlaintext or tableControl.fetchCrypto;
+
+    tableControl.noTableAccess <= not (tableControl.fetchPlaintext or tableControl.fetchCrypto or tableControl.fetchNewSlot);
     
-    tableControl.tagAvailable <= (tableControl.fetchPlaintext and app_id_valid) or (tableControl.fetchCrypto and crypto_tag_valid);
+    tableControl.tagAvailable <= (tableControl.fetchPlaintext and app_id_valid) or (tableControl.fetchCrypto and crypto_tag_valid and crypto_tag2_valid);
 
     tableControl.slotAvailable <= tableIn.ready;
     tableControl.accessFailed <= tableIn.fail;
@@ -738,17 +720,16 @@ begin
     tableControl.enableWriting      <= '1' when stage=ACCESS_TABLE  and (table_state=WRITE_TABLE)   else '0';
     tableControl.enablePathWriting  <= '1' when stage=ACCESS_TABLE  and (table_state=SAVE_PATH)     else '0';
 
-    tableControl.saveAppId      <= '1' when hermes_service_valid='1'    and (hermes_service=CONFIG_PERIPH_SERVICE)  else '0';
-    tableControl.saveKeyPeriph  <= '1' when hermes_service_valid='1'    and (hermes_service=CONFIG_PERIPH_SERVICE)  else '0';
-    tableControl.saveBurstSize  <= '1' when hermes_service_valid='1'    and (hermes_service=REQUEST_PERIPH_SERVICE) else '0';
+    tableControl.saveAppId  <= '1' when hermes_service_valid='1'    and (hermes_service=IO_CONFIG_SERVICE)  else '0';
+    tableControl.saveKey1   <= '1' when hermes_service_valid='1'    and (hermes_service=IO_CONFIG_SERVICE)  else '0';
+    tableControl.saveKey2   <= '1' when hermes_service_valid='1'    and (hermes_service=IO_CONFIG_SERVICE)  else '0';
 
     -- other control signals
 
     unknown_service <= '0' when hermes_service_valid='1' and
     (
-        hermes_service=CONFIG_PERIPH_SERVICE or
-        hermes_service=SET_PATH_SERVICE or
-        hermes_service=REQUEST_PERIPH_SERVICE or
+        hermes_service=IO_INIT_SERVICE or
+        hermes_service=IO_CONFIG_SERVICE or
         hermes_service=IO_REQUEST_SERVICE or
         hermes_service=IO_DELIVERY_SERVICE
     ) else '1';
@@ -757,7 +738,7 @@ begin
 
     response_necessary <= '1' when hermes_service_valid='1' and (hermes_service=IO_REQUEST_SERVICE or hermes_service=IO_DELIVERY_SERVICE) else '0';
 
-    data_to_write_on_table <= tableControl.saveAppId or tableControl.saveKeyPeriph or tableControl.saveBurstSize;
+    data_to_write_on_table <= tableControl.saveAppId or tableControl.saveKey1 or tableControl.saveKey2;
 
     end_of_handling <= '1' when next_stage=START_RECEPTION and changing_stage='1' else '0';
 

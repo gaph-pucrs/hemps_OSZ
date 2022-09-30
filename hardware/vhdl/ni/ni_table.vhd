@@ -26,7 +26,6 @@ architecture ni_table of ni_table is
 
     type column_appId       is array(TABLE_SIZE-1 downto 0) of regN_appID;
     type column_keyPeriph   is array(TABLE_SIZE-1 downto 0) of regN_keyPeriph;
-    type column_burstSize   is array(TABLE_SIZE-1 downto 0) of regN_burstSize;
     type column_pathSize    is array(TABLE_SIZE-1 downto 0) of intN_pathSize;
     type column_path        is array(TABLE_SIZE-1 downto 0) of regN_path;
 
@@ -34,7 +33,6 @@ architecture ni_table of ni_table is
         app_id      : column_appId;
         key1        : column_keyPeriph;
         key2        : column_keyPeriph;
-        burst_size  : column_burstSize;
         path_size   : column_pathSize;
         path        : column_path;
         used        : std_logic_vector(TABLE_SIZE-1 downto 0);
@@ -183,12 +181,8 @@ begin
     ----------------
 
     match_regular   <= nor (tableIn.tag xor table.app_id(slot));
-    match_crypto    <= nor (tableIn.tag xor table.app_id(slot) xor table.key2(slot)); -- 
     match_new       <= not (table.used(slot));
-    
-    -- match_crypto    <= '1' when ((tableIn.tag xor table.key1(slot)) xor tableIn.tag2) == table.app_id(slot) else
-    --                    '0';
-
+    match_crypto    <= '1' when (tableIn.tagAux xor table.key1(slot) xor tableIn.tag) = table.app_id(slot) else '0';
 
     match <=    match_regular   when state = FETCHING else
                 match_crypto    when state = FETCHING_CRYPTO else
@@ -217,7 +211,6 @@ begin
     tableOut.appId      <= table.app_id(slot)       when read_enable='1' else (others => '0');
     tableOut.key1       <= table.key1(slot)         when read_enable='1' else (others => '0');
     tableOut.key2       <= table.key2(slot)         when read_enable='1' else (others => '0');
-    tableOut.burstSize  <= table.burst_size(slot)   when read_enable='1' else (others => '0');
     tableOut.pathSize   <= table.path_size(slot)    when read_enable='1' else 0;
 
     tableOut.pathFlit   <= table.path(slot)(tableIn.pathFlit_idx) when read_enable='1' else (others => '0');
@@ -235,7 +228,6 @@ begin
             table.app_id        <= (others => (others => '0'));
             table.key1          <= (others => (others => '0'));
             table.key2          <= (others => (others => '0'));
-            table.burst_size    <= (others => (others => '0'));
             table.path_size     <= (others => 0);
             table.path          <= (others => (others => (others => '0')));
 
@@ -245,7 +237,6 @@ begin
                 table.app_id(slot)      <= (others => '0');
                 table.key1(slot)        <= (others => '0');
                 table.key2(slot)        <= (others => '0');
-                table.burst_size(slot)  <= (others => '0');
                 table.path_size(slot)   <= 0;
                 table.path(slot)        <= (others => (others => '0'));
             else
@@ -259,10 +250,6 @@ begin
 
                 if tableIn.key2_wen='1' then
                     table.key2(slot) <= tableIn.key2_w;
-                end if;
-
-                if tableIn.burstSize_wen='1' then
-                    table.burst_size(slot) <= tableIn.burstSize_w;
                 end if;
 
                 if tableIn.pathSize_wen='1' then
@@ -333,7 +320,6 @@ begin
     secondaryOut.appId      <= table.app_id(read_only_slot);
     secondaryOut.key1       <= table.key1(read_only_slot);
     secondaryOut.key2       <= table.key2(read_only_slot);
-    secondaryOut.burstSize  <= table.burst_size(read_only_slot);
     secondaryOut.pathSize   <= table.path_size(read_only_slot);
     secondaryOut.pathFlit   <= table.path(read_only_slot)(secondaryIn.pathFlit_idx);
     
