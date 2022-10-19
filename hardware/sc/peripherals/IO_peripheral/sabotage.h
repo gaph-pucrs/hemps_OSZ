@@ -17,11 +17,12 @@
 
 #include <systemc.h>
 #include "../../standards.h"
+#include "sabotage_param.h"
 
-#define T_START 100000//33500
-#define T_END 120000//48000
+#define T_START	T_START_PARAM	//33500
+#define T_END	T_END_PARAM		//48000
 
-#define PERIOD 500
+#define PERIOD 	PERIOD_PARAM
 
 
 SC_MODULE(sabotage) {

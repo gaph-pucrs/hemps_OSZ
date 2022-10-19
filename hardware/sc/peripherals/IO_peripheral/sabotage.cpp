@@ -13,6 +13,7 @@
 //---------------------------------------------------------------------------------------
 
 #include "sabotage.h"
+#include "sabotage_param.h"
 
 ///////////////////////////////////////////////////
 
@@ -131,16 +132,16 @@ void sabotage::out_proc_FSM(){
                     if (aux_cont_p == 0){
                         header_size = 26;
 
-                        buffer_out_flit[0] =  0x0083; //header  Source: 0203 (usando 12 bits)
-                        buffer_out_flit[1] =  0x0301; //header 
-                        buffer_out_flit[2] =  0X0083; //header  Source: 0203 (usando 12 bits)
-                        buffer_out_flit[3] =  0x0301; //header
-                        buffer_out_flit[4] = 0;                     //size
-                        buffer_out_flit[5] = (11+2);                //header size + 2 de"payload"
-                        buffer_out_flit[6] = 0;                     //service
-                        buffer_out_flit[7] = 0X25;                  //service
-                        buffer_out_flit[8] = 0;                     //consumer ID
-                        buffer_out_flit[9] = reg_task_ID;           //consumer ID
+                        buffer_out_flit[0] = HEADER_FIX_HI; 
+                        buffer_out_flit[1] = HEADER_FIX_LO; 
+                        buffer_out_flit[2] = HEADER_ROUT_HI; 
+                        buffer_out_flit[3] = HEADER_ROUT_LO; 
+                        buffer_out_flit[4] = 0;                     //size (hi)
+                        buffer_out_flit[5] = (11+2);                //size (lo) = header size + 2 de "payload"
+                        buffer_out_flit[6] = F1_FLIT;
+                        buffer_out_flit[7] = F2_FLIT;
+                        buffer_out_flit[8] = 0;                     //service (hi)
+                        buffer_out_flit[9] = SERVICE_FLIT;
                         buffer_out_flit[10] = 0;                    //producer ID
                         buffer_out_flit[11] = reg_peripheral_ID;    //producer ID
                         buffer_out_flit[12] = 0;                    //source_PE
