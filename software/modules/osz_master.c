@@ -29,6 +29,15 @@ int get_k0(int proc_addr){
     return k0table[(proc_addr>>8)][(proc_addr & 0xff)];
 }
 
+int get_NI_k0(int periphID){
+    int i;
+    for (i = 0; i < IO_NUMBER; i++)
+        if (io_info[i].peripheral_id == periphID)
+            break;
+    
+    return k0NItable[i];
+}
+
 ////////////////////////////////////////////
 void init_Secure_Zone(){
     int i;

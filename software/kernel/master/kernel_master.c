@@ -102,6 +102,68 @@ void send_authenticate_pe(int proc_addr, int k0){
 
 }
 
+void send_authenticate_nip(int periphID, int k0){
+	
+	ServiceHeader *p = get_service_header_slot();
+
+	p->service = k0;
+
+	p->io_service = IO_INIT;
+
+	send_packet_io(p, 0, 0, periphID);
+
+	while (MemoryRead(DMNI_SEND_ACTIVE));
+
+}
+
+void send_io_config(Application* app, int appID_rand, int turns){
+
+	ServiceHeader *p;
+	SourceRoutingTableSlot sr;
+	static int usedIO[IO_NUMBER];
+	int k0;
+	long unsigned int pathSR = 0;
+
+	// appID_rand = 0x00007782;
+	// turns = 0x00000704;
+
+	puts("AppID rand: ");puts(itoh(appID_rand));puts("\n");
+	puts("turns: ");puts(itoh(turns));puts("\n");
+
+	for (int i =0; i<app->tasks_number; i++){
+		puts("TaskID ");puts(itoh(app->tasks[i].id));puts("\n");
+		for(int j =0; j < app->tasks[i].dependences_number; j++){
+			for (int k = 0; k < IO_NUMBER; k++){
+				if(usedIO[k] == app->tasks[i].dependences[j].flits)
+					break;
+				if(usedIO[k] == 0){
+					puts("----Enviando conf para: ");puts(itoa(app->tasks[i].dependences[j].flits));puts("\n");
+					usedIO[k] = app->tasks[i].dependences[j].flits;
+					k0 = get_NI_k0(usedIO[k]);
+					pathSR = IOtoAPmaster(usedIO[k], app->ap.address_go, app->ap.port_go);
+					ProcessTurnsPointer(pathSR & 0xffffFFFF,
+  										pathSR >> 32 & 0xffffFFFF,
+  										pathSR >> 64 & 0xffffFFFF,
+										&sr);
+					p = get_service_header_slot();
+					p->header[MAX_SOURCE_ROUTING_PATH_SIZE-1] = app->tasks[i].allocated_proc;
+
+					p->service = (appID_rand ^ k0);
+
+					p->io_service = IO_SR_PATH;
+
+					p->k0 = 0x6e6bf8ed; // Dividir em 2 HI e LO, pq tem 32
+					
+					send_packet_io(p, &sr.path[0], sr.path_size, usedIO[k]);
+					break;
+				}
+					
+			}
+		}			
+	}
+}
+
+
 /** Assembles and sends a TASK_ALLOCATION packet to a slave kernel
  *  \param new_t The NewTask instance
  */
@@ -146,6 +208,8 @@ void send_task_release(Application * app){
 	appID_rand = 0x00007782;
 	turns = 0x00000704;
 
+	app->appID_random = 0x00007782;
+	app->nTurns = 0x00000704;
 	puts("AppID rand: ");puts(itoh(appID_rand));puts("\n");
 	puts("turns: ");puts(itoh(turns));puts("\n");
 
@@ -184,6 +248,9 @@ void send_task_release(Application * app){
 	//putsv("\n -> send TASK_RELEASE to task ", p->task_ID);
 	//puts(" in proc "); puts(itoh(p->header[MAX_SOURCE_ROUTING_PATH_SIZE-1])); puts("\n----\n");
 	}
+	
+	// send_io_config(app, appID_rand, turns);
+
 	if(flag == 0)
 		app->status = RUNNING;
 
@@ -755,7 +822,7 @@ void initialize_slaves(){
 			send_authenticate_pe(proc_address,k0rand);
 			puts("Authenticated PE"); puts(itoh(proc_address));  puts("\n");
 			k0table[i][j] = k0rand;
-			puts("K0: ");  puts(itoh(k0table[i][j]));  puts("\n");
+			// puts("K0: ");  puts(itoh(k0table[i][j]));  puts("\n");
 			k0rand =0;
 		}
 	}
@@ -779,26 +846,17 @@ void initialize_slaves(){
 void initialize_IO(){ 	// TODO  peripheral recieve k0
 
 	int i =0, k0rand;
-	ServiceHeader *p = get_service_header_slot();
-
-	p->service = IO_INIT;
-
-	p->requesting_processor = get_net_address();
-
-	// p->task_ID = consumer_task;
-
-	// p->peripheral_ID = peripheralID;
-
-	//add_msg_request(p->header[MAX_SOURCE_ROUTING_PATH_SIZE-1], consumer_task, peripheral_ID); //caimi: arrumar header
 
 	// TODO  peripheral recieve k0
 	for(i=0;i<IO_NUMBER;i++){
 		while(k0rand == 0 || k0rand == 0xffff)
 			k0rand = (MemoryRead(TICK_COUNTER) & 0xffff);
 
+		send_authenticate_nip(io_info[i].peripheral_id,k0rand);
+
 		puts("Authenticated NI"); puts(itoh(i));  puts("\n");
 		k0NItable[i] = k0rand;
-		puts("K0: ");  puts(itoh(k0NItable[i]));  puts("\n");
+		// puts("K0: ");  puts(itoh(k0NItable[i]));  puts("\n");
 		k0rand =0;
 	}
 
@@ -848,7 +906,7 @@ void handle_new_app(int app_ID, volatile unsigned int *ref_address, unsigned int
 	for (int i = 0; i < 16; i++)
 	{
 		GLFSR_next(&glfsr_app);
-		puts("k0 = ");puts(itoh(glfsr_app.data));puts("\n");
+		// puts("k0 = ");puts(itoh(glfsr_app.data));puts("\n");
 
 	}
 	
@@ -1131,7 +1189,9 @@ int SeekInterruptHandler(){
 						//puts("RH_addr: "); puts(itoh(RH_addr)); puts("\n");
 						//puts("LL_addr: "); puts(itoh(LL_addr)); puts("\n");
 						set_RH_Address(app->app_ID, RH_addr);
-						set_AccessPoint(RH_addr, LL_addr, app->ap);
+						set_AccessPoint(RH_addr, LL_addr, &app->ap);
+						send_io_config(app, app->appID_random, app->nTurns);
+
 						//get_Secure_Zone_index(RH_addr);
 						puts("SET_SECURE_ZONE at time: "); puts(itoa(MemoryRead(TICK_COUNTER))); puts("\n");
 						//Seek(SET_SECURE_ZONE_SERVICE, (get_Secure_Zone_index(RH_addr)<<16 | get_net_address()), LL_addr, RH_addr);

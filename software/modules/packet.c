@@ -647,7 +647,7 @@ int pathFromIO(long unsigned int bt){
   return inverseBT;
 }
 
-int IOtoAP(int peripheral_id){
+int IOtoAP(int peripheral_id){ // Colocar parametro com o AP addr
   unsigned int my_X_addr, my_Y_addr;
   unsigned int AP_X_addr, AP_Y_addr, port_io, i;
   unsigned int RH_X_addr, RH_Y_addr;
@@ -756,4 +756,121 @@ int IOtoAP(int peripheral_id){
   return bt; 
 
 }
+
+int IOtoAPmaster(int peripheral_id, int ap_addr, int ap_port){ // Colocar parametro com o AP addr
+  unsigned int IO_X_addr, IO_Y_addr;
+  unsigned int AP_X_addr, AP_Y_addr, port_io, i;
+  unsigned int bt1, bt2, bt3, auxPosX, auxPosY;
+  long unsigned int bt = 0;
+  unsigned int shift =0;
+  int medium_X = -1;
+  bt1 = bt2 = bt3 = 0;
+
+  AP_X_addr = (ap_addr & 0xFF00) >> 8;
+  AP_Y_addr = ap_addr & 0x00FF;
+
+  port_io = -1;
+  for(i = 0; i < IO_NUMBER; i++){
+      if(io_info[i].peripheral_id == peripheral_id){
+          IO_X_addr = io_info[i].default_address_x ;
+          IO_Y_addr = io_info[i].default_address_y;
+          port_io = io_info[i].default_port;
+          break;
+      }
+  }
+
+  if (port_io == -1) {
+      puts("[packet]ERROR: peripheral_id not found!\n");
+      return -1;
+  }
+
+  switch (ap_port){
+  case EAST:
+    AP_X_addr++;
+    break;
+  case WEST:
+    AP_X_addr--;
+    break;
+  case NORTH:
+    AP_Y_addr++;
+    break;
+  case SOUTH:
+    AP_Y_addr--;
+    break;
+  default:
+    puts("ERROR[packet.c]: Invalid port IO");
+    break;
+  }
+
+  auxPosX = IO_X_addr;
+  auxPosY = IO_Y_addr;
+
+  if(AP_X_addr < IO_X_addr){  // SPECIFIC for IO on top row and GA on only one side
+    while (AP_X_addr < auxPosX){
+      bt = bt | (0x1 << shift);
+      shift += 2;
+      auxPosX --;
+    }; 
+  }else if(AP_X_addr > IO_X_addr){
+    while (AP_X_addr > auxPosX){
+      bt = bt | (0x0 << shift);
+      shift += 2;
+      auxPosX --;
+    }; 
+  }
+
+  //Arrived at the GA collumn - Now travel to the AP row
+  //DOWN
+  while (auxPosY > AP_Y_addr)
+  {
+    bt = bt | (0x3 << shift);
+    shift += 2;
+    auxPosY --;
+  };
+
+  // Last hop to enter the SZ
+  switch (ap_port){
+  case EAST:
+    bt = bt | (0x1 << shift);
+    shift += 2;
+    auxPosX --;
+    bt = bt | (0x0 << shift); // Finaliza com porta oposta
+    break;
+  case WEST:
+    bt = bt | (0x0 << shift);
+    shift += 2;
+    auxPosX ++;
+    bt = bt | (0x1 << shift); // Finaliza com porta oposta
+    break;
+  case NORTH:
+    bt = bt | (0x3 << shift);
+    shift += 2;
+    auxPosY --;
+    bt = bt | (0x2 << shift); // Finaliza com porta oposta
+    break;
+  case SOUTH:
+    bt = bt | (0x2 << shift);
+    shift += 2;
+    auxPosY ++;
+    bt = bt | (0x3 << shift); // Finaliza com porta oposta
+    break;
+  default:
+    puts("ERROR[packet.c]: Invalid port IO final");
+    break;
+  }
+
+    puts("ap_addr ");puts(itoh(ap_addr));puts("\n");
+    puts("aux X: ");puts(itoh(auxPosX));puts("\n");
+    puts("    Y: ");puts(itoh(auxPosY));puts("\n");
+ 
+
+  if (ap_addr == ((auxPosX<<8) + auxPosY))
+    return bt; 
+  else{
+    puts("ERROR[packet.c] - Path not constructed correctly");
+    return -1;
+  }
+}
+
+
 #endif

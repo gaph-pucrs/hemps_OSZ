@@ -64,6 +64,7 @@ lfsr_t glfsr_d0;
 lfsr_t glfsr_c0;
 lfsr_t glfsr_app;
 unsigned int k0, k1, k2;
+unsigned int KappID;
 
 Message waitingMessages[10];
 
@@ -560,27 +561,27 @@ int Syscall(unsigned int service, unsigned int arg0, unsigned int arg1, unsigned
   							auxBT >> 64 & 0xffffFFFF,
 							(PER_X_addr << 8) | PER_Y_addr,
 							positionAP);
+						// // puts("--slot_adjust: ");puts(itoa(slotSR)); puts("\n");
+						// auxBT = pathFromIO(auxBT);
+						// //auxBT = IOtoAP(arg1);
+						// puts("-- enviando caminho:");puts(itoh(auxBT)); puts("\n");
+						// slotSR = GetFreeSlotSourceRouting(get_net_address());
+						// // puts("--slot: ");puts(itoa(slotSR)); puts("\n");
+						// SR_Table[slotSR].target = get_net_address();
+    					// SR_Table[slotSR].tableSlotStatus = SR_USADO;
+						// slotSR = ProcessTurns(
+						// 	auxBT & 0xffffFFFF,
+  						// 	auxBT >> 32 & 0xffffFFFF,
+  						// 	auxBT >> 64 & 0xffffFFFF);
+						// send_peripheral_SR_path(slotSR, arg1, current->secure, producer_task);
 						// puts("--slot_adjust: ");puts(itoa(slotSR)); puts("\n");
-						auxBT = pathFromIO(auxBT);
-						//auxBT = IOtoAP(arg1);
-						puts("-- enviando caminho:");puts(itoh(auxBT)); puts("\n");
-						slotSR = GetFreeSlotSourceRouting(get_net_address());
-						// puts("--slot: ");puts(itoa(slotSR)); puts("\n");
-						SR_Table[slotSR].target = get_net_address();
-    					SR_Table[slotSR].tableSlotStatus = SR_USADO;
-						slotSR = ProcessTurns(
-							auxBT & 0xffffFFFF,
-  							auxBT >> 32 & 0xffffFFFF,
-  							auxBT >> 64 & 0xffffFFFF);
-						send_peripheral_SR_path(slotSR, arg1, current->secure, producer_task);
-						puts("--slot_adjust: ");puts(itoa(slotSR)); puts("\n");
-						ClearSlotSourceRouting(get_net_address());
+						// ClearSlotSourceRouting(get_net_address());
 					}
 				break;
 				}
 			}
 			#endif
-			send_message_io(producer_task, arg1, msg_read, current->secure);
+			send_message_io_key(producer_task, arg1, msg_read, current->secure, ((k1 ^ k2) << 16) | (k2 ^ KappID));
 
 			current->scheduling_ptr->status = WAITING;
 
@@ -619,27 +620,28 @@ int Syscall(unsigned int service, unsigned int arg0, unsigned int arg1, unsigned
   							auxBT >> 64 & 0xffffFFFF,
 							(PER_X_addr << 8) | PER_Y_addr,
 							positionAP);
+						// // puts("--slot_adjust: ");puts(itoa(slotSR)); puts("\n");
+						// auxBT = pathFromIO(auxBT);
+						// //auxBT = IOtoAP(arg1);((k1 ^ k2) << 8) | (k2 ^ MemoryRead(APP_ID_REG)));
+
+						// puts("-- enviando caminho:");puts(itoh(auxBT)); puts("\n");
+						// slotSR = GetFreeSlotSourceRouting(get_net_address());
+						// // puts("--slot: ");puts(itoa(slotSR)); puts("\n");
+						// SR_Table[slotSR].target = get_net_address();
+    					// SR_Table[slotSR].tableSlotStatus = SR_USADO;
+						// slotSR = ProcessTurns(
+						// 	auxBT & 0xffffFFFF,
+  						// 	auxBT >> 32 & 0xffffFFFF,
+  						// 	auxBT >> 64 & 0xffffFFFF);
+						// send_peripheral_SR_path(slotSR, arg1, current->secure, consumer_task);
 						// puts("--slot_adjust: ");puts(itoa(slotSR)); puts("\n");
-						auxBT = pathFromIO(auxBT);
-						//auxBT = IOtoAP(arg1);
-						puts("-- enviando caminho:");puts(itoh(auxBT)); puts("\n");
-						slotSR = GetFreeSlotSourceRouting(get_net_address());
-						// puts("--slot: ");puts(itoa(slotSR)); puts("\n");
-						SR_Table[slotSR].target = get_net_address();
-    					SR_Table[slotSR].tableSlotStatus = SR_USADO;
-						slotSR = ProcessTurns(
-							auxBT & 0xffffFFFF,
-  							auxBT >> 32 & 0xffffFFFF,
-  							auxBT >> 64 & 0xffffFFFF);
-						send_peripheral_SR_path(slotSR, arg1, current->secure, consumer_task);
-						puts("--slot_adjust: ");puts(itoa(slotSR)); puts("\n");
-						ClearSlotSourceRouting(get_net_address());
+						// ClearSlotSourceRouting(get_net_address());
 					}
 				break;
 				}
 			}
 			#endif
-			send_io_request(arg1, consumer_task, net_address, current->secure);
+			send_io_request_key(arg1, consumer_task, net_address, current->secure, ((k1 ^ k2) << 16) |  (k2 ^ KappID));
 
 
 			//Sets task as waiting blocking its execution, it will execute again when the message is produced by a WRITEPIPE or incoming MSG_DELIVERY
@@ -920,7 +922,8 @@ int handle_packet(volatile ServiceHeader * p) {
 		// puts("source:");puts(itoh(p->source_PE)); puts("\n");
 		// puts("length:");puts(itoh(p->msg_lenght)); puts("\n");
 
-		tcb_ptr = searchTCB(p->producer_task);
+		tcb_ptr = get_tcb_index_ptr(1);
+		// tcb_ptr = searchTCB(p->producer_task);
 		//puts("tcb_ptr:");puts(itoh(tcb_ptr)); puts("\n");
 
 		// puts("Status scheduler antes:");puts(itoh(tcb_ptr->scheduling_ptr->status)); puts("\n");
@@ -1032,17 +1035,17 @@ int handle_packet(volatile ServiceHeader * p) {
 		}
 		
 	#else
-		tcb_ptr = searchTCB(p->consumer_task);
+		tcb_ptr = get_tcb_index_ptr(0);
+		// puts("tcb_ptr:");puts(itoa(tcb_ptr->id)); puts("\n");
+
+		// tcb_ptr = searchTCB(p->consumer_task);
 		//puts("tcb_ptr:");puts(itoh(tcb_ptr)); puts("\n");
 
 		msg_ptr = (Message *)(tcb_ptr->offset | tcb_ptr->reg[3]);
 
 		msg_ptr->length = p->msg_lenght;
 
-
-		//puts("\n\nMESSAGE_DELIVERY Received \nproc:");puts(itoh(p->source_PE));puts("\n");
-		//puts("consumer_task:");puts(itoh( p->consumer_task));puts("\n");
-		//puts("p->producer_task:");puts(itoh(p->producer_task));puts("\n");
+		puts("msg length:");puts(itoh(msg_ptr->length));puts("\n");
 
 		
 		if(DMNI_read_data((unsigned int)msg_ptr->msg, msg_ptr->length) == -1){
@@ -1218,7 +1221,7 @@ int handle_packet(volatile ServiceHeader * p) {
 		//tcb_ptr->secure = p->secure;
 
 		puts("TASK_RELEASE F1 e F2: ");puts(itoh(p->k0));puts("\n");
-		int KappID = p->k0 ^ k0; // Decrypt LO
+		KappID = p->k0 ^ k0; // Decrypt LO
 		int nt1, nt2;
 		nt1 = (KappID & 0xffff) >> 8; // Get turns
 		nt2 = (KappID & 0xff);	
@@ -1378,6 +1381,13 @@ int handle_packet(volatile ServiceHeader * p) {
 	#endif
 
 	default:
+		if (p->service == ((k1 ^ k2) << 16) | (KappID ^ k2)){
+			puts("IO packet authenticated\n");
+			p->service = p->io_service;
+			handle_packet(p);
+			break;
+		}
+
 			puts("ERROR: service unknown ");puts(itoh(p->service)); puts("\n");
 			putsv("Time: ", MemoryRead(TICK_COUNTER));
 			puts("header:");puts(itoh(p->header[MAX_SOURCE_ROUTING_PATH_SIZE-1])); puts("\n");
@@ -1468,7 +1478,8 @@ int SeekInterruptHandler(){
 	ServiceHeader* auxService = 0;
 	int task_loc;
 	static prevTUS = -1;
-	
+	static int rcvdACK =0;
+
 	switch(service){
 		case TARGET_UNREACHABLE_SERVICE:
 			puts("Received TARGET_UNREACHABLE_SERVICE\n");
@@ -1830,12 +1841,53 @@ int SeekInterruptHandler(){
 			return aux;
 		break;
 
-		case BR_TO_APPID_SERVICE: // Expand here to flexible AccessPoit configuration
-			puts("Received BR_TO_APPID_SERVICE");
-			
-			puts(itoa(source & 0xffff)); puts ("\n"); // Location of the AP	
-			puts(itoa(payload)); puts ("\n");	// Port of the AP
-			break;
+// 		case BR_TO_APPID_SERVICE: // Expand here to flexible AccessPoit configuration
+// 			puts("Received BR_TO_APPID_SERVICE");
+// 			puts("payload: ")puts(itoa(payload)); puts ("\n");	// Port of the AP
+
+
+// 			/*
+// 			switch (payload)
+// 			{
+// 			case 00: //00 - AP information
+// 				puts("Received AP information\n");
+// 				break.
+// 			case 01: //01 - FREEZE IO
+// 				// freezeIO;
+// 				puts("Received Prepare Key\n");
+// 				Seek(KEY_ACK, ((MemoryRead(TICK_COUNTER)<<16) | (get_net_address()&0xffff)), (unsigned int)MemoryRead(APP_ID_REG), 0); // Send Freeze IO	
+// 				break;
+// 			case 02: //02 - KEY EVOLVE
+// 				nturns =  source >> 16;
+// 				k1 = 
+// 				k2 = 
+// 				UnfreezeIO
+// 				break;
+// 			default:
+// 				break;
+// 			}
+// '			*/
+// 		break;
+
+// 		case RENEW_KEY:
+// 			puts("Received RENEW_KEY");
+// 			puts("payload: ")puts(itoa(payload)); puts ("\n");	// Port of the AP
+
+// 			// Seek(BR_TO_APPID_SERVICE, ((MemoryRead(TICK_COUNTER)<<16) | (get_net_address()&0xffff)), (unsigned int)MemoryRead(APP_ID_REG), 02); // Send Freeze IO	
+// 		break;
+// 		case KEY_ACK:
+		
+// 				// 	case 03: //01 - KEY ACK
+// 				// rcvdACK++
+// 				// if (rcvdACK == numtasks)
+// 				// 	nturns = (MemoryRead(TICK_COUNTER) & 0x0F0F); // LO == turns pra k1 e k2	 (4 bits cada pra n ficar mto)
+// 				// 	n = nturns >>8;
+// 				// 	p = nturns & 0xf;
+// 				// 	k1 =
+// 				// 	k2 = 
+// 				// 	Seek(BR_TO_APPID_SERVICE, ((nturns<<16) | (get_net_address()&0xffff)), (unsigned int)MemoryRead(APP_ID_REG), 04); // Send Freeze IO
+// 				// break;
+// 		break;	
 
 		case UNFREEZE_TASK_SERVICE: //enviado pelo Mastre WARD do cluster
 			puts("Received UNFREEZE_TASK_SERVICE"); puts("\n");

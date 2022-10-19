@@ -48,7 +48,7 @@ architecture ni_packet_handler of ni_packet_handler is
     signal start_rx_state           : StartReceptionStateType;
     signal next_start_rx_state      : StartReceptionStateType;
 
-    type AccessTableStateType       is (CHECK_TABLE_SLOT, WRITE_TABLE, SAVE_PATH, EXIT_STAGE);
+    type AccessTableStateType       is (CHECK_TABLE_SLOT, WRITE_TABLE, SAVE_PATH,SAVE_EXTRA_PATH, EXIT_STAGE);
     signal table_state              : AccessTableStateType;
     signal next_table_state         : AccessTableStateType;
 
@@ -363,11 +363,19 @@ begin
             when SAVE_PATH =>
 
                 if hermesControl.receivedEndOfPacket='1' or (hermesControl.endOfPacket='1' and hermesControl.acceptingFlit='1') then
-                    next_table_state <= EXIT_STAGE;
+                    if hermes_data_in = x"7EEE" then
+                        next_table_state <= EXIT_STAGE;
+                    else
+                        next_table_state <= SAVE_EXTRA_PATH;
+                    end if;
                 else
                     next_table_state <= SAVE_PATH;
                 end if;
             
+            when SAVE_EXTRA_PATH =>
+
+                next_table_state <= EXIT_STAGE;
+
             when EXIT_STAGE =>
             
                 next_table_state <= EXIT_STAGE;
@@ -646,7 +654,8 @@ begin
     tableOut.pathSize_w     <= path_flit;
     tableOut.pathSize_wen   <= tableControl.enablePathWriting;
 
-    tableOut.pathFlit_w     <= hermes_data_in;
+    tableOut.pathFlit_w     <= x"7EEE" when table_state=SAVE_EXTRA_PATH else
+                               hermes_data_in;
     tableOut.pathFlit_wen   <= tableControl.enablePathWriting;
     tableOut.pathFlit_idx   <= path_flit;
 
@@ -666,7 +675,7 @@ begin
     hermesControl.payloadIsData <= '1' when hermes_service_valid='1'    and (hermes_service=IO_DELIVERY_SERVICE)                                else '0';
 
     hermesControl.receivingHeader   <= '1' when stage=START_RECEPTION   and (start_rx_state=WAIT_REQUEST or start_rx_state=PARSE_HERMES_HEADER) else '0';
-    hermesControl.receivingPath     <= '1' when stage=ACCESS_TABLE      and (table_state=SAVE_PATH)                                             else '0';
+    hermesControl.receivingPath     <= '1' when stage=ACCESS_TABLE      and (table_state=SAVE_PATH or table_state=SAVE_EXTRA_PATH)              else '0';
     hermesControl.receivingData     <= '1' when stage=RECEIVE_DATA      and (data_state=CONSUME_DATA_FLIT)                                      else '0';
     hermesControl.droppingPackage   <= '1' when stage=FINISH_RECEPTION  and (finish_rx_state=DROP_FLIT)                                         else '0';
 
@@ -718,7 +727,7 @@ begin
     tableControl.accessFailed <= tableIn.fail;
 
     tableControl.enableWriting      <= '1' when stage=ACCESS_TABLE  and (table_state=WRITE_TABLE)   else '0';
-    tableControl.enablePathWriting  <= '1' when stage=ACCESS_TABLE  and (table_state=SAVE_PATH)     else '0';
+    tableControl.enablePathWriting  <= '1' when stage=ACCESS_TABLE  and (table_state=SAVE_PATH or table_state=SAVE_EXTRA_PATH)     else '0';
 
     tableControl.saveAppId  <= '1' when hermes_service_valid='1'    and (hermes_service=IO_CONFIG_SERVICE)  else '0';
     tableControl.saveKey1   <= '1' when hermes_service_valid='1'    and (hermes_service=IO_CONFIG_SERVICE)  else '0';

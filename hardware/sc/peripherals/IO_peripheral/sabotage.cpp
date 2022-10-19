@@ -110,6 +110,7 @@ void sabotage::out_proc_FSM(){
         tx_primary.write(false);
         flit_out_counter = 0;
         aux_cont = 0;
+        aux_cont_p = PERIOD;
         last_cont = 0;
         EA_out.write(S_WAIT_REQ);
         for(int i=0;i<BUFFER_OUT_PERIPHERAL;i++) {
@@ -121,33 +122,41 @@ void sabotage::out_proc_FSM(){
     }
     else{
         aux_cont = aux_cont  + 1;
+        if (aux_cont_p > 0){
+            aux_cont_p = aux_cont_p -1;
+        }
         switch(EA_out.read()){
 			case S_WAIT_REQ:
-                if((aux_cont > 33500) && (aux_cont < 48000)){
-                    buffer_out_flit[0] =  0x0083; //header  Source: 0203 (usando 12 bits)
-                    buffer_out_flit[1] =  0x0100; //header 
-                    buffer_out_flit[2] =  0X0083; //header  Source: 0203 (usando 12 bits)
-                    buffer_out_flit[3] =  0x0100; //header
-	                buffer_out_flit[4] = 0;                     //size
-	                buffer_out_flit[5] = (11+2);                //header size + 2 de"payload"
-	                buffer_out_flit[6] = 0;                     //service
-	                buffer_out_flit[7] = 0X25;                  //service
-	                buffer_out_flit[8] = 0;                     //consumer ID
-	                buffer_out_flit[9] = reg_task_ID;           //consumer ID
-	                buffer_out_flit[10] = 0;                    //producer ID
-	                buffer_out_flit[11] = reg_peripheral_ID;    //producer ID
-	                buffer_out_flit[12] = 0;                    //source_PE
-	                buffer_out_flit[13] = reg_header;           //source_PE
-	                buffer_out_flit[18] = 0;                    //msg_lenght
-	                buffer_out_flit[19] = 2;                    //msg_lenght (32 bits)
-	                packet_size = buffer_out_flit[19];
+                if((aux_cont > T_START) && (aux_cont < T_END)){
+                    if (aux_cont_p == 0){
+                        header_size = 26;
 
-	                data_out_primary.write(buffer_out_flit[0]);
-                	tx_primary.write(true);
-                	if(credit_i_primary.read() == true){
-                	    EA_out.write(S_SEND_HEADER);
-                	    flit_out_counter = flit_out_counter + 1;        
-                	}
+                        buffer_out_flit[0] =  0x0083; //header  Source: 0203 (usando 12 bits)
+                        buffer_out_flit[1] =  0x0301; //header 
+                        buffer_out_flit[2] =  0X0083; //header  Source: 0203 (usando 12 bits)
+                        buffer_out_flit[3] =  0x0301; //header
+                        buffer_out_flit[4] = 0;                     //size
+                        buffer_out_flit[5] = (11+2);                //header size + 2 de"payload"
+                        buffer_out_flit[6] = 0;                     //service
+                        buffer_out_flit[7] = 0X25;                  //service
+                        buffer_out_flit[8] = 0;                     //consumer ID
+                        buffer_out_flit[9] = reg_task_ID;           //consumer ID
+                        buffer_out_flit[10] = 0;                    //producer ID
+                        buffer_out_flit[11] = reg_peripheral_ID;    //producer ID
+                        buffer_out_flit[12] = 0;                    //source_PE
+                        buffer_out_flit[13] = reg_header;           //source_PE
+                        buffer_out_flit[18] = 0;                    //msg_lenght
+                        buffer_out_flit[19] = 2;                    //msg_lenght (32 bits)
+                        packet_size = buffer_out_flit[19];
+
+                        data_out_primary.write(buffer_out_flit[0]);
+                        tx_primary.write(true);
+                        if(credit_i_primary.read() == true){
+                            EA_out.write(S_SEND_HEADER);
+                            aux_cont_p = PERIOD;
+                            flit_out_counter = flit_out_counter + 1;        
+                        }
+                    }
 				}	
 		
 			break;
@@ -157,7 +166,7 @@ void sabotage::out_proc_FSM(){
 					if(credit_i_primary.read() == true){
 						data_out_primary.write(buffer_out_flit[flit_out_counter]);
 						flit_out_counter = flit_out_counter + 1; 
-						if(flit_out_counter == 26){
+                        if(flit_out_counter == header_size){
 							if(packet_size == 0){  
 								EA_out.write(S_SEND_EOP);
 								eop_out_primary.write(true);
@@ -173,13 +182,12 @@ void sabotage::out_proc_FSM(){
 						tx_primary.write(false);
 					}
 
-			break;
-
+            break;
             case S_SEND_PAYLOAD:                                
                     if(credit_i_primary.read() == true){
                         data_out_primary.write(buffer_out_flit[flit_out_counter+26]);
                         flit_out_counter = flit_out_counter + 1; 
-                        if(flit_out_counter == (packet_size*2)-1){
+                        if(flit_out_counter == (packet_size*2)){
                             EA_out.write(S_SEND_EOP);
                             eop_out_primary.write(true);
                             flit_out_counter = 0;   

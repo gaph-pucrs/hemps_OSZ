@@ -111,9 +111,9 @@ void insert_CM_FIFO(volatile ServiceHeader *p, unsigned int initial_address, uns
 		break;
 
 		default:
-			puts("\nERROR: control message NOT treat in CM_FIFO structure\n");
-			//while(1);
-			puts(itoh(p->service)); puts("\n");
+			// puts("\nERROR: control message NOT treat in CM_FIFO structure\n");
+			// //while(1);
+			// puts(itoh(p->service)); puts("\n");
 		break;
 
 	}

@@ -82,6 +82,9 @@ package seek_pkg is
     constant    SET_AP_SERVICE                          : std_logic_vector(TAM_SERVICE_SEEK-1 downto 0) := "100001";
     constant    MSG_DELIVERY_CONTROL                    : std_logic_vector(TAM_SERVICE_SEEK-1 downto 0) := "100010";
     constant    MSG_REQUEST_CONTROL                     : std_logic_vector(TAM_SERVICE_SEEK-1 downto 0) := "100011";
+    constant    RENEW_KEY                               : std_logic_vector(TAM_SERVICE_SEEK-1 downto 0) := "100100";
+    constant    KEY_ACK                                 : std_logic_vector(TAM_SERVICE_SEEK-1 downto 0) := "100101";
+
 
 	subtype		regNtarget								is std_logic_vector((TARGET_SIZE-1) downto 0);
 	subtype		regNsource								is std_logic_vector((SOURCE_SIZE-1) downto 0);

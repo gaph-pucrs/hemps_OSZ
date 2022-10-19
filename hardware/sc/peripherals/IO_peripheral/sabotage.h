@@ -18,6 +18,12 @@
 #include <systemc.h>
 #include "../../standards.h"
 
+#define T_START 100000//33500
+#define T_END 120000//48000
+
+#define PERIOD 500
+
+
 SC_MODULE(sabotage) {
 	sc_in<bool> clock;
 	sc_in<bool> reset;
@@ -69,6 +75,7 @@ SC_MODULE(sabotage) {
 	sc_signal<FSM_out> EA_out;
 
 	reg32 aux_cont;
+	reg32 aux_cont_p;
 	reg32 last_cont;
 
 	regflit buffer_in_flit[BUFFER_IN_PERIPHERAL];
@@ -86,6 +93,9 @@ SC_MODULE(sabotage) {
 	reg8 flit_in_counter;
 	reg8 flit_out_counter;
 	reg32 packet_size;
+  	reg8  header_size;
+  	reg32 payload_size;
+
 
 	void out_proc_FSM();
 	void in_proc_FSM();

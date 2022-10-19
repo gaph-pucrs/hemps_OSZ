@@ -691,9 +691,13 @@ process(EA_manager, req_task , source_table, service_table, target_table, payloa
 					PE_manager <= INIT_CLEAR;
 				elsif (int_in_ack_router_seek(LOCAL) = '1'  and  service_table(sel) = WARD_SERVICE  ) then
 					PE_manager <= INIT_CLEAR;	
+				elsif (int_in_ack_router_seek(LOCAL) = '1'  and  service_table(sel) = RENEW_KEY  ) then
+					PE_manager <= INIT_CLEAR;
+				elsif (int_in_ack_router_seek(LOCAL) = '1'  and  service_table(sel) = KEY_ACK  ) then
+					PE_manager <= INIT_CLEAR;
 				elsif (int_in_ack_router_seek(LOCAL) = '1' ) then
 					PE_manager <= S_INIT;
-					--report "SEND LOCAL: " 
+					--report "SEND LOCAL: "                           
 					--& CONV_STRING_8BITS(source_table(sel)(TARGET_SIZE-1 downto TARGET_SIZE_HALF)) & " " 
 					--& CONV_STRING_8BITS(source_table(sel)(TARGET_SIZE_HALF-1 downto 0)) & " " 
 					--& CONV_STRING_8BITS(target_table(sel)(TARGET_SIZE-1 downto TARGET_SIZE_HALF)) & " " 
