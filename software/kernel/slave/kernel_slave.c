@@ -1045,7 +1045,7 @@ int handle_packet(volatile ServiceHeader * p) {
 
 		msg_ptr->length = p->msg_lenght;
 
-		puts("msg length:");puts(itoh(msg_ptr->length));puts("\n");
+		// puts("msg length:");puts(itoh(msg_ptr->length));puts("\n");
 
 		
 		if(DMNI_read_data((unsigned int)msg_ptr->msg, msg_ptr->length) == -1){
@@ -1477,6 +1477,7 @@ int SeekInterruptHandler(){
 	PipeSlot* tmpSlot;
 	ServiceHeader* auxService = 0;
 	int task_loc;
+	static int prevSetAP = -1;
 	static prevTUS = -1;
 	static int rcvdACK =0;
 
@@ -1561,6 +1562,10 @@ int SeekInterruptHandler(){
 
 		case SET_AP_SERVICE:
 			puts("Received SET_AP_SERVICE"); seek_puts("\n");
+			if ((source == prevSetAP)){ //TUS agora vem com o timestamp no payload para evitar reverberação
+				puts("----repetido\n");
+				break;
+			}			
 			MemoryWrite(K1_REG, k1);
 			MemoryWrite(K2_REG, k2);
 			puts("--source(caller): "); puts(itoh(source)); puts("\n");
@@ -1569,6 +1574,7 @@ int SeekInterruptHandler(){
 			puts("--ApID(port): "); puts(itoh(MemoryRead(APP_ID_REG))); puts("\n");
 
 			MemoryWrite(AP_MASK, (3 << (payload*2))); // Mascarar as duas portas, 01 - E, 23 - W, 45-N, 67-S 
+			prevSetAP = source;
 			Seek(BR_TO_APPID_SERVICE, ((MemoryRead(TICK_COUNTER)<<16) | (get_net_address()&0xffff)), (unsigned int)MemoryRead(APP_ID_REG), payload);
 		break;
 
@@ -1753,6 +1759,7 @@ int SeekInterruptHandler(){
 			if(LOCAL_right_high_corner == aux){
 				seek_puts("clear START_APP service!"); seek_puts("\n");
 				Seek(CLEAR_SERVICE, source, source, payload);
+				Seek(CLEAR_SERVICE, prevSetAP, source, payload);
 			}
 			
 			// aux = unblock_tasks_of_App(payload);
@@ -1841,33 +1848,33 @@ int SeekInterruptHandler(){
 			return aux;
 		break;
 
-// 		case BR_TO_APPID_SERVICE: // Expand here to flexible AccessPoit configuration
-// 			puts("Received BR_TO_APPID_SERVICE");
-// 			puts("payload: ")puts(itoa(payload)); puts ("\n");	// Port of the AP
+		case BR_TO_APPID_SERVICE: // Expand here to flexible AccessPoit configuration
+			puts("Received BR_TO_APPID_SERVICE");
+			puts("payload: ")puts(itoa(payload)); puts ("\n");	// Port of the AP
 
 
-// 			/*
-// 			switch (payload)
-// 			{
-// 			case 00: //00 - AP information
-// 				puts("Received AP information\n");
-// 				break.
-// 			case 01: //01 - FREEZE IO
-// 				// freezeIO;
-// 				puts("Received Prepare Key\n");
-// 				Seek(KEY_ACK, ((MemoryRead(TICK_COUNTER)<<16) | (get_net_address()&0xffff)), (unsigned int)MemoryRead(APP_ID_REG), 0); // Send Freeze IO	
-// 				break;
-// 			case 02: //02 - KEY EVOLVE
-// 				nturns =  source >> 16;
-// 				k1 = 
-// 				k2 = 
-// 				UnfreezeIO
-// 				break;
-// 			default:
-// 				break;
-// 			}
-// '			*/
-// 		break;
+			/*
+			switch (payload)
+			{
+			case 00: //00 - AP information
+				puts("Received AP information\n");
+				break.
+			case 01: //01 - FREEZE IO
+				// freezeIO;
+				puts("Received Prepare Key\n");
+				Seek(KEY_ACK, ((MemoryRead(TICK_COUNTER)<<16) | (get_net_address()&0xffff)), (unsigned int)MemoryRead(APP_ID_REG), 0); // Send Freeze IO	
+				break;
+			case 02: //02 - KEY EVOLVE
+				nturns =  source >> 16;
+				k1 = 
+				k2 = 
+				UnfreezeIO
+				break;
+			default:
+				break;
+			}
+'			*/
+		break;
 
 // 		case RENEW_KEY:
 // 			puts("Received RENEW_KEY");

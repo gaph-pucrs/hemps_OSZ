@@ -135,6 +135,8 @@ begin
 				else
 					counter	:= counter + 1;
 				end if;	
+			elsif (rx = '0') and (credit_o_router = '1') then -- If no transmission 
+				mask_rx <= '1'; -- Reset Mask
 			end if;	
 	
 		end if;

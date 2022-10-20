@@ -188,7 +188,6 @@ Application * read_and_create_application(unsigned int app_id, volatile unsigned
 	Application * app = get_application_ptr(-1);
 
 	app->app_ID = app_id;
-	puts("app->app_ID "); puts(itoa(app->app_ID)); puts("\n");
 
 	app->tasks_number = *(ref_address++);
 

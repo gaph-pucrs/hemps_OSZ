@@ -859,9 +859,9 @@ int IOtoAPmaster(int peripheral_id, int ap_addr, int ap_port){ // Colocar parame
     break;
   }
 
-    puts("ap_addr ");puts(itoh(ap_addr));puts("\n");
-    puts("aux X: ");puts(itoh(auxPosX));puts("\n");
-    puts("    Y: ");puts(itoh(auxPosY));puts("\n");
+    // puts("ap_addr ");puts(itoh(ap_addr));puts("\n");
+    // puts("aux X: ");puts(itoh(auxPosX));puts("\n");
+    // puts("    Y: ");puts(itoh(auxPosY));puts("\n");
  
 
   if (ap_addr == ((auxPosX<<8) + auxPosY))

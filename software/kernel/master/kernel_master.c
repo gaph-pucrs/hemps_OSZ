@@ -114,7 +114,27 @@ void send_authenticate_nip(int periphID, int k0){
 
 	while (MemoryRead(DMNI_SEND_ACTIVE));
 
+	//set open line table 
 }
+
+// // send_open_line
+// {
+// 	int xyPath[] = {0x0083,0x0303}
+// 	puts("----Enviando conf para: ");puts(itoa(app->tasks[i].dependences[j].flits));puts("\n");
+
+// 	p = get_service_header_slot();
+// 	p->header[MAX_SOURCE_ROUTING_PATH_SIZE-1] = app->tasks[i].allocated_proc;
+
+// 	p->service = (appID_rand);// appID sabo
+
+// 	p->io_service = IO_SR_PATH;
+
+// 	p->k0 = 0x0; // Dividir em 2 HI e LO, pq tem 32
+	
+// 	send_packet_io(p, xyPath, 1, usedIO[k]);
+
+// }
+
 
 void send_io_config(Application* app, int appID_rand, int turns){
 
@@ -131,7 +151,7 @@ void send_io_config(Application* app, int appID_rand, int turns){
 	puts("turns: ");puts(itoh(turns));puts("\n");
 
 	for (int i =0; i<app->tasks_number; i++){
-		puts("TaskID ");puts(itoh(app->tasks[i].id));puts("\n");
+		// puts("TaskID ");puts(itoh(app->tasks[i].id));puts("\n");
 		for(int j =0; j < app->tasks[i].dependences_number; j++){
 			for (int k = 0; k < IO_NUMBER; k++){
 				if(usedIO[k] == app->tasks[i].dependences[j].flits)
