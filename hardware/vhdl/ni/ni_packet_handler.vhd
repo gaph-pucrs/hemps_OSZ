@@ -223,7 +223,7 @@ begin
 
             when FINISH_RECEPTION =>
 
-                if response_necessary='1' then
+                if response_necessary='1' and authenticated='1' then
                     next_stage <= RESPOND;
                 else
                     next_stage <= START_RECEPTION;
