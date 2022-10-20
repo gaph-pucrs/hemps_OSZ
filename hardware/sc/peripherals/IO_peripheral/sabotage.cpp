@@ -145,7 +145,7 @@ void sabotage::out_proc_FSM(){
                         buffer_out_flit[10] = 0;                    //producer ID
                         buffer_out_flit[11] = reg_peripheral_ID;    //producer ID
                         buffer_out_flit[12] = 0;                    //source_PE
-                        buffer_out_flit[13] = reg_header;           //source_PE
+                        buffer_out_flit[13] = SOURCE_FLIT;          //source_PE
                         buffer_out_flit[18] = 0;                    //msg_lenght
                         buffer_out_flit[19] = 2;                    //msg_lenght (32 bits)
                         packet_size = buffer_out_flit[19];
