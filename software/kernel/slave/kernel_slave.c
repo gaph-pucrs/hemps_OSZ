@@ -752,6 +752,7 @@ int handle_packet(volatile ServiceHeader * p) {
 	TCB * tcb_ptr = 0;
 
 	need_scheduling = 0;
+	unsigned int trash[MSG_SIZE];
 
 
 		//puts("header:");puts(itoh(p->header[MAX_SOURCE_ROUTING_PATH_SIZE-2])); puts("\n");
@@ -1360,7 +1361,19 @@ int handle_packet(volatile ServiceHeader * p) {
 		
 		break;
 
+	case ATTACK:
 
+	puts("Attack packet recieved: ");
+
+	if(DMNI_read_data((unsigned int)trash, p->msg_lenght) == -1){
+		//received a packet with incomplete payload; discard it
+		MemoryWrite(DMNI_TIMEOUT_SIGNAL,0);
+		puts("payload incompleto...\n");
+	}else{
+		puts("pacote descartado\n");
+	}
+
+	break;
 
 	#if MIGRATION_ENABLED
 		case TASK_MIGRATION:
@@ -1382,8 +1395,9 @@ int handle_packet(volatile ServiceHeader * p) {
 
 	default:
 		if (p->service == ((k1 ^ k2) << 16) | (KappID ^ k2)){
-			puts("IO packet authenticated\n");
+			// puts("IO packet authenticated\n");
 			p->service = p->io_service;
+			// puts("Real service is");puts(itoh(p->service));puts("\n");
 			handle_packet(p);
 			break;
 		}
