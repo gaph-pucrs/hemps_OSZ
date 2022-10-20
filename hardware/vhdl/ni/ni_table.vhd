@@ -180,9 +180,9 @@ begin
     -- FETCH SLOT --
     ----------------
 
-    match_regular   <= nor (tableIn.tag xor table.app_id(slot));
-    match_new       <= not (table.used(slot));
-    match_crypto    <= '1' when (tableIn.tagAux xor table.key1(slot) xor tableIn.tag) = table.app_id(slot) else '0';
+    match_new       <= '1' when table.used(slot)='0'                                                                                    else '0';
+    match_regular   <= '1' when table.used(slot)='1' and (tableIn.tag = table.app_id(slot))                                             else '0';
+    match_crypto    <= '1' when table.used(slot)='1' and ((tableIn.tagAux xor table.key1(slot) xor tableIn.tag) = table.app_id(slot))   else '0';
 
     match <=    match_regular   when state = FETCHING else
                 match_crypto    when state = FETCHING_CRYPTO else
