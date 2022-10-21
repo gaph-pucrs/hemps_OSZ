@@ -221,9 +221,9 @@ void send_task_release(Application * app){
 		app_tasks_location[i] = app->tasks[i].allocated_proc;
 	}
 
-
-	// appID_rand = (MemoryRead(TICK_COUNTER) & 0xFFFF); // HI == appID
-	// turns = (MemoryRead(TICK_COUNTER) & 0x0F0F); // LO == turns pra k1 e k2	 (4 bits cada pra n ficar mto)
+	#ifndef AUTH_PROTOCOL
+	appID_rand = (MemoryRead(TICK_COUNTER) & 0xFFFF); // HI == appID
+	turns = (MemoryRead(TICK_COUNTER) & 0x0F0F); // LO == turns pra k1 e k2	 (4 bits cada pra n ficar mto)
 
 	appID_rand = 0x00007782;
 	turns = 0x00000704;
@@ -232,6 +232,7 @@ void send_task_release(Application * app){
 	app->nTurns = 0x00000704;
 	puts("AppID rand: ");puts(itoh(appID_rand));puts("\n");
 	puts("turns: ");puts(itoh(turns));puts("\n");
+	#endif
 
 	for (int i =0; i<app->tasks_number; i++){
 		if(app->tasks[i].status == REQUESTED){
@@ -249,12 +250,12 @@ void send_task_release(Application * app){
 	
 			p->bss_size = app->tasks[i].bss_size;
 
+			#ifndef AUTH_PROTOCOL
 			kaux = get_k0(app->tasks[i].allocated_proc);
 			p->k0 = ((appID_rand ^ kaux) << 16) | (turns ^ kaux) ; // Dividir em 2 HI e LO, pq tem 32
+			#endif
 
 			p->secure = app->secure;
-
-			//puts("\nsecure: "); puts(itoh(p->secure));
 	
 			if(!proc_is_migrating(app->tasks[i].allocated_proc)){
 				send_packet(p, (unsigned int) app_tasks_location, app->tasks_number);
@@ -265,17 +266,14 @@ void send_task_release(Application * app){
 				flag = 1;
 			}
 		}
-	//putsv("\n -> send TASK_RELEASE to task ", p->task_ID);
-	//puts(" in proc "); puts(itoh(p->header[MAX_SOURCE_ROUTING_PATH_SIZE-1])); puts("\n----\n");
 	}
-	
-	// send_io_config(app, appID_rand, turns);
 
 	if(flag == 0)
 		app->status = RUNNING;
 
 	while(MemoryRead(DMNI_SEND_ACTIVE));
 }
+
 void send_tasks_location(Application * app){
 	int flag = 0;
 	ServiceHeader *p;
@@ -919,7 +917,7 @@ void handle_new_app(int app_ID, volatile unsigned int *ref_address, unsigned int
 	// Key exchange
 	// lfsr_t glfsr_app;
 	// 16-bit	16,15,13,4 = 1101 0000 0000 1000 - 0xD008
-
+	#ifndef AUTH_PROTOCOL
 	lfsr_data_t k0=0x1;
 	GLFSR_init(&glfsr_app, (lfsr_data_t)0xD008, k0);
 
@@ -929,10 +927,10 @@ void handle_new_app(int app_ID, volatile unsigned int *ref_address, unsigned int
 		// puts("k0 = ");puts(itoh(glfsr_app.data));puts("\n");
 
 	}
-	
+	#endif
 	//
 	//INICIO DO PROTOCOLO
-	putsv("#### BEGIN PROTOCOL OVERHEAD - ", MemoryRead(TICK_COUNTER));
+	putsv("#### BEGIN APP DEPLOY OVERHEAD - ", MemoryRead(TICK_COUNTER));
 	//Cuidado com app_descriptor_size muito grande, pode estourar a memoria
 	unsigned int app_descriptor[app_descriptor_size];
 
@@ -1115,6 +1113,7 @@ int SeekInterruptHandler(){
 				putsv("\nThis Master don't have a secure zone with RH Address ", payload);
 			
 			//TEMPO DE RELEASE
+			puts("\n\n*** END APP_DEPLOY"); puts(itoa((MemoryRead(TICK_COUNTER)))); putsv(" RUNNING AT: ", MemoryRead(TICK_COUNTER));
 			puts("\n\n***** APP "); puts(itoa(app_id)); putsv(" RUNNING AT: ", MemoryRead(TICK_COUNTER));
 
 		break;
@@ -1209,9 +1208,10 @@ int SeekInterruptHandler(){
 						//puts("RH_addr: "); puts(itoh(RH_addr)); puts("\n");
 						//puts("LL_addr: "); puts(itoh(LL_addr)); puts("\n");
 						set_RH_Address(app->app_ID, RH_addr);
+						#ifndef AUTH_PROTOCOL
 						set_AccessPoint(RH_addr, LL_addr, &app->ap);
 						send_io_config(app, app->appID_random, app->nTurns);
-
+						#endif
 						//get_Secure_Zone_index(RH_addr);
 						puts("SET_SECURE_ZONE at time: "); puts(itoa(MemoryRead(TICK_COUNTER))); puts("\n");
 						//Seek(SET_SECURE_ZONE_SERVICE, (get_Secure_Zone_index(RH_addr)<<16 | get_net_address()), LL_addr, RH_addr);
@@ -1283,7 +1283,7 @@ int SeekInterruptHandler(){
 
 
 int main() {
-	
+	int auxKey = 0;
 	set_net_address(MemoryRead(NI_CONFIG));
 	//By default HeMPS assumes that GM is positioned at address 0
 	//if ( get_net_address() == 0){
@@ -1331,6 +1331,11 @@ int main() {
 	
 	for (;;) {
 
+		// if((MemoryRead(TICK_COUNTER) > 120000) && (auxKey == 0)){
+		// 	puts("Enviando KEY_Evolve\n");
+		// 	auxKey = 1;
+		// 	Seek(RENEW_KEY, (MemoryRead(TICK_COUNTER) << 16) | get_net_address(), 0x0101, 0);
+		// }
 		//LM looping
 		if (noc_interruption){
 

@@ -768,6 +768,14 @@ void pe::seek_receive(){
 					case 0x23:
 						cout << "MSG_REQUEST_CONTROL";
 						int_seek.write(1);
+					break;	
+					case 0x24:
+						cout << "RENEW_KEY";
+						int_seek.write(1);
+					break;	
+					case 0x25:
+						cout << "KEY_ACK";
+						int_seek.write(1);
 					break;		
 					default:
 						cout << out_service_router_seek_local.read() << " unknown --- ERROR! " ;

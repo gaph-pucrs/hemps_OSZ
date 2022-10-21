@@ -176,6 +176,8 @@ void Seek(unsigned int service, unsigned int source, unsigned int target, unsign
 			case INITIALIZE_SLAVE_SERVICE:
 			case INITIALIZE_CLUSTER_SERVICE:
 			case GMV_READY_SERVICE:
+			case RENEW_KEY:
+			case KEY_ACK:
 				 MemoryWrite(SEEK_OPMODE_REGISTER,GLOBAL_MODE);
 			break;
 
@@ -188,12 +190,12 @@ void Seek(unsigned int service, unsigned int source, unsigned int target, unsign
 			case WARD_SERVICE:
 			case MSG_DELIVERY_CONTROL:
 			case MSG_REQUEST_CONTROL:
+			case BR_TO_APPID_SERVICE:
 				 MemoryWrite(SEEK_OPMODE_REGISTER,RESTRICT_MODE);
 			break;
 
 			default:
 				 MemoryWrite(SEEK_OPMODE_REGISTER,GLOBAL_MODE);
-
 			break;
 		}
 		// Must be last value written because target value fires the seek_send function
