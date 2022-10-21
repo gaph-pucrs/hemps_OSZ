@@ -1,7 +1,6 @@
 hempsroot=/home/gustavo.comaru/hemps_OSZ
 
+iscasdir=$hempsroot/iscas
 simdir=$hempsroot/testcases/iscas_simulations
 
-sh build.sh $1
-cd $simdir
-nohup hemps-run $1.yaml $2 &>> $1.txt & echo $!
+runtime=12 #only for runall.sh
