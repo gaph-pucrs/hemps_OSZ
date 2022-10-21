@@ -67,6 +67,7 @@ unsigned int k0, k1, k2;
 unsigned int KappID;
 
 Message waitingMessages[10];
+int appTasks = 0;
 
 #ifdef AES_MODULE
 	extern unsigned int key_schedule[60];
@@ -1221,7 +1222,8 @@ int handle_packet(volatile ServiceHeader * p) {
 			tcb_ptr->secure = 0;
 		//tcb_ptr->secure = p->secure;
 
-		puts("TASK_RELEASE F1 e F2: ");puts(itoh(p->k0));puts("\n");
+		#ifndef AUTH_PROTOCOL
+		// puts("TASK_RELEASE F1 e F2: ");puts(itoh(p->k0));puts("\n");
 		KappID = p->k0 ^ k0; // Decrypt LO
 		int nt1, nt2;
 		nt1 = (KappID & 0xffff) >> 8; // Get turns
@@ -1247,13 +1249,14 @@ int handle_packet(volatile ServiceHeader * p) {
 		k2 = glfsr_app.data;
 		
 		
-		puts("Recuperação do AppID: ");puts(itoh(KappID));puts("\n");
-		puts("-----k1 = ");puts(itoh(k1));puts("\n");
-		puts("-----k2 = ");puts(itoh(k2));puts("\n");
+		// puts("Recuperação do AppID: ");puts(itoh(KappID));puts("\n");
+		// puts("-----k1 = ");puts(itoh(k1));puts("\n");
+		// puts("-----k2 = ");puts(itoh(k2));puts("\n");
 		MemoryWrite(APP_ID_REG, KappID & 0x3);
-
-
-
+		appTasks = p->app_task_number;
+		// puts("-----numTasks = ");puts(itoh(appTasks));puts("\n");
+		#endif
+		
 		DMNI_read_data( (unsigned int) app_tasks_location, p->app_task_number);
 
 		if (get_task_location(tcb_ptr->id) == -1){
@@ -1494,6 +1497,7 @@ int SeekInterruptHandler(){
 	static int prevSetAP = -1;
 	static prevTUS = -1;
 	static int rcvdACK =0;
+	static unsigned int nTurns, n, p = 0;
 
 	switch(service){
 		case TARGET_UNREACHABLE_SERVICE:
@@ -1589,7 +1593,7 @@ int SeekInterruptHandler(){
 
 			MemoryWrite(AP_MASK, (3 << (payload*2))); // Mascarar as duas portas, 01 - E, 23 - W, 45-N, 67-S 
 			prevSetAP = source;
-			Seek(BR_TO_APPID_SERVICE, ((MemoryRead(TICK_COUNTER)<<16) | (get_net_address()&0xffff)), (unsigned int)MemoryRead(APP_ID_REG), payload);
+			Seek(BR_TO_APPID_SERVICE, ((MemoryRead(TICK_COUNTER)<<16) | (get_net_address()&0xffff)), (unsigned int)MemoryRead(APP_ID_REG), 0);
 		break;
 
 		#ifdef SESSION_MANAGER
@@ -1867,48 +1871,88 @@ int SeekInterruptHandler(){
 			puts("payload: ")puts(itoa(payload)); puts ("\n");	// Port of the AP
 
 
-			/*
 			switch (payload)
 			{
 			case 00: //00 - AP information
 				puts("Received AP information\n");
-				break.
+				break;
 			case 01: //01 - FREEZE IO
 				// freezeIO;
 				puts("Received Prepare Key\n");
-				Seek(KEY_ACK, ((MemoryRead(TICK_COUNTER)<<16) | (get_net_address()&0xffff)), (unsigned int)MemoryRead(APP_ID_REG), 0); // Send Freeze IO	
+				Seek(KEY_ACK, ((MemoryRead(TICK_COUNTER)<<16) | (get_net_address()&0xffff)), (source & 0xffff), 0); // Send Freeze IO	
+				puts("Answered to "); puts(itoh(source & 0xffff));puts("\n");
 				break;
 			case 02: //02 - KEY EVOLVE
-				nturns =  source >> 16;
-				k1 = 
-				k2 = 
-				UnfreezeIO
-				break;
-			default:
-				break;
+				puts("Received Key Evolve\n");
+				if (nTurns == (source >> 16)){
+					puts("Já renovou - repetido\n");
+					break;
+				}
+				nTurns = source >> 16;
+				n = nTurns >>8;
+				p = nTurns & 0xf;
+
+				glfsr_app.data = k2;
+				while (n > 0){
+					GLFSR_next(&glfsr_app);
+					n--;
+				}
+				k1 = glfsr_app.data;
+				
+				while (p > 0){
+					GLFSR_next(&glfsr_app);
+					p--;
+				}
+				k2 = glfsr_app.data;
+
+				puts("Chaves Renovadas: \n")
+				puts("-----k1 = ");puts(itoh(k1));puts("\n");
+				puts("-----k2 = ");puts(itoh(k2));puts("\n");
+				puts("End RENEW: ");puts(itoa(MemoryRead(TICK_COUNTER))); puts ("\n");	// Port of the AP
+			 	break;
 			}
-'			*/
+
 		break;
 
-// 		case RENEW_KEY:
-// 			puts("Received RENEW_KEY");
-// 			puts("payload: ")puts(itoa(payload)); puts ("\n");	// Port of the AP
+		case RENEW_KEY:
+			puts("Received RENEW_KEY");
+			puts("Start: ");puts(itoa(MemoryRead(TICK_COUNTER))); puts ("\n");	// Port of the AP
 
-// 			// Seek(BR_TO_APPID_SERVICE, ((MemoryRead(TICK_COUNTER)<<16) | (get_net_address()&0xffff)), (unsigned int)MemoryRead(APP_ID_REG), 02); // Send Freeze IO	
-// 		break;
-// 		case KEY_ACK:
-		
-// 				// 	case 03: //01 - KEY ACK
-// 				// rcvdACK++
-// 				// if (rcvdACK == numtasks)
-// 				// 	nturns = (MemoryRead(TICK_COUNTER) & 0x0F0F); // LO == turns pra k1 e k2	 (4 bits cada pra n ficar mto)
-// 				// 	n = nturns >>8;
-// 				// 	p = nturns & 0xf;
-// 				// 	k1 =
-// 				// 	k2 = 
-// 				// 	Seek(BR_TO_APPID_SERVICE, ((nturns<<16) | (get_net_address()&0xffff)), (unsigned int)MemoryRead(APP_ID_REG), 04); // Send Freeze IO
-// 				// break;
-// 		break;	
+			Seek(BR_TO_APPID_SERVICE, ((MemoryRead(TICK_COUNTER)<<16) | (get_net_address()&0xffff)), (unsigned int)MemoryRead(APP_ID_REG), 01); // Send Freeze IO
+
+		break;
+
+		case KEY_ACK:
+				rcvdACK++;
+				puts("Received KEY_ACK: ");puts(itoa(rcvdACK)); puts ("\n");
+
+				if (rcvdACK == appTasks){
+					nTurns = (MemoryRead(TICK_COUNTER) & 0x0F0F); // LO == turns pra k1 e k2	 (4 bits cada pra n ficar mto)
+					n = nTurns >>8;
+					p = nTurns & 0xf;
+
+					Seek(BR_TO_APPID_SERVICE, ((nTurns<<16) | (get_net_address()&0xffff)), (unsigned int)MemoryRead(APP_ID_REG), 02); // Send Freeze IO
+
+					glfsr_app.data = k2;
+					while (n > 0){
+						GLFSR_next(&glfsr_app);
+						n--;
+					}
+					k1 = glfsr_app.data;
+					
+					while (p > 0){
+						GLFSR_next(&glfsr_app);
+						p--;
+					}
+					k2 = glfsr_app.data;
+
+					puts("Chaves Renovadas: \n")
+					puts("-----k1 = ");puts(itoh(k1));puts("\n");
+					puts("-----k2 = ");puts(itoh(k2));puts("\n");
+					puts("End RENEW: ");puts(itoa(MemoryRead(TICK_COUNTER))); puts ("\n");	// Port of the AP
+					// Seek(BR_TO_APPID_SERVICE, ((nturns<<16) | (get_net_address()&0xffff)), (unsigned int)MemoryRead(APP_ID_REG), 02); // Send Freeze IO
+				}
+		break;
 
 		case UNFREEZE_TASK_SERVICE: //enviado pelo Mastre WARD do cluster
 			puts("Received UNFREEZE_TASK_SERVICE"); puts("\n");
