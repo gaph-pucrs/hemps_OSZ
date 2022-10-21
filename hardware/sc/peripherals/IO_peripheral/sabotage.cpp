@@ -231,7 +231,7 @@ void sabotage::out_proc_FSM(){
 				tx_primary.write(false);
 				eop_out_primary.write(false);
 				flit_out_counter = 0;
-                if(last_cont == 220){
+                if(last_cont == 30){
 				    EA_out.write(S_WAIT_REQ);
                     last_cont = 0;
                 }
