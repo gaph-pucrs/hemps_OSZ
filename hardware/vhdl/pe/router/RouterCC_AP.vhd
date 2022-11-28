@@ -40,6 +40,9 @@ port(
 	k2						: in regflit;
 	sz						: in regNport;
 	ap						: in regNport;
+	apThreshold				: in  std_logic_vector(3 downto 0);
+	intAP					: out std_logic;
+
 
 	--Packet blocked by wrapper
 	unreachable				: out regNport;
@@ -68,6 +71,7 @@ architecture RouterCC_AP of RouterCC_AP is
 
 	signal ap_rout					:regNport;
 	signal szCH1					:regNport;
+	signal intAPs				: std_logic_vector(3 downto 0);
 
 begin
 
@@ -160,7 +164,9 @@ begin
 			enable					=> ap(i*2),
 			sz						=> sz(i*2),
 			k1						=> k1,
-			k2						=> k2
+			k2						=> k2,
+			apThreshold 			=> apThreshold,
+			intAP					=> intAPs(i)
 		);
 
 
@@ -181,6 +187,7 @@ begin
 		access_o(i*2+1)	<= sz(i*2+1);
 		ap_rout(i*2+1) <= '0'; -- Indicates that there is no AP in this port
 
+		intAP <= or intAPs;
 
 	end generate ; -- identifier
 end RouterCC_AP;

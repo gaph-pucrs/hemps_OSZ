@@ -64,10 +64,14 @@ lfsr_t glfsr_d0;
 lfsr_t glfsr_c0;
 lfsr_t glfsr_app;
 unsigned int k0, k1, k2;
+unsigned int k1_aux, k2_aux;
 unsigned int KappID;
 
 Message waitingMessages[10];
 int appTasks = 0;
+int freezeIO = 0;
+int pendingIO = 0;
+int APaddress = 0;
 
 #ifdef AES_MODULE
 	extern unsigned int key_schedule[60];
@@ -527,6 +531,12 @@ int Syscall(unsigned int service, unsigned int arg0, unsigned int arg1, unsigned
 				return 0;
 			}
 
+			//FreezeIO - Activated in KeyRenew
+			if(freezeIO == 1){
+				// puts("IO freezado");
+				return 0;
+			}
+
 			producer_task =  current->id;
 
 			// puts("IO - WRITEPIPE - prod: "); puts(itoa(producer_task)); putsv(" consumer ", arg1);
@@ -542,6 +552,9 @@ int Syscall(unsigned int service, unsigned int arg0, unsigned int arg1, unsigned
 			//	schedule_after_syscall = 1;
 			//	return 0;
 			//}
+			if (k1 == 0){
+				send_message_io_key(producer_task, arg1, msg_read, 0,0);
+			}else{
 			#ifdef GRAY_AREA
 			for(i = 0; i < IO_NUMBER; i++){
 				if(io_info[i].peripheral_id == arg1){
@@ -582,7 +595,11 @@ int Syscall(unsigned int service, unsigned int arg0, unsigned int arg1, unsigned
 				}
 			}
 			#endif
-			send_message_io_key(producer_task, arg1, msg_read, current->secure, ((k1 ^ k2) << 16) | (k2 ^ KappID));
+	
+				send_message_io_key(producer_task, arg1, msg_read, current->secure, ((k1 ^ k2) << 16) | (k2 ^ KappID));
+				pendingIO = 1;
+			}
+
 
 			current->scheduling_ptr->status = WAITING;
 
@@ -599,7 +616,15 @@ int Syscall(unsigned int service, unsigned int arg0, unsigned int arg1, unsigned
 				return 0;
 			}
 
+			//FreezeIO - Activated in KeyRenew
+			if(freezeIO == 1){
+				// puts("IO freezado");
+				return 0;
+			}
 			consumer_task =  current->id;
+			if (k1 == 0){
+				send_io_request_key(arg1, consumer_task, net_address, 0, 0);
+			}else{
 			//producer_task = (int) arg1;
 			#ifdef GRAY_AREA
 			for(i = 0; i < IO_NUMBER; i++){
@@ -642,12 +667,14 @@ int Syscall(unsigned int service, unsigned int arg0, unsigned int arg1, unsigned
 				}
 			}
 			#endif
-			send_io_request_key(arg1, consumer_task, net_address, current->secure, ((k1 ^ k2) << 16) |  (k2 ^ KappID));
+			
+			// puts("----->> Send IO ");puts(itoa(MemoryRead(TICK_COUNTER))); puts("\n");
 
-
+				send_io_request_key(arg1, consumer_task, net_address, current->secure, ((k1 ^ k2) << 16) |  (k2 ^ KappID));
+				pendingIO = 1;
+			}
 			//Sets task as waiting blocking its execution, it will execute again when the message is produced by a WRITEPIPE or incoming MSG_DELIVERY
 			current->scheduling_ptr->status = WAITING;
-
 			schedule_after_syscall = 1;
 
 			return 0;
@@ -855,7 +882,7 @@ int handle_packet(volatile ServiceHeader * p) {
 		//MemoryWrite(KERNEL_DEBUG_STATE, 0);
 		#else
 		//Remove msg from PIPE, if there is no message, them slot_ptr will be 0
-		//puts("\n\nMESSAGE_REQUEST Received \nproc:");puts(itoh(p->source_PE));puts("\n");
+		// puts("MESSAGE_REQUEST proc:");puts(itoh(p->source_PE));puts("\n");
 		//puts("consumer_task:");puts(itoh( p->consumer_task));puts("\n");
 		//puts("p->producer_task:");puts(itoh(p->producer_task));puts("\n");
 
@@ -940,16 +967,19 @@ int handle_packet(volatile ServiceHeader * p) {
 
 			} else
 		#endif
-
-		if (current == &idle_tcb){
-			need_scheduling = 1;
-		}			
+		pendingIO = 0;
+		if (freezeIO){
+			puts("Recebeu IO ACK pendente, congelando Comunicação\n");
+			Seek(KEY_ACK, ((MemoryRead(TICK_COUNTER)<<16) | (get_net_address()&0xffff)), APaddress, 0); // Send Freeze IO	
+			puts("Answered to "); puts(itoh(APaddress));puts("\n");
+			break;
+		}		
 		
 	break;
 
 
 	case  IO_DELIVERY:
-		puts("-------->> Chegou IO DELIVERY\n");
+		puts("<<----- IO DELIVERY "); puts(itoa(MemoryRead(TICK_COUNTER)));puts("\n");
 	case  MESSAGE_DELIVERY: //MD_HANDLER
 		tInit = MemoryRead(TICK_COUNTER);
 	#ifdef SESSION_MANAGER 
@@ -1041,7 +1071,7 @@ int handle_packet(volatile ServiceHeader * p) {
 		// puts("tcb_ptr:");puts(itoa(tcb_ptr->id)); puts("\n");
 
 		// tcb_ptr = searchTCB(p->consumer_task);
-		//puts("tcb_ptr:");puts(itoh(tcb_ptr)); puts("\n");
+		// puts("tcb_ptr:");puts(itoh(tcb_ptr)); puts("\n");
 
 		msg_ptr = (Message *)(tcb_ptr->offset | tcb_ptr->reg[3]);
 
@@ -1065,6 +1095,13 @@ int handle_packet(volatile ServiceHeader * p) {
 
 			if(p->service != IO_DELIVERY){
 					remove_msg_request(p->source_PE, p->consumer_task, p->producer_task);
+			}else{
+				pendingIO = 0;
+				if (freezeIO){
+					puts("Recebeu IO ACK pendente, congelando Comunicação\n");
+					Seek(KEY_ACK, ((MemoryRead(TICK_COUNTER)<<16) | (get_net_address()&0xffff)), APaddress, 0); // Send Freeze IO	
+					puts("Answered to "); puts(itoh(APaddress));puts("\n");
+				}	
 			}
 
 			// session_puts("arrival= ");session_puts(itoa(arrivalTime));//session_puts("\n");
@@ -1078,9 +1115,10 @@ int handle_packet(volatile ServiceHeader * p) {
 				} else
 			#endif
 
-			if (current == &idle_tcb){
-				need_scheduling = 1;
-			}			
+			// if (current == &idle_tcb){
+			// 	need_scheduling = 1;
+			// }			
+			need_scheduling = 1;
 		}
 
 	#endif
@@ -1402,6 +1440,7 @@ int handle_packet(volatile ServiceHeader * p) {
 			p->service = p->io_service;
 			// puts("Real service is");puts(itoh(p->service));puts("\n");
 			handle_packet(p);
+			need_scheduling = 1;
 			break;
 		}
 
@@ -1439,17 +1478,18 @@ void Scheduler() {
 	// print_task();
 
 	scheduled = LST(scheduler_call_time);
-
+	// puts("current Status: ");puts(itoh(current->scheduling_ptr->status)); puts("\n");
 	if (scheduled){
 
 		//This cast is an approach to reduce the scheduler call overhead
+		// puts("Task Running\n");
 		current = (TCB *) scheduled->tcb_ptr;
 
 		MemoryWrite(SCHEDULING_REPORT, current->id);
 
 	} else {
 
-		//puts("Idle Task Running\n");
+		// puts("Idle Task Running\n");
 		current = &idle_tcb;	// schedules the idle task
 
 		last_idle_time = MemoryRead(TICK_COUNTER);
@@ -1498,6 +1538,8 @@ int SeekInterruptHandler(){
 	static prevTUS = -1;
 	static int rcvdACK =0;
 	static unsigned int nTurns, n, p = 0;
+	static ackSources[MAX_TASKS_APP];
+	int i, maskAux;
 
 	switch(service){
 		case TARGET_UNREACHABLE_SERVICE:
@@ -1583,17 +1625,21 @@ int SeekInterruptHandler(){
 			if ((source == prevSetAP)){ //TUS agora vem com o timestamp no payload para evitar reverberação
 				puts("----repetido\n");
 				break;
-			}			
+			}	
+			Seek(BR_TO_APPID_SERVICE, ((get_net_address()&0xffff) | (get_net_address()&0xffff)), (unsigned int)MemoryRead(APP_ID_REG), 0);
+		
 			MemoryWrite(K1_REG, k1);
 			MemoryWrite(K2_REG, k2);
+			MemoryWrite(AP_THRESHOLD, AP_THRESHOLD_VALUE);
 			puts("--source(caller): "); puts(itoh(source)); puts("\n");
 			puts("--target(AP addr): "); puts(itoh(target)); puts("\n");
 			puts("--payload(port): "); puts(itoh(payload)); puts("\n");
 			puts("--ApID(port): "); puts(itoh(MemoryRead(APP_ID_REG))); puts("\n");
 
 			MemoryWrite(AP_MASK, (3 << (payload*2))); // Mascarar as duas portas, 01 - E, 23 - W, 45-N, 67-S 
+			// ENABLE IRA_AP - Enable only when setting the AP!
 			prevSetAP = source;
-			Seek(BR_TO_APPID_SERVICE, ((MemoryRead(TICK_COUNTER)<<16) | (get_net_address()&0xffff)), (unsigned int)MemoryRead(APP_ID_REG), 0);
+			Seek(CLEAR_SERVICE, ((get_net_address()&0xffff) | (get_net_address()&0xffff)), 0, 0);
 		break;
 
 		#ifdef SESSION_MANAGER
@@ -1867,25 +1913,29 @@ int SeekInterruptHandler(){
 		break;
 
 		case BR_TO_APPID_SERVICE: // Expand here to flexible AccessPoit configuration
-			puts("Received BR_TO_APPID_SERVICE");
-			puts("payload: ")puts(itoa(payload)); puts ("\n");	// Port of the AP
-
-
+			// puts("Received BR_TO_APPID_SERVICE");
+			// puts("payload: ")puts(itoa(payload)); puts ("\n");	// Port of the AP
+			
 			switch (payload)
 			{
 			case 00: //00 - AP information
-				puts("Received AP information\n");
+				puts("Received AP information (BR_TO_APPID_SERVICE 0)\n");
+				APaddress = source&0xffff;
 				break;
 			case 01: //01 - FREEZE IO
-				// freezeIO;
-				puts("Received Prepare Key\n");
+				puts("Received Prepare Key (BR_TO_APPID_SERVICE 1)\n");
+				freezeIO = 1;
+				if (pendingIO){
+					puts("PendingIO\n");
+					break;
+				}
 				Seek(KEY_ACK, ((MemoryRead(TICK_COUNTER)<<16) | (get_net_address()&0xffff)), (source & 0xffff), 0); // Send Freeze IO	
 				puts("Answered to "); puts(itoh(source & 0xffff));puts("\n");
 				break;
 			case 02: //02 - KEY EVOLVE
-				puts("Received Key Evolve\n");
+				puts("Received Key Evolve (BR_TO_APPID_SERVICE 2)\n");
 				if (nTurns == (source >> 16)){
-					puts("Já renovou - repetido\n");
+					// puts("Já renovou - repetido\n");
 					break;
 				}
 				nTurns = source >> 16;
@@ -1897,25 +1947,26 @@ int SeekInterruptHandler(){
 					GLFSR_next(&glfsr_app);
 					n--;
 				}
-				k1 = glfsr_app.data;
+				k1_aux = glfsr_app.data;
 				
 				while (p > 0){
 					GLFSR_next(&glfsr_app);
 					p--;
 				}
-				k2 = glfsr_app.data;
-
-				puts("Chaves Renovadas: \n")
-				puts("-----k1 = ");puts(itoh(k1));puts("\n");
-				puts("-----k2 = ");puts(itoh(k2));puts("\n");
-				puts("End RENEW: ");puts(itoa(MemoryRead(TICK_COUNTER))); puts ("\n");	// Port of the AP
+				k2_aux = glfsr_app.data;
+				
+				freezeIO = 0;
+				puts("#$#$ Chaves Renovadas  #$#$");puts(itoa(MemoryRead(TICK_COUNTER))); puts ("\n");
+				// puts("-----k1 = ");puts(itoh(k1_aux));puts("\n");
+				// puts("-----k2 = ");puts(itoh(k2_aux));puts("\n");
+				// puts("End RENEW: ");puts(itoa(MemoryRead(TICK_COUNTER))); puts ("\n");	// Port of the AP
 			 	break;
 			}
 
 		break;
 
 		case RENEW_KEY:
-			puts("Received RENEW_KEY");
+			puts("Received RENEW_KEY - Master Request");
 			puts("Start: ");puts(itoa(MemoryRead(TICK_COUNTER))); puts ("\n");	// Port of the AP
 
 			Seek(BR_TO_APPID_SERVICE, ((MemoryRead(TICK_COUNTER)<<16) | (get_net_address()&0xffff)), (unsigned int)MemoryRead(APP_ID_REG), 01); // Send Freeze IO
@@ -1923,10 +1974,22 @@ int SeekInterruptHandler(){
 		break;
 
 		case KEY_ACK:
-				rcvdACK++;
-				puts("Received KEY_ACK: ");puts(itoa(rcvdACK)); puts ("\n");
+				puts("Received KEY_ACK from: ");puts(itoa(rcvdACK));puts(itoh(source&0xffff)); puts ("\n");
 
-				if (rcvdACK == appTasks){
+				for(i=0; i <=rcvdACK; i++){
+					if (source == ackSources[i]){
+						puts("--repetido\n");
+						break;
+					}
+				}
+				if (source == ackSources[i])
+					break;
+
+				rcvdACK++;
+				ackSources[rcvdACK] = source;
+				// puts("acks: ");puts(itoa(rcvdACK)); puts ("\n");
+			
+				if (rcvdACK == (appTasks - 1)){
 					nTurns = (MemoryRead(TICK_COUNTER) & 0x0F0F); // LO == turns pra k1 e k2	 (4 bits cada pra n ficar mto)
 					n = nTurns >>8;
 					p = nTurns & 0xf;
@@ -1938,19 +2001,27 @@ int SeekInterruptHandler(){
 						GLFSR_next(&glfsr_app);
 						n--;
 					}
-					k1 = glfsr_app.data;
+					k1_aux = glfsr_app.data;
 					
 					while (p > 0){
 						GLFSR_next(&glfsr_app);
 						p--;
 					}
-					k2 = glfsr_app.data;
+					k2_aux = glfsr_app.data;
+					freezeIO = 0;
+					rcvdACK=0;
 
-					puts("Chaves Renovadas: \n")
-					puts("-----k1 = ");puts(itoh(k1));puts("\n");
-					puts("-----k2 = ");puts(itoh(k2));puts("\n");
-					puts("End RENEW: ");puts(itoa(MemoryRead(TICK_COUNTER))); puts ("\n");	// Port of the AP
-					// Seek(BR_TO_APPID_SERVICE, ((nturns<<16) | (get_net_address()&0xffff)), (unsigned int)MemoryRead(APP_ID_REG), 02); // Send Freeze IO
+					MemoryWrite(AP_THRESHOLD, 0);
+
+					OS_InterruptMaskSet(IRQ_AP);
+		
+					MemoryWrite(AP_THRESHOLD, AP_THRESHOLD_VALUE);
+					puts("#$#$ Chaves Renovadas  #$#$");puts(itoa(MemoryRead(TICK_COUNTER))); puts ("\n");
+					// puts("-----k1 = ");puts(itoh(k1_aux));puts("\n");
+					// puts("-----k2 = ");puts(itoh(k2_aux));puts("\n");
+					Seek(CLEAR_SERVICE, ((nTurns<<16) | (get_net_address()&0xffff)), 0,0);
+					// puts("End RENEW: ");puts(itoa(MemoryRead(TICK_COUNTER))); puts ("\n");	// Port of the AP
+					// Seek(BR_TO_APPID_SERVICE, ((nTurns<<16) | (get_net_address()&0xffff)), (unsigned int)MemoryRead(APP_ID_REG), 02); // Send Freeze IO
 				}
 		break;
 
@@ -2017,13 +2088,16 @@ void OS_InterruptServiceRoutine(unsigned int status) {
 	volatile ServiceHeader p;
 	ServiceHeader * next_service;
 	unsigned call_scheduler;
-
+	int timeAux;
+	int maskAux;
 	if (current == &idle_tcb){
 		total_slack_time += MemoryRead(TICK_COUNTER) - last_idle_time;
 	}
 
 	call_scheduler = 0;
-
+	auxTime = MemoryRead(TICK_COUNTER);
+		
+	// puts("Interrupt: ");puts(itoh(status));puts(" @ ");puts(itoa(auxTime));puts("\n");
 	if ( status & IRQ_NOC ){
 		auxTime = MemoryRead(TICK_COUNTER);
 		
@@ -2065,6 +2139,21 @@ void OS_InterruptServiceRoutine(unsigned int status) {
 	if ( status & IRQ_SEEK ){
 
 			call_scheduler = SeekInterruptHandler();
+	}
+
+	if ( status & IRQ_AP ){
+		//Primeira coisa: enviar serviço para espaçar do clear
+		
+		OS_InterruptMaskClear(IRQ_AP);
+
+		timeAux = MemoryRead(TICK_COUNTER);
+		Seek(BR_TO_APPID_SERVICE, (timeAux<<16) | (get_net_address()&0xffff), (unsigned int)MemoryRead(APP_ID_REG), 01); // Send Freeze IO
+		// puts("Received RENEW_KEY - Interruption");puts(itoa(MemoryRead(TICK_COUNTER))); puts("\n");
+		// MemoryWrite(AP_THRESHOLD, 0);
+		freezeIO = 1;
+		Seek(CLEAR_SERVICE, ( (timeAux<<16)  | (get_net_address()&0xffff)), 0,0); // Send Freeze IO
+		// MemoryWrite(AP_THRESHOLD, 3);
+		// puts("Start: ");puts(itoa(MemoryRead(TICK_COUNTER))); puts ("\n");	// Port of the AP
 	}
 
 	if (call_scheduler){
@@ -2206,9 +2295,12 @@ int main(){
 
 	/*enables timeslice counter and wrapper interrupts*/
 
+	// DISABLE IRA_AP - Enable only when setting the AP!
+
 	//WARNING: NOT ENABLING this fucking shit of IRQ_SLACK_TIME
 	//by Wachter
-	OS_InterruptMaskSet(IRQ_SEEK | IRQ_SCHEDULER | IRQ_NOC | IRQ_PENDING_SERVICE);
+	OS_InterruptMaskSet(IRQ_SEEK | IRQ_SCHEDULER | IRQ_NOC | IRQ_PENDING_SERVICE | IRQ_AP);
+	// OS_InterruptMaskSet(IRQ_SEEK | IRQ_SCHEDULER | IRQ_NOC | IRQ_PENDING_SERVICE);
 
 	/*runs the scheduled task*/
 	ASM_RunScheduledTask(current);

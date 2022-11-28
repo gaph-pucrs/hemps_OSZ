@@ -31,6 +31,8 @@ public:
     sc_in<regNport > sz;
     sc_in<regNport > ap;
     sc_out<regNport > unreachable;
+	  sc_in < sc_uint <4 > >  	apThreshold;
+    sc_out<bool>              intAP;
 
     
     sc_out<regflit>                 source;
@@ -61,6 +63,8 @@ public:
        k2("k2"),
        sz("sz"),
        ap("ap"),
+       apThreshold("apThreshold"),
+       intAP("intAP"),
        unreachable("unreachable"),
        target("target"),
        source("source"),

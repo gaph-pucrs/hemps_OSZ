@@ -98,6 +98,8 @@
 #define K2_REG                0x20000564
 #define AP_MASK               0x20000568
 #define APP_ID_REG            0x20000570
+#define AP_THRESHOLD          0x20000574
+
 
 
 //Kernel pending service FIFO
@@ -110,7 +112,10 @@
 #define IRQ_SLACK_TIME				0x02 //bit 1
 #define IRQ_SCHEDULER				0x08 //bit 3
 #define IRQ_NOC					 	0x20 //bit 5
+#define IRQ_AP				 	    0x40 //bit 6
 #define IRQ_SEEK				 	0x80 //bit 7
+
+
          
 /*Memory Access*/
 #define MemoryRead(A) (*(volatile unsigned int*)(A))

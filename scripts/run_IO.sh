@@ -1,4 +1,4 @@
-hroot=/sim/faccenda/hemps_OSZ
+hroot=~/hemps_OSZ
 
 scripts=$hroot/scripts
 testcases=$hroot/testcases/IOsemap

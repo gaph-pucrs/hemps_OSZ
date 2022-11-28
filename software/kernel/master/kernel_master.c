@@ -117,24 +117,45 @@ void send_authenticate_nip(int periphID, int k0){
 	//set open line table 
 }
 
-// // send_open_line
-// {
-// 	int xyPath[] = {0x0083,0x0303}
-// 	puts("----Enviando conf para: ");puts(itoa(app->tasks[i].dependences[j].flits));puts("\n");
+// Reserve NI line for commom apps
+void send_io_config_normal(Application* app){
 
-// 	p = get_service_header_slot();
-// 	p->header[MAX_SOURCE_ROUTING_PATH_SIZE-1] = app->tasks[i].allocated_proc;
+	ServiceHeader *p;
+	SourceRoutingTableSlot sr;
+	static int usedIO[IO_NUMBER];
+	int k0;
+	long unsigned int pathSR[2];
 
-// 	p->service = (appID_rand);// appID sabo
+	// appID_rand = 0;
+	// turns = 0x00000000;
 
-// 	p->io_service = IO_SR_PATH;
+	// puts("AppID rand: ");puts(itoh(appID_rand));puts("\n");
+	// puts("turns: ");puts(itoh(turns));puts("\n");
 
-// 	p->k0 = 0x0; // Dividir em 2 HI e LO, pq tem 32
-	
-// 	send_packet_io(p, xyPath, 1, usedIO[k]);
+// #define	start	3 - io1 80 - 0300
+// #define	print	4 - io2 70 - 0100
+	usedIO[0] = 80;
+	usedIO[1] = 70;
+	pathSR[0] = 0x60210300;
+	pathSR[1] = 0x60210100;
 
-// }
+	for (int i =0; i<2; i++){
+		k0 = get_NI_k0(usedIO[i]);
+		sr.path_size=1;
+		sr.path[0]=pathSR[i];
 
+		p = get_service_header_slot();
+		// p->header[MAX_SOURCE_ROUTING_PATH_SIZE-1] = app->tasks[i].allocated_proc;
+
+		p->service = (k0);
+
+		p->io_service = IO_SR_PATH;
+
+		p->k0 = 0; // Dividir em 2 HI e LO, pq tem 32
+		
+		send_packet_io(p, &sr.path[0], sr.path_size, usedIO[i]);
+	}
+}
 
 void send_io_config(Application* app, int appID_rand, int turns){
 
@@ -1217,6 +1238,9 @@ int SeekInterruptHandler(){
 						//Seek(SET_SECURE_ZONE_SERVICE, (get_Secure_Zone_index(RH_addr)<<16 | get_net_address()), LL_addr, RH_addr);
 						//Seek(SET_SECURE_ZONE_SERVICE, (MemoryRead(TICK_COUNTER)<<16 | get_net_address()), LL_addr, RH_addr);
 						Seek(SET_SECURE_ZONE_SERVICE, ((app_id << 24) | ((MemoryRead(TICK_COUNTER) << 16) & 0xFF0000) | get_net_address()), LL_addr, RH_addr);
+					}
+					else{
+						send_io_config_normal(app);
 					}		
 			}
 		break;

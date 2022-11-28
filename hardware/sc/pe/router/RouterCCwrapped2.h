@@ -26,6 +26,8 @@ SC_MODULE(RouterCCwrapped) {
 		sc_in<regflit> 		k2;
 		sc_in<bool > 		ap[NPORT];
 		sc_in<bool > 		sz[NPORT];
+		sc_in<sc_uint<4 > >		apThreshold;
+		sc_out<bool>            intAP;
 
 		sc_out<bool > 		unreachable[NPORT];
 
@@ -47,11 +49,10 @@ SC_MODULE(RouterCCwrapped) {
 		sc_signal<regNport > credit_i_internal;
 		sc_signal<regNport > ap_internal;
 		sc_signal<regNport > sz_internal;
-		sc_signal<regNport > k1_internal;
-		sc_signal<regNport > k2_internal;
 		sc_signal<regNport > unreachable_internal;
 		sc_signal<regNport > access_i_internal;
 		sc_signal<regNport > access_o_internal;
+		sc_signal<bool > intAP_internal;
 
 
 
@@ -71,6 +72,8 @@ SC_MODULE(RouterCCwrapped) {
 		void upd_unreach();
 		void upd_access_i();
 		void upd_access_o();
+		void upd_intAP();
+
 
 		//Traffic monitor
 		sc_in<sc_uint<32 > > tick_counter;
@@ -176,6 +179,8 @@ SC_MODULE(RouterCCwrapped) {
 
 				router->k1(k1);
 				router->k2(k2);
+				router->apThreshold(apThreshold);
+				router->intAP(intAP_internal);
 				// router->ap(ap);
 				router->target(target);
 				router->source(source);
@@ -259,6 +264,9 @@ SC_MODULE(RouterCCwrapped) {
 // 
 			SC_METHOD(upd_eop_out);
 			sensitive << eop_out_internal;
+
+			SC_METHOD(upd_intAP);
+			sensitive << intAP_internal;
 
 
 		}

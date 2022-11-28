@@ -165,7 +165,7 @@ package standards is
 ---------------------------------------------------------
 -- CONSTANT ACCESS POINT
 ---------------------------------------------------------
-        constant SERVICE_F1     : integer := 6; --4;
+        constant SERVICE_F1     : std_logic_vector := "000101"; --5;
         constant SERVICE_F2     : integer := 7; --4;
 
 ---------------------------------------------------------

@@ -49,9 +49,9 @@ int main(){
 			memcpy(msg.msg, pattern, sizeof(pattern));
 			msg.length = SIZE * SIZE;
 			Send(&msg, P[i]);
-			//sprintf(a, "Bank sendedd pattern to task %d", (i+1));
-			//Echo(a);
-			//Echo(itoa(GetTick()));
+			// sprintf(a, "Bank sent pattern to task %d", (i+1));
+			// Echo(a);
+			// Echo(itoa(GetTick()));
 		}
 		//Echo(itoa(GetTick()));
 	}
