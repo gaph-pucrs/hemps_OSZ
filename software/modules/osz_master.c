@@ -603,7 +603,7 @@ int set_AccessPoint(int RH_addr, int LL_addr, AccessPoint* ap){
     }
         
     puts("Found AP address: "); puts(itoh(ap->address_go)); puts("\n");
-    Seek(SET_AP_SERVICE, (ap->address_go << 16) | get_net_address(), ap->address_go, ap->port_go);
+    Seek(SET_AP_SERVICE, ((MemoryRead(TICK_COUNTER)) << 16) | get_net_address(), ap->address_go, ap->port_go);
     return 1;
 
 }

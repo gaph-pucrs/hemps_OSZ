@@ -125,6 +125,7 @@ begin
             brnoc_primary_payload_out   <= (others => '0');
             brnoc_primary_req_out       <= '0';
             brnoc_primary_opmode_out    <= '0';
+            brnoc_primary_ack_out       <= '1';
         end if;
     end process;
 

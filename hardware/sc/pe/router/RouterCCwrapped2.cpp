@@ -146,6 +146,11 @@ void RouterCCwrapped::upd_credit_o(){
 	}
 }
 
+void RouterCCwrapped::upd_intAP(){
+
+	intAP.write(intAP_internal.read());
+}
+
 void RouterCCwrapped::upd_clock_tx(){
 	int i;
 	sc_uint<NPORT > l_clock_tx_internal;

@@ -496,8 +496,8 @@ process(clock, reset)--processo que gerencia cada estado manager
 					when PROPAGATE =>							
 						for j in 0 to (NPORT_SEEK-2) loop  
 						--if (j /= to_integer(unsigned((backtrack_port_table(sel)))))  then       -- Backtrack local, CLEAR não passava                
-							--if (j /= to_integer(unsigned((backtrack_port_table(sel)))) OR service_table(sel) = CLEAR_SERVICE)  then   
-							if (j /= to_integer(unsigned((backtrack_port))) OR service_table(sel) = CLEAR_SERVICE)  then   
+							if (j /= to_integer(unsigned((backtrack_port_table(sel)))) OR service_table(sel) = CLEAR_SERVICE)  then   
+							-- if (j /= to_integer(unsigned((backtrack_port))) OR service_table(sel) = CLEAR_SERVICE)  then   
 								int_out_req_router_seek(j)	<= '1';
 							end if;
 						end loop;	
@@ -506,8 +506,8 @@ process(clock, reset)--processo que gerencia cada estado manager
 
 						--do not execute acks when backtrack port is local
 						-- if backtrack_port_table(sel) /= x"4" then
-						-- if (backtrack_port_table(sel) /= x"4" and service_table(sel) /= CLEAR_SERVICE) then
-						if (backtrack_port /= x"4" and service_table(sel) /= CLEAR_SERVICE) then
+						if (backtrack_port_table(sel) /= x"4" and service_table(sel) /= CLEAR_SERVICE) then
+						-- if (backtrack_port /= x"4" and service_table(sel) /= CLEAR_SERVICE) then
 							vector_ack_ports(to_integer(unsigned(backtrack_port_table(sel)(1 DOWNTO 0)))) <= '1';
 						end if;
 						for j in 0 to (NPORT_SEEK-2) loop  
@@ -714,7 +714,7 @@ process(EA_manager, req_task , source_table, service_table, target_table, payloa
 			when WAIT_ACK_PORTS =>
 				if ((vector_ack_ports or vector_nack_ports) = "1111" )  and service_table(sel) = START_APP_SERVICE  and (source_table(sel)(15 downto 0)) /=  router_address then  	
 					PE_manager <= SEND_LOCAL;
-				elsif ((vector_ack_ports or vector_nack_ports) = "1111" ) and  service_table(sel) = BR_TO_APPID_SERVICE and  (target_table(sel) =  in_AppID_reg) then
+				elsif ((vector_ack_ports or vector_nack_ports) = "1111" ) and  service_table(sel) = BR_TO_APPID_SERVICE and (target_table(sel) =  in_AppID_reg) and (source_table(sel)(15 downto 0) /= router_address) then
 						PE_manager <= SEND_LOCAL;		
 				elsif ((vector_ack_ports or vector_nack_ports) = "1111" )  and service_table(sel) = INITIALIZE_CLUSTER_SERVICE and source_table(sel)(15 downto 0) /= router_address then
 					PE_manager <= SEND_LOCAL;

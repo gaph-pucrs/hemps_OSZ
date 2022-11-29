@@ -118,11 +118,11 @@ for pe in range(0,max_pe):
 	for it in map(lambda sd: fifo_signals_pfx + sd, fifo_signals_sds):
 		print (it)
     
-	#fail_wrapper_module signals
-	fail_wrapper_signals_pfx = "add wave -noupdate -group {%s %dx%d - %d} -group fail_WRAPPER_module /test_bench/HeMPS/%s%dx%d/fail_WRAPPER_module/" % (pe_type_str, posX, posY, pe, pe_type_str, posX, posY)
-	fail_wrapper_signals_sds = ["clock", "reset", "in_fail_cpu_local", "in_fail_cpu_config", "mem_address_service_fail_cpu", "in_source_wrapper_local", "in_target_wrapper_local", "in_payload_wrapper_local", "in_service_wrapper_local", "in_req_wrapper_local", "in_opmode_wrapper_local", "in_fail_wrapper_local", "out_ack_wrapper_local", "out_nack_wrapper_local", "out_source_wrapper_local", "out_target_wrapper_local", "out_payload_wrapper_local", "out_service_wrapper_local", "out_req_wrapper_local", "out_opmode_wrapper_local", "out_fail_wrapper_local", "in_ack_wrapper_local", "in_nack_wrapper_local", "in_source_router", "in_target_router", "EA_in"]
-	for it in map(lambda sd: fail_wrapper_signals_pfx + sd, fail_wrapper_signals_sds):
-		print (it)
+	# #fail_wrapper_module signals
+	# fail_wrapper_signals_pfx = "add wave -noupdate -group {%s %dx%d - %d} -group fail_WRAPPER_module /test_bench/HeMPS/%s%dx%d/fail_WRAPPER_module/" % (pe_type_str, posX, posY, pe, pe_type_str, posX, posY)
+	# fail_wrapper_signals_sds = ["clock", "reset", "in_fail_cpu_local", "in_fail_cpu_config", "mem_address_service_fail_cpu", "in_source_wrapper_local", "in_target_wrapper_local", "in_payload_wrapper_local", "in_service_wrapper_local", "in_req_wrapper_local", "in_opmode_wrapper_local", "in_fail_wrapper_local", "out_ack_wrapper_local", "out_nack_wrapper_local", "out_source_wrapper_local", "out_target_wrapper_local", "out_payload_wrapper_local", "out_service_wrapper_local", "out_req_wrapper_local", "out_opmode_wrapper_local", "out_fail_wrapper_local", "in_ack_wrapper_local", "in_nack_wrapper_local", "in_source_router", "in_target_router", "EA_in"]
+	# for it in map(lambda sd: fail_wrapper_signals_pfx + sd, fail_wrapper_signals_sds):
+	# 	print (it)
 
 	# dmni signals
 	dmni_signals_pfx = "add wave -noupdate -group {%s %dx%d - %d} -group dmni /test_bench/HeMPS/%s%dx%d/dmni/" %  	(pe_type_str, posX, posY, pe, pe_type_str, posX, posY)
