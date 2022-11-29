@@ -40,6 +40,8 @@ port(
 	k2						: in regflit;
 	sz						: in regNport;
 	ap						: in regNport;
+	apThreshold				: in  std_logic_vector(7 downto 0);
+	intAP					: out std_logic;
 
 	--Packet blocked by wrapper
 	unreachable				: out regNport;

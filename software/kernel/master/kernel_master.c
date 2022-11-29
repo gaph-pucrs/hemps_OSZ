@@ -962,6 +962,8 @@ void handle_new_app(int app_ID, volatile unsigned int *ref_address, unsigned int
 	    	puts("\nERROR: don't found a shape to allocate the secure application in this cluster");
 	    	while(1);
 	    }
+	}else{
+		send_io_config_normal(application);
 	}
 	//Fills the cluster load
 	for(int k=0; k < application->tasks_number; k++){
@@ -1217,6 +1219,9 @@ int SeekInterruptHandler(){
 						//Seek(SET_SECURE_ZONE_SERVICE, (get_Secure_Zone_index(RH_addr)<<16 | get_net_address()), LL_addr, RH_addr);
 						//Seek(SET_SECURE_ZONE_SERVICE, (MemoryRead(TICK_COUNTER)<<16 | get_net_address()), LL_addr, RH_addr);
 						Seek(SET_SECURE_ZONE_SERVICE, ((app_id << 24) | ((MemoryRead(TICK_COUNTER) << 16) & 0xFF0000) | get_net_address()), LL_addr, RH_addr);
+					}
+					else{
+						// send_io_config_normal(app);
 					}		
 			}
 		break;

@@ -205,8 +205,8 @@ SC_MODULE(pe) {
 	sc_signal <	regflit> 		k1;
 	sc_signal <	regflit> 		k2;
 	sc_signal < reg_seek_target> 	app_reg;
-	
-	
+	sc_signal < sc_uint <8> > 	apThreshold;
+	sc_signal <bool > 			intAP;
 
 	//pending service signal
 	sc_signal < bool > 			pending_service;

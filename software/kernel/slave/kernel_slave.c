@@ -940,10 +940,13 @@ int handle_packet(volatile ServiceHeader * p) {
 
 			} else
 		#endif
-
-		if (current == &idle_tcb){
-			need_scheduling = 1;
-		}			
+		pendingIO = 0;
+		if (freezeIO){
+			// puts("Recebeu IO ACK pendente, congelando Comunicação\n");
+			Seek(KEY_ACK, ((MemoryRead(TICK_COUNTER)<<16) | (get_net_address()&0xffff)), APaddress, 0); // Send Freeze IO	
+			// puts("Answered to "); puts(itoh(APaddress));puts("\n");
+			break;
+		}		
 		
 	break;
 
@@ -1065,6 +1068,13 @@ int handle_packet(volatile ServiceHeader * p) {
 
 			if(p->service != IO_DELIVERY){
 					remove_msg_request(p->source_PE, p->consumer_task, p->producer_task);
+			}else{
+				pendingIO = 0;
+				if (freezeIO){
+					// puts("Recebeu IO ACK pendente, congelando Comunicação\n");
+					Seek(KEY_ACK, ((MemoryRead(TICK_COUNTER)<<16) | (get_net_address()&0xffff)), APaddress, 0); // Send Freeze IO	
+					// puts("Answered to "); puts(itoh(APaddress));puts("\n");
+				}	
 			}
 
 			// session_puts("arrival= ");session_puts(itoa(arrivalTime));//session_puts("\n");
@@ -1874,16 +1884,21 @@ int SeekInterruptHandler(){
 			switch (payload)
 			{
 			case 00: //00 - AP information
-				puts("Received AP information\n");
+				// puts("Received AP information (BR_TO_APPID_SERVICE 0)\n");
+				APaddress = source&0xffff;
 				break;
 			case 01: //01 - FREEZE IO
-				// freezeIO;
-				puts("Received Prepare Key\n");
+				// puts("Received Prepare Key (BR_TO_APPID_SERVICE 1)\n");
+				freezeIO = 1;
+				if (pendingIO){
+					puts("PendingIO\n");
+					break;
+				}
 				Seek(KEY_ACK, ((MemoryRead(TICK_COUNTER)<<16) | (get_net_address()&0xffff)), (source & 0xffff), 0); // Send Freeze IO	
-				puts("Answered to "); puts(itoh(source & 0xffff));puts("\n");
+				// puts("Answered to "); puts(itoh(source & 0xffff));puts("\n");
 				break;
 			case 02: //02 - KEY EVOLVE
-				puts("Received Key Evolve\n");
+				// puts("Received Key Evolve (BR_TO_APPID_SERVICE 2)\n");
 				if (nTurns == (source >> 16)){
 					puts("Já renovou - repetido\n");
 					break;
@@ -1923,6 +1938,17 @@ int SeekInterruptHandler(){
 		break;
 
 		case KEY_ACK:
+				// puts("Received KEY_ACK from: ");puts(itoa(rcvdACK));puts(itoh(source&0xffff)); puts ("\n");
+
+				for(i=0; i <=rcvdACK; i++){
+					if (source == ackSources[i]){
+						puts("--repetido\n");
+						break;
+					}
+				}
+				if (source == ackSources[i])
+					break;
+
 				rcvdACK++;
 				puts("Received KEY_ACK: ");puts(itoa(rcvdACK)); puts ("\n");
 

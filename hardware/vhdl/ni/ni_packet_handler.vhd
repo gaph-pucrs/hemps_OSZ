@@ -656,6 +656,7 @@ begin
 
     tableOut.pathFlit_w     <= x"7EEE" when table_state=SAVE_EXTRA_PATH else
                                hermes_data_in;
+    -- tableOut.pathFlit_w     <= hermes_data_in;
     tableOut.pathFlit_wen   <= tableControl.enablePathWriting;
     tableOut.pathFlit_idx   <= path_flit;
 

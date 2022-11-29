@@ -26,6 +26,8 @@ SC_MODULE(RouterCCwrapped) {
 		sc_in<regflit> 		k2;
 		sc_in<bool > 		ap[NPORT];
 		sc_in<bool > 		sz[NPORT];
+		sc_in<sc_uint<8 > >		apThreshold;
+		sc_out<bool>            intAP;
 
 		sc_out<bool > 		unreachable[NPORT];
 

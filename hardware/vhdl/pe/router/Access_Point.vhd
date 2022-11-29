@@ -55,7 +55,10 @@ port(
 	enable					: in  std_logic;
 	sz						: in  std_logic;
 	k1						: in  regflit;
-	k2						: in  regflit
+	k2						: in  regflit;
+	apThreshold				: in  std_logic_vector(7 downto 0);
+	intAP					: out std_logic
+
 );
 end Access_Point;
 
@@ -94,7 +97,9 @@ begin
 	data_out	<=	data_out_router;
 	eop_out		<=	eop_out_router;
 
-	ap 	<=	enable;
+	--Counters
+	intAP <= '1' when (Cout(7 downto 0) > apThreshold and enable = '1') else -- When the out counter is 0, reached the Threshold
+			 '0';
 
 	pass <= '1' when (reg_F1 XOR k1) = k2 else
 			'0';
