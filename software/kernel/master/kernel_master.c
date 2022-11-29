@@ -992,6 +992,7 @@ void handle_new_app(int app_ID, volatile unsigned int *ref_address, unsigned int
 	pending_app_to_map++;
 
 	mapping_completed = application_mapping(clusterID, application->app_ID);//
+	send_io_config_normal(application);
 
 	if (mapping_completed){
 		putsv("end mapping - ", MemoryRead(TICK_COUNTER));
@@ -1239,9 +1240,9 @@ int SeekInterruptHandler(){
 						//Seek(SET_SECURE_ZONE_SERVICE, (MemoryRead(TICK_COUNTER)<<16 | get_net_address()), LL_addr, RH_addr);
 						Seek(SET_SECURE_ZONE_SERVICE, ((app_id << 24) | ((MemoryRead(TICK_COUNTER) << 16) & 0xFF0000) | get_net_address()), LL_addr, RH_addr);
 					}
-					else{
-						send_io_config_normal(app);
-					}		
+					// else{
+					// 	send_io_config_normal(app);
+					// }		
 			}
 		break;
 		case INITIALIZE_CLUSTER_SERVICE:

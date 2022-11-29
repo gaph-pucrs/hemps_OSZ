@@ -791,7 +791,7 @@ int handle_packet(volatile ServiceHeader * p) {
 		//puts("source:");puts(itoh(p->source_PE)); puts("\n");
 	
 
-	p->service= (p->service & 0xFFFF); // Limpar a chave para não bugar
+	// p->service= (p->service & 0xFFFF); // Limpar a chave para não bugar
 	
 	switch (p->service) {
 
@@ -1436,7 +1436,7 @@ int handle_packet(volatile ServiceHeader * p) {
 
 	default:
 		if (p->service == ((k1 ^ k2) << 16) | (KappID ^ k2)){
-			// puts("IO packet authenticated\n");
+			puts("IO packet authenticated\n");
 			p->service = p->io_service;
 			// puts("Real service is");puts(itoh(p->service));puts("\n");
 			handle_packet(p);
@@ -1919,21 +1919,21 @@ int SeekInterruptHandler(){
 			switch (payload)
 			{
 			case 00: //00 - AP information
-				puts("Received AP information (BR_TO_APPID_SERVICE 0)\n");
+				// puts("Received AP information (BR_TO_APPID_SERVICE 0)\n");
 				APaddress = source&0xffff;
 				break;
 			case 01: //01 - FREEZE IO
-				puts("Received Prepare Key (BR_TO_APPID_SERVICE 1)\n");
+				// puts("Received Prepare Key (BR_TO_APPID_SERVICE 1)\n");
 				freezeIO = 1;
 				if (pendingIO){
 					puts("PendingIO\n");
 					break;
 				}
 				Seek(KEY_ACK, ((MemoryRead(TICK_COUNTER)<<16) | (get_net_address()&0xffff)), (source & 0xffff), 0); // Send Freeze IO	
-				puts("Answered to "); puts(itoh(source & 0xffff));puts("\n");
+				// puts("Answered to "); puts(itoh(source & 0xffff));puts("\n");
 				break;
 			case 02: //02 - KEY EVOLVE
-				puts("Received Key Evolve (BR_TO_APPID_SERVICE 2)\n");
+				// puts("Received Key Evolve (BR_TO_APPID_SERVICE 2)\n");
 				if (nTurns == (source >> 16)){
 					// puts("Já renovou - repetido\n");
 					break;
@@ -1956,7 +1956,7 @@ int SeekInterruptHandler(){
 				k2_aux = glfsr_app.data;
 				
 				freezeIO = 0;
-				puts("#$#$ Chaves Renovadas  #$#$");puts(itoa(MemoryRead(TICK_COUNTER))); puts ("\n");
+				// puts("#$#$ Chaves Renovadas  #$#$");puts(itoa(MemoryRead(TICK_COUNTER))); puts ("\n");
 				// puts("-----k1 = ");puts(itoh(k1_aux));puts("\n");
 				// puts("-----k2 = ");puts(itoh(k2_aux));puts("\n");
 				// puts("End RENEW: ");puts(itoa(MemoryRead(TICK_COUNTER))); puts ("\n");	// Port of the AP
@@ -1974,7 +1974,7 @@ int SeekInterruptHandler(){
 		break;
 
 		case KEY_ACK:
-				puts("Received KEY_ACK from: ");puts(itoa(rcvdACK));puts(itoh(source&0xffff)); puts ("\n");
+				// puts("Received KEY_ACK from: ");puts(itoa(rcvdACK));puts(itoh(source&0xffff)); puts ("\n");
 
 				for(i=0; i <=rcvdACK; i++){
 					if (source == ackSources[i]){
@@ -2299,8 +2299,8 @@ int main(){
 
 	//WARNING: NOT ENABLING this fucking shit of IRQ_SLACK_TIME
 	//by Wachter
-	OS_InterruptMaskSet(IRQ_SEEK | IRQ_SCHEDULER | IRQ_NOC | IRQ_PENDING_SERVICE | IRQ_AP);
-	// OS_InterruptMaskSet(IRQ_SEEK | IRQ_SCHEDULER | IRQ_NOC | IRQ_PENDING_SERVICE);
+	// OS_InterruptMaskSet(IRQ_SEEK | IRQ_SCHEDULER | IRQ_NOC | IRQ_PENDING_SERVICE | IRQ_AP);
+	OS_InterruptMaskSet(IRQ_SEEK | IRQ_SCHEDULER | IRQ_NOC | IRQ_PENDING_SERVICE);
 
 	/*runs the scheduled task*/
 	ASM_RunScheduledTask(current);
