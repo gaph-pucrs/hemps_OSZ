@@ -73,9 +73,6 @@ int freezeIO = 0;
 int pendingIO = 0;
 int APaddress = 0;
 
-Message waitingMessages[10];
-int appTasks = 0;
-
 #ifdef AES_MODULE
 	extern unsigned int key_schedule[60];
 	extern unsigned int key[1][32];
@@ -1916,21 +1913,21 @@ case BR_TO_APPID_SERVICE: // Expand here to flexible AccessPoit configuration
 			switch (payload)
 			{
 			case 00: //00 - AP information
-				puts("Received AP information (BR_TO_APPID_SERVICE 0)\n");
+				// puts("Received AP information (BR_TO_APPID_SERVICE 0)\n");
 				APaddress = source&0xffff;
 				break;
 			case 01: //01 - FREEZE IO
-				puts("Received Prepare Key (BR_TO_APPID_SERVICE 1)\n");
+				// puts("Received Prepare Key (BR_TO_APPID_SERVICE 1)\n");
 				freezeIO = 1;
 				if (pendingIO){
-					puts("PendingIO\n");
+					// puts("PendingIO\n");
 					break;
 				}
 				Seek(KEY_ACK, ((MemoryRead(TICK_COUNTER)<<16) | (get_net_address()&0xffff)), (source & 0xffff), 0); // Send Freeze IO	
-				puts("Answered to "); puts(itoh(source & 0xffff));puts("\n");
+				// puts("Answered to "); puts(itoh(source & 0xffff));puts("\n");
 				break;
 			case 02: //02 - KEY EVOLVE
-				puts("Received Key Evolve (BR_TO_APPID_SERVICE 2)\n");
+				// puts("Received Key Evolve (BR_TO_APPID_SERVICE 2)\n");
 				if (nTurns == (source >> 16)){
 					// puts("Já renovou - repetido\n");
 					break;
@@ -1970,7 +1967,7 @@ case BR_TO_APPID_SERVICE: // Expand here to flexible AccessPoit configuration
 		break;
 
 		case KEY_ACK:
-				puts("Received KEY_ACK from: ");puts(itoa(rcvdACK));puts(itoh(source&0xffff)); puts ("\n");
+				// puts("Received KEY_ACK from: ");puts(itoa(rcvdACK));puts(itoh(source&0xffff)); puts ("\n");
 
 				for(i=0; i <=rcvdACK; i++){
 					if (source == ackSources[i]){
@@ -2290,7 +2287,8 @@ int main(){
 
 	//WARNING: NOT ENABLING this fucking shit of IRQ_SLACK_TIME
 	//by Wachter
-	OS_InterruptMaskSet(IRQ_SEEK | IRQ_SCHEDULER | IRQ_NOC | IRQ_PENDING_SERVICE);
+	// OS_InterruptMaskSet(IRQ_SEEK | IRQ_SCHEDULER | IRQ_NOC | IRQ_PENDING_SERVICE);
+	OS_InterruptMaskSet(IRQ_SEEK | IRQ_SCHEDULER | IRQ_NOC | IRQ_PENDING_SERVICE | IRQ_AP);
 
 	/*runs the scheduled task*/
 	ASM_RunScheduledTask(current);

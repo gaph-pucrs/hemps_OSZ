@@ -40,7 +40,7 @@ port(
 	k2						: in regflit; 
 	sz						: in regNport; 
 	ap						: in regNport; 
-	apThreshold				: in  std_logic_vector(3 downto 0); 
+	apThreshold				: in  std_logic_vector(7 downto 0); 
 	intAP					: out std_logic; 
  
  
