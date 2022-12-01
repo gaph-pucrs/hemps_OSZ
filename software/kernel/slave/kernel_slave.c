@@ -533,10 +533,10 @@ int Syscall(unsigned int service, unsigned int arg0, unsigned int arg1, unsigned
 			}
 
 			//FreezeIO - Activated in KeyRenew
-			if(freezeIO == 1){
-				// puts("IO freezado");
-				return 0;
-			}
+			// if(freezeIO == 1){
+			// 	// puts("IO freezado");
+			// 	return 0;
+			// }
 
 			producer_task =  current->id;
 
@@ -618,10 +618,10 @@ int Syscall(unsigned int service, unsigned int arg0, unsigned int arg1, unsigned
 			}
 
 			//FreezeIO - Activated in KeyRenew
-			if(freezeIO == 1){
-				// puts("IO freezado");
-				return 0;
-			}
+			// if(freezeIO == 1){
+			// 	// puts("IO freezado");
+			// 	return 0;
+			// }
 			consumer_task =  current->id;
 			if (k1 == 0){
 				send_io_request_key(arg1, consumer_task, net_address, 0, 0);
