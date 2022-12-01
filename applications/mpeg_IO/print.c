@@ -21,8 +21,8 @@ Message msgIO;
 
 int main()
 {
-    unsigned int time_a, time_b;
-    int i;
+   unsigned int time_a, time_b, time_c;
+   int i;
     
     msgIO.length = 64;
 
@@ -33,9 +33,12 @@ int main()
        Echo(" PRINT FOR");
        time_a = GetTick();
        Receive(&msg1,idct);
+       time_c = GetTick();
+       Echo(itoa(time_c-time_a));
+
        IOSend(&msgIO, IO_PERIPHERAL2);
        time_b = GetTick();
-       Echo(itoa(time_b-time_a));
+       Echo(itoa(time_b-time_c));
     }
 
     Echo("End Task E - MPEG");
