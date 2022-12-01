@@ -346,7 +346,8 @@ void send_packet_io(volatile ServiceHeader *p, unsigned int initial_address, uns
 	p->header[MAX_SOURCE_ROUTING_PATH_SIZE-1] = ((port_io & 0xF)<<28)|((((p->source_PE & 0x3F00) >> 2) | (p->source_PE & 0x003F)) << 16) | p->header[MAX_SOURCE_ROUTING_PATH_SIZE-1];
 
 	//get slot
-	slot = SearchSourceRoutingDestination(p->header[MAX_SOURCE_ROUTING_PATH_SIZE-1]&0xffff);
+	// slot = SearchSourceRoutingDestination(p->header[MAX_SOURCE_ROUTING_PATH_SIZE-1]&0xffff);
+  slot = -1;
 	//verify if path is a source routing destination
 
 	// if(slot == -1 && ((p->service == IO_REQUEST) || (p->service == IO_DELIVERY))){
