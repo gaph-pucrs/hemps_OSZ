@@ -63,7 +63,8 @@ Message 		msg_write_pipe;				//!< Message variable which is used to copy a messa
 lfsr_t glfsr_d0;
 lfsr_t glfsr_c0;
 lfsr_t glfsr_app;
-unsigned int k0, k1, k2;
+unsigned int k0;
+unsigned int k1 = 0, k2 = 0;
 unsigned int k1_aux, k2_aux;
 unsigned int KappID;
 
@@ -967,13 +968,13 @@ int handle_packet(volatile ServiceHeader * p) {
 
 			} else
 		#endif
-		pendingIO = 0;
-		if (freezeIO){
-			puts("Recebeu IO ACK pendente, congelando Comunicação\n");
-			Seek(KEY_ACK, ((MemoryRead(TICK_COUNTER)<<16) | (get_net_address()&0xffff)), APaddress, 0); // Send Freeze IO	
-			puts("Answered to "); puts(itoh(APaddress));puts("\n");
-			break;
-		}		
+		// pendingIO = 0;
+		// if (freezeIO){
+		// 	puts("Recebeu IO ACK pendente, congelando Comunicação\n");
+		// 	Seek(KEY_ACK, ((MemoryRead(TICK_COUNTER)<<16) | (get_net_address()&0xffff)), APaddress, 0); // Send Freeze IO	
+		// 	puts("Answered to "); puts(itoh(APaddress));puts("\n");
+		// 	break;
+		// }		
 		
 	break;
 
@@ -1095,14 +1096,15 @@ int handle_packet(volatile ServiceHeader * p) {
 
 			if(p->service != IO_DELIVERY){
 					remove_msg_request(p->source_PE, p->consumer_task, p->producer_task);
-			}else{
-				pendingIO = 0;
-				if (freezeIO){
-					puts("Recebeu IO ACK pendente, congelando Comunicação\n");
-					Seek(KEY_ACK, ((MemoryRead(TICK_COUNTER)<<16) | (get_net_address()&0xffff)), APaddress, 0); // Send Freeze IO	
-					puts("Answered to "); puts(itoh(APaddress));puts("\n");
-				}	
 			}
+			// else{
+			// 	pendingIO = 0;
+			// 	if (freezeIO){
+			// 		puts("Recebeu IO ACK pendente, congelando Comunicação\n");
+			// 		Seek(KEY_ACK, ((MemoryRead(TICK_COUNTER)<<16) | (get_net_address()&0xffff)), APaddress, 0); // Send Freeze IO	
+			// 		puts("Answered to "); puts(itoh(APaddress));puts("\n");
+			// 	}	
+			// }
 
 			// session_puts("arrival= ");session_puts(itoa(arrivalTime));//session_puts("\n");
 			// session_puts(" depature= ");session_puts(itoa(p->timestamp));session_puts("\n");	
@@ -1115,10 +1117,9 @@ int handle_packet(volatile ServiceHeader * p) {
 				} else
 			#endif
 
-			// if (current == &idle_tcb){
-			// 	need_scheduling = 1;
-			// }			
-			need_scheduling = 1;
+			if (current == &idle_tcb){
+				need_scheduling = 1;
+			}			
 		}
 
 	#endif
@@ -1435,14 +1436,14 @@ int handle_packet(volatile ServiceHeader * p) {
 	#endif
 
 	default:
-		if (p->service == ((k1 ^ k2) << 16) | (KappID ^ k2)){
-			puts("IO packet authenticated\n");
-			p->service = p->io_service;
-			// puts("Real service is");puts(itoh(p->service));puts("\n");
-			handle_packet(p);
-			need_scheduling = 1;
-			break;
-		}
+		// if (p->service == ((k1 ^ k2) << 16) | (KappID ^ k2)){
+		// 	puts("IO packet authenticated\n");
+		// 	p->service = p->io_service;
+		// 	// puts("Real service is");puts(itoh(p->service));puts("\n");
+		// 	handle_packet(p);
+		// 	need_scheduling = 1;
+		// 	break;
+		// }
 
 			puts("ERROR: service unknown ");puts(itoh(p->service)); puts("\n");
 			putsv("Time: ", MemoryRead(TICK_COUNTER));
