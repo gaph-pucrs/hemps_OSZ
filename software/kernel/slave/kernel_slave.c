@@ -552,9 +552,9 @@ int Syscall(unsigned int service, unsigned int arg0, unsigned int arg1, unsigned
 			//	schedule_after_syscall = 1;
 			//	return 0;
 			//}
-			// if (k1 == 0){
-			// 	send_message_io_key(producer_task, arg1, msg_read, 0,0);
-			// }else{
+			if (k1 == 0){
+				send_message_io_key(producer_task, arg1, msg_read, 0,0);
+			}else{
 			#ifdef GRAY_AREA
 			for(i = 0; i < IO_NUMBER; i++){
 				if(io_info[i].peripheral_id == arg1){
@@ -597,7 +597,7 @@ int Syscall(unsigned int service, unsigned int arg0, unsigned int arg1, unsigned
 			#endif
 			send_message_io_key(producer_task, arg1, msg_read, current->secure, ((k1 ^ k2) << 16) | (k2 ^ KappID));
 			pendingIO = 1;
-
+			}
 			current->scheduling_ptr->status = WAITING;
 
 			schedule_after_syscall = 1;
@@ -619,9 +619,9 @@ int Syscall(unsigned int service, unsigned int arg0, unsigned int arg1, unsigned
 				return 0;
 			}
 			consumer_task =  current->id;
-			// if (k1 == 0){
-			// 	send_io_request_key(arg1, consumer_task, net_address, 0, 0);
-			// }else{
+			if (k1 == 0){
+				send_io_request_key(arg1, consumer_task, net_address, 0, 0);
+			}else{
 			//producer_task = (int) arg1;
 			#ifdef GRAY_AREA
 			for(i = 0; i < IO_NUMBER; i++){
@@ -663,10 +663,11 @@ int Syscall(unsigned int service, unsigned int arg0, unsigned int arg1, unsigned
 				break;
 				}
 			}
+
 			#endif
 			send_io_request_key(arg1, consumer_task, net_address, current->secure, ((k1 ^ k2) << 16) |  (k2 ^ KappID));
 			pendingIO = 1;
-
+			}
 			//Sets task as waiting blocking its execution, it will execute again when the message is produced by a WRITEPIPE or incoming MSG_DELIVERY
 			current->scheduling_ptr->status = WAITING;
 
@@ -1433,10 +1434,10 @@ int handle_packet(volatile ServiceHeader * p) {
 			// puts("IO packet authenticated\n");
 			p->service = p->io_service;
 			// puts("Real service is");puts(itoh(p->service));puts("\n");
-			handle_packet(p);
-			need_scheduling = 1;
+			need_scheduling = handle_packet(p);
 			break;
 		}
+		
 
 			puts("ERROR: service unknown ");puts(itoh(p->service)); puts("\n");
 			putsv("Time: ", MemoryRead(TICK_COUNTER));
