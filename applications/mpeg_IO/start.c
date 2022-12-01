@@ -33,7 +33,7 @@ Message msgIO;
 
 int main(){
 
-   unsigned int time_a, time_b, time_c;
+   unsigned int time_a, time_b;
    int i;
 
    Echo("MPEG Task A start:  ");
@@ -53,12 +53,10 @@ int main(){
        Echo(" START FOR");
        time_a = GetTick();
        IOReceive(&msgIO, IO_PERIPHERAL);
-       time_c = GetTick();
-       Echo(itoa(time_c-time_a));
-
        Send(&msg1,ivlc);
        time_b = GetTick();
-       Echo(itoa(time_b-time_c));
+
+       Echo(itoa(time_b-time_a));
       //     Echo(itoa(time_a));
 		  // Echo("T2");
       //     Echo(itoa(time_b));
