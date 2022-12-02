@@ -17,13 +17,12 @@ hw:
     - port: [io_peripheral2,70,2,3,N]
     - port: [sabotage,60,0,1,W]
 apps:
-  - name: dtw_IO
-    start_time_ms: 0
-    secure: yes
+  - name: mpeg_IO
+    start_time_ms: 0 #any unsigned integer number
+    # secure: yes
     static_mapping:
-      recognizer: [1,0]
-      p4: [2,0]
-      bank: [3,0]
-      p3: [1,1]
-      p1: [2,1]
-      p2: [3,1]
+      print: [1,0]
+      idct: [3,1]
+      start: [3,0]
+      iquant: [1,1]
+      ivlc: [2,1]

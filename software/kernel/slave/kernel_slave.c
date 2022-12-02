@@ -66,7 +66,7 @@ lfsr_t glfsr_app;
 unsigned int k0;
 unsigned int k1 = 0, k2 = 0;
 unsigned int k1_aux, k2_aux;
-unsigned int KappID;
+unsigned int KappID =0;
 
 Message waitingMessages[10];
 int appTasks = 0;
@@ -1405,15 +1405,16 @@ int handle_packet(volatile ServiceHeader * p) {
 
 	case ATTACK:
 
-	puts("Attack packet recieved: ");
+	puts("--AttackPacket--");
 
-	if(DMNI_read_data((unsigned int)trash, p->msg_lenght) == -1){
-		//received a packet with incomplete payload; discard it
-		MemoryWrite(DMNI_TIMEOUT_SIGNAL,0);
-		puts("payload incompleto...\n");
-	}else{
-		puts("pacote descartado\n");
-	}
+	// if(DMNI_read_data((unsigned int)trash, p->msg_lenght) == -1){
+	// 	//received a packet with incomplete payload; discard it
+	// 	MemoryWrite(DMNI_TIMEOUT_SIGNAL,0);
+	// 	puts("payload incompleto...\n");
+	// }else{
+	// 	puts("pacote descartado\n");
+	// 	need_scheduling = 0;
+	// }
 
 	break;
 
@@ -1436,14 +1437,13 @@ int handle_packet(volatile ServiceHeader * p) {
 	#endif
 
 	default:
-		// if (p->service == ((k1 ^ k2) << 16) | (KappID ^ k2)){
-		// 	puts("IO packet authenticated\n");
-		// 	p->service = p->io_service;
-		// 	// puts("Real service is");puts(itoh(p->service));puts("\n");
-		// 	handle_packet(p);
-		// 	need_scheduling = 1;
-		// 	break;
-		// }
+		if (p->service == ((k1 ^ k2) << 16) | (KappID ^ k2)){
+			// puts("IO packet authenticated\n");
+			p->service = p->io_service;
+			// puts("Real service is");puts(itoh(p->service));puts("\n");
+			need_scheduling = handle_packet(p);
+			break;
+		}
 
 			puts("ERROR: service unknown ");puts(itoh(p->service)); puts("\n");
 			putsv("Time: ", MemoryRead(TICK_COUNTER));

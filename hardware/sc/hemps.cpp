@@ -210,7 +210,7 @@ int i;
 	//cout << "open_io = " << open_io[i] << endl;
 	//		// cout << "grounding EAST in seek: " << i << endl;
  	//}	
- 	for(i=0; i<2; i++){
+ 	for(i=0; i<3; i++){
 		clock_tx_io[i].write(sig_clock_tx_io[i].read());
 		tx_io[i].write(sig_tx_io[i].read());
 		data_out_io[i].write(sig_data_out_io[i].read());
@@ -248,7 +248,7 @@ int i;
 
 void hemps::ni_interconnection(){
 
- 	for(i=2; i<IO_NUMBER; i++) {
+ 	for(i=3; i<IO_NUMBER; i++) {
 		
 		clock_tx_io[i].write(sig_clock_tx_io[i].read());
 		tx_io[i].write(sig_tx_io[i].read());

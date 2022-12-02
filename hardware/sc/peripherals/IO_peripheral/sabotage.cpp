@@ -147,7 +147,7 @@ void sabotage::out_proc_FSM(){
                         buffer_out_flit[12] = 0;                    //source_PE
                         buffer_out_flit[13] = SOURCE_FLIT;          //source_PE
                         buffer_out_flit[18] = 0;                    //msg_lenght
-                        buffer_out_flit[19] = 2;                    //msg_lenght (32 bits)
+                        buffer_out_flit[19] = 0;                    //msg_lenght (32 bits)
                         packet_size = buffer_out_flit[19];
 
                         data_out_primary.write(buffer_out_flit[0]);
@@ -231,7 +231,7 @@ void sabotage::out_proc_FSM(){
 				tx_primary.write(false);
 				eop_out_primary.write(false);
 				flit_out_counter = 0;
-                if(last_cont == 30){
+                if(last_cont == 220){
 				    EA_out.write(S_WAIT_REQ);
                     last_cont = 0;
                 }

@@ -64,7 +64,8 @@ SC_MODULE(sabotage) {
 		S_SEND_PAYLOAD,
 		S_WAIT_CREDIT_PAYLOAD,
 		S_WAIT_CREDIT_HEADER,
-		S_SEND_EOP
+		S_SEND_EOP,
+		S_WAIT_RX_OF_EOP
 	};
 	sc_signal<FSM_out> EA_out;
 
