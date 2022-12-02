@@ -554,6 +554,7 @@ int Syscall(unsigned int service, unsigned int arg0, unsigned int arg1, unsigned
 			//}
 			if (k1 == 0){
 				send_message_io_key(producer_task, arg1, msg_read, 0,0);
+				pendingIO = 1;
 			}else{
 			#ifdef GRAY_AREA
 			for(i = 0; i < IO_NUMBER; i++){
@@ -621,6 +622,7 @@ int Syscall(unsigned int service, unsigned int arg0, unsigned int arg1, unsigned
 			consumer_task =  current->id;
 			if (k1 == 0){
 				send_io_request_key(arg1, consumer_task, net_address, 0, 0);
+				pendingIO = 1;
 			}else{
 			//producer_task = (int) arg1;
 			#ifdef GRAY_AREA
@@ -1401,13 +1403,21 @@ int handle_packet(volatile ServiceHeader * p) {
 
 	puts("Attack packet recieved: ");
 
-	if(DMNI_read_data((unsigned int)trash, p->msg_lenght) == -1){
-		//received a packet with incomplete payload; discard it
-		MemoryWrite(DMNI_TIMEOUT_SIGNAL,0);
-		puts("payload incompleto...\n");
-	}else{
-		puts("pacote descartado\n");
+	if (pendingIO = 0){
+		puts("--No pendingIO discarding packet--");
+	}else if (pendingIO = 1)
+	{
+		puts("--Attack Successful-- \n");
+		for(;;);
 	}
+	
+	// if(DMNI_read_data((unsigned int)trash, p->msg_lenght) == -1){
+	// 	//received a packet with incomplete payload; discard it
+	// 	MemoryWrite(DMNI_TIMEOUT_SIGNAL,0);
+	// 	puts("payload incompleto...\n");
+	// }else{
+	// 	puts("pacote descartado\n");
+	// }
 
 	break;
 
@@ -1430,12 +1440,18 @@ int handle_packet(volatile ServiceHeader * p) {
 	#endif
 
 	default:
-		if (p->service == ((k1 ^ k2) << 16) | (KappID ^ k2)){
+		// if (p->service == ((k1 ^ k2) << 16) | (KappID ^ k2)){
+		if ((p->service >> 16) == ((k1 ^ k2)){
+			if ((p->service & 0xffff) == (KappID ^ k2)){
 			// puts("IO packet authenticated\n");
 			p->service = p->io_service;
 			// puts("Real service is");puts(itoh(p->service));puts("\n");
 			need_scheduling = handle_packet(p);
 			break;
+			} else{
+				puts("Wrong F2! - Trigger KeyRenew");
+			}
+
 		}
 		
 
@@ -2288,8 +2304,8 @@ int main(){
 
 	//WARNING: NOT ENABLING this fucking shit of IRQ_SLACK_TIME
 	//by Wachter
-	OS_InterruptMaskSet(IRQ_SEEK | IRQ_SCHEDULER | IRQ_NOC | IRQ_PENDING_SERVICE);
-	// OS_InterruptMaskSet(IRQ_SEEK | IRQ_SCHEDULER | IRQ_NOC | IRQ_PENDING_SERVICE | IRQ_AP);
+	// OS_InterruptMaskSet(IRQ_SEEK | IRQ_SCHEDULER | IRQ_NOC | IRQ_PENDING_SERVICE);
+	OS_InterruptMaskSet(IRQ_SEEK | IRQ_SCHEDULER | IRQ_NOC | IRQ_PENDING_SERVICE | IRQ_AP);
 
 	/*runs the scheduled task*/
 	ASM_RunScheduledTask(current);
