@@ -53,7 +53,10 @@ package ni_pkg is
     constant K1_FLIT                            : integer := 6;
     constant K2_FLIT                            : integer := 7;
     constant PACKET_SOURCE_FLIT                 : integer := 9;
+    constant DELIVERY_SIZE_FLIT                 : integer := 15;
     constant END_OF_HEADER_FLIT                 : integer := 21;
+
+    -- constant SERVICE_FLIT_HI_TX                 : integer := 2;
 
     --  Service                 F1          F2
     --  IO_INIT                 zero        k0

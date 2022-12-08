@@ -78,7 +78,9 @@ void pe::mem_mapped_registers(){
 			break;
 			case APP_ID_REG:
 				cpu_mem_data_read.write(app_reg.read());
-				// in_sel_reg_backtrack_seek_local.write(0);
+			break;
+			case AP_THRESHOLD:
+				cpu_mem_data_read.write(apThreshold.read());
 			break;
 			// case SEEK_BACKTRACK1:
 			// 	cpu_mem_data_read.write(out_reg_backtrack_seek_local.read());
@@ -157,7 +159,7 @@ void pe::comb_assignments(){
 
 
 	l_irq_status[7] = int_seek.read();
-	l_irq_status[6] = 0;
+	l_irq_status[6] = intAP.read();
 	l_irq_status[5] = ni_intr.read();
 	l_irq_status[4] = 0;
 	l_irq_status[3] = (time_slice.read() == 1) ? 1  : 0;
@@ -189,6 +191,7 @@ void pe::sequential_attr(){
 		pending_service.write(0);
 		slack_update_timer.write(0);
 		app_reg.write(0);
+		apThreshold.write(0);
 	} else {
 
 		if(cpu_mem_pause.read() == 0) {
@@ -477,6 +480,9 @@ void pe::wrapper_register_handle(){
 	}
 	if ((cpu_mem_address_reg.read() == APP_ID_REG) and (write_enable.read()==1) ) {
 		app_reg = cpu_mem_data_write_reg.read();
+	}
+	if ((cpu_mem_address_reg.read() == AP_THRESHOLD) and (write_enable.read()==1) ) {
+		apThreshold = cpu_mem_data_write_reg.read();
 	}
 
 }
@@ -768,6 +774,14 @@ void pe::seek_receive(){
 					case 0x23:
 						cout << "MSG_REQUEST_CONTROL";
 						int_seek.write(1);
+					break;	
+					case 0x24:
+						cout << "RENEW_KEY";
+						int_seek.write(1);
+					break;	
+					case 0x25:
+						cout << "KEY_ACK";
+						int_seek.write(1);
 					break;		
 					default:
 						cout << out_service_router_seek_local.read() << " unknown --- ERROR! " ;
@@ -801,7 +815,7 @@ void pe::clock_stop(){
 
 	if((cpu_mem_address_reg.read() == CLOCK_HOLD) && (write_enable.read() == 1)){
 		clock_aux.write(false);
-	} else if(ni_intr.read() == 1 || time_slice.read() == 1 || irq_status.read().range(1,1) || int_seek.read() == 1 || int_dmni_seek.read() == 1){
+	} else if(ni_intr.read() == 1 || time_slice.read() == 1 || irq_status.read().range(1,1) || int_seek.read() == 1 || int_dmni_seek.read() == 1 || intAP.read() == 1){
 		clock_aux.write(true);
 	}
 

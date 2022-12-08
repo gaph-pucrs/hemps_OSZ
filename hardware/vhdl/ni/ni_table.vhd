@@ -180,9 +180,9 @@ begin
     -- FETCH SLOT --
     ----------------
 
-    match_regular   <= nor (tableIn.tag xor table.app_id(slot));
-    match_new       <= not (table.used(slot));
-    match_crypto    <= '1' when (tableIn.tagAux xor table.key1(slot) xor tableIn.tag) = table.app_id(slot) else '0';
+    match_new       <= '1' when table.used(slot)='0'                                                                                    else '0';
+    match_regular   <= '1' when table.used(slot)='1' and (tableIn.tag = table.app_id(slot))                                             else '0';
+    match_crypto    <= '1' when table.used(slot)='1' and ((tableIn.tagAux xor table.key1(slot) xor tableIn.tag) = table.app_id(slot))   else '0';
 
     match <=    match_regular   when state = FETCHING else
                 match_crypto    when state = FETCHING_CRYPTO else
@@ -226,10 +226,17 @@ begin
         if reset='1' then
             
             table.app_id        <= (others => (others => '0'));
+            table.app_id(0)     <= x"1234";     -- for testing
+
             table.key1          <= (others => (others => '0'));
             table.key2          <= (others => (others => '0'));
+
             table.path_size     <= (others => 0);
+            table.path_size(0)  <= 1;           -- for testing
+
             table.path          <= (others => (others => (others => '0')));
+            table.path(0)(0)    <= x"0083";     -- for testing
+            table.path(0)(1)    <= x"0303";     -- for testing
 
         elsif rising_edge(clock) and write_enable='1' then
 
@@ -268,6 +275,7 @@ begin
     begin
         if reset='1' then
             table.used <= (others => '0');
+            table.used(0) <= '1'; -- for testing
         elsif rising_edge(clock) then
             
             if state = FETCHING_NEW and match='1' then

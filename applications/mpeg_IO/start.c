@@ -55,7 +55,6 @@ int main(){
        IOReceive(&msgIO, IO_PERIPHERAL);
        Send(&msg1,ivlc);
        time_b = GetTick();
-
        Echo(itoa(time_b-time_a));
       //     Echo(itoa(time_a));
 		  // Echo("T2");

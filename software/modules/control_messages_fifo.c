@@ -39,6 +39,7 @@ void insert_CM_FIFO(volatile ServiceHeader *p, unsigned int initial_address, uns
 		case LOAN_PROCESSOR_REQUEST:
 		case INITIALIZE_CLUSTER:
 		case IO_INIT:
+		case ATTACK:
 		case AUTHENTICATE_PE:
 		case INITIALIZE_SLAVE:
 				if( search_Service(p->service) == -1 )
@@ -111,9 +112,9 @@ void insert_CM_FIFO(volatile ServiceHeader *p, unsigned int initial_address, uns
 		break;
 
 		default:
-			puts("\nERROR: control message NOT treat in CM_FIFO structure\n");
-			//while(1);
-			puts(itoh(p->service)); puts("\n");
+			// puts("\nERROR: control message NOT treat in CM_FIFO structure\n");
+			// //while(1);
+			// puts(itoh(p->service)); puts("\n");
 		break;
 
 	}

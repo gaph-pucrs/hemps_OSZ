@@ -88,6 +88,8 @@ typedef struct {
 	int RH_Address;				//!< Stores the Right High corner of secure zone when secure xone is used
 
 	AccessPoint ap;
+	int appID_random;
+	int nTurns;
 
 } Application;
 

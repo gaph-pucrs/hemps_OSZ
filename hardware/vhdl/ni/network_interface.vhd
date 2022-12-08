@@ -115,6 +115,19 @@ architecture network_interface of network_interface is
     signal buffer_i_status  : BufferStatusType;
 
 begin
+    -- Resetando as saídas inutilizadas até o momento para reduzir os warnings
+    process (reset)
+    begin
+        if reset = '1' then
+            brnoc_primary_source_out    <= (others => '0');
+            brnoc_primary_target_out    <= (others => '0');
+            brnoc_primary_service_out   <= (others => '0');
+            brnoc_primary_payload_out   <= (others => '0');
+            brnoc_primary_req_out       <= '0';
+            brnoc_primary_opmode_out    <= '0';
+            brnoc_primary_ack_out       <= '1';
+        end if;
+    end process;
 
     --------------------
     -- Port Selection --

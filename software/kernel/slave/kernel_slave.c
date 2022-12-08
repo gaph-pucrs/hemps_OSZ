@@ -64,8 +64,14 @@ lfsr_t glfsr_d0;
 lfsr_t glfsr_c0;
 lfsr_t glfsr_app;
 unsigned int k0, k1, k2;
+unsigned int k1_aux, k2_aux;
+unsigned int KappID;
 
 Message waitingMessages[10];
+int appTasks = 0;
+int freezeIO = 0;
+int pendingIO = 0;
+int APaddress = 0;
 
 #ifdef AES_MODULE
 	extern unsigned int key_schedule[60];
@@ -525,6 +531,12 @@ int Syscall(unsigned int service, unsigned int arg0, unsigned int arg1, unsigned
 				return 0;
 			}
 
+			//FreezeIO - Activated in KeyRenew
+			if(freezeIO == 1){
+				// puts("IO freezado");
+				return 0;
+			}
+
 			producer_task =  current->id;
 
 			// puts("IO - WRITEPIPE - prod: "); puts(itoa(producer_task)); putsv(" consumer ", arg1);
@@ -540,6 +552,10 @@ int Syscall(unsigned int service, unsigned int arg0, unsigned int arg1, unsigned
 			//	schedule_after_syscall = 1;
 			//	return 0;
 			//}
+			if (k1 == 0){
+				send_message_io_key(producer_task, arg1, msg_read, 0,0);
+				pendingIO = 1;
+			}else{
 			#ifdef GRAY_AREA
 			for(i = 0; i < IO_NUMBER; i++){
 				if(io_info[i].peripheral_id == arg1){
@@ -560,28 +576,29 @@ int Syscall(unsigned int service, unsigned int arg0, unsigned int arg1, unsigned
   							auxBT >> 64 & 0xffffFFFF,
 							(PER_X_addr << 8) | PER_Y_addr,
 							positionAP);
+						// // puts("--slot_adjust: ");puts(itoa(slotSR)); puts("\n");
+						// auxBT = pathFromIO(auxBT);
+						// //auxBT = IOtoAP(arg1);
+						// puts("-- enviando caminho:");puts(itoh(auxBT)); puts("\n");
+						// slotSR = GetFreeSlotSourceRouting(get_net_address());
+						// // puts("--slot: ");puts(itoa(slotSR)); puts("\n");
+						// SR_Table[slotSR].target = get_net_address();
+    					// SR_Table[slotSR].tableSlotStatus = SR_USADO;
+						// slotSR = ProcessTurns(
+						// 	auxBT & 0xffffFFFF,
+  						// 	auxBT >> 32 & 0xffffFFFF,
+  						// 	auxBT >> 64 & 0xffffFFFF);
+						// send_peripheral_SR_path(slotSR, arg1, current->secure, producer_task);
 						// puts("--slot_adjust: ");puts(itoa(slotSR)); puts("\n");
-						auxBT = pathFromIO(auxBT);
-						//auxBT = IOtoAP(arg1);
-						puts("-- enviando caminho:");puts(itoh(auxBT)); puts("\n");
-						slotSR = GetFreeSlotSourceRouting(get_net_address());
-						// puts("--slot: ");puts(itoa(slotSR)); puts("\n");
-						SR_Table[slotSR].target = get_net_address();
-    					SR_Table[slotSR].tableSlotStatus = SR_USADO;
-						slotSR = ProcessTurns(
-							auxBT & 0xffffFFFF,
-  							auxBT >> 32 & 0xffffFFFF,
-  							auxBT >> 64 & 0xffffFFFF);
-						send_peripheral_SR_path(slotSR, arg1, current->secure, producer_task);
-						puts("--slot_adjust: ");puts(itoa(slotSR)); puts("\n");
-						ClearSlotSourceRouting(get_net_address());
+						// ClearSlotSourceRouting(get_net_address());
 					}
 				break;
 				}
 			}
 			#endif
-			send_message_io(producer_task, arg1, msg_read, current->secure);
-
+			send_message_io_key(producer_task, arg1, msg_read, current->secure, ((k1 ^ k2) << 16) | (k2 ^ KappID));
+			pendingIO = 1;
+			}
 			current->scheduling_ptr->status = WAITING;
 
 			schedule_after_syscall = 1;
@@ -597,7 +614,16 @@ int Syscall(unsigned int service, unsigned int arg0, unsigned int arg1, unsigned
 				return 0;
 			}
 
+			//FreezeIO - Activated in KeyRenew
+			if(freezeIO == 1){
+				// puts("IO freezado");
+				return 0;
+			}
 			consumer_task =  current->id;
+			if (k1 == 0){
+				send_io_request_key(arg1, consumer_task, net_address, 0, 0);
+				pendingIO = 1;
+			}else{
 			//producer_task = (int) arg1;
 			#ifdef GRAY_AREA
 			for(i = 0; i < IO_NUMBER; i++){
@@ -619,29 +645,31 @@ int Syscall(unsigned int service, unsigned int arg0, unsigned int arg1, unsigned
   							auxBT >> 64 & 0xffffFFFF,
 							(PER_X_addr << 8) | PER_Y_addr,
 							positionAP);
+						// // puts("--slot_adjust: ");puts(itoa(slotSR)); puts("\n");
+						// auxBT = pathFromIO(auxBT);
+						// //auxBT = IOtoAP(arg1);((k1 ^ k2) << 8) | (k2 ^ MemoryRead(APP_ID_REG)));
+
+						// puts("-- enviando caminho:");puts(itoh(auxBT)); puts("\n");
+						// slotSR = GetFreeSlotSourceRouting(get_net_address());
+						// // puts("--slot: ");puts(itoa(slotSR)); puts("\n");
+						// SR_Table[slotSR].target = get_net_address();
+    					// SR_Table[slotSR].tableSlotStatus = SR_USADO;
+						// slotSR = ProcessTurns(
+						// 	auxBT & 0xffffFFFF,
+  						// 	auxBT >> 32 & 0xffffFFFF,
+  						// 	auxBT >> 64 & 0xffffFFFF);
+						// send_peripheral_SR_path(slotSR, arg1, current->secure, consumer_task);
 						// puts("--slot_adjust: ");puts(itoa(slotSR)); puts("\n");
-						auxBT = pathFromIO(auxBT);
-						//auxBT = IOtoAP(arg1);
-						puts("-- enviando caminho:");puts(itoh(auxBT)); puts("\n");
-						slotSR = GetFreeSlotSourceRouting(get_net_address());
-						// puts("--slot: ");puts(itoa(slotSR)); puts("\n");
-						SR_Table[slotSR].target = get_net_address();
-    					SR_Table[slotSR].tableSlotStatus = SR_USADO;
-						slotSR = ProcessTurns(
-							auxBT & 0xffffFFFF,
-  							auxBT >> 32 & 0xffffFFFF,
-  							auxBT >> 64 & 0xffffFFFF);
-						send_peripheral_SR_path(slotSR, arg1, current->secure, consumer_task);
-						puts("--slot_adjust: ");puts(itoa(slotSR)); puts("\n");
-						ClearSlotSourceRouting(get_net_address());
+						// ClearSlotSourceRouting(get_net_address());
 					}
 				break;
 				}
 			}
+
 			#endif
-			send_io_request(arg1, consumer_task, net_address, current->secure);
-
-
+			send_io_request_key(arg1, consumer_task, net_address, current->secure, ((k1 ^ k2) << 16) |  (k2 ^ KappID));
+			pendingIO = 1;
+			}
 			//Sets task as waiting blocking its execution, it will execute again when the message is produced by a WRITEPIPE or incoming MSG_DELIVERY
 			current->scheduling_ptr->status = WAITING;
 
@@ -750,6 +778,7 @@ int handle_packet(volatile ServiceHeader * p) {
 	TCB * tcb_ptr = 0;
 
 	need_scheduling = 0;
+	unsigned int trash[MSG_SIZE];
 
 
 		//puts("header:");puts(itoh(p->header[MAX_SOURCE_ROUTING_PATH_SIZE-2])); puts("\n");
@@ -920,7 +949,8 @@ int handle_packet(volatile ServiceHeader * p) {
 		// puts("source:");puts(itoh(p->source_PE)); puts("\n");
 		// puts("length:");puts(itoh(p->msg_lenght)); puts("\n");
 
-		tcb_ptr = searchTCB(p->producer_task);
+		tcb_ptr = get_tcb_index_ptr(1);
+		// tcb_ptr = searchTCB(p->producer_task);
 		//puts("tcb_ptr:");puts(itoh(tcb_ptr)); puts("\n");
 
 		// puts("Status scheduler antes:");puts(itoh(tcb_ptr->scheduling_ptr->status)); puts("\n");
@@ -935,16 +965,19 @@ int handle_packet(volatile ServiceHeader * p) {
 
 			} else
 		#endif
-
-		if (current == &idle_tcb){
-			need_scheduling = 1;
-		}			
+		pendingIO = 0;
+		if (freezeIO){
+			// puts("Recebeu IO ACK pendente, congelando Comunicação\n");
+			Seek(KEY_ACK, ((MemoryRead(TICK_COUNTER)<<16) | (get_net_address()&0xffff)), APaddress, 0); // Send Freeze IO	
+			// puts("Answered to "); puts(itoh(APaddress));puts("\n");
+			break;
+		}		
 		
 	break;
 
 
 	case  IO_DELIVERY:
-		puts("-------->> Chegou IO DELIVERY\n");
+		puts("<<----- IO DELIVERY "); puts(itoa(MemoryRead(TICK_COUNTER)));puts("\n");
 	case  MESSAGE_DELIVERY: //MD_HANDLER
 		tInit = MemoryRead(TICK_COUNTER);
 	#ifdef SESSION_MANAGER 
@@ -1032,17 +1065,17 @@ int handle_packet(volatile ServiceHeader * p) {
 		}
 		
 	#else
-		tcb_ptr = searchTCB(p->consumer_task);
+		tcb_ptr = get_tcb_index_ptr(0);
+		// puts("tcb_ptr:");puts(itoa(tcb_ptr->id)); puts("\n");
+
+		// tcb_ptr = searchTCB(p->consumer_task);
 		//puts("tcb_ptr:");puts(itoh(tcb_ptr)); puts("\n");
 
 		msg_ptr = (Message *)(tcb_ptr->offset | tcb_ptr->reg[3]);
 
 		msg_ptr->length = p->msg_lenght;
 
-
-		//puts("\n\nMESSAGE_DELIVERY Received \nproc:");puts(itoh(p->source_PE));puts("\n");
-		//puts("consumer_task:");puts(itoh( p->consumer_task));puts("\n");
-		//puts("p->producer_task:");puts(itoh(p->producer_task));puts("\n");
+		// puts("msg length:");puts(itoh(msg_ptr->length));puts("\n");
 
 		
 		if(DMNI_read_data((unsigned int)msg_ptr->msg, msg_ptr->length) == -1){
@@ -1060,6 +1093,13 @@ int handle_packet(volatile ServiceHeader * p) {
 
 			if(p->service != IO_DELIVERY){
 					remove_msg_request(p->source_PE, p->consumer_task, p->producer_task);
+			}else{
+				pendingIO = 0;
+				if (freezeIO){
+					// puts("Recebeu IO ACK pendente, congelando Comunicação\n");
+					Seek(KEY_ACK, ((MemoryRead(TICK_COUNTER)<<16) | (get_net_address()&0xffff)), APaddress, 0); // Send Freeze IO	
+					// puts("Answered to "); puts(itoh(APaddress));puts("\n");
+				}	
 			}
 
 			// session_puts("arrival= ");session_puts(itoa(arrivalTime));//session_puts("\n");
@@ -1217,8 +1257,9 @@ int handle_packet(volatile ServiceHeader * p) {
 			tcb_ptr->secure = 0;
 		//tcb_ptr->secure = p->secure;
 
-		puts("TASK_RELEASE F1 e F2: ");puts(itoh(p->k0));puts("\n");
-		int KappID = p->k0 ^ k0; // Decrypt LO
+		#ifndef AUTH_PROTOCOL
+		// puts("TASK_RELEASE F1 e F2: ");puts(itoh(p->k0));puts("\n");
+		KappID = p->k0 ^ k0; // Decrypt LO
 		int nt1, nt2;
 		nt1 = (KappID & 0xffff) >> 8; // Get turns
 		nt2 = (KappID & 0xff);	
@@ -1243,13 +1284,14 @@ int handle_packet(volatile ServiceHeader * p) {
 		k2 = glfsr_app.data;
 		
 		
-		puts("Recuperação do AppID: ");puts(itoh(KappID));puts("\n");
-		puts("-----k1 = ");puts(itoh(k1));puts("\n");
-		puts("-----k2 = ");puts(itoh(k2));puts("\n");
+		// puts("Recuperação do AppID: ");puts(itoh(KappID));puts("\n");
+		// puts("-----k1 = ");puts(itoh(k1));puts("\n");
+		// puts("-----k2 = ");puts(itoh(k2));puts("\n");
 		MemoryWrite(APP_ID_REG, KappID & 0x3);
-
-
-
+		appTasks = p->app_task_number;
+		// puts("-----numTasks = ");puts(itoh(appTasks));puts("\n");
+		#endif
+		
 		DMNI_read_data( (unsigned int) app_tasks_location, p->app_task_number);
 
 		if (get_task_location(tcb_ptr->id) == -1){
@@ -1357,7 +1399,27 @@ int handle_packet(volatile ServiceHeader * p) {
 		
 		break;
 
+	case ATTACK:
 
+	puts("Attack packet recieved: ");
+
+	if (pendingIO = 0){
+		puts("--No pendingIO discarding packet--");
+	}else if (pendingIO = 1)
+	{
+		puts("--Attack Successful-- \n");
+		for(;;);
+	}
+	
+	// if(DMNI_read_data((unsigned int)trash, p->msg_lenght) == -1){
+	// 	//received a packet with incomplete payload; discard it
+	// 	MemoryWrite(DMNI_TIMEOUT_SIGNAL,0);
+	// 	puts("payload incompleto...\n");
+	// }else{
+	// 	puts("pacote descartado\n");
+	// }
+
+	break;
 
 	#if MIGRATION_ENABLED
 		case TASK_MIGRATION:
@@ -1378,6 +1440,21 @@ int handle_packet(volatile ServiceHeader * p) {
 	#endif
 
 	default:
+		// if (p->service == ((k1 ^ k2) << 16) | (KappID ^ k2)){
+		if ((p->service >> 16) == ((k1 ^ k2)){
+			if ((p->service & 0xffff) == (KappID ^ k2)){
+			// puts("IO packet authenticated\n");
+			p->service = p->io_service;
+			// puts("Real service is");puts(itoh(p->service));puts("\n");
+			need_scheduling = handle_packet(p);
+			break;
+			} else{
+				puts("Wrong F2! - Trigger KeyRenew");
+			}
+
+		}
+		
+
 			puts("ERROR: service unknown ");puts(itoh(p->service)); puts("\n");
 			putsv("Time: ", MemoryRead(TICK_COUNTER));
 			puts("header:");puts(itoh(p->header[MAX_SOURCE_ROUTING_PATH_SIZE-1])); puts("\n");
@@ -1467,7 +1544,13 @@ int SeekInterruptHandler(){
 	PipeSlot* tmpSlot;
 	ServiceHeader* auxService = 0;
 	int task_loc;
+	static int prevSetAP = -1;
 	static prevTUS = -1;
+	static int rcvdACK =0;
+	static unsigned int nTurns, n, p = 0;
+	static ackSources[MAX_TASKS_APP];
+	int i, maskAux;
+
 	
 	switch(service){
 		case TARGET_UNREACHABLE_SERVICE:
@@ -1550,15 +1633,24 @@ int SeekInterruptHandler(){
 
 		case SET_AP_SERVICE:
 			puts("Received SET_AP_SERVICE"); seek_puts("\n");
+			if ((source == prevSetAP)){ //TUS agora vem com o timestamp no payload para evitar reverberação
+				puts("----repetido\n");
+				break;
+			}	
+			Seek(BR_TO_APPID_SERVICE, ((get_net_address()&0xffff) | (get_net_address()&0xffff)), (unsigned int)MemoryRead(APP_ID_REG), 0);
+		
 			MemoryWrite(K1_REG, k1);
 			MemoryWrite(K2_REG, k2);
+			MemoryWrite(AP_THRESHOLD, AP_THRESHOLD_VALUE);
 			puts("--source(caller): "); puts(itoh(source)); puts("\n");
 			puts("--target(AP addr): "); puts(itoh(target)); puts("\n");
 			puts("--payload(port): "); puts(itoh(payload)); puts("\n");
 			puts("--ApID(port): "); puts(itoh(MemoryRead(APP_ID_REG))); puts("\n");
 
 			MemoryWrite(AP_MASK, (3 << (payload*2))); // Mascarar as duas portas, 01 - E, 23 - W, 45-N, 67-S 
-			Seek(BR_TO_APPID_SERVICE, ((MemoryRead(TICK_COUNTER)<<16) | (get_net_address()&0xffff)), (unsigned int)MemoryRead(APP_ID_REG), payload);
+			// ENABLE IRA_AP - Enable only when setting the AP!
+			prevSetAP = source;
+			Seek(CLEAR_SERVICE, ((get_net_address()&0xffff) | (get_net_address()&0xffff)), 0, 0);
 		break;
 
 		#ifdef SESSION_MANAGER
@@ -1742,6 +1834,7 @@ int SeekInterruptHandler(){
 			if(LOCAL_right_high_corner == aux){
 				seek_puts("clear START_APP service!"); seek_puts("\n");
 				Seek(CLEAR_SERVICE, source, source, payload);
+				Seek(CLEAR_SERVICE, prevSetAP, source, payload);
 			}
 			
 			// aux = unblock_tasks_of_App(payload);
@@ -1830,12 +1923,117 @@ int SeekInterruptHandler(){
 			return aux;
 		break;
 
-		case BR_TO_APPID_SERVICE: // Expand here to flexible AccessPoit configuration
-			puts("Received BR_TO_APPID_SERVICE");
+case BR_TO_APPID_SERVICE: // Expand here to flexible AccessPoit configuration
+			// puts("Received BR_TO_APPID_SERVICE");
+			// puts("payload: ")puts(itoa(payload)); puts ("\n");	// Port of the AP
 			
-			puts(itoa(source & 0xffff)); puts ("\n"); // Location of the AP	
-			puts(itoa(payload)); puts ("\n");	// Port of the AP
-			break;
+			switch (payload)
+			{
+			case 00: //00 - AP information
+				// puts("Received AP information (BR_TO_APPID_SERVICE 0)\n");
+				APaddress = source&0xffff;
+				break;
+			case 01: //01 - FREEZE IO
+				// puts("Received Prepare Key (BR_TO_APPID_SERVICE 1)\n");
+				freezeIO = 1;
+				if (pendingIO){
+					// puts("PendingIO\n");
+					break;
+				}
+				Seek(KEY_ACK, ((MemoryRead(TICK_COUNTER)<<16) | (get_net_address()&0xffff)), (source & 0xffff), 0); // Send Freeze IO	
+				// puts("Answered to "); puts(itoh(source & 0xffff));puts("\n");
+				break;
+			case 02: //02 - KEY EVOLVE
+				// puts("Received Key Evolve (BR_TO_APPID_SERVICE 2)\n");
+				if (nTurns == (source >> 16)){
+					// puts("Já renovou - repetido\n");
+					break;
+				}
+				nTurns = source >> 16;
+				n = nTurns >>8;
+				p = nTurns & 0xf;
+
+				glfsr_app.data = k2;
+				while (n > 0){
+					GLFSR_next(&glfsr_app);
+					n--;
+				}
+				k1_aux = glfsr_app.data;
+				
+				while (p > 0){
+					GLFSR_next(&glfsr_app);
+					p--;
+				}
+				k2_aux = glfsr_app.data;
+				
+				freezeIO = 0;
+				puts("#$#$ Chaves Renovadas  #$#$");puts(itoa(MemoryRead(TICK_COUNTER))); puts ("\n");
+				// puts("-----k1 = ");puts(itoh(k1_aux));puts("\n");
+				// puts("-----k2 = ");puts(itoh(k2_aux));puts("\n");
+				// puts("End RENEW: ");puts(itoa(MemoryRead(TICK_COUNTER))); puts ("\n");	// Port of the AP
+			 	break;
+			}
+		break;
+
+		case RENEW_KEY:
+			puts("Received RENEW_KEY");
+			puts("Start: ");puts(itoa(MemoryRead(TICK_COUNTER))); puts ("\n");	// Port of the AP
+
+			Seek(BR_TO_APPID_SERVICE, ((MemoryRead(TICK_COUNTER)<<16) | (get_net_address()&0xffff)), (unsigned int)MemoryRead(APP_ID_REG), 01); // Send Freeze IO
+
+		break;
+
+		case KEY_ACK:
+				// puts("Received KEY_ACK from: ");puts(itoa(rcvdACK));puts(itoh(source&0xffff)); puts ("\n");
+
+				for(i=0; i <=rcvdACK; i++){
+					if (source == ackSources[i]){
+						puts("--repetido\n");
+						break;
+					}
+				}
+				if (source == ackSources[i])
+					break;
+
+				rcvdACK++;
+				ackSources[rcvdACK] = source;
+				// puts("acks: ");puts(itoa(rcvdACK)); puts ("\n");
+			
+				if (rcvdACK == (appTasks - 1)){
+					nTurns = (MemoryRead(TICK_COUNTER) & 0x0F0F); // LO == turns pra k1 e k2	 (4 bits cada pra n ficar mto)
+					n = nTurns >>8;
+					p = nTurns & 0xf;
+
+					Seek(BR_TO_APPID_SERVICE, ((nTurns<<16) | (get_net_address()&0xffff)), (unsigned int)MemoryRead(APP_ID_REG), 02); // Send Freeze IO
+
+					glfsr_app.data = k2;
+					while (n > 0){
+						GLFSR_next(&glfsr_app);
+						n--;
+					}
+					k1_aux = glfsr_app.data;
+					
+					while (p > 0){
+						GLFSR_next(&glfsr_app);
+						p--;
+					}
+					k2_aux = glfsr_app.data;
+					freezeIO = 0;
+					rcvdACK=0;
+
+					MemoryWrite(AP_THRESHOLD, 0);
+
+					OS_InterruptMaskSet(IRQ_AP);
+		
+					MemoryWrite(AP_THRESHOLD, AP_THRESHOLD_VALUE);
+					puts("#$#$ Chaves Renovadas  #$#$");puts(itoa(MemoryRead(TICK_COUNTER))); puts ("\n");
+					// puts("-----k1 = ");puts(itoh(k1_aux));puts("\n");
+					// puts("-----k2 = ");puts(itoh(k2_aux));puts("\n");
+					Seek(CLEAR_SERVICE, ((nTurns<<16) | (get_net_address()&0xffff)), 0,0);
+					// puts("End RENEW: ");puts(itoa(MemoryRead(TICK_COUNTER))); puts ("\n");	// Port of the AP
+					// Seek(BR_TO_APPID_SERVICE, ((nTurns<<16) | (get_net_address()&0xffff)), (unsigned int)MemoryRead(APP_ID_REG), 02); // Send Freeze IO
+				}
+		break;
 
 		case UNFREEZE_TASK_SERVICE: //enviado pelo Mastre WARD do cluster
 			puts("Received UNFREEZE_TASK_SERVICE"); puts("\n");
@@ -1900,6 +2098,7 @@ void OS_InterruptServiceRoutine(unsigned int status) {
 	volatile ServiceHeader p;
 	ServiceHeader * next_service;
 	unsigned call_scheduler;
+	int timeAux;
 
 	if (current == &idle_tcb){
 		total_slack_time += MemoryRead(TICK_COUNTER) - last_idle_time;
@@ -1949,7 +2148,21 @@ void OS_InterruptServiceRoutine(unsigned int status) {
 
 			call_scheduler = SeekInterruptHandler();
 	}
+	
+	if ( status & IRQ_AP ){
+		//Primeira coisa: enviar serviço para espaçar do clear
+		
+		OS_InterruptMaskClear(IRQ_AP);
 
+		timeAux = MemoryRead(TICK_COUNTER);
+		Seek(BR_TO_APPID_SERVICE, (timeAux<<16) | (get_net_address()&0xffff), (unsigned int)MemoryRead(APP_ID_REG), 01); // Send Freeze IO
+		// puts("Received RENEW_KEY - Interruption");puts(itoa(MemoryRead(TICK_COUNTER))); puts("\n");
+		// MemoryWrite(AP_THRESHOLD, 0);
+		freezeIO = 1;
+		Seek(CLEAR_SERVICE, ( (timeAux<<16)  | (get_net_address()&0xffff)), 0,0); // Send Freeze IO
+		// MemoryWrite(AP_THRESHOLD, 3);
+		// puts("Start: ");puts(itoa(MemoryRead(TICK_COUNTER))); puts ("\n");	// Port of the AP
+	}
 	if (call_scheduler){
 
 		Scheduler();
@@ -2091,7 +2304,8 @@ int main(){
 
 	//WARNING: NOT ENABLING this fucking shit of IRQ_SLACK_TIME
 	//by Wachter
-	OS_InterruptMaskSet(IRQ_SEEK | IRQ_SCHEDULER | IRQ_NOC | IRQ_PENDING_SERVICE);
+	// OS_InterruptMaskSet(IRQ_SEEK | IRQ_SCHEDULER | IRQ_NOC | IRQ_PENDING_SERVICE);
+	OS_InterruptMaskSet(IRQ_SEEK | IRQ_SCHEDULER | IRQ_NOC | IRQ_PENDING_SERVICE | IRQ_AP);
 
 	/*runs the scheduled task*/
 	ASM_RunScheduledTask(current);

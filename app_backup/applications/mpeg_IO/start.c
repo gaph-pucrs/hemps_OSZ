@@ -40,7 +40,7 @@ int main(){
    //Echo(itoa(GetTick()));
 
 
-   msgIO.length = 128;
+   msgIO.length = 16;
 
    for(i=0; i<128; i++){
         msg1.msg[i] = vlc_array[i];

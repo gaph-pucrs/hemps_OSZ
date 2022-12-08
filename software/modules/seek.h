@@ -59,6 +59,9 @@
 #define	SET_AP_SERVICE					33
 #define	MSG_DELIVERY_CONTROL		    34
 #define	MSG_REQUEST_CONTROL				35
+#define	RENEW_KEY						36
+#define	KEY_ACK							37
+
 
 
 #define	IRQ_SEEK						0x80

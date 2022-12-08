@@ -176,6 +176,8 @@ void Seek(unsigned int service, unsigned int source, unsigned int target, unsign
 			case INITIALIZE_SLAVE_SERVICE:
 			case INITIALIZE_CLUSTER_SERVICE:
 			case GMV_READY_SERVICE:
+			case RENEW_KEY:
+			case KEY_ACK:
 				 MemoryWrite(SEEK_OPMODE_REGISTER,GLOBAL_MODE);
 			break;
 
@@ -188,12 +190,12 @@ void Seek(unsigned int service, unsigned int source, unsigned int target, unsign
 			case WARD_SERVICE:
 			case MSG_DELIVERY_CONTROL:
 			case MSG_REQUEST_CONTROL:
+			case BR_TO_APPID_SERVICE:
 				 MemoryWrite(SEEK_OPMODE_REGISTER,RESTRICT_MODE);
 			break;
 
 			default:
 				 MemoryWrite(SEEK_OPMODE_REGISTER,GLOBAL_MODE);
-
 			break;
 		}
 		// Must be last value written because target value fires the seek_send function
@@ -320,6 +322,118 @@ int ProcessTurns(unsigned int backtrack, unsigned int backtrack1, unsigned int b
 	// print_SR_Table(slot_seek);
 	return slot_seek;
 }
+
+	/**Processes the information of the path from seek router and stores
+	 * the resultant Source Routing path in SR_Table indexed by slot_seek.
+	 * \param slot_seek position
+	 * \return void function
+	 */
+int ProcessTurnsPointer(unsigned int backtrack, unsigned int backtrack1, unsigned int backtrack2, SourceRoutingTableSlot* ptrSR){
+	int i,j;
+	int slot_seek;
+	// unsigned int backtrack, backtrack1, backtrack2;
+	unsigned int next_port;
+	unsigned int port[MAX_SOURCE_ROUTING_DESTINATIONS];//used for storing hops
+	unsigned char algorithm;
+	int shift;
+	int addrX, addrY;
+	addrX=0;
+	addrY=0;
+	j=0;//variable j is used to index the final path
+	i=0;//variable i is used to index the number of ports (2 bits) read
+	//this loop reads the flits and puts each port in each position of table.port[i]
+	do {
+		port[i] = backtrack & 0x3;
+		next_port = (backtrack >> 2) & 0x3;
+		backtrack >>= 2;
+		i++;
+		if(i==16){
+			backtrack = backtrack1;
+		}
+		else if(i==32){
+			backtrack = backtrack2;
+		}
+	}while( !( (port[i-1] == EAST  && next_port == WEST) ||//if the path is EW WE SN NS then we should stop here
+			  (port[i-1] == WEST  && next_port == EAST)  ||
+			  (port[i-1] == NORTH && next_port == SOUTH) ||
+			  (port[i-1] == SOUTH && next_port == NORTH) ) );
+	port[i] = next_port;
+	//calculates target destination
+	for(j=0;j<i;j++){
+		switch(port[j]){
+			case EAST: addrX++; break;
+			case WEST: addrX--; break;
+			case NORTH: addrY++; break;
+			case SOUTH: addrY--; break;
+		}
+	}
+
+	ptrSR->path_size = ((i)/6)+1;//path size per hop(16 bits) = 6
+	
+	algorithm = WEST_FIRST;//initialize with west first
+	for(j=0;j<i;j++){//calculate the channel to comply with the routing algorithm
+		if(algorithm == WEST_FIRST){
+			if((port[j] == SOUTH || port[j] == NORTH) && port[j+1] == WEST){//turns prohibited by WEST FIRST :SW and NW
+				algorithm = EAST_FIRST;
+			}
+		}
+		else{
+			if((port[j] == SOUTH || port[j] == NORTH) && port[j+1] == EAST){//turns prohibited by WEST FIRST :SE and NE
+				algorithm = WEST_FIRST;
+			}
+			port[j] = port[j]+4;
+		}
+	}
+	port[j-2] = port[j-2] & 0xF; // Coordenada de entrada no AP é a penúltima porta (mascarada para sempre ch0)
+	port[j-1] = port[j-1] & 0xF; // Última porta é o criterio de parada (também colocado em ch0)
+	//for (j=0; j<=i; j++){
+	//	print_port(port[j]);
+	//}
+	//seek_puts("\n");
+	//writes the path as an header of source routing
+	shift=24;
+	//16 bits flit
+	ptrSR->path[0] = 0x70007000;
+	for(i=0;i<=j;i++){
+		ptrSR->path[(int)(i/6)] = ptrSR->path[(int)(i/6)]|((port[i]&0x0f) << shift);
+
+		switch(shift){
+			case 16:
+				shift = 8;
+			break;
+			case 0:
+				shift = 24;
+				ptrSR->path[(int)(i/6)+1] = 0x70007000;
+			break;
+			default:
+				shift = shift - 4;
+			break;
+		}
+	}
+
+	while (shift >= 0)
+	{
+		ptrSR->path[(int)(i/6)] = ptrSR->path[(int)(i/6)]|((0xE) << shift);
+		switch(shift){
+			case 16:
+				shift = 8;
+			break;
+			default:
+				shift = shift - 4;
+			break;
+		}
+		i++;
+	}
+	// puts("Caminho criado:");
+	// for (i = 0; i < ptrSR->path_size; i++){
+	// 	puts(itoh(ptrSR->path[i]));puts("\n");	
+	// }
+	
+	return 1;
+
+
+}
+
 int adjust_backtrack_IO(unsigned int backtrack, unsigned int backtrack1, unsigned int backtrack2, unsigned int target, int positionAP){
 	unsigned int next_port;
 	unsigned int port[MAX_SOURCE_ROUTING_DESTINATIONS];//used for storing hops
@@ -427,9 +541,6 @@ int adjust_backtrack_IO(unsigned int backtrack, unsigned int backtrack1, unsigne
 		i++;
 	}
 	// print_SR_Table(slot_seek);
-	return slot_seek;
-	
-
 	return slot_seek;
 }
 

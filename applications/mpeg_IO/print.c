@@ -21,8 +21,8 @@ Message msgIO;
 
 int main()
 {
-    unsigned int time_a, time_b;
-    int i;
+   unsigned int time_a, time_b;
+   int i;
     
     msgIO.length = 64;
 

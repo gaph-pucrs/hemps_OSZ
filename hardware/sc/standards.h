@@ -114,6 +114,7 @@
 #define K2_REG                0x20000564
 #define AP_MASK               0x20000568
 #define APP_ID_REG            0x20000570
+#define AP_THRESHOLD          0x20000574
 
 //DMNI config code
 #define CODE_CS_NET 		1

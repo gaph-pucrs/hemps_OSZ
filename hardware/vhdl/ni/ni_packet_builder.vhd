@@ -277,9 +277,18 @@ begin
                 elsif header_flit=SERVICE_FLIT_HI+1 then
                     hermes_data_out <= IO_DELIVERY_SERVICE(TAM_FLIT-1 downto 0);
 
+                -- elsif header_flit=SERVICE_FLIT_HI_TX then
+                --     hermes_data_out <= IO_DELIVERY_SERVICE(TAM_WORD-1 downto TAM_FLIT);
+
+                -- elsif header_flit=SERVICE_FLIT_HI_TX+1 then
+                --     hermes_data_out <= IO_DELIVERY_SERVICE(TAM_FLIT-1 downto 0);
+                  
                 elsif header_flit=PACKET_SOURCE_FLIT then
                     hermes_data_out <= response_param_reg.source;
 
+                elsif header_flit=DELIVERY_SIZE_FLIT then
+                    hermes_data_out <= conv_std_logic_vector(DEFAULT_WORDS_PER_DELIVERY, hermes_data_out'length);
+    
                 else
                     hermes_data_out <= x"0000";
                 end if;

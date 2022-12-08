@@ -31,6 +31,8 @@
 int get_cluster_ID(int x, int y);
  
 #define MIGRATION_ENABLED			1		//!< Enable or disable the migration module
+#define AP_THRESHOLD_VALUE			4		//!< Enable or disable the migration module
+// #define AUTH_PROTOCOL
 
 
 extern unsigned int ASM_SetInterruptEnable(unsigned int);

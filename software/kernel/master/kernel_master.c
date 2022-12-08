@@ -102,6 +102,127 @@ void send_authenticate_pe(int proc_addr, int k0){
 
 }
 
+void send_authenticate_nip(int periphID, int k0){
+	
+	ServiceHeader *p = get_service_header_slot();
+
+	p->service = k0;
+
+	p->io_service = IO_INIT;
+
+	send_packet_io(p, 0, 0, periphID);
+
+	while (MemoryRead(DMNI_SEND_ACTIVE));
+
+	//set open line table 
+}
+
+// // send_open_line
+// {
+// 	int xyPath[] = {0x0083,0x0303}
+// 	puts("----Enviando conf para: ");puts(itoa(app->tasks[i].dependences[j].flits));puts("\n");
+
+// 	p = get_service_header_slot();
+// 	p->header[MAX_SOURCE_ROUTING_PATH_SIZE-1] = app->tasks[i].allocated_proc;
+
+// 	p->service = (appID_rand);// appID sabo
+
+// 	p->io_service = IO_SR_PATH;
+
+// 	p->k0 = 0x0; // Dividir em 2 HI e LO, pq tem 32
+	
+// 	send_packet_io(p, xyPath, 1, usedIO[k]);
+
+// // }
+// // Reserve NI line for commom apps 
+// void send_io_config_normal(Application* app){ 
+ 
+// 	ServiceHeader *p; 
+// 	SourceRoutingTableSlot sr; 
+// 	static int usedIO[IO_NUMBER]; 
+// 	int k0; 
+// 	long unsigned int pathSR[2]; 
+ 
+// 	// appID_rand = 0; 
+// 	// turns = 0x00000000; 
+ 
+// 	// puts("AppID rand: ");puts(itoh(appID_rand));puts("\n"); 
+// 	// puts("turns: ");puts(itoh(turns));puts("\n"); 
+ 
+// // #define	start	3 - io1 80 - 0300 
+// // #define	print	4 - io2 70 - 0100 
+// 	usedIO[0] = 80; 
+// 	usedIO[1] = 70; 
+// 	pathSR[0] = 0x60210300; 
+// 	pathSR[1] = 0x60210100; 
+ 
+// 	for (int i =0; i<2; i++){ 
+// 		k0 = get_NI_k0(usedIO[i]); 
+// 		sr.path_size=1; 
+// 		sr.path[0]=pathSR[i]; 
+ 
+// 		p = get_service_header_slot(); 
+// 		// p->header[MAX_SOURCE_ROUTING_PATH_SIZE-1] = app->tasks[i].allocated_proc; 
+ 
+// 		p->service = (k0); 
+ 
+// 		p->io_service = IO_SR_PATH; 
+ 
+// 		p->k0 = 0; // Dividir em 2 HI e LO, pq tem 32 
+		 
+// 		send_packet_io(p, &sr.path[0], sr.path_size, usedIO[i]); 
+// 	} 
+// } 
+ 
+
+void send_io_config(Application* app, int appID_rand, int turns){
+
+	ServiceHeader *p;
+	SourceRoutingTableSlot sr;
+	static int usedIO[IO_NUMBER];
+	int k0;
+	long unsigned int pathSR = 0;
+
+	// appID_rand = 0x00007782;
+	// turns = 0x00000704;
+
+	puts("AppID rand: ");puts(itoh(appID_rand));puts("\n");
+	puts("turns: ");puts(itoh(turns));puts("\n");
+
+	for (int i =0; i<app->tasks_number; i++){
+		// puts("TaskID ");puts(itoh(app->tasks[i].id));puts("\n");
+		for(int j =0; j < app->tasks[i].dependences_number; j++){
+			for (int k = 0; k < IO_NUMBER; k++){
+				if(usedIO[k] == app->tasks[i].dependences[j].flits)
+					break;
+				if(usedIO[k] == 0){
+					puts("----Enviando conf para: ");puts(itoa(app->tasks[i].dependences[j].flits));puts("\n");
+					usedIO[k] = app->tasks[i].dependences[j].flits;
+					k0 = get_NI_k0(usedIO[k]);
+					pathSR = IOtoAPmaster(usedIO[k], app->ap.address_go, app->ap.port_go);
+					ProcessTurnsPointer(pathSR & 0xffffFFFF,
+  										pathSR >> 32 & 0xffffFFFF,
+  										pathSR >> 64 & 0xffffFFFF,
+										&sr);
+					p = get_service_header_slot();
+					p->header[MAX_SOURCE_ROUTING_PATH_SIZE-1] = app->tasks[i].allocated_proc;
+
+					p->service = (appID_rand ^ k0);
+
+					p->io_service = IO_SR_PATH;
+
+					p->k0 = 0x6e6bf8ed; // Dividir em 2 HI e LO, pq tem 32
+					
+					send_packet_io(p, &sr.path[0], sr.path_size, usedIO[k]);
+					break;
+				}
+					
+			}
+		}			
+	}
+}
+
+
 /** Assembles and sends a TASK_ALLOCATION packet to a slave kernel
  *  \param new_t The NewTask instance
  */
@@ -139,15 +260,18 @@ void send_task_release(Application * app){
 		app_tasks_location[i] = app->tasks[i].allocated_proc;
 	}
 
-
-	// appID_rand = (MemoryRead(TICK_COUNTER) & 0xFFFF); // HI == appID
-	// turns = (MemoryRead(TICK_COUNTER) & 0x0F0F); // LO == turns pra k1 e k2	 (4 bits cada pra n ficar mto)
+	#ifndef AUTH_PROTOCOL
+	appID_rand = (MemoryRead(TICK_COUNTER) & 0xFFFF); // HI == appID
+	turns = (MemoryRead(TICK_COUNTER) & 0x0F0F); // LO == turns pra k1 e k2	 (4 bits cada pra n ficar mto)
 
 	appID_rand = 0x00007782;
 	turns = 0x00000704;
 
+	app->appID_random = 0x00007782;
+	app->nTurns = 0x00000704;
 	puts("AppID rand: ");puts(itoh(appID_rand));puts("\n");
 	puts("turns: ");puts(itoh(turns));puts("\n");
+	#endif
 
 	for (int i =0; i<app->tasks_number; i++){
 		if(app->tasks[i].status == REQUESTED){
@@ -165,12 +289,12 @@ void send_task_release(Application * app){
 	
 			p->bss_size = app->tasks[i].bss_size;
 
+			#ifndef AUTH_PROTOCOL
 			kaux = get_k0(app->tasks[i].allocated_proc);
 			p->k0 = ((appID_rand ^ kaux) << 16) | (turns ^ kaux) ; // Dividir em 2 HI e LO, pq tem 32
+			#endif
 
 			p->secure = app->secure;
-
-			//puts("\nsecure: "); puts(itoh(p->secure));
 	
 			if(!proc_is_migrating(app->tasks[i].allocated_proc)){
 				send_packet(p, (unsigned int) app_tasks_location, app->tasks_number);
@@ -181,14 +305,14 @@ void send_task_release(Application * app){
 				flag = 1;
 			}
 		}
-	//putsv("\n -> send TASK_RELEASE to task ", p->task_ID);
-	//puts(" in proc "); puts(itoh(p->header[MAX_SOURCE_ROUTING_PATH_SIZE-1])); puts("\n----\n");
 	}
+
 	if(flag == 0)
 		app->status = RUNNING;
 
 	while(MemoryRead(DMNI_SEND_ACTIVE));
 }
+
 void send_tasks_location(Application * app){
 	int flag = 0;
 	ServiceHeader *p;
@@ -755,7 +879,7 @@ void initialize_slaves(){
 			send_authenticate_pe(proc_address,k0rand);
 			puts("Authenticated PE"); puts(itoh(proc_address));  puts("\n");
 			k0table[i][j] = k0rand;
-			puts("K0: ");  puts(itoh(k0table[i][j]));  puts("\n");
+			// puts("K0: ");  puts(itoh(k0table[i][j]));  puts("\n");
 			k0rand =0;
 		}
 	}
@@ -779,26 +903,17 @@ void initialize_slaves(){
 void initialize_IO(){ 	// TODO  peripheral recieve k0
 
 	int i =0, k0rand;
-	ServiceHeader *p = get_service_header_slot();
-
-	p->service = IO_INIT;
-
-	p->requesting_processor = get_net_address();
-
-	// p->task_ID = consumer_task;
-
-	// p->peripheral_ID = peripheralID;
-
-	//add_msg_request(p->header[MAX_SOURCE_ROUTING_PATH_SIZE-1], consumer_task, peripheral_ID); //caimi: arrumar header
 
 	// TODO  peripheral recieve k0
 	for(i=0;i<IO_NUMBER;i++){
 		while(k0rand == 0 || k0rand == 0xffff)
 			k0rand = (MemoryRead(TICK_COUNTER) & 0xffff);
 
+		send_authenticate_nip(io_info[i].peripheral_id,k0rand);
+
 		puts("Authenticated NI"); puts(itoh(i));  puts("\n");
 		k0NItable[i] = k0rand;
-		puts("K0: ");  puts(itoh(k0NItable[i]));  puts("\n");
+		// puts("K0: ");  puts(itoh(k0NItable[i]));  puts("\n");
 		k0rand =0;
 	}
 
@@ -841,20 +956,20 @@ void handle_new_app(int app_ID, volatile unsigned int *ref_address, unsigned int
 	// Key exchange
 	// lfsr_t glfsr_app;
 	// 16-bit	16,15,13,4 = 1101 0000 0000 1000 - 0xD008
-
+	#ifndef AUTH_PROTOCOL
 	lfsr_data_t k0=0x1;
 	GLFSR_init(&glfsr_app, (lfsr_data_t)0xD008, k0);
 
 	for (int i = 0; i < 16; i++)
 	{
 		GLFSR_next(&glfsr_app);
-		puts("k0 = ");puts(itoh(glfsr_app.data));puts("\n");
+		// puts("k0 = ");puts(itoh(glfsr_app.data));puts("\n");
 
 	}
-	
+	#endif
 	//
 	//INICIO DO PROTOCOLO
-	putsv("#### BEGIN PROTOCOL OVERHEAD - ", MemoryRead(TICK_COUNTER));
+	putsv("#### BEGIN APP DEPLOY OVERHEAD - ", MemoryRead(TICK_COUNTER));
 	//Cuidado com app_descriptor_size muito grande, pode estourar a memoria
 	unsigned int app_descriptor[app_descriptor_size];
 
@@ -887,6 +1002,7 @@ void handle_new_app(int app_ID, volatile unsigned int *ref_address, unsigned int
 	    	while(1);
 	    }
 	}
+	
 	//Fills the cluster load
 	for(int k=0; k < application->tasks_number; k++){
 		cluster_load[clusterID] += application->tasks[k].computation_load;
@@ -1037,6 +1153,7 @@ int SeekInterruptHandler(){
 				putsv("\nThis Master don't have a secure zone with RH Address ", payload);
 			
 			//TEMPO DE RELEASE
+			puts("\n\n*** END APP_DEPLOY"); puts(itoa((MemoryRead(TICK_COUNTER)))); putsv(" RUNNING AT: ", MemoryRead(TICK_COUNTER));
 			puts("\n\n***** APP "); puts(itoa(app_id)); putsv(" RUNNING AT: ", MemoryRead(TICK_COUNTER));
 
 		break;
@@ -1131,12 +1248,18 @@ int SeekInterruptHandler(){
 						//puts("RH_addr: "); puts(itoh(RH_addr)); puts("\n");
 						//puts("LL_addr: "); puts(itoh(LL_addr)); puts("\n");
 						set_RH_Address(app->app_ID, RH_addr);
-						set_AccessPoint(RH_addr, LL_addr, app->ap);
+						#ifndef AUTH_PROTOCOL
+						set_AccessPoint(RH_addr, LL_addr, &app->ap);
+						send_io_config(app, app->appID_random, app->nTurns);
+						#endif
 						//get_Secure_Zone_index(RH_addr);
 						puts("SET_SECURE_ZONE at time: "); puts(itoa(MemoryRead(TICK_COUNTER))); puts("\n");
 						//Seek(SET_SECURE_ZONE_SERVICE, (get_Secure_Zone_index(RH_addr)<<16 | get_net_address()), LL_addr, RH_addr);
 						//Seek(SET_SECURE_ZONE_SERVICE, (MemoryRead(TICK_COUNTER)<<16 | get_net_address()), LL_addr, RH_addr);
 						Seek(SET_SECURE_ZONE_SERVICE, ((app_id << 24) | ((MemoryRead(TICK_COUNTER) << 16) & 0xFF0000) | get_net_address()), LL_addr, RH_addr);
+					}
+					else{
+						// send_io_config_normal(app);
 					}		
 			}
 		break;
@@ -1203,7 +1326,7 @@ int SeekInterruptHandler(){
 
 
 int main() {
-	
+	int auxKey = 0;
 	set_net_address(MemoryRead(NI_CONFIG));
 	//By default HeMPS assumes that GM is positioned at address 0
 	//if ( get_net_address() == 0){
@@ -1251,6 +1374,11 @@ int main() {
 	
 	for (;;) {
 
+		// if((MemoryRead(TICK_COUNTER) > 120000) && (auxKey == 0)){
+		// 	puts("Enviando KEY_Evolve\n");
+		// 	auxKey = 1;
+		// 	Seek(RENEW_KEY, (MemoryRead(TICK_COUNTER) << 16) | get_net_address(), 0x0101, 0);
+		// }
 		//LM looping
 		if (noc_interruption){
 

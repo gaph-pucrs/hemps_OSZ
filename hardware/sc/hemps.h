@@ -247,7 +247,7 @@ SC_MODULE(hemps) {
 				sensitive << credit_o[j][i];
 			}
 		}
-		for (i = 2; i < IO_NUMBER; i++) {
+		for (i = 3; i < IO_NUMBER; i++) {
 			sensitive << sig_clock_rx_io[i];
 			sensitive << sig_rx_io[i];
 			sensitive << sig_data_in_io[i];
@@ -260,7 +260,7 @@ SC_MODULE(hemps) {
 		sensitive << reset;
 
 		SC_METHOD(ni_interconnection);
-		for(i = 2; i < IO_NUMBER; i++) {
+		for(i = 3; i < IO_NUMBER; i++) {
 			sensitive << sig_clock_tx_io[i];
 			sensitive << sig_tx_io[i];
 			sensitive << sig_data_out_io[i];

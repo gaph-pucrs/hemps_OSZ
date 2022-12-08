@@ -205,8 +205,8 @@ SC_MODULE(pe) {
 	sc_signal <	regflit> 		k1;
 	sc_signal <	regflit> 		k2;
 	sc_signal < reg_seek_target> 	app_reg;
-	
-	
+	sc_signal < sc_uint <8> > 	apThreshold;
+	sc_signal <bool > 			intAP;
 
 	//pending service signal
 	sc_signal < bool > 			pending_service;
@@ -435,7 +435,8 @@ SC_MODULE(pe) {
 			}
 			router->k1		(k1);
 			router->k2		(k2);
-
+			router->apThreshold (apThreshold);
+			router->intAP	(intAP);
 
 			router->access_i				[LOCAL0](router_fail_in[LOCAL0]);
 			router->access_i				[LOCAL1](router_fail_in[LOCAL1]);
