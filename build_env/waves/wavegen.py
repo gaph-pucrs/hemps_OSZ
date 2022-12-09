@@ -132,7 +132,7 @@ for pe in range(0,max_pe):
 		print (it)
 
 	print (dmni_dividers_pfx +"SR")
-	dmni_signals_sds2=["SR","cont","payload_size","last"]
+	dmni_signals_sds2=["SR","cont","payload_size","last", "pig_signal"]
 	for it in map(lambda sd: dmni_signals_pfx + sd, dmni_signals_sds2):
 		print (it)
 
@@ -199,7 +199,7 @@ for pe in range(0,max_pe):
 				for it in map(lambda sd: access_point_pfx + sd + f"({port:d})",access_point_sds):
 					print (it)
 				access_point_pfx = "add wave -noupdate -group {%s %dx%d - %d} -group %s -group {router %dx%d AP %s} -radix hexadecimal /test_bench/HeMPS/%s%dx%d/RouterCCwrapped/RouterCC_AP/AP_gen(%d)/AP_CH0/" % 	(pe_type_str, posX, posY, pe,location, posX, posY, portname[port], pe_type_str, posX, posY,ap)
-				access_point_sds = ["pass","mask", "reg_F1", "eop_ap", "terminate" ]
+				access_point_sds = ["pass","mask", "Cin", "Cout", "CurrentState" ]
 				for it in map(lambda sd: access_point_pfx + sd,access_point_sds):
 					print (it)
 				ap += 1

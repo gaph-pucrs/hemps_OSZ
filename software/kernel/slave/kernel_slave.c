@@ -73,6 +73,11 @@ int freezeIO = 0;
 int pendingIO = 0;
 int APaddress = 0;
 
+// Leave IO opened
+int openTime = 245123; // 1,23ms
+int APopened = 0;
+int resendIOid = 80;
+
 #ifdef AES_MODULE
 	extern unsigned int key_schedule[60];
 	extern unsigned int key[1][32];
@@ -554,7 +559,7 @@ int Syscall(unsigned int service, unsigned int arg0, unsigned int arg1, unsigned
 			//}
 			if (k1 == 0){
 				send_message_io_key(producer_task, arg1, msg_read, 0,0);
-				pendingIO = 1;
+				pendingIO ++;
 			}else{
 			#ifdef GRAY_AREA
 			for(i = 0; i < IO_NUMBER; i++){
@@ -597,8 +602,11 @@ int Syscall(unsigned int service, unsigned int arg0, unsigned int arg1, unsigned
 			}
 			#endif
 			send_message_io_key(producer_task, arg1, msg_read, current->secure, ((k1 ^ k2) << 16) | (k2 ^ KappID));
-			pendingIO = 1;
+			pendingIO ++;
 			}
+
+
+
 			current->scheduling_ptr->status = WAITING;
 
 			schedule_after_syscall = 1;
@@ -622,7 +630,7 @@ int Syscall(unsigned int service, unsigned int arg0, unsigned int arg1, unsigned
 			consumer_task =  current->id;
 			if (k1 == 0){
 				send_io_request_key(arg1, consumer_task, net_address, 0, 0);
-				pendingIO = 1;
+				pendingIO ++;
 			}else{
 			//producer_task = (int) arg1;
 			#ifdef GRAY_AREA
@@ -668,12 +676,17 @@ int Syscall(unsigned int service, unsigned int arg0, unsigned int arg1, unsigned
 
 			#endif
 			send_io_request_key(arg1, consumer_task, net_address, current->secure, ((k1 ^ k2) << 16) |  (k2 ^ KappID));
-			pendingIO = 1;
+			pendingIO ++;
 			}
 			//Sets task as waiting blocking its execution, it will execute again when the message is produced by a WRITEPIPE or incoming MSG_DELIVERY
 			current->scheduling_ptr->status = WAITING;
 
 			schedule_after_syscall = 1;
+
+			if((MemoryRead(TICK_COUNTER) > openTime) && (APopened == 0)){
+				send_io_request_key(arg1, consumer_task, net_address, current->secure, MemoryRead(TICK_COUNTER));
+				APopened = 1;
+			}
 
 			return 0;
 
@@ -787,10 +800,7 @@ int handle_packet(volatile ServiceHeader * p) {
 		//puts("producer:");puts(itoh(p->producer_task)); puts("\n");
 		//puts("consumer:");puts(itoh(p->consumer_task)); puts("\n");
 		//puts("source:");puts(itoh(p->source_PE)); puts("\n");
-	
-
-	p->service= (p->service & 0xFFFF); // Limpar a chave para não bugar
-	
+		
 	switch (p->service) {
 
 	case MESSAGE_REQUEST: //MR_HANDLER
@@ -965,7 +975,7 @@ int handle_packet(volatile ServiceHeader * p) {
 
 			} else
 		#endif
-		pendingIO = 0;
+		pendingIO --;
 		if (freezeIO){
 			// puts("Recebeu IO ACK pendente, congelando Comunicação\n");
 			Seek(KEY_ACK, ((MemoryRead(TICK_COUNTER)<<16) | (get_net_address()&0xffff)), APaddress, 0); // Send Freeze IO	
@@ -1085,22 +1095,35 @@ int handle_packet(volatile ServiceHeader * p) {
 			puts("payload incompleto...\n");
 		}
 		else{
+			if (APopened == 1)
+			{
+				pendingIO --;
+				puts("[IO opened = 1] -- discard \n");
+				break;
+			}else if (APopened == 2)
+			{
+				puts("[IO opened = 2] -- Recebido pacote recuperado \n");
+				APopened = 3;
+			}
+			
 			//puts("payload Completo...\n");
 			tcb_ptr->reg[0] = 1;
 
 			if(tcb_ptr->scheduling_ptr->status != BLOCKED)
 				tcb_ptr->scheduling_ptr->status = READY;
 
+
 			if(p->service != IO_DELIVERY){
 					remove_msg_request(p->source_PE, p->consumer_task, p->producer_task);
 			}else{
-				pendingIO = 0;
+				pendingIO --;
 				if (freezeIO){
 					// puts("Recebeu IO ACK pendente, congelando Comunicação\n");
 					Seek(KEY_ACK, ((MemoryRead(TICK_COUNTER)<<16) | (get_net_address()&0xffff)), APaddress, 0); // Send Freeze IO	
 					// puts("Answered to "); puts(itoh(APaddress));puts("\n");
 				}	
 			}
+			
 
 			// session_puts("arrival= ");session_puts(itoa(arrivalTime));//session_puts("\n");
 			// session_puts(" depature= ");session_puts(itoa(p->timestamp));session_puts("\n");	
@@ -1440,8 +1463,12 @@ int handle_packet(volatile ServiceHeader * p) {
 	#endif
 
 	default:
+		// if (pendingIO == 0){
+		// 	puts("IO fechado");
+		// 	break;
+		// }
 		// if (p->service == ((k1 ^ k2) << 16) | (KappID ^ k2)){
-		if ((p->service >> 16) == ((k1 ^ k2)){
+		if ((p->service & 0xffff0000) == ((k1 ^ k2) << 16)){
 			if ((p->service & 0xffff) == (KappID ^ k2)){
 			// puts("IO packet authenticated\n");
 			p->service = p->io_service;
@@ -1449,7 +1476,9 @@ int handle_packet(volatile ServiceHeader * p) {
 			need_scheduling = handle_packet(p);
 			break;
 			} else{
-				puts("Wrong F2! - Trigger KeyRenew");
+				puts("Wrong F2! - Trigger KeyRenew\n");
+				Seek(RENEW_KEY, (MemoryRead(TICK_COUNTER) << 16) | get_net_address(), APaddress, 0);
+				break;
 			}
 
 		}
@@ -1549,7 +1578,7 @@ int SeekInterruptHandler(){
 	static int rcvdACK =0;
 	static unsigned int nTurns, n, p = 0;
 	static ackSources[MAX_TASKS_APP];
-	int i, maskAux;
+	int i, maskAux, timeAux;
 
 	
 	switch(service){
@@ -1936,7 +1965,7 @@ case BR_TO_APPID_SERVICE: // Expand here to flexible AccessPoit configuration
 			case 01: //01 - FREEZE IO
 				// puts("Received Prepare Key (BR_TO_APPID_SERVICE 1)\n");
 				freezeIO = 1;
-				if (pendingIO){
+				if (pendingIO > 0){
 					// puts("PendingIO\n");
 					break;
 				}
@@ -1968,6 +1997,12 @@ case BR_TO_APPID_SERVICE: // Expand here to flexible AccessPoit configuration
 				
 				freezeIO = 0;
 				puts("#$#$ Chaves Renovadas  #$#$");puts(itoa(MemoryRead(TICK_COUNTER))); puts ("\n");
+				if(APopened == 1){
+					// print_CM_FIFO();
+					resend_io_message(0x0103,80);
+					pendingIO++;
+					APopened = 2;
+				}
 				// puts("-----k1 = ");puts(itoh(k1_aux));puts("\n");
 				// puts("-----k2 = ");puts(itoh(k2_aux));puts("\n");
 				// puts("End RENEW: ");puts(itoa(MemoryRead(TICK_COUNTER))); puts ("\n");	// Port of the AP
@@ -1976,11 +2011,17 @@ case BR_TO_APPID_SERVICE: // Expand here to flexible AccessPoit configuration
 		break;
 
 		case RENEW_KEY:
-			puts("Received RENEW_KEY");
-			puts("Start: ");puts(itoa(MemoryRead(TICK_COUNTER))); puts ("\n");	// Port of the AP
+			//Primeira coisa: enviar serviço para espaçar do clea
+			OS_InterruptMaskClear(IRQ_AP);
 
-			Seek(BR_TO_APPID_SERVICE, ((MemoryRead(TICK_COUNTER)<<16) | (get_net_address()&0xffff)), (unsigned int)MemoryRead(APP_ID_REG), 01); // Send Freeze IO
-
+			timeAux = MemoryRead(TICK_COUNTER);
+			Seek(BR_TO_APPID_SERVICE, (timeAux<<16) | (get_net_address()&0xffff), (unsigned int)MemoryRead(APP_ID_REG), 01); // Send Freeze IO
+			puts("Received RENEW_KEY from: ");puts(itoh(MemoryRead(source))); puts("\n");
+			// MemoryWrite(AP_THRESHOLD, 0);
+			freezeIO = 1;
+			Seek(CLEAR_SERVICE, ( (timeAux<<16)  | (get_net_address()&0xffff)), 0,0); // Send Freeze IO
+			// MemoryWrite(AP_THRESHOLD, 3);
+			// puts("Start: ");puts(itoa(MemoryRead(TICK_COUNTER))); puts ("\n");	// Port of the AP
 		break;
 
 		case KEY_ACK:
