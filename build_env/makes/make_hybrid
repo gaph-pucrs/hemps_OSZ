@@ -21,18 +21,18 @@ FIFO_PDN_SC 			=fifo_pdn
 FAIL_WRAPPER_MODULE_SC 	=fail_wrapper_module
 #IO_PERIPHERAL_SC 		=io_peripheral			#temporarily disabled, using NI instead
 INJECTOR_SC 			=injector
-NI_SC			 		=io_peripheral
+SNIP_SC			 		=io_peripheral
 SABOTAGE_SC				=sabotage
 
 #vhdl files
 HEMPS_PKG	=hemps_pkg
 STAND		=standards
-STAND_NI	=ni_pkg
+STAND_SNIP	=snip_pkg
 SEEK_VHD 	=seek_pkg logging router_seek
 #SEEK_VHD 	=seek_pkg router_seek
 
 ROUTER_VHD 	=Hermes_buffer Hermes_crossbar Hermes_switchcontrol_SR mux_control RouterCC_SR Access_Point RouterCC_AP 
-NI_VHD		=ni_table ni_packet_handler ni_packet_builder ni_fifo dummy_peripheral network_interface
+SNIP_VHDL	=snip_packet_handler snip_packet_builder snip_application_table snip_io_buffer dummy_peripheral snip
 
 TOP_SRC	    			= $(addprefix sc/, 									$(TOP:=.cpp)  $(TOP:=.h) 			)
 PE_SRC					= $(addprefix sc/pe/, 								$(PE:=.cpp) $(PE:=.h)  				)
@@ -43,7 +43,7 @@ ROUTER_SC_SRC			= $(addprefix sc/pe/router/, 						$(ROUTER_SC:=.cpp) 					)
 SEEK_SC_SRC				= $(addprefix sc/pe/router/seek/, 					$(SEEK_SC:=.cpp) $(SEEK_SC:=.h)		)
 FIFO_PDN_SRC			= $(addprefix sc/pe/fifo_pdn/, 						$(FIFO_PDN_SC:=.cpp) $(FIFO_PDN_SC:=.h)		)
 FAIL_WRAPPER_MODULE_SRC	= $(addprefix sc/pe/fail_wrapper_module/, 			$(FAIL_WRAPPER_MODULE_SC:=.cpp) $(FAIL_WRAPPER_MODULE_SC:=.h)	)
-NI_SC_SCR				= $(addprefix sc/peripherals/IO_peripheral/,		$(NI_SC:=.h)						)
+SNIP_SC_SCR				= $(addprefix sc/peripherals/IO_peripheral/,		$(SNIP_SC:=.h)						)
 #IO_PERIPHERAL_SRC		= $(addprefix sc/peripherals/IO_peripheral/, 	$(IO_PERIPHERAL_SC:=.cpp) $(IO_PERIPHERAL_SC:=.h)		)
 INJECTOR_SRC			= $(addprefix sc/peripherals/IO_peripheral/, 	$(INJECTOR_SC:=.cpp) $(INJECTOR_SC:=.h)		)
 SABOTAGE_SRC			= $(addprefix sc/peripherals/IO_peripheral/, 	$(SABOTAGE_SC:=.cpp) $(SABOTAGE_SC:=.h)		)
@@ -51,10 +51,10 @@ SABOTAGE_SRC			= $(addprefix sc/peripherals/IO_peripheral/, 	$(SABOTAGE_SC:=.cpp
 #vhdl files
 HEMPS_PKG_SRC	= $(addprefix ../include/, 				$(HEMPS_PKG:=.vhd) 					)
 STAND_SRC	    = $(addprefix vhdl/, 					$(STAND:=.vhd) 						)
-STAND_NI_SRC	= $(addprefix vhdl/ni/,					$(STAND_NI:=.vhd)					)
+STAND_SNIP_SRC	= $(addprefix vhdl/snip/,				$(STAND_SNIP:=.vhd)					)
 ROUTER_VHD_SRC	= $(addprefix vhdl/pe/router/, 			$(ROUTER_VHD:=.vhd)					)
 SEEK_VHD_SRC	= $(addprefix vhdl/pe/router/seek/, 	$(SEEK_VHD:=.vhd)					)
-NI_VHD_SRC		= $(addprefix vhdl/ni/,					$(NI_VHD:=.vhd)						)
+SNIP_VHDL_SRC	= $(addprefix vhdl/snip/,				$(SNIP_VHDL:=.vhd)					)
 
 #This target dir $(TGT_SCCOM_PATH) is created automatically by questa or modelsim, please ensures taht your path math it the following 
 #TGT_SCCOM_PATH = $(LIB)/_sc/linux_x86_64_gcc-4.7.4/
@@ -66,14 +66,14 @@ MEMORY_TGT 				=$(addprefix $(TGT_SCCOM_PATH), $(MEMORY:=.o))
 PROCESSOR_TGT 			=$(addprefix $(TGT_SCCOM_PATH), $(PROCESSOR:=.o))
 ROUTER_TGT	 			=$(addprefix $(TGT_SCCOM_PATH), $(ROUTER_SC:=.o))
 SEEK_TGT				=$(addprefix $(TGT_SCCOM_PATH), $(SEEK_SC:=.o))
-NI_TGT					=$(addprefix $(TGT_SCCOM_PATH), $(NI_SC:=.o))
+SNIP_TGT				=$(addprefix $(TGT_SCCOM_PATH), $(SNIP_SC:=.o))
 FIFO_PDN_TGT			=$(addprefix $(TGT_SCCOM_PATH), $(FIFO_PDN_SC:=.o))
 FAIL_WRAPPER_MODULE_TGT	=$(addprefix $(TGT_SCCOM_PATH), $(FAIL_WRAPPER_MODULE_SC:=.o))
 #IO_PERIPHERAL_TGT		=$(addprefix $(TGT_SCCOM_PATH), $(IO_PERIPHERAL_SC:=.o))
 INJECTOR_TGT			=$(addprefix $(TGT_SCCOM_PATH), $(INJECTOR_SC:=.o))
 SABOTAGE_TGT			=$(addprefix $(TGT_SCCOM_PATH), $(SABOTAGE_SC:=.o))
 
-default: lib $(HEMPS_PKG) $(STAND) $(ROUTER_VHD) $(SEEK_VHD) $(STAND_NI) $(NI_VHD) $(ROUTER_TGT) $(SEEK_TGT) $(FIFO_PDN_TGT) $(FAIL_WRAPPER_MODULE_TGT) $(PROCESSOR_TGT) $(DMNI_TGT) $(MEMORY_TGT) $(PE_TGT) $(IO_PERIPHERAL_TGT) $(INJECTOR_TGT) $(SABOTAGE_TGT)  $(TOP_TGT)
+default: lib $(HEMPS_PKG) $(STAND) $(ROUTER_VHD) $(SEEK_VHD) $(STAND_SNIP) $(SNIP_VHDL) $(ROUTER_TGT) $(SEEK_TGT) $(FIFO_PDN_TGT) $(FAIL_WRAPPER_MODULE_TGT) $(PROCESSOR_TGT) $(DMNI_TGT) $(MEMORY_TGT) $(PE_TGT) $(IO_PERIPHERAL_TGT) $(INJECTOR_TGT) $(SABOTAGE_TGT)  $(TOP_TGT)
 	@sccom -B/usr/bin -link
 
 lib:
@@ -88,7 +88,7 @@ $(STAND): $(STAND_SRC)
 	@printf "${COR}Compiling VHDL source: %s ...${NC}\n" "$(dir $<)$@.vhd"
 	$(VHD_C) $(dir $<)$@.vhd
 
-$(STAND_NI): $(STAND_NI_SRC)
+$(STAND_SNIP): $(STAND_SNIP_SRC)
 	@printf "${COR}Compiling VHDL source: %s ...${NC}\n" "$(dir $<)$@.vhd"
 	$(VHD_C) $(dir $<)$@.vhd
 
@@ -120,7 +120,7 @@ $(SEEK_TGT): $(SEEK_SC_SRC)
 	@printf "${COR}Compiling SystemC source: %s ...${NC}\n" "$(dir $<)$(notdir $*).cpp"
 	$(SC_C) $(dir $<)$(notdir $*).cpp
 
-#$(NI_TGT): $(NI_SC_SRC)
+#$(SNIP_TGT): $(SNIP_SC_SRC)
 #	@printf "${COR}Compiling SystemC source: %s ...${NC}\n" "$(dir $<)$(notdir $*).cpp"
 #	$(SC_C) $(dir $<)$(notdir $*).cpp
 
@@ -157,7 +157,7 @@ $(SEEK_VHD): $(SEEK_VHD_SRC)
 	@printf "${COR}Compiling VHDL source: %s ...${NC}\n" "$(dir $<)$@.vhd"
 	$(VHD_C) $(dir $<)$@.vhd
 
-$(NI_VHD): $(NI_VHD_SRC)
+$(SNIP_VHDL): $(SNIP_VHDL_SRC)
 	@printf "${COR}Compiling VHDL source: %s ...${NC}\n" "$(dir $<)$@.vhd"
 	$(VHD_C) $(dir $<)$@.vhd
 
