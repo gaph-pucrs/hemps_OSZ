@@ -12,11 +12,11 @@ entity snip_application_table is
         clock           : in    std_logic;
         reset           : in    std_logic;
 
-        tableIn         : in    TableInput;
-        tableOut        : out   TableOutput;
+        primaryIn       : in    AppTablePrimaryInput;
+        primaryOut      : out   AppTablePrimaryOutput;
 
-        secondaryIn     : in    TableSecondaryInput;
-        secondaryOut    : out   TableSecondaryOutput
+        secondaryIn     : in    AppTableSecondaryInput;
+        secondaryOut    : out   AppTableSecondaryOutput
     );
 end entity;
 
@@ -68,12 +68,12 @@ architecture snip_application_table of snip_application_table is
 
     -- secondary interface signals
 
-    signal read_only_slot   : integer range 0 to TABLE_SIZE-1;
+    signal secondary_slot   : integer range 0 to TABLE_SIZE-1;
     signal secondary_match  : std_logic_vector(TABLE_SIZE-1 downto 0);
 
 begin
 
-    tableOut.full <= and table.used;
+    primaryOut.full <= and table.used;
 
     ---------------
     -- TABLE FSM --
@@ -88,16 +88,16 @@ begin
         end if;
     end process;
 
-    NextState: process(state, tableIn.request, tableIn.crypto, tableIn.newLine, tableIn.clearSlot, match, slot_is_last)
+    NextState: process(state, primaryIn.request, primaryIn.crypto, primaryIn.newLine, primaryIn.clearSlot, match, slot_is_last)
     begin
         case state is
 
             when WAITING =>
 
-                if tableIn.request='1' then
-                    if tableIn.newLine='1' then
+                if primaryIn.request='1' then
+                    if primaryIn.newLine='1' then
                         next_state <= FETCHING_NEW;
-                    elsif tableIn.crypto='1' then
+                    elsif primaryIn.crypto='1' then
                         next_state <= FETCHING_CRYPTO;
                     else
                         next_state <= FETCHING;
@@ -108,7 +108,7 @@ begin
 
             when FETCHING =>
 
-                if tableIn.request='0' then
+                if primaryIn.request='0' then
                     next_state <= WAITING;
                 elsif match='1' then
                     next_state <= READY;
@@ -120,7 +120,7 @@ begin
             
             when FETCHING_CRYPTO =>
 
-                if tableIn.request='0' then
+                if primaryIn.request='0' then
                     next_state <= WAITING;
                 elsif match='1' then
                     next_state <= READY;
@@ -132,7 +132,7 @@ begin
 
             when FETCHING_NEW =>
             
-                if tableIn.request='0' then
+                if primaryIn.request='0' then
                     next_state <= WAITING;
                 elsif match='1' then
                     next_state <= READY;
@@ -144,9 +144,9 @@ begin
             
             when READY =>
 
-                if tableIn.request='0' then
+                if primaryIn.request='0' then
                     next_state <= WAITING;
-                elsif tableIn.clearSlot='1' then
+                elsif primaryIn.clearSlot='1' then
                     next_state <= SLOT_FREED;
                 else
                     next_state <= READY;
@@ -154,7 +154,7 @@ begin
             
             when FAILED =>
                 
-                if tableIn.request='0' then
+                if primaryIn.request='0' then
                     next_state <= WAITING;
                 else
                     next_state <= FAILED;
@@ -162,7 +162,7 @@ begin
             
             when SLOT_FREED =>
 
-                if tableIn.request='0'then
+                if primaryIn.request='0'then
                     next_state <= WAITING;
                 else
                     next_state <= SLOT_FREED;
@@ -171,8 +171,8 @@ begin
         end case;
     end process;
 
-    tableOut.ready <= '1' when state = READY else '0';
-    tableOut.fail <= '1' when state = FAILED else '0';
+    primaryOut.ready <= '1' when state = READY else '0';
+    primaryOut.fail <= '1' when state = FAILED else '0';
 
     is_fetching <= '1' when state=FETCHING or state=FETCHING_CRYPTO or state=FETCHING_NEW else '0';
 
@@ -180,9 +180,9 @@ begin
     -- FETCH SLOT --
     ----------------
 
-    match_new       <= '1' when table.used(slot)='0'                                                                                    else '0';
-    match_regular   <= '1' when table.used(slot)='1' and (tableIn.tag = table.app_id(slot))                                             else '0';
-    match_crypto    <= '1' when table.used(slot)='1' and ((tableIn.tagAux xor table.key1(slot) xor tableIn.tag) = table.app_id(slot))   else '0';
+    match_new       <= '1' when table.used(slot)='0'                                                                                        else '0';
+    match_regular   <= '1' when table.used(slot)='1' and (primaryIn.tag = table.app_id(slot))                                               else '0';
+    match_crypto    <= '1' when table.used(slot)='1' and ((primaryIn.tagAux xor table.key1(slot) xor primaryIn.tag) = table.app_id(slot))   else '0';
 
     match <=    match_regular   when state = FETCHING else
                 match_crypto    when state = FETCHING_CRYPTO else
@@ -208,12 +208,12 @@ begin
 
     read_enable <= '1' when state = READY else '0';
     
-    tableOut.appId      <= table.app_id(slot)       when read_enable='1' else (others => '0');
-    tableOut.key1       <= table.key1(slot)         when read_enable='1' else (others => '0');
-    tableOut.key2       <= table.key2(slot)         when read_enable='1' else (others => '0');
-    tableOut.pathSize   <= table.path_size(slot)    when read_enable='1' else 0;
+    primaryOut.appId    <= table.app_id(slot)       when read_enable='1' else (others => '0');
+    primaryOut.key1     <= table.key1(slot)         when read_enable='1' else (others => '0');
+    primaryOut.key2     <= table.key2(slot)         when read_enable='1' else (others => '0');
+    primaryOut.pathSize <= table.path_size(slot)    when read_enable='1' else 0;
 
-    tableOut.pathFlit   <= table.path(slot)(tableIn.pathFlit_idx) when read_enable='1' else (others => '0');
+    primaryOut.pathFlit <= table.path(slot)(primaryIn.pathFlit_idx) when read_enable='1' else (others => '0');
 
     -----------
     -- WRITE --
@@ -240,31 +240,31 @@ begin
 
         elsif rising_edge(clock) and write_enable='1' then
 
-            if tableIn.clearSlot='1' then
+            if primaryIn.clearSlot='1' then
                 table.app_id(slot)      <= (others => '0');
                 table.key1(slot)        <= (others => '0');
                 table.key2(slot)        <= (others => '0');
                 table.path_size(slot)   <= 0;
                 table.path(slot)        <= (others => (others => '0'));
             else
-                if tableIn.appId_wen='1' then
-                    table.app_id(slot) <= tableIn.appId_w;
+                if primaryIn.appId_wen='1' then
+                    table.app_id(slot) <= primaryIn.appId_w;
                 end if;
 
-                if tableIn.key1_wen='1' then
-                    table.key1(slot) <= tableIn.key1_w;
+                if primaryIn.key1_wen='1' then
+                    table.key1(slot) <= primaryIn.key1_w;
                 end if;
 
-                if tableIn.key2_wen='1' then
-                    table.key2(slot) <= tableIn.key2_w;
+                if primaryIn.key2_wen='1' then
+                    table.key2(slot) <= primaryIn.key2_w;
                 end if;
 
-                if tableIn.pathSize_wen='1' then
-                    table.path_size(slot) <= tableIn.pathSize_w;
+                if primaryIn.pathSize_wen='1' then
+                    table.path_size(slot) <= primaryIn.pathSize_w;
                 end if;
 
-                if tableIn.pathFlit_wen='1' then
-                    table.path(slot)(tableIn.pathFlit_idx) <= tableIn.pathFlit_w;
+                if primaryIn.pathFlit_wen='1' then
+                    table.path(slot)(primaryIn.pathFlit_idx) <= primaryIn.pathFlit_w;
                 end if;
             end if;
 
@@ -282,7 +282,7 @@ begin
                 table.used(slot) <= '1';
             end if;
 
-            if state = READY and tableIn.clearSlot='1' then
+            if state = READY and primaryIn.clearSlot='1' then
                 table.used(slot) <= '0';
             end if;
 
@@ -298,13 +298,13 @@ begin
     end generate;
 
     GenSecondarySlot2: if TABLE_SIZE = 2 generate
-        read_only_slot <=
+        secondary_slot <=
             0 when secondary_match(0) else
             1;
     end generate;
 
     GenSecondarySlot4: if TABLE_SIZE = 4 generate
-        read_only_slot <=
+        secondary_slot <=
             0 when secondary_match(0) else
             1 when secondary_match(1) else
             2 when secondary_match(2) else
@@ -312,7 +312,7 @@ begin
     end generate;
     
     GenSecondarySlot8: if TABLE_SIZE = 8 generate
-        read_only_slot <=
+        secondary_slot <=
             0 when secondary_match(0) else
             1 when secondary_match(1) else
             2 when secondary_match(2) else
@@ -325,10 +325,10 @@ begin
 
     secondaryOut.ready      <= or secondary_match;
 
-    secondaryOut.appId      <= table.app_id(read_only_slot);
-    secondaryOut.key1       <= table.key1(read_only_slot);
-    secondaryOut.key2       <= table.key2(read_only_slot);
-    secondaryOut.pathSize   <= table.path_size(read_only_slot);
-    secondaryOut.pathFlit   <= table.path(read_only_slot)(secondaryIn.pathFlit_idx);
+    secondaryOut.appId      <= table.app_id(secondary_slot);
+    secondaryOut.key1       <= table.key1(secondary_slot);
+    secondaryOut.key2       <= table.key2(secondary_slot);
+    secondaryOut.pathSize   <= table.path_size(secondary_slot);
+    secondaryOut.pathFlit   <= table.path(secondary_slot)(secondaryIn.pathFlit_idx);
     
 end architecture;

@@ -17,8 +17,8 @@ entity snip_packet_handler is
         hermes_eop_in       : in    std_logic;
         hermes_credit_out   : out   std_logic;
 
-        tableIn             : in    TableOutput;
-        tableOut            : out   TableInput;
+        tableIn             : in    AppTablePrimaryOutput;
+        tableOut            : out   AppTablePrimaryInput;
 
         response_req        : out   std_logic;
         response_param      : out   ResponseParametersType;

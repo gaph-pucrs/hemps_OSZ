@@ -21,8 +21,8 @@ entity snip_packet_builder is
         hermes_eop_out      : out   std_logic;
         hermes_credit_in    : in    std_logic;
 
-        tableIn             : in    TableSecondaryOutput;
-        tableOut            : out   TableSecondaryInput;
+        tableIn             : in    AppTableSecondaryOutput;
+        tableOut            : out   AppTableSecondaryInput;
 
         response_req        : in    std_logic;
         response_param_in   : in    ResponseParametersType;

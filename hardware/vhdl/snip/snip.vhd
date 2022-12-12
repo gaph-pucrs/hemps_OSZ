@@ -76,15 +76,15 @@ architecture snip of snip is
     signal hermes_eop_out           : std_logic;
     signal hermes_credit_in         : std_logic;
 
-    -------------------
-    -- Table Signals --
-    -------------------
+    -------------------------------
+    -- Application Table Signals --
+    -------------------------------
 
-    signal tableIn_rxOut    : TableInput;
-    signal tableOut_rxIn    : TableOutput;
+    signal tableIn_handlerOut   : AppTablePrimaryInput;
+    signal tableOut_handlerIn   : AppTablePrimaryOutput;
 
-    signal tableIn_txOut    : TableSecondaryInput;
-    signal tableOut_txIn    : TableSecondaryOutput;
+    signal tableIn_builderOut   : AppTableSecondaryInput;
+    signal tableOut_builderIn   : AppTableSecondaryOutput;
 
     --------------------------------
     -- Response Request Interface --
@@ -160,11 +160,11 @@ begin
         clock           => clock,
         reset           => reset,
 
-        tableIn         => tableIn_rxOut,
-        tableOut        => tableOut_rxIn,
+        primaryIn       => tableIn_handlerOut,
+        primaryOut      => tableOut_handlerIn,
 
-        secondaryIn     => tableIn_txOut,
-        secondaryOut    => tableOut_txIn
+        secondaryIn     => tableIn_builderOut,
+        secondaryOut    => tableOut_builderIn
     );
 
     ----------------------------------
@@ -182,8 +182,8 @@ begin
         hermes_eop_in       => hermes_eop_in,
         hermes_credit_out   => hermes_credit_out,
 
-        tableIn             => tableOut_rxIn,
-        tableOut            => tableIn_rxOut,
+        tableIn             => tableOut_handlerIn,
+        tableOut            => tableIn_handlerOut,
 
         response_req        => response_req,
         response_param      => response_param,
@@ -213,8 +213,8 @@ begin
         hermes_eop_out      => hermes_eop_out,
         hermes_credit_in    => hermes_credit_in,
 
-        tableIn             => tableOut_txIn,
-        tableOut            => tableIn_txOut,
+        tableIn             => tableOut_builderIn,
+        tableOut            => tableIn_builderOut,
 
         response_req        => response_req,
         response_param_in   => response_param,
