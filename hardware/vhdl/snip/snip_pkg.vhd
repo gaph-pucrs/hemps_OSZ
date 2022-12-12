@@ -5,7 +5,7 @@ use ieee.std_logic_arith.all;
 use work.standards.all;
 use work.seek_pkg.all;
 
-package ni_pkg is
+package snip_pkg is
     
     constant TAM_WORD   : integer := TAM_FLIT*2;
     subtype regword is std_logic_vector(TAM_WORD-1 downto 0);
@@ -165,4 +165,4 @@ package ni_pkg is
         err             : std_logic;
     end record;
     
-end package ni_pkg;
+end package;

@@ -4,12 +4,16 @@ use ieee.std_logic_unsigned.all;
 use ieee.std_logic_arith.all;
 use work.standards.all;
 use work.seek_pkg.all;
-use work.ni_pkg.all;
+use work.snip_pkg.all;
 
-entity network_interface is
+-----------------------------------------------
+-- Secure Network Interface with Peripherals --
+-----------------------------------------------
+
+entity snip is
     generic
     (
-        NI_ID   : regflit
+        SNIP_ID : regflit
     );
     port
     (
@@ -52,9 +56,9 @@ entity network_interface is
         brnoc_primary_opmode_out    : out   std_logic;
         brnoc_primary_ack_in        : in    std_logic
     );
-end network_interface;
+end entity;
 
-architecture network_interface of network_interface is
+architecture snip of snip is
 
     ----------------------------
     -- Port Selection Signasl --
@@ -115,6 +119,7 @@ architecture network_interface of network_interface is
     signal buffer_i_status  : BufferStatusType;
 
 begin
+
     -- Resetando as saídas inutilizadas até o momento para reduzir os warnings
     process (reset)
     begin
@@ -145,11 +150,11 @@ begin
     hermes_primary_eop_out      <= hermes_eop_out;
     hermes_credit_in            <= hermes_primary_credit_in;
 
-    -----------
-    -- Table --
-    -----------
+    -------------------------------------
+    -- Application Table Instantiation --
+    -------------------------------------
 
-    Table: entity work.ni_table
+    ApplicationTable: entity work.snip_application_table
     port map
     (
         clock           => clock,
@@ -162,11 +167,11 @@ begin
         secondaryOut    => tableOut_txIn
     );
 
-    ----------------------
-    -- Reception Module --
-    ----------------------
+    ----------------------------------
+    -- Packet Handler Instantiation --
+    ----------------------------------
 
-    ModuleRX: entity work.ni_packet_handler
+    PacketHandler: entity work.snip_packet_handler
     port map
     (
         clock               => clock,
@@ -189,14 +194,14 @@ begin
         buffer_full         => buffer_o_status.full
     );
 
-    -------------------------
-    -- Transmission Module --
-    -------------------------
+    ----------------------------------
+    -- Packet Builder Instantiation --
+    ----------------------------------
 
-    ModuleTX: entity work.ni_packet_builder
+    PacketBuilder: entity work.snip_packet_builder
     generic map
     (
-        NI_ID               => NI_ID
+        SNIP_ID             => SNIP_ID
     )
     port map
     (
@@ -220,11 +225,11 @@ begin
         buffer_empty        => buffer_i_status.empty
     );
 
-    -------------
-    -- Buffers --
-    -------------
+    ------------------------------
+    -- IO Buffers Instantiation --
+    ------------------------------
 
-    OutputBuffer: entity work.ni_fifo
+    OutputBuffer: entity work.snip_io_buffer
     port map
     (
         clock   => clock,
@@ -239,7 +244,7 @@ begin
         status  => buffer_o_status
     );
 
-    InputBuffer: entity work.ni_fifo
+    InputBuffer: entity work.snip_io_buffer
     port map
     (
         clock   => clock,
@@ -254,9 +259,9 @@ begin
         status  => buffer_i_status
     );
 
-    ----------------
-    -- Peripheral --
-    ----------------
+    --------------------------------------------------
+    -- Peripheral Instantiation -- Testing Purposes --
+    --------------------------------------------------
 
     DummyPeripheral: entity work.dummy_peripheral
     port map
@@ -274,4 +279,4 @@ begin
         data_unavailable    => buffer_o_status.empty
     );
 
-end network_interface;
+end architecture;

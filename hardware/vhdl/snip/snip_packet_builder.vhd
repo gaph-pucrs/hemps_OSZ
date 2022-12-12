@@ -4,12 +4,12 @@ use ieee.std_logic_unsigned.all;
 use ieee.std_logic_arith.all;
 use work.standards.all;
 use work.seek_pkg.all;
-use work.ni_pkg.all;
+use work.snip_pkg.all;
 
-entity ni_packet_builder is
+entity snip_packet_builder is
     generic
     (
-        NI_ID   : regflit
+        SNIP_ID : regflit
     );
     port
     (
@@ -34,7 +34,7 @@ entity ni_packet_builder is
     );
 end entity;
 
-architecture ni_packet_builder of ni_packet_builder is
+architecture snip_packet_builder of snip_packet_builder is
 
     -----------------
     -- FSM SIGNALS --

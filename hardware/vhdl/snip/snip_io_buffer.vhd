@@ -4,9 +4,9 @@ use ieee.std_logic_unsigned.all;
 use ieee.std_logic_arith.all;
 use work.standards.all;
 use work.seek_pkg.all;
-use work.ni_pkg.all;
+use work.snip_pkg.all;
 
-entity ni_fifo is
+entity snip_io_buffer is
     port
     (
         clock   : in    std_logic;
@@ -22,7 +22,7 @@ entity ni_fifo is
     );
 end entity;
 
-architecture ni_fifo of ni_fifo is
+architecture snip_io_buffer of snip_io_buffer is
 
     type BufferType is array(0 to FIFO_SIZE-1) of regflit;
 

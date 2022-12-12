@@ -4,9 +4,9 @@ use ieee.std_logic_unsigned.all;
 use ieee.std_logic_arith.all;
 use work.standards.all;
 use work.seek_pkg.all;
-use work.ni_pkg.all;
+use work.snip_pkg.all;
 
-entity ni_table is
+entity snip_application_table is
     port
     (
         clock           : in    std_logic;
@@ -20,7 +20,7 @@ entity ni_table is
     );
 end entity;
 
-architecture ni_table of ni_table is
+architecture snip_application_table of snip_application_table is
 
     -- table signals
 
