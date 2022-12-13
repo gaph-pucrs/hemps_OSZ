@@ -1,6 +1,7 @@
 #!/usr/bin/python
 import yaml
 import sys
+import re
 from operator import attrgetter
 from build_utils import ApplicationStartTime, get_app_task_name_list
 
@@ -158,6 +159,22 @@ def get_open_ports(yaml_reader):
 def get_io_number(yaml_reader):
     number = len(get_open_ports(yaml_reader))
     return number
+
+def get_snip_number(yaml_reader):
+    
+    snip_number = 0
+    open_port_list = get_open_ports(yaml_reader)
+
+    for port in open_port_list:
+        
+        module_name = re.sub(r'\d\d*\w*', '', port[0], flags=re.IGNORECASE)
+        module_name = re.sub(r'_(?![a-z])', '', module_name, flags=re.IGNORECASE)
+        module_name = str.lower(module_name)
+        
+        if module_name == "io_peripheral":
+            snip_number = snip_number + 1
+    
+    return snip_number
 
 def get_session(yaml_reader):
     try:

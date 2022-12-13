@@ -84,6 +84,7 @@ def main():
     gray_area = get_gray_area_cols(yaml_reader)
     master_location = get_master_location(yaml_reader)
     master_addr = get_master_address(master_location, mpsocXsize, mpsocYsize)
+    snip_number = get_snip_number(yaml_reader)
 
     #Testcase generation: updates source files...
     copy_scripts ( HEMPS_PATH,  TESTCASE_NAME)
@@ -94,7 +95,7 @@ def main():
     copy_testcase_file( TESTCASE_NAME, INPUT_TESTCASE_FILE_PATH)
 
     if not (os.path.isfile(TESTCASE_NAME + "/wave.do")) : 
-        os.system("python3 "+ HEMPS_PATH+"/build_env/waves/wavegen.py "+ str(mpsocXsize) + " " + str(mpsocYsize) + " " + str(clusterXsize) + " " + str(clusterYsize) + " " + str(master_addr) + " > " + TESTCASE_NAME + "/wave.do")
+        os.system("python3 "+ HEMPS_PATH+"/build_env/waves/wavegen.py "+ str(mpsocXsize) + " " + str(mpsocYsize) + " " + str(clusterXsize) + " " + str(clusterYsize) + " " + str(master_addr) + " " + str(snip_number) + " > " + TESTCASE_NAME + "/wave.do")
 
     #Create other importatants dirs
     create_ifn_exists(TESTCASE_NAME+"/include")

@@ -1,12 +1,21 @@
 from sys import argv
 
-if len(argv) == 6:
+if len(argv) == 7:
+	scriptname,MAX_X,MAX_Y,MAX_CLUSTER_X,MAX_CLUSTER_Y,master_pe,snip_number = argv
+	MAX_X=int(MAX_X)
+	MAX_Y=int(MAX_Y)
+	MAX_CLUSTER_X=int(MAX_CLUSTER_X)
+	MAX_CLUSTER_Y=int(MAX_CLUSTER_Y)
+	master_pe=int(master_pe)
+	snip_number=int(snip_number)
+elif len(argv) == 6:
 	scriptname,MAX_X,MAX_Y,MAX_CLUSTER_X,MAX_CLUSTER_Y,master_pe = argv
 	MAX_X=int(MAX_X)
 	MAX_Y=int(MAX_Y)
 	MAX_CLUSTER_X=int(MAX_CLUSTER_X)
 	MAX_CLUSTER_Y=int(MAX_CLUSTER_Y)
 	master_pe=int(master_pe)
+	snip_number=0
 elif len(argv) == 5:
 	scriptname,MAX_X,MAX_Y,MAX_CLUSTER_X,MAX_CLUSTER_Y = argv
 	MAX_X=int(MAX_X)
@@ -14,6 +23,7 @@ elif len(argv) == 5:
 	MAX_CLUSTER_X=int(MAX_CLUSTER_X)
 	MAX_CLUSTER_Y=int(MAX_CLUSTER_Y)
 	master_pe=0
+	snip_number=0
 elif len(argv) == 4:
 	scriptname,MAX_X,MAX_Y,master_pe = argv
 	MAX_X=int(MAX_X)
@@ -21,6 +31,7 @@ elif len(argv) == 4:
 	MAX_CLUSTER_X=0
 	MAX_CLUSTER_Y=0
 	master_pe=int(master_posX, posY)
+	snip_number=0
 elif len(argv) == 3:
 	scriptname,MAX_X,MAX_Y = argv
 	MAX_X=int(MAX_X)
@@ -28,9 +39,10 @@ elif len(argv) == 3:
 	MAX_CLUSTER_X=0
 	MAX_CLUSTER_Y=0
 	master_pe=0
+	snip_number=0
 else:
 	print ("usage:\n"
-	+ "wavegen.py [MAX_X] [MAX_Y] [MAX_CLUSTER_X] [MAX_CLUSTER_Y] [master position]\n"
+	+ "wavegen.py [MAX_X] [MAX_Y] [MAX_CLUSTER_X] [MAX_CLUSTER_Y] [master position] [snip_number - optional]\n"
 	+ "	wavegen.py 4 4 2 2 0: 4x4 MPSOC with master on 0x0\n"
 	+ "wavegen.py [MAX_X] [MAX_Y] : assumes master on 0 and just one cluster")
 	#print "argv[0] %s \nargv[1] %s \nargv[2] %s \nargv[3] %s \nargv[4] %s \n" % (scriptname, MAX_X, MAX_Y, MAX_CLUSTER_X, MAX_CLUSTER_Y)
