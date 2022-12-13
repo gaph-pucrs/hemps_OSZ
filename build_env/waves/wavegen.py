@@ -274,4 +274,4 @@ configure wave -gridoffset 0\n\
 configure wave -gridperiod 1\n\
 configure wave -griddelta 40\n\
 configure wave -timeline 0\n\
-configure wave -timelineunits ps\n")
+configure wave -timelineunits us\n")
