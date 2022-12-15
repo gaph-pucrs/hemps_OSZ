@@ -235,6 +235,129 @@ for it in map(lambda sd: injectors_pfx + sd, injectors_sds):
 # for it in map(lambda sd: io_peripheral_pfx + sd, io_peripheral_sds):
 # 	print (it)
 
+#SNIP SIGNALS
+
+for snip_idx in range(0, snip_number):
+
+	#-----------#
+	# SNIP Name #
+	#-----------#
+
+	if snip_idx == 0:
+		snip_name = "SNIP"
+		snip_entity_name = "IO_PERIPHERAL"
+	else:
+		snip_name = "SNIP" + str(snip_idx + 1)
+		snip_entity_name = "IO_PERIPHERAL" + str(snip_idx + 1)
+	
+	snip_top = "/test_bench/" + snip_entity_name + "/snip"
+
+	#-------------#
+	# Top Signals #
+	#-------------#
+
+	snip_divider_pfx = "add wave -noupdate -group {%s} -divider " % (snip_name)
+
+	snip_pfx = "add wave -noupdate -group {%s} %s/" % (snip_name, snip_top)
+	snip_sds = ["clock", "reset"]
+	for it in map(lambda sd: snip_pfx + sd, snip_sds):
+		print (it)
+
+	#---------------------------#
+	# Application Table Signals #
+	#---------------------------#
+
+	print(snip_divider_pfx + "Application_Table")
+
+	### Table Columns
+
+	snip_table_columns_pfx = "add wave -noupdate -group {%s} -group {Table Columns} %s/" % (snip_name, snip_top)
+
+	print(snip_table_columns_pfx + "/ApplicationTable/table.used")
+	print(snip_table_columns_pfx + "/ApplicationTable/table.appId")
+	print(snip_table_columns_pfx + "/ApplicationTable/table.key1")
+	print(snip_table_columns_pfx + "/ApplicationTable/table.key2")
+	print(snip_table_columns_pfx + "/ApplicationTable/table.path_size")
+	print(snip_table_columns_pfx + "/ApplicationTable/table.path")
+
+	### Primary Interface (Read-Write)
+
+	snip_table_primary_pfx = "add wave -noupdate -group {%s} -group {Primary Interface (RW)} %s/" % (snip_name, snip_top)
+
+	print(snip_table_primary_pfx + "/ApplicationTable/state")
+	print(snip_table_primary_pfx + "/ApplicationTable/slot")
+	print(snip_table_primary_pfx + "/ApplicationTable/match")
+
+	##### RW Control
+
+	snip_table_primary_rwctrl_pfx = "add wave -noupdate -group {%s} -group {Primary Interface (RW)} -group {RW Control} %s/" % (snip_name, snip_top)
+
+	print(snip_table_primary_rwctrl_pfx + "/ApplicationTable/primaryIn.request")
+	print(snip_table_primary_rwctrl_pfx + "/ApplicationTable/primaryIn.crypto")
+	print(snip_table_primary_rwctrl_pfx + "/ApplicationTable/primaryIn.newLine")
+	print(snip_table_primary_rwctrl_pfx + "/ApplicationTable/primaryIn.tag")
+	print(snip_table_primary_rwctrl_pfx + "/ApplicationTable/primaryIn.tagAux")
+	print(snip_table_primary_rwctrl_pfx + "/ApplicationTable/primaryIn.clearSlot")
+
+	print(snip_table_primary_rwctrl_pfx + "/ApplicationTable/primaryOut.ready")
+	print(snip_table_primary_rwctrl_pfx + "/ApplicationTable/primaryOut.fail")
+	print(snip_table_primary_rwctrl_pfx + "/ApplicationTable/primaryOut.full")
+
+	##### RW Data
+
+	snip_table_primary_rwdata_pfx = "add wave -noupdate -group {%s} -group {Primary Interface (RW)} -group {RW Data} %s/" % (snip_name, snip_top)
+	snip_table_primary_rwdata_divider_pfx = "add wave -noupdate -group {%s} -group {Primary Interface (RW)} -group {RW Data} -divider " % (snip_name)
+
+	print(snip_table_primary_rwdata_divider_pfx + "AppID")
+	print(snip_table_primary_rwdata_pfx + "/ApplicationTable/primaryOut.appId")
+	print(snip_table_primary_rwdata_pfx + "/ApplicationTable/primaryIn.appId_w")
+	print(snip_table_primary_rwdata_pfx + "/ApplicationTable/primaryIn.appId_wen")
+
+	print(snip_table_primary_rwdata_divider_pfx + "k1")
+	print(snip_table_primary_rwdata_pfx + "/ApplicationTable/primaryOut.key1")
+	print(snip_table_primary_rwdata_pfx + "/ApplicationTable/primaryIn.key1_w")
+	print(snip_table_primary_rwdata_pfx + "/ApplicationTable/primaryIn.key1_wen")
+
+	print(snip_table_primary_rwdata_divider_pfx + "k2")
+	print(snip_table_primary_rwdata_pfx + "/ApplicationTable/primaryOut.key2")
+	print(snip_table_primary_rwdata_pfx + "/ApplicationTable/primaryIn.key2_w")
+	print(snip_table_primary_rwdata_pfx + "/ApplicationTable/primaryIn.key2_wen")
+
+	print(snip_table_primary_rwdata_divider_pfx + "PathSize")
+	print(snip_table_primary_rwdata_pfx + "/ApplicationTable/primaryOut.pathSize")
+	print(snip_table_primary_rwdata_pfx + "/ApplicationTable/primaryIn.pathSize_w")
+	print(snip_table_primary_rwdata_pfx + "/ApplicationTable/primaryIn.pathSize_wen")
+
+	print(snip_table_primary_rwdata_divider_pfx + "Path")
+	print(snip_table_primary_rwdata_pfx + "/ApplicationTable/primaryIn.pathFlit_idx")	
+	print(snip_table_primary_rwdata_pfx + "/ApplicationTable/primaryOut.pathFlit")
+	print(snip_table_primary_rwdata_pfx + "/ApplicationTable/primaryIn.pathFlit_w")
+	print(snip_table_primary_rwdata_pfx + "/ApplicationTable/primaryIn.pathFlit_wen")
+
+	### Secondary Interface (Read Only)
+
+	snip_table_secondary_pfx = "add wave -noupdate -group {%s} -group {Secondary Interface (RO)} %s/" % (snip_name, snip_top)
+
+	print(snip_table_secondary_pfx + "/ApplicationTable/secondary_slot")
+
+	##### RO Control
+
+	snip_table_secondary_roctrl_pfx = "add wave -noupdate -group {%s} -group {Secondary Interface (RO)} -group {RO Control} %s/" % (snip_name, snip_top)
+
+	print(snip_table_secondary_roctrl_pfx + "/ApplicationTable/secondaryIn.tag")
+	print(snip_table_secondary_roctrl_pfx + "/ApplicationTable/secondaryOut.ready")
+
+	##### RO Data
+
+	snip_table_secondary_rodata_pfx = "add wave -noupdate -group {%s} -group {Secondary Interface (RO)} -group {RO Data} %s/" % (snip_name, snip_top)
+
+	print(snip_table_secondary_rodata_pfx + "/ApplicationTable/secondaryOut.appId")
+	print(snip_table_secondary_rodata_pfx + "/ApplicationTable/secondaryOut.key1")
+	print(snip_table_secondary_rodata_pfx + "/ApplicationTable/secondaryOut.key2")
+	print(snip_table_secondary_rodata_pfx + "/ApplicationTable/secondaryOut.pathSize")
+	print(snip_table_secondary_rodata_pfx + "/ApplicationTable/secondaryOut.pathFlit")
+	print(snip_table_secondary_rodata_pfx + "/ApplicationTable/secondaryIn.pathFlit_idx")
+
 print ("TreeUpdate [SetDefaultTree]\n\
 WaveRestoreCursors {{Cursor 1} {10 ps} 0}\n\
 quietly wave cursor active 1\n\
