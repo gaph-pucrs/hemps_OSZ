@@ -359,6 +359,131 @@ for snip_idx in range(0, snip_number):
 	print(snip_table_secondary_rodata_pfx + "/ApplicationTable/secondaryIn.pathFlit_idx")
 
 	#------------------------#
+	# Packet Handler Signals #
+	#------------------------#
+
+	print(snip_divider_pfx + "Handler")
+
+	snip_handler_pfx = "add wave -noupdate -group {%s} %s/PacketHandler/" % (snip_name, snip_top)
+	snip_handler_sds = ["clock", "hermes_rx", "hermes_data_in", "hermes_eop_in", "hermes_credit_out"]
+	for it in map(lambda sd: snip_handler_pfx + sd, snip_handler_sds):
+		print (it)
+
+	### States
+
+	snip_handler_states_pfx = "add wave -noupdate -group {%s} -group {States} %s/PacketHandler/" % (snip_name, snip_top)
+	snip_handler_states_sds = ["stage", "start_rx_state", "table_state", "data_state", "finish_rx_state", "respond_state"]
+	for it in map(lambda sd: snip_handler_states_pfx + sd, snip_handler_states_sds):
+		print (it)
+
+	### Registers
+
+	snip_handler_regs_divider_pfx = "add wave -noupdate -group {%s} -group {Registers} -divider " % (snip_name)
+	snip_handler_regs_pfx = "add wave -noupdate -group {%s} -group {Registers} %s/PacketHandler/" % (snip_name, snip_top)
+
+	print(snip_handler_regs_divider_pfx + "f1")
+	print(snip_handler_regs_pfx + "f1")
+	print(snip_handler_regs_pfx + "f1_valid")
+
+	print(snip_handler_regs_divider_pfx + "f2")
+	print(snip_handler_regs_pfx + "f2")
+	print(snip_handler_regs_pfx + "f2_valid")
+
+	print(snip_handler_regs_divider_pfx + "Service")
+	print(snip_handler_regs_pfx + "hermes_service")
+	print(snip_handler_regs_pfx + "hermes_service_valid")
+
+	print(snip_handler_regs_divider_pfx + "k0")
+	print(snip_handler_regs_pfx + "k0")
+	print(snip_handler_regs_pfx + "k0_valid")
+
+	print(snip_handler_regs_divider_pfx + "k1")
+	print(snip_handler_regs_pfx + "k1")
+	print(snip_handler_regs_pfx + "k1_valid")
+
+	print(snip_handler_regs_divider_pfx + "k2")
+	print(snip_handler_regs_pfx + "k2")
+	print(snip_handler_regs_pfx + "k2_valid")
+
+	print(snip_handler_regs_divider_pfx + "Source")
+	print(snip_handler_regs_pfx + "packet_source")
+	print(snip_handler_regs_pfx + "packet_source_valid")
+
+	print(snip_handler_regs_divider_pfx + "Target")
+	print(snip_handler_regs_pfx + "packet_target")
+	print(snip_handler_regs_pfx + "packet_target_valid")
+
+	print(snip_handler_regs_divider_pfx + "AppID_(Decoded)")
+	print(snip_handler_regs_pfx + "app_id")
+	print(snip_handler_regs_pfx + "app_id_valid")
+
+	print(snip_handler_regs_divider_pfx + "Crypto_Tag_(Decoded)")
+	print(snip_handler_regs_pfx + "crypto_tag")
+	print(snip_handler_regs_pfx + "crypto_tag_valid")
+
+	print(snip_handler_regs_divider_pfx + "Crypto_Tag2_(Decoded)")
+	print(snip_handler_regs_pfx + "crypto_tag2")
+	print(snip_handler_regs_pfx + "crypto_tag2_valid")
+
+	### Table Interface (RW)
+
+	##### Table Control
+	snip_handler_table_ctrl_pfx = "add wave -noupdate -group {%s} -group {Table Interface (RW)} -group {Control Signals} %s/PacketHandler/" % (snip_name, snip_top)
+	snip_handler_table_ctrl_sds = ["tableOut.request", "tableOut.crypto", "tableOut.newLine", "tableOut.tag", "tableOut.tagAux", "tableOut.clearSlot", "tableIn.ready", "tableIn.fail", "tableIn.full"]
+	for it in map(lambda sd: snip_handler_table_ctrl_pfx + sd, snip_handler_table_ctrl_sds):
+		print (it)
+
+	##### Table Data
+
+	snip_handler_table_data_divider_pfx = "add wave -noupdate -group {%s} -group {Table Interface (RW)} -group {Data Signals} -divider " % (snip_name)
+	snip_hander_table_data_pfx = "add wave -noupdate -group {%s} -group {Table Interface (RW)} -group {Data Signals} %s/PacketHandler/" % (snip_name, snip_top)
+
+	print(snip_handler_table_data_divider_pfx + "AppID")
+	print(snip_hander_table_data_pfx + "tableIn.appId")
+	print(snip_hander_table_data_pfx + "tableOut.appId_w")
+	print(snip_hander_table_data_pfx + "tableOut.appId_wen")
+
+	print(snip_handler_table_data_divider_pfx + "k1")
+	print(snip_hander_table_data_pfx + "tableIn.key1")
+	print(snip_hander_table_data_pfx + "tableOut.key1_w")
+	print(snip_hander_table_data_pfx + "tableOut.key1_wen")
+
+	print(snip_handler_table_data_divider_pfx + "k2")
+	print(snip_hander_table_data_pfx + "tableIn.key2")
+	print(snip_hander_table_data_pfx + "tableOut.key2_w")
+	print(snip_hander_table_data_pfx + "tableOut.key2_wen")
+
+	print(snip_handler_table_data_divider_pfx + "PathSize")
+	print(snip_hander_table_data_pfx + "tableIn.pathSize")
+	print(snip_hander_table_data_pfx + "tableOut.pathSize_w")
+	print(snip_hander_table_data_pfx + "tableOut.pathSize_wen")
+
+	print(snip_handler_table_data_divider_pfx + "Path")
+	print(snip_hander_table_data_pfx + "tableOut.pathFlit_idx")	
+	print(snip_hander_table_data_pfx + "tableIn.pathFlit")
+	print(snip_hander_table_data_pfx + "tableOut.pathFlit_w")
+	print(snip_hander_table_data_pfx + "tableOut.pathFlit_wen")
+
+	### Response Request Interface
+
+	snip_handler_respond_pfx = "add wave -noupdate -group {%s} -group {Response Request} %s/PacketHandler/" % (snip_name, snip_top)
+	snip_handler_respond_sds = ["response_req", "response_param", "tx_status"]
+	for it in map(lambda sd: snip_handler_respond_pfx + sd, snip_handler_respond_sds):
+		print (it)
+
+	### Output Buffer Interface
+	snip_handler_buffer_pfx = "add wave -noupdate -group {%s} -group {Output Buffer Interface} %s/PacketHandler/" % (snip_name, snip_top)
+	snip_handler_buffer_sds = ["buffer_wdata", "buffer_wen", "buffer_full"]
+	for it in map(lambda sd: snip_handler_buffer_pfx + sd, snip_handler_buffer_sds):
+		print (it)
+	
+	### Internal Control Signals
+	snip_handler_buffer_pfx = "add wave -noupdate -group {%s} -group {Handler Control Signals} %s/PacketHandler/" % (snip_name, snip_top)
+	snip_handler_buffer_sds = ["hermesControl", "tableControl", "unknown_service", "authenticated", "response_necessary", "data_to_write_on_table", "end_of_handling"]
+	for it in map(lambda sd: snip_handler_buffer_pfx + sd, snip_handler_buffer_sds):
+		print (it)
+
+	#------------------------#
 	# Packet Builder Signals #
 	#------------------------#
 
@@ -370,7 +495,7 @@ for snip_idx in range(0, snip_number):
 		print (it)
 
 	### Response Request Interface
-	snip_builder_req_pfx = "add wave -noupdate -group {%s} -group {Response Request} %s/PacketBuilder/" % (snip_name, snip_top)
+	snip_builder_req_pfx = "add wave -noupdate -group {%s} -group {Response Request Interface} %s/PacketBuilder/" % (snip_name, snip_top)
 	snip_builder_req_sds = ["response_req", "response_param_in", "status", "response_param_reg"]
 	for it in map(lambda sd: snip_builder_req_pfx + sd, snip_builder_req_sds):
 		print (it)
@@ -398,13 +523,13 @@ for snip_idx in range(0, snip_number):
 	### Internal Control Signals
 
 	##### Header Control
-	snip_builder_ctrl_hdr_pfx = "add wave -noupdate -group {%s} -group {Internal Control Signals} -group {Header Control} %s/PacketBuilder/" % (snip_name, snip_top)
+	snip_builder_ctrl_hdr_pfx = "add wave -noupdate -group {%s} -group {Builder Control Signals} -group {Header Control} %s/PacketBuilder/" % (snip_name, snip_top)
 	snip_builder_ctrl_hdr_sds = ["fixed_header_flit", "fixed_header_end", "path_flit", "path_end", "header_flit", "header_end", "header_tx", "header_eop"]
 	for it in map(lambda sd: snip_builder_ctrl_hdr_pfx + sd, snip_builder_ctrl_hdr_sds):
 		print (it)
 
 	##### Data Payload Control
-	snip_builder_ctrl_payload_pfx = "add wave -noupdate -group {%s} -group {Internal Control Signals} -group {Data Payload Control} %s/PacketBuilder/" % (snip_name, snip_top)
+	snip_builder_ctrl_payload_pfx = "add wave -noupdate -group {%s} -group {Builder Control Signals} -group {Data Payload Control} %s/PacketBuilder/" % (snip_name, snip_top)
 	snip_builder_ctrl_payload_sds = ["send_data", "data_words_to_read", "data_flit_low", "data_flit_ready", "last_data_flit", "data_flit_blocked", "data_tx", "data_eop"]
 	for it in map(lambda sd: snip_builder_ctrl_payload_pfx + sd, snip_builder_ctrl_payload_sds):
 		print (it)	
