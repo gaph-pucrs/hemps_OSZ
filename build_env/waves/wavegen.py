@@ -358,6 +358,57 @@ for snip_idx in range(0, snip_number):
 	print(snip_table_secondary_rodata_pfx + "/ApplicationTable/secondaryOut.pathFlit")
 	print(snip_table_secondary_rodata_pfx + "/ApplicationTable/secondaryIn.pathFlit_idx")
 
+	#------------------------#
+	# Packet Builder Signals #
+	#------------------------#
+
+	print(snip_divider_pfx + "Packet_Builder")
+
+	snip_builder_pfx = "add wave -noupdate -group {%s} %s/PacketBuilder/" % (snip_name, snip_top)
+	snip_builder_sds = ["clock", "hermes_tx", "hermes_data_out", "hermes_eop_out", "hermes_credit_in", "state"]
+	for it in map(lambda sd: snip_builder_pfx + sd, snip_builder_sds):
+		print (it)
+
+	### Response Request Interface
+	snip_builder_req_pfx = "add wave -noupdate -group {%s} -group {Response Request} %s/PacketBuilder/" % (snip_name, snip_top)
+	snip_builder_req_sds = ["response_req", "response_param_in", "status", "response_param_reg"]
+	for it in map(lambda sd: snip_builder_req_pfx + sd, snip_builder_req_sds):
+		print (it)
+
+	### Table Interface (RO)
+
+	##### Table Control
+	snip_builder_table_ctrl_pfx = "add wave -noupdate -group {%s} -group {Table Interface (RO)} -group {Control Signals} %s/PacketBuilder/" % (snip_name, snip_top)
+	snip_builder_table_ctrl_sds = ["tableOut.tag", "tableIn.ready"]
+	for it in map(lambda sd: snip_builder_table_ctrl_pfx + sd, snip_builder_table_ctrl_sds):
+		print (it)
+
+	##### Table Data
+	snip_builder_table_data_pfx = "add wave -noupdate -group {%s} -group {Table Interface (RO)} -group {Data Signals} %s/PacketBuilder/" % (snip_name, snip_top)
+	snip_builder_table_data_sds = ["tableIn.appId", "tableIn.key1", "tableIn.key2", "tableIn.pathSize", "tableIn.pathFlit", "tableOut.pathFlit_idx"]
+	for it in map(lambda sd: snip_builder_table_data_pfx + sd, snip_builder_table_data_sds):
+		print (it)
+
+	### Input Buffer Interface
+	snip_builder_buffer_pfx = "add wave -noupdate -group {%s} -group {Input Buffer Interface} %s/PacketBuilder/" % (snip_name, snip_top)
+	snip_builder_buffer_sds = ["buffer_rdata", "buffer_ren", "buffer_empty"]
+	for it in map(lambda sd: snip_builder_buffer_pfx + sd, snip_builder_buffer_sds):
+		print (it)
+
+	### Internal Control Signals
+
+	##### Header Control
+	snip_builder_ctrl_hdr_pfx = "add wave -noupdate -group {%s} -group {Internal Control Signals} -group {Header Control} %s/PacketBuilder/" % (snip_name, snip_top)
+	snip_builder_ctrl_hdr_sds = ["fixed_header_flit", "fixed_header_end", "path_flit", "path_end", "header_flit", "header_end", "header_tx", "header_eop"]
+	for it in map(lambda sd: snip_builder_ctrl_hdr_pfx + sd, snip_builder_ctrl_hdr_sds):
+		print (it)
+
+	##### Data Payload Control
+	snip_builder_ctrl_payload_pfx = "add wave -noupdate -group {%s} -group {Internal Control Signals} -group {Data Payload Control} %s/PacketBuilder/" % (snip_name, snip_top)
+	snip_builder_ctrl_payload_sds = ["send_data", "data_words_to_read", "data_flit_low", "data_flit_ready", "last_data_flit", "data_flit_blocked", "data_tx", "data_eop"]
+	for it in map(lambda sd: snip_builder_ctrl_payload_pfx + sd, snip_builder_ctrl_payload_sds):
+		print (it)	
+
 print ("TreeUpdate [SetDefaultTree]\n\
 WaveRestoreCursors {{Cursor 1} {10 ps} 0}\n\
 quietly wave cursor active 1\n\
