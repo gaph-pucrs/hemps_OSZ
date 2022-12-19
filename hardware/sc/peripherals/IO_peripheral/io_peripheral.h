@@ -1,12 +1,12 @@
-#ifndef _SCGENMOD_NetworkInterfaceWrapped_
-#define _SCGENMOD_NetworkInterfaceWrapped_
+#ifndef _SCGENMOD_SNIP_Wrapped_
+#define _SCGENMOD_SNIP_Wrapped_
 
 #include "systemc.h"
 
 #include "../../standards.h"
-#include "nisec_foreign.h"
+#include "snip_foreign.h"
 
-/* SECURE NETWORK INTERFACE - RENAMED TO FACILITATE BUILDING */
+/* SECURE NETWORK INTERFACE WITH PERIPHERALS - RENAMED TO FACILITATE BUILDING */
 
 SC_MODULE(io_peripheral)
 {
@@ -46,48 +46,48 @@ SC_MODULE(io_peripheral)
     sc_out<bool>                out_opmode_router_seek_primary;
     sc_in<bool>                 in_ack_router_seek_primary;
 
-    NetworkInterface *network_interface;
+    SNIP_Foreign *snip;
 
-    SC_HAS_PROCESS(io_peripheral); //TODO: What does this line do? Can I remove it?
+    SC_HAS_PROCESS(io_peripheral);
 
 	io_peripheral(sc_module_name name_, int io_id = 0) : sc_module(name_)
 	{
         const char* generic_list[1];
-        generic_list[0] = strdup("NI_ID=x\"AAAA\"");
-        sprintf((char*) generic_list[0], "NI_ID=x\"%.4x\"", io_id);
+        generic_list[0] = strdup("SNIP_ID=x\"AAAA\"");
+        sprintf((char*) generic_list[0], "SNIP_ID=x\"%.4x\"", io_id);
 
-		network_interface = new NetworkInterface("network_interface", "network_interface", 1, generic_list);
+		snip = new SNIP_Foreign("snip", "snip", 1, generic_list);
         
-        network_interface->clock(clock);
-        network_interface->reset(reset);
+        snip->clock(clock);
+        snip->reset(reset);
 
-        network_interface->hermes_primary_tx(tx_primary);
-        network_interface->hermes_primary_tx_clk(clock_tx_primary);
-        network_interface->hermes_primary_data_out(data_out_primary);
-        network_interface->hermes_primary_eop_out(eop_out_primary);
-        network_interface->hermes_primary_credit_in(credit_i_primary);
+        snip->hermes_primary_tx(tx_primary);
+        snip->hermes_primary_tx_clk(clock_tx_primary);
+        snip->hermes_primary_data_out(data_out_primary);
+        snip->hermes_primary_eop_out(eop_out_primary);
+        snip->hermes_primary_credit_in(credit_i_primary);
 
-        network_interface->hermes_primary_rx(rx_primary);
-        network_interface->hermes_primary_rx_clk(clock_rx_primary);
-        network_interface->hermes_primary_data_in(data_in_primary);
-        network_interface->hermes_primary_eop_in(eop_in_primary);
-        network_interface->hermes_primary_credit_out(credit_o_primary);
+        snip->hermes_primary_rx(rx_primary);
+        snip->hermes_primary_rx_clk(clock_rx_primary);
+        snip->hermes_primary_data_in(data_in_primary);
+        snip->hermes_primary_eop_in(eop_in_primary);
+        snip->hermes_primary_credit_out(credit_o_primary);
 
-        network_interface->brnoc_primary_source_in(in_source_router_seek_primary);
-        network_interface->brnoc_primary_target_in(in_target_router_seek_primary);
-        network_interface->brnoc_primary_service_in(in_service_router_seek_primary);
-        network_interface->brnoc_primary_payload_in(in_payload_router_seek_primary);
-        network_interface->brnoc_primary_req_in(in_req_router_seek_primary);
-        network_interface->brnoc_primary_opmode_in(in_opmode_router_seek_primary);
-        network_interface->brnoc_primary_ack_out(out_ack_router_seek_primary);
+        snip->brnoc_primary_source_in(in_source_router_seek_primary);
+        snip->brnoc_primary_target_in(in_target_router_seek_primary);
+        snip->brnoc_primary_service_in(in_service_router_seek_primary);
+        snip->brnoc_primary_payload_in(in_payload_router_seek_primary);
+        snip->brnoc_primary_req_in(in_req_router_seek_primary);
+        snip->brnoc_primary_opmode_in(in_opmode_router_seek_primary);
+        snip->brnoc_primary_ack_out(out_ack_router_seek_primary);
         
-        network_interface->brnoc_primary_source_out(out_source_router_seek_primary);
-        network_interface->brnoc_primary_target_out(out_target_router_seek_primary);
-        network_interface->brnoc_primary_service_out(out_service_router_seek_primary);
-        network_interface->brnoc_primary_payload_out(out_payload_router_seek_primary);
-        network_interface->brnoc_primary_req_out(out_req_router_seek_primary);
-        network_interface->brnoc_primary_opmode_out(out_opmode_router_seek_primary);
-        network_interface->brnoc_primary_ack_in(in_ack_router_seek_primary);
+        snip->brnoc_primary_source_out(out_source_router_seek_primary);
+        snip->brnoc_primary_target_out(out_target_router_seek_primary);
+        snip->brnoc_primary_service_out(out_service_router_seek_primary);
+        snip->brnoc_primary_payload_out(out_payload_router_seek_primary);
+        snip->brnoc_primary_req_out(out_req_router_seek_primary);
+        snip->brnoc_primary_opmode_out(out_opmode_router_seek_primary);
+        snip->brnoc_primary_ack_in(in_ack_router_seek_primary);
     }
 
     ~io_peripheral(){}

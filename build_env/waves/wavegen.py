@@ -1,12 +1,21 @@
 from sys import argv
 
-if len(argv) == 6:
+if len(argv) == 7:
+	scriptname,MAX_X,MAX_Y,MAX_CLUSTER_X,MAX_CLUSTER_Y,master_pe,snip_number = argv
+	MAX_X=int(MAX_X)
+	MAX_Y=int(MAX_Y)
+	MAX_CLUSTER_X=int(MAX_CLUSTER_X)
+	MAX_CLUSTER_Y=int(MAX_CLUSTER_Y)
+	master_pe=int(master_pe)
+	snip_number=int(snip_number)
+elif len(argv) == 6:
 	scriptname,MAX_X,MAX_Y,MAX_CLUSTER_X,MAX_CLUSTER_Y,master_pe = argv
 	MAX_X=int(MAX_X)
 	MAX_Y=int(MAX_Y)
 	MAX_CLUSTER_X=int(MAX_CLUSTER_X)
 	MAX_CLUSTER_Y=int(MAX_CLUSTER_Y)
 	master_pe=int(master_pe)
+	snip_number=0
 elif len(argv) == 5:
 	scriptname,MAX_X,MAX_Y,MAX_CLUSTER_X,MAX_CLUSTER_Y = argv
 	MAX_X=int(MAX_X)
@@ -14,6 +23,7 @@ elif len(argv) == 5:
 	MAX_CLUSTER_X=int(MAX_CLUSTER_X)
 	MAX_CLUSTER_Y=int(MAX_CLUSTER_Y)
 	master_pe=0
+	snip_number=0
 elif len(argv) == 4:
 	scriptname,MAX_X,MAX_Y,master_pe = argv
 	MAX_X=int(MAX_X)
@@ -21,6 +31,7 @@ elif len(argv) == 4:
 	MAX_CLUSTER_X=0
 	MAX_CLUSTER_Y=0
 	master_pe=int(master_posX, posY)
+	snip_number=0
 elif len(argv) == 3:
 	scriptname,MAX_X,MAX_Y = argv
 	MAX_X=int(MAX_X)
@@ -28,9 +39,10 @@ elif len(argv) == 3:
 	MAX_CLUSTER_X=0
 	MAX_CLUSTER_Y=0
 	master_pe=0
+	snip_number=0
 else:
 	print ("usage:\n"
-	+ "wavegen.py [MAX_X] [MAX_Y] [MAX_CLUSTER_X] [MAX_CLUSTER_Y] [master position]\n"
+	+ "wavegen.py [MAX_X] [MAX_Y] [MAX_CLUSTER_X] [MAX_CLUSTER_Y] [master position] [snip_number - optional]\n"
 	+ "	wavegen.py 4 4 2 2 0: 4x4 MPSOC with master on 0x0\n"
 	+ "wavegen.py [MAX_X] [MAX_Y] : assumes master on 0 and just one cluster")
 	#print "argv[0] %s \nargv[1] %s \nargv[2] %s \nargv[3] %s \nargv[4] %s \n" % (scriptname, MAX_X, MAX_Y, MAX_CLUSTER_X, MAX_CLUSTER_Y)
@@ -223,41 +235,288 @@ for it in map(lambda sd: injectors_pfx + sd, injectors_sds):
 # for it in map(lambda sd: io_peripheral_pfx + sd, io_peripheral_sds):
 # 	print (it)
 
-#NI SIGNALS
-ni_pfx="add wave -noupdate -group NI /test_bench/IO_PERIPHERAL/network_interface/"
-ni_sds=["clock", "reset", "hermes_rx", "hermes_data_in", "hermes_eop_in", "hermes_credit_out", "hermes_tx", "hermes_data_out", "hermes_eop_out", "hermes_credit_in", "tableIn_rxOut", "tableOut_rxIn", "tableIn_txOut", "tableOut_txIn", "response_req", "response_param", "tx_status"]
-for it in map(lambda sd: ni_pfx + sd, ni_sds):
-	print (it)
+#SNIP SIGNALS
 
-#NI_TABLE SIGNALS
-ni_table_pfx="add wave -noupdate -group NI_Table /test_bench/IO_PERIPHERAL/network_interface/Table/"
-ni_table_sds=["state", "is_fetching", "match", "match_regular", "match_crypto", "match_new", "slot", "reset_slot", "enable_counter", "slot_is_last", "read_enable", "table", "read_only_slot", "secondary_match"]
-for it in map(lambda sd: ni_table_pfx + sd, ni_table_sds):
-	print (it)
+for snip_idx in range(0, snip_number):
 
-#NI_RX SIGNALS
-ni_rx_pfx="add wave -noupdate -group NI_RX /test_bench/IO_PERIPHERAL/network_interface/ModuleRX/"
-ni_rx_sds=["stage", "start_rx_state", "table_state", "data_state", "finish_rx_state", "respond_state", "routing_header_flit", "header_flit", "path_flit", "hermes_service", "packet_target", "f1", "f2", "k1", "k2", "packet_source", "app_id", "crypto_tag", "crypto_tag2", "k0", "hermesControl", "tableControl", "unknown_service", "authenticated", "response_necessary", "data_to_write_on_table", "end_of_handling"]
-for it in map(lambda sd: ni_rx_pfx + sd, ni_rx_sds):
-	print (it)
+	#-----------#
+	# SNIP Name #
+	#-----------#
 
-#NI_TX SIGNALS
-ni_tx_pfx="add wave -noupdate -group NI_TX /test_bench/IO_PERIPHERAL/network_interface/ModuleTX/"
-ni_tx_sds=["state", "fixed_header_flit", "fixed_header_end", "path_flit", "path_end", "header_flit", "header_end", "response_param_reg"]
-for it in map(lambda sd: ni_tx_pfx + sd, ni_tx_sds):
-	print (it)
+	if snip_idx == 0:
+		snip_name = "SNIP"
+		snip_entity_name = "IO_PERIPHERAL"
+	else:
+		snip_name = "SNIP" + str(snip_idx + 1)
+		snip_entity_name = "IO_PERIPHERAL" + str(snip_idx + 1)
+	
+	snip_top = "/test_bench/" + snip_entity_name + "/snip"
 
-#NI_FIFO_IN SIGNALS
-ni_fifo_in_pfx="add wave -noupdate -group NI_FIFO_IN /test_bench/IO_PERIPHERAL/network_interface/InputBuffer/"
-ni_fifo_in_sds=["fifo_buffer", "counter", "r_ptr","w_ptr", "underflow","overflow"]
-for it in map(lambda sd: ni_fifo_in_pfx + sd, ni_fifo_in_sds):
-	print (it)
+	#-------------#
+	# Top Signals #
+	#-------------#
 
-#NI_FIFO_OUT SIGNALS
-ni_fifo_out_pfx="add wave -noupdate -group NI_FIFO_OUT /test_bench/IO_PERIPHERAL/network_interface/OutputBuffer/"
-ni_fifo_out_sds=["counter", "r_ptr","w_ptr", "underflow","overflow"]
-for it in map(lambda sd: ni_fifo_out_pfx + sd, ni_fifo_out_sds):
-	print (it)
+	snip_divider_pfx = "add wave -noupdate -group {%s} -divider " % (snip_name)
+
+	snip_pfx = "add wave -noupdate -group {%s} %s/" % (snip_name, snip_top)
+	snip_sds = ["clock", "reset"]
+	for it in map(lambda sd: snip_pfx + sd, snip_sds):
+		print (it)
+
+	#---------------------------#
+	# Application Table Signals #
+	#---------------------------#
+
+	print(snip_divider_pfx + "Application_Table")
+
+	### Table Columns
+
+	snip_table_columns_pfx = "add wave -noupdate -group {%s} -group {Table Columns} %s/ApplicationTable/" % (snip_name, snip_top)
+	snip_table_columns_sds = ["table.used", "table.app_id", "table.key1", "table.key2", "table.path_size", "table.path"]
+	for it in map(lambda sd: snip_table_columns_pfx + sd, snip_table_columns_sds):
+		print (it)	
+
+	### Primary Interface (Read-Write)
+
+	snip_table_primary_pfx = "add wave -noupdate -group {%s} -group {Primary Interface (RW)} %s" % (snip_name, snip_top)
+	snip_table_primary_sds = ["state", "slot", "match"]
+	for it in map(lambda sd: snip_table_primary_pfx + sd, snip_table_primary_sds):
+		print (it)	
+
+	##### RW Control
+
+	snip_table_primary_rwctrl_pfx = "add wave -noupdate -group {%s} -group {Primary Interface (RW)} -group {RW Control} %s/ApplicationTable/" % (snip_name, snip_top)
+	snip_table_primary_rwctrl_sds = ["primaryIn.request", "primaryIn.crypto", "primaryIn.newLine", "primaryIn.tag", "primaryIn.tagAux", "primaryIn.clearSlot", "primaryOut.ready", "primaryOut.fail", "primaryOut.full"]
+	for it in map(lambda sd: snip_table_primary_rwctrl_pfx + sd, snip_table_primary_rwctrl_sds):
+		print (it)
+
+	##### RW Data
+
+	snip_table_primary_rwdata_pfx = "add wave -noupdate -group {%s} -group {Primary Interface (RW)} -group {RW Data} %s/ApplicationTable/" % (snip_name, snip_top)
+	snip_table_primary_rwdata_divider_pfx = "add wave -noupdate -group {%s} -group {Primary Interface (RW)} -group {RW Data} -divider " % (snip_name)
+
+	print(snip_table_primary_rwdata_divider_pfx + "AppID")
+	print(snip_table_primary_rwdata_pfx + "primaryOut.appId")
+	print(snip_table_primary_rwdata_pfx + "primaryIn.appId_w")
+	print(snip_table_primary_rwdata_pfx + "primaryIn.appId_wen")
+
+	print(snip_table_primary_rwdata_divider_pfx + "k1")
+	print(snip_table_primary_rwdata_pfx + "primaryOut.key1")
+	print(snip_table_primary_rwdata_pfx + "primaryIn.key1_w")
+	print(snip_table_primary_rwdata_pfx + "primaryIn.key1_wen")
+
+	print(snip_table_primary_rwdata_divider_pfx + "k2")
+	print(snip_table_primary_rwdata_pfx + "primaryOut.key2")
+	print(snip_table_primary_rwdata_pfx + "primaryIn.key2_w")
+	print(snip_table_primary_rwdata_pfx + "primaryIn.key2_wen")
+
+	print(snip_table_primary_rwdata_divider_pfx + "PathSize")
+	print(snip_table_primary_rwdata_pfx + "primaryOut.pathSize")
+	print(snip_table_primary_rwdata_pfx + "primaryIn.pathSize_w")
+	print(snip_table_primary_rwdata_pfx + "primaryIn.pathSize_wen")
+
+	print(snip_table_primary_rwdata_divider_pfx + "Path")
+	print(snip_table_primary_rwdata_pfx + "primaryIn.pathFlit_idx")	
+	print(snip_table_primary_rwdata_pfx + "primaryOut.pathFlit")
+	print(snip_table_primary_rwdata_pfx + "primaryIn.pathFlit_w")
+	print(snip_table_primary_rwdata_pfx + "primaryIn.pathFlit_wen")
+
+	### Secondary Interface (Read Only)
+
+	snip_table_secondary_pfx = "add wave -noupdate -group {%s} -group {Secondary Interface (RO)} %s/ApplicationTable/" % (snip_name, snip_top)
+	snip_table_secondary_sds = ["secondary_slot"]
+	for it in map(lambda sd: snip_table_secondary_pfx + sd, snip_table_secondary_sds):
+		print (it)
+	
+	##### RO Control
+
+	snip_table_secondary_roctrl_pfx = "add wave -noupdate -group {%s} -group {Secondary Interface (RO)} -group {RO Control} %s/ApplicationTable/" % (snip_name, snip_top)
+	snip_table_secondary_roctrl_sds = ["secondaryIn.tag", "secondaryOut.ready"]
+	for it in map(lambda sd: snip_table_secondary_roctrl_pfx + sd, snip_table_secondary_roctrl_sds):
+		print (it)
+
+	##### RO Data
+
+	snip_table_secondary_rodata_pfx = "add wave -noupdate -group {%s} -group {Secondary Interface (RO)} -group {RO Data} %s/ApplicationTable/" % (snip_name, snip_top)
+	snip_table_secondary_rodata_sds = ["secondaryOut.appId", "secondaryOut.key1", "secondaryOut.key2", "secondaryOut.pathSize", "secondaryOut.pathFlit", "secondaryIn.pathFlit_idx"]
+	for it in map(lambda sd: snip_table_secondary_rodata_pfx + sd, snip_table_secondary_rodata_sds):
+		print (it)
+
+	#------------------------#
+	# Packet Handler Signals #
+	#------------------------#
+
+	print(snip_divider_pfx + "Handler")
+
+	snip_handler_pfx = "add wave -noupdate -group {%s} %s/PacketHandler/" % (snip_name, snip_top)
+	snip_handler_sds = ["clock", "hermes_rx", "hermes_data_in", "hermes_eop_in", "hermes_credit_out"]
+	for it in map(lambda sd: snip_handler_pfx + sd, snip_handler_sds):
+		print (it)
+
+	### States
+
+	snip_handler_states_pfx = "add wave -noupdate -group {%s} -group {States} %s/PacketHandler/" % (snip_name, snip_top)
+	snip_handler_states_sds = ["stage", "start_rx_state", "table_state", "data_state", "finish_rx_state", "respond_state"]
+	for it in map(lambda sd: snip_handler_states_pfx + sd, snip_handler_states_sds):
+		print (it)
+
+	### Registers
+
+	snip_handler_regs_divider_pfx = "add wave -noupdate -group {%s} -group {Registers} -divider " % (snip_name)
+	snip_handler_regs_pfx = "add wave -noupdate -group {%s} -group {Registers} %s/PacketHandler/" % (snip_name, snip_top)
+
+	print(snip_handler_regs_divider_pfx + "f1")
+	print(snip_handler_regs_pfx + "f1")
+	print(snip_handler_regs_pfx + "f1_valid")
+
+	print(snip_handler_regs_divider_pfx + "f2")
+	print(snip_handler_regs_pfx + "f2")
+	print(snip_handler_regs_pfx + "f2_valid")
+
+	print(snip_handler_regs_divider_pfx + "Service")
+	print(snip_handler_regs_pfx + "hermes_service")
+	print(snip_handler_regs_pfx + "hermes_service_valid")
+
+	print(snip_handler_regs_divider_pfx + "k0")
+	print(snip_handler_regs_pfx + "k0")
+	print(snip_handler_regs_pfx + "k0_valid")
+
+	print(snip_handler_regs_divider_pfx + "k1")
+	print(snip_handler_regs_pfx + "k1")
+	print(snip_handler_regs_pfx + "k1_valid")
+
+	print(snip_handler_regs_divider_pfx + "k2")
+	print(snip_handler_regs_pfx + "k2")
+	print(snip_handler_regs_pfx + "k2_valid")
+
+	print(snip_handler_regs_divider_pfx + "Source")
+	print(snip_handler_regs_pfx + "packet_source")
+	print(snip_handler_regs_pfx + "packet_source_valid")
+
+	print(snip_handler_regs_divider_pfx + "Target")
+	print(snip_handler_regs_pfx + "packet_target")
+	print(snip_handler_regs_pfx + "packet_target_valid")
+
+	print(snip_handler_regs_divider_pfx + "AppID_(Decoded)")
+	print(snip_handler_regs_pfx + "app_id")
+	print(snip_handler_regs_pfx + "app_id_valid")
+
+	print(snip_handler_regs_divider_pfx + "Crypto_Tag_(Decoded)")
+	print(snip_handler_regs_pfx + "crypto_tag")
+	print(snip_handler_regs_pfx + "crypto_tag_valid")
+
+	print(snip_handler_regs_divider_pfx + "Crypto_Tag2_(Decoded)")
+	print(snip_handler_regs_pfx + "crypto_tag2")
+	print(snip_handler_regs_pfx + "crypto_tag2_valid")
+
+	### Table Interface (RW)
+
+	##### Table Control
+	snip_handler_table_ctrl_pfx = "add wave -noupdate -group {%s} -group {Table Interface (RW)} -group {Control Signals} %s/PacketHandler/" % (snip_name, snip_top)
+	snip_handler_table_ctrl_sds = ["tableOut.request", "tableOut.crypto", "tableOut.newLine", "tableOut.tag", "tableOut.tagAux", "tableOut.clearSlot", "tableIn.ready", "tableIn.fail", "tableIn.full"]
+	for it in map(lambda sd: snip_handler_table_ctrl_pfx + sd, snip_handler_table_ctrl_sds):
+		print (it)
+
+	##### Table Data
+
+	snip_handler_table_data_divider_pfx = "add wave -noupdate -group {%s} -group {Table Interface (RW)} -group {Data Signals} -divider " % (snip_name)
+	snip_hander_table_data_pfx = "add wave -noupdate -group {%s} -group {Table Interface (RW)} -group {Data Signals} %s/PacketHandler/" % (snip_name, snip_top)
+
+	print(snip_handler_table_data_divider_pfx + "AppID")
+	print(snip_hander_table_data_pfx + "tableIn.appId")
+	print(snip_hander_table_data_pfx + "tableOut.appId_w")
+	print(snip_hander_table_data_pfx + "tableOut.appId_wen")
+
+	print(snip_handler_table_data_divider_pfx + "k1")
+	print(snip_hander_table_data_pfx + "tableIn.key1")
+	print(snip_hander_table_data_pfx + "tableOut.key1_w")
+	print(snip_hander_table_data_pfx + "tableOut.key1_wen")
+
+	print(snip_handler_table_data_divider_pfx + "k2")
+	print(snip_hander_table_data_pfx + "tableIn.key2")
+	print(snip_hander_table_data_pfx + "tableOut.key2_w")
+	print(snip_hander_table_data_pfx + "tableOut.key2_wen")
+
+	print(snip_handler_table_data_divider_pfx + "PathSize")
+	print(snip_hander_table_data_pfx + "tableIn.pathSize")
+	print(snip_hander_table_data_pfx + "tableOut.pathSize_w")
+	print(snip_hander_table_data_pfx + "tableOut.pathSize_wen")
+
+	print(snip_handler_table_data_divider_pfx + "Path")
+	print(snip_hander_table_data_pfx + "tableOut.pathFlit_idx")	
+	print(snip_hander_table_data_pfx + "tableIn.pathFlit")
+	print(snip_hander_table_data_pfx + "tableOut.pathFlit_w")
+	print(snip_hander_table_data_pfx + "tableOut.pathFlit_wen")
+
+	### Response Request Interface
+
+	snip_handler_respond_pfx = "add wave -noupdate -group {%s} -group {Response Request} %s/PacketHandler/" % (snip_name, snip_top)
+	snip_handler_respond_sds = ["response_req", "response_param", "tx_status"]
+	for it in map(lambda sd: snip_handler_respond_pfx + sd, snip_handler_respond_sds):
+		print (it)
+
+	### Output Buffer Interface
+	snip_handler_buffer_pfx = "add wave -noupdate -group {%s} -group {Output Buffer Interface} %s/PacketHandler/" % (snip_name, snip_top)
+	snip_handler_buffer_sds = ["buffer_wdata", "buffer_wen", "buffer_full"]
+	for it in map(lambda sd: snip_handler_buffer_pfx + sd, snip_handler_buffer_sds):
+		print (it)
+	
+	### Internal Control Signals
+	snip_handler_buffer_pfx = "add wave -noupdate -group {%s} -group {Handler Control Signals} %s/PacketHandler/" % (snip_name, snip_top)
+	snip_handler_buffer_sds = ["hermesControl", "tableControl", "unknown_service", "authenticated", "response_necessary", "data_to_write_on_table", "end_of_handling"]
+	for it in map(lambda sd: snip_handler_buffer_pfx + sd, snip_handler_buffer_sds):
+		print (it)
+
+	#------------------------#
+	# Packet Builder Signals #
+	#------------------------#
+
+	print(snip_divider_pfx + "Packet_Builder")
+
+	snip_builder_pfx = "add wave -noupdate -group {%s} %s/PacketBuilder/" % (snip_name, snip_top)
+	snip_builder_sds = ["clock", "hermes_tx", "hermes_data_out", "hermes_eop_out", "hermes_credit_in", "state"]
+	for it in map(lambda sd: snip_builder_pfx + sd, snip_builder_sds):
+		print (it)
+
+	### Response Request Interface
+	snip_builder_req_pfx = "add wave -noupdate -group {%s} -group {Response Request Interface} %s/PacketBuilder/" % (snip_name, snip_top)
+	snip_builder_req_sds = ["response_req", "response_param_in", "status", "response_param_reg"]
+	for it in map(lambda sd: snip_builder_req_pfx + sd, snip_builder_req_sds):
+		print (it)
+
+	### Table Interface (RO)
+
+	##### Table Control
+	snip_builder_table_ctrl_pfx = "add wave -noupdate -group {%s} -group {Table Interface (RO)} -group {Control Signals} %s/PacketBuilder/" % (snip_name, snip_top)
+	snip_builder_table_ctrl_sds = ["tableOut.tag", "tableIn.ready"]
+	for it in map(lambda sd: snip_builder_table_ctrl_pfx + sd, snip_builder_table_ctrl_sds):
+		print (it)
+
+	##### Table Data
+	snip_builder_table_data_pfx = "add wave -noupdate -group {%s} -group {Table Interface (RO)} -group {Data Signals} %s/PacketBuilder/" % (snip_name, snip_top)
+	snip_builder_table_data_sds = ["tableIn.appId", "tableIn.key1", "tableIn.key2", "tableIn.pathSize", "tableIn.pathFlit", "tableOut.pathFlit_idx"]
+	for it in map(lambda sd: snip_builder_table_data_pfx + sd, snip_builder_table_data_sds):
+		print (it)
+
+	### Input Buffer Interface
+	snip_builder_buffer_pfx = "add wave -noupdate -group {%s} -group {Input Buffer Interface} %s/PacketBuilder/" % (snip_name, snip_top)
+	snip_builder_buffer_sds = ["buffer_rdata", "buffer_ren", "buffer_empty"]
+	for it in map(lambda sd: snip_builder_buffer_pfx + sd, snip_builder_buffer_sds):
+		print (it)
+
+	### Internal Control Signals
+
+	##### Header Control
+	snip_builder_ctrl_hdr_pfx = "add wave -noupdate -group {%s} -group {Builder Control Signals} -group {Header Control} %s/PacketBuilder/" % (snip_name, snip_top)
+	snip_builder_ctrl_hdr_sds = ["fixed_header_flit", "fixed_header_end", "path_flit", "path_end", "header_flit", "header_end", "header_tx", "header_eop"]
+	for it in map(lambda sd: snip_builder_ctrl_hdr_pfx + sd, snip_builder_ctrl_hdr_sds):
+		print (it)
+
+	##### Data Payload Control
+	snip_builder_ctrl_payload_pfx = "add wave -noupdate -group {%s} -group {Builder Control Signals} -group {Data Payload Control} %s/PacketBuilder/" % (snip_name, snip_top)
+	snip_builder_ctrl_payload_sds = ["send_data", "data_words_to_read", "data_flit_low", "data_flit_ready", "last_data_flit", "data_flit_blocked", "data_tx", "data_eop"]
+	for it in map(lambda sd: snip_builder_ctrl_payload_pfx + sd, snip_builder_ctrl_payload_sds):
+		print (it)	
 
 print ("TreeUpdate [SetDefaultTree]\n\
 WaveRestoreCursors {{Cursor 1} {10 ps} 0}\n\
@@ -274,4 +533,4 @@ configure wave -gridoffset 0\n\
 configure wave -gridperiod 1\n\
 configure wave -griddelta 40\n\
 configure wave -timeline 0\n\
-configure wave -timelineunits ps\n")
+configure wave -timelineunits us\n")
