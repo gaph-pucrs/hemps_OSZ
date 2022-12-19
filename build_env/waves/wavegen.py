@@ -271,92 +271,76 @@ for snip_idx in range(0, snip_number):
 
 	### Table Columns
 
-	snip_table_columns_pfx = "add wave -noupdate -group {%s} -group {Table Columns} %s/" % (snip_name, snip_top)
-
-	print(snip_table_columns_pfx + "/ApplicationTable/table.used")
-	print(snip_table_columns_pfx + "/ApplicationTable/table.app_id")
-	print(snip_table_columns_pfx + "/ApplicationTable/table.key1")
-	print(snip_table_columns_pfx + "/ApplicationTable/table.key2")
-	print(snip_table_columns_pfx + "/ApplicationTable/table.path_size")
-	print(snip_table_columns_pfx + "/ApplicationTable/table.path")
+	snip_table_columns_pfx = "add wave -noupdate -group {%s} -group {Table Columns} %s/ApplicationTable/" % (snip_name, snip_top)
+	snip_table_columns_sds = ["table.used", "table.app_id", "table.key1", "table.key2", "table.path_size", "table.path"]
+	for it in map(lambda sd: snip_table_columns_pfx + sd, snip_table_columns_sds):
+		print (it)	
 
 	### Primary Interface (Read-Write)
 
-	snip_table_primary_pfx = "add wave -noupdate -group {%s} -group {Primary Interface (RW)} %s/" % (snip_name, snip_top)
-
-	print(snip_table_primary_pfx + "/ApplicationTable/state")
-	print(snip_table_primary_pfx + "/ApplicationTable/slot")
-	print(snip_table_primary_pfx + "/ApplicationTable/match")
+	snip_table_primary_pfx = "add wave -noupdate -group {%s} -group {Primary Interface (RW)} %s" % (snip_name, snip_top)
+	snip_table_primary_sds = ["state", "slot", "match"]
+	for it in map(lambda sd: snip_table_primary_pfx + sd, snip_table_primary_sds):
+		print (it)	
 
 	##### RW Control
 
-	snip_table_primary_rwctrl_pfx = "add wave -noupdate -group {%s} -group {Primary Interface (RW)} -group {RW Control} %s/" % (snip_name, snip_top)
-
-	print(snip_table_primary_rwctrl_pfx + "/ApplicationTable/primaryIn.request")
-	print(snip_table_primary_rwctrl_pfx + "/ApplicationTable/primaryIn.crypto")
-	print(snip_table_primary_rwctrl_pfx + "/ApplicationTable/primaryIn.newLine")
-	print(snip_table_primary_rwctrl_pfx + "/ApplicationTable/primaryIn.tag")
-	print(snip_table_primary_rwctrl_pfx + "/ApplicationTable/primaryIn.tagAux")
-	print(snip_table_primary_rwctrl_pfx + "/ApplicationTable/primaryIn.clearSlot")
-
-	print(snip_table_primary_rwctrl_pfx + "/ApplicationTable/primaryOut.ready")
-	print(snip_table_primary_rwctrl_pfx + "/ApplicationTable/primaryOut.fail")
-	print(snip_table_primary_rwctrl_pfx + "/ApplicationTable/primaryOut.full")
+	snip_table_primary_rwctrl_pfx = "add wave -noupdate -group {%s} -group {Primary Interface (RW)} -group {RW Control} %s/ApplicationTable/" % (snip_name, snip_top)
+	snip_table_primary_rwctrl_sds = ["primaryIn.request", "primaryIn.crypto", "primaryIn.newLine", "primaryIn.tag", "primaryIn.tagAux", "primaryIn.clearSlot", "primaryOut.ready", "primaryOut.fail", "primaryOut.full"]
+	for it in map(lambda sd: snip_table_primary_rwctrl_pfx + sd, snip_table_primary_rwctrl_sds):
+		print (it)
 
 	##### RW Data
 
-	snip_table_primary_rwdata_pfx = "add wave -noupdate -group {%s} -group {Primary Interface (RW)} -group {RW Data} %s/" % (snip_name, snip_top)
+	snip_table_primary_rwdata_pfx = "add wave -noupdate -group {%s} -group {Primary Interface (RW)} -group {RW Data} %s/ApplicationTable/" % (snip_name, snip_top)
 	snip_table_primary_rwdata_divider_pfx = "add wave -noupdate -group {%s} -group {Primary Interface (RW)} -group {RW Data} -divider " % (snip_name)
 
 	print(snip_table_primary_rwdata_divider_pfx + "AppID")
-	print(snip_table_primary_rwdata_pfx + "/ApplicationTable/primaryOut.appId")
-	print(snip_table_primary_rwdata_pfx + "/ApplicationTable/primaryIn.appId_w")
-	print(snip_table_primary_rwdata_pfx + "/ApplicationTable/primaryIn.appId_wen")
+	print(snip_table_primary_rwdata_pfx + "primaryOut.appId")
+	print(snip_table_primary_rwdata_pfx + "primaryIn.appId_w")
+	print(snip_table_primary_rwdata_pfx + "primaryIn.appId_wen")
 
 	print(snip_table_primary_rwdata_divider_pfx + "k1")
-	print(snip_table_primary_rwdata_pfx + "/ApplicationTable/primaryOut.key1")
-	print(snip_table_primary_rwdata_pfx + "/ApplicationTable/primaryIn.key1_w")
-	print(snip_table_primary_rwdata_pfx + "/ApplicationTable/primaryIn.key1_wen")
+	print(snip_table_primary_rwdata_pfx + "primaryOut.key1")
+	print(snip_table_primary_rwdata_pfx + "primaryIn.key1_w")
+	print(snip_table_primary_rwdata_pfx + "primaryIn.key1_wen")
 
 	print(snip_table_primary_rwdata_divider_pfx + "k2")
-	print(snip_table_primary_rwdata_pfx + "/ApplicationTable/primaryOut.key2")
-	print(snip_table_primary_rwdata_pfx + "/ApplicationTable/primaryIn.key2_w")
-	print(snip_table_primary_rwdata_pfx + "/ApplicationTable/primaryIn.key2_wen")
+	print(snip_table_primary_rwdata_pfx + "primaryOut.key2")
+	print(snip_table_primary_rwdata_pfx + "primaryIn.key2_w")
+	print(snip_table_primary_rwdata_pfx + "primaryIn.key2_wen")
 
 	print(snip_table_primary_rwdata_divider_pfx + "PathSize")
-	print(snip_table_primary_rwdata_pfx + "/ApplicationTable/primaryOut.pathSize")
-	print(snip_table_primary_rwdata_pfx + "/ApplicationTable/primaryIn.pathSize_w")
-	print(snip_table_primary_rwdata_pfx + "/ApplicationTable/primaryIn.pathSize_wen")
+	print(snip_table_primary_rwdata_pfx + "primaryOut.pathSize")
+	print(snip_table_primary_rwdata_pfx + "primaryIn.pathSize_w")
+	print(snip_table_primary_rwdata_pfx + "primaryIn.pathSize_wen")
 
 	print(snip_table_primary_rwdata_divider_pfx + "Path")
-	print(snip_table_primary_rwdata_pfx + "/ApplicationTable/primaryIn.pathFlit_idx")	
-	print(snip_table_primary_rwdata_pfx + "/ApplicationTable/primaryOut.pathFlit")
-	print(snip_table_primary_rwdata_pfx + "/ApplicationTable/primaryIn.pathFlit_w")
-	print(snip_table_primary_rwdata_pfx + "/ApplicationTable/primaryIn.pathFlit_wen")
+	print(snip_table_primary_rwdata_pfx + "primaryIn.pathFlit_idx")	
+	print(snip_table_primary_rwdata_pfx + "primaryOut.pathFlit")
+	print(snip_table_primary_rwdata_pfx + "primaryIn.pathFlit_w")
+	print(snip_table_primary_rwdata_pfx + "primaryIn.pathFlit_wen")
 
 	### Secondary Interface (Read Only)
 
-	snip_table_secondary_pfx = "add wave -noupdate -group {%s} -group {Secondary Interface (RO)} %s/" % (snip_name, snip_top)
-
-	print(snip_table_secondary_pfx + "/ApplicationTable/secondary_slot")
-
+	snip_table_secondary_pfx = "add wave -noupdate -group {%s} -group {Secondary Interface (RO)} %s/ApplicationTable/" % (snip_name, snip_top)
+	snip_table_secondary_sds = ["secondary_slot"]
+	for it in map(lambda sd: snip_table_secondary_pfx + sd, snip_table_secondary_sds):
+		print (it)
+	
 	##### RO Control
 
-	snip_table_secondary_roctrl_pfx = "add wave -noupdate -group {%s} -group {Secondary Interface (RO)} -group {RO Control} %s/" % (snip_name, snip_top)
-
-	print(snip_table_secondary_roctrl_pfx + "/ApplicationTable/secondaryIn.tag")
-	print(snip_table_secondary_roctrl_pfx + "/ApplicationTable/secondaryOut.ready")
+	snip_table_secondary_roctrl_pfx = "add wave -noupdate -group {%s} -group {Secondary Interface (RO)} -group {RO Control} %s/ApplicationTable/" % (snip_name, snip_top)
+	snip_table_secondary_roctrl_sds = ["secondaryIn.tag", "secondaryOut.ready"]
+	for it in map(lambda sd: snip_table_secondary_roctrl_pfx + sd, snip_table_secondary_roctrl_sds):
+		print (it)
 
 	##### RO Data
 
-	snip_table_secondary_rodata_pfx = "add wave -noupdate -group {%s} -group {Secondary Interface (RO)} -group {RO Data} %s/" % (snip_name, snip_top)
-
-	print(snip_table_secondary_rodata_pfx + "/ApplicationTable/secondaryOut.appId")
-	print(snip_table_secondary_rodata_pfx + "/ApplicationTable/secondaryOut.key1")
-	print(snip_table_secondary_rodata_pfx + "/ApplicationTable/secondaryOut.key2")
-	print(snip_table_secondary_rodata_pfx + "/ApplicationTable/secondaryOut.pathSize")
-	print(snip_table_secondary_rodata_pfx + "/ApplicationTable/secondaryOut.pathFlit")
-	print(snip_table_secondary_rodata_pfx + "/ApplicationTable/secondaryIn.pathFlit_idx")
+	snip_table_secondary_rodata_pfx = "add wave -noupdate -group {%s} -group {Secondary Interface (RO)} -group {RO Data} %s/ApplicationTable/" % (snip_name, snip_top)
+	snip_table_secondary_rodata_sds = ["secondaryOut.appId", "secondaryOut.key1", "secondaryOut.key2", "secondaryOut.pathSize", "secondaryOut.pathFlit", "secondaryIn.pathFlit_idx"]
+	for it in map(lambda sd: snip_table_secondary_rodata_pfx + sd, snip_table_secondary_rodata_sds):
+		print (it)
 
 	#------------------------#
 	# Packet Handler Signals #
