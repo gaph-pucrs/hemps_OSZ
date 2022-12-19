@@ -1,4 +1,4 @@
-vsim -t ps +notimingchecks hardware/work.test_bench
+vsim -t ps +notimingchecks -voptargs=+acc hardware/work.test_bench
 
 do wave.do
 onerror {resume}
