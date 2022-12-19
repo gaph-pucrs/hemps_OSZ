@@ -274,7 +274,7 @@ for snip_idx in range(0, snip_number):
 	snip_table_columns_pfx = "add wave -noupdate -group {%s} -group {Table Columns} %s/" % (snip_name, snip_top)
 
 	print(snip_table_columns_pfx + "/ApplicationTable/table.used")
-	print(snip_table_columns_pfx + "/ApplicationTable/table.appId")
+	print(snip_table_columns_pfx + "/ApplicationTable/table.app_id")
 	print(snip_table_columns_pfx + "/ApplicationTable/table.key1")
 	print(snip_table_columns_pfx + "/ApplicationTable/table.key2")
 	print(snip_table_columns_pfx + "/ApplicationTable/table.path_size")
