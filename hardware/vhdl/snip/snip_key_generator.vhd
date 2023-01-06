@@ -94,7 +94,7 @@ begin
             when INIT_K2 =>
 
                 if p=x"00" then
-                    next_state <= READY; -- no shifts required
+                    next_state <= KEYS_READY; -- no shifts required
                 else
                     next_state <= GEN_K2;
                 end if;

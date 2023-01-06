@@ -1,0 +1,110 @@
+This kernel is global master
+Inicializou mestre global com ID 0
+Authenticated PE0x00000000
+Authenticated PE0x00000100
+Authenticated PE0x00000200
+Authenticated PE0x00000300
+Authenticated PE0x00000001
+Authenticated PE0x00000101
+Authenticated PE0x00000201
+Authenticated PE0x00000301
+Authenticated PE0x00000002
+Authenticated PE0x00000102
+Authenticated PE0x00000202
+Authenticated PE0x00000302
+Authenticated PE0x00000003
+Authenticated PE0x00000103
+Authenticated PE0x00000203
+Authenticated PE0x00000303
+Slaves inicializados:
+Authenticated NI0x00000000
+Authenticated NI0x00000001
+Authenticated NI0x00000002
+Authenticated NI0x00000003
+Kernel GMV Initialized
+ERROR: service unknown 0x00000310
+Time: 16675
+Sent NEW APP ACK
+k0 = 0x0000d008
+k0 = 0x00006804
+k0 = 0x00003402
+k0 = 0x00001a01
+k0 = 0x0000dd08
+k0 = 0x00006e84
+k0 = 0x00003742
+k0 = 0x00001ba1
+k0 = 0x0000ddd8
+k0 = 0x00006eec
+k0 = 0x00003776
+k0 = 0x00001bbb
+k0 = 0x0000ddd5
+k0 = 0x0000bee2
+k0 = 0x00005f71
+k0 = 0x0000ffb0
+#### BEGIN APP DEPLOY OVERHEAD - 19850
+end shape - 21904
+Index: 0
+
+Shape location: 0x03020100
+Task id 0 statically mapped at processor0x00000100
+Proc mapeado IO 0x00000100
+Task id 1 statically mapped at processor0x00000300
+Proc mapeado IO 0x00000300
+Task id 2 statically mapped at processor0x00000200
+Proc mapeado 0x00000200
+Task id 3 statically mapped at processor0x00000101
+Proc mapeado 0x00000101
+Task id 4 statically mapped at processor0x00000201
+Proc mapeado 0x00000201
+Task id 5 statically mapped at processor0x00000301
+Proc mapeado 0x00000301
+App have all its task mapped
+end mapping - 27491
+
+Request APP
+Request allocation of task 0x00000000 to processor 0x00000100
+Request allocation of task 0x00000001 to processor 0x00000300
+Request allocation of task 0x00000002 to processor 0x00000200
+Request allocation of task 0x00000003 to processor 0x00000101
+Request allocation of task 0x00000004 to processor 0x00000201
+Request allocation of task 0x00000005 to processor 0x00000301
+AppID rand: 0x00007782
+turns: 0x00000704
+Task Allocated: 0x00000000
+Total: 0x00000001
+time - 38116
+Task Allocated: 0x00000001
+Total: 0x00000002
+time - 40041
+Task Allocated: 0x00000002
+Total: 0x00000003
+time - 41851
+Task Allocated: 0x00000003
+Total: 0x00000004
+time - 43663
+Task Allocated: 0x00000004
+Total: 0x00000005
+time - 45477
+Task Allocated: 0x00000005
+Total: 0x00000006
+time - 47527
+All task allocated for app 0 at time 47733
+--Gray Area a esquerda
+Found AP address: 0x00000101
+AppID rand: 0x00007782
+turns: 0x00000704
+----Enviando conf para: 70
+----Enviando conf para: 80
+SET_SECURE_ZONE at time: 51549
+Received Secure Zone Closed. RH_addr: 0x00000031
+
+App_id to START: 0x00000000
+
+payload: 0x00000031
+49
+
+
+*** END APP_DEPLOY53124 RUNNING AT: 53302
+
+
+***** APP 0 RUNNING AT: 53502
