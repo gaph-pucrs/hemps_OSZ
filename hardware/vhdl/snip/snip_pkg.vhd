@@ -21,14 +21,23 @@ package snip_pkg is
 
     constant APPID_SIZE             : integer := 16;
     constant KEYPERIPH_SIZE         : integer := APPID_SIZE;
-    constant MAX_PATH_FLITS         : integer := 6;    
+    constant MAX_PATH_FLITS         : integer := 6;
 
     subtype regN_appID      is std_logic_vector(APPID_SIZE-1 downto 0);
     subtype regN_keyPeriph  is std_logic_vector(KEYPERIPH_SIZE-1 downto 0);
+    subtype regN_keyParam   is std_logic_vector((TAM_FLIT/2)-1 downto 0);
     type    regN_path       is array(MAX_PATH_FLITS-1 downto 0) of regflit;
     subtype intN_pathSize   is integer range 0 to MAX_PATH_FLITS;
     subtype intN_pathIndex  is integer range 0 to MAX_PATH_FLITS-1;
 
+    -------------------
+    -- LFSR SETTINGS --
+    -------------------
+
+    constant lfsr_degree        : integer := 16;
+    constant lfsr_polynomial    : std_logic_vector(lfsr_degree-1 downto 0) := x"D008"; -- x^16 + x^15 + x^13 + x^4 + 1
+
+    subtype regN_lfsr is std_logic_vector(lfsr_degree-1 downto 0);
     ---------------------------------------
     -- MESSAGE DELIVERY SERVICE SETTINGS --
     ---------------------------------------
