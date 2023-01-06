@@ -1441,7 +1441,7 @@ int handle_packet(volatile ServiceHeader * p) {
 
 	default:
 		// if (p->service == ((k1 ^ k2) << 16) | (KappID ^ k2)){
-		if ((p->service >> 16) == ((k1 ^ k2)){
+		if ((p->service >> 16) == ((k1 ^ k2))){
 			if ((p->service & 0xffff) == (KappID ^ k2)){
 			// puts("IO packet authenticated\n");
 			p->service = p->io_service;
