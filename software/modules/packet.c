@@ -479,7 +479,7 @@ int read_packet(ServiceHeader *p){
 }
 
 #ifdef GRAY_AREA
-int pathToIO(int peripheral_id, int* positionAP){
+int pathToIO(int peripheral_id, int * positionAP){
   unsigned int my_X_addr, my_Y_addr;
   unsigned int PER_X_addr, PER_Y_addr, port_io, i;
   unsigned int RH_X_addr, RH_Y_addr;
@@ -815,7 +815,7 @@ int IOtoAPmaster(int peripheral_id, int ap_addr, int ap_port){ // Colocar parame
     while (AP_X_addr > auxPosX){
       bt = bt | (0x0 << shift);
       shift += 2;
-      auxPosX --;
+      auxPosX ++;
     }; 
   }
 
@@ -868,6 +868,10 @@ int IOtoAPmaster(int peripheral_id, int ap_addr, int ap_port){ // Colocar parame
     return bt; 
   else{
     puts("ERROR[packet.c] - Path not constructed correctly");
+    puts("ap_addr ");puts(itoh(ap_addr));puts("\n");
+    puts("aux X: ");puts(itoh(auxPosX));puts("\n");
+    puts("    Y: ");puts(itoh(auxPosY));puts("\n");
+ 
     return -1;
   }
 }

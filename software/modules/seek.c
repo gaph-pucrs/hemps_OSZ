@@ -471,7 +471,7 @@ int adjust_backtrack_IO(unsigned int backtrack, unsigned int backtrack1, unsigne
 
 	//puts("last hop: "); puts(itoa(last_hop)); puts("\n");
 
-	slot_seek = SearchSourceRoutingDestination( target );
+	slot_seek = SearchSourceRoutingDestination(target);
 
 	port[i++] = last_hop;
 	if(port[i-1] == EAST)

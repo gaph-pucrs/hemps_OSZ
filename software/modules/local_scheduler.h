@@ -48,7 +48,7 @@
 //Auxiliary RT defines
 #define DEBUG					0			//!<When enabled shows the puts placed within local_scheduler.c
 #define NO_DEADLINE				-1			//!<A task that is best-effor have its deadline variable equal to -1
-#define MAX_TIME_SLICE			8318		//!<Standard time slice value for task execution
+#define MAX_TIME_SLICE			16318		//!<Standard time slice value for task execution
 
 // #define sched_puts(argument) puts(argument)
 #define sched_puts(argument) 

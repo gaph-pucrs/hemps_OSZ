@@ -19,7 +19,7 @@ Echo( "b,SRAM1," );
 
 	/*Comm Peripheral*/
 	msgIO.length = 128;
-	IOSend(&msgIO,IO_PERIPHERAL3);
+	// IOSend(&msgIO,IO_PERIPHERAL3);
 
 	/*Comm RAST 1280*/
 	msg.length=128;

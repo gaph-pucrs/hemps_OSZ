@@ -75,7 +75,7 @@ int APaddress = 0;
 
 // Leave IO opened
 int openTime = 245123; // 1,23ms
-int APopened = 0;
+int APopened = 99;
 int resendIOid = 80;
 
 #ifdef AES_MODULE
@@ -287,7 +287,7 @@ int Syscall(unsigned int service, unsigned int arg0, unsigned int arg1, unsigned
 			send_dull_packet();
 
 			return 1;
-
+		break;
 		case EXIT:
 
 			schedule_after_syscall = 1;
@@ -343,6 +343,7 @@ int Syscall(unsigned int service, unsigned int arg0, unsigned int arg1, unsigned
 			//printSessionStatus(Sessions,current->id);
 
 		return 1;
+		break;
 
 		case WRITEPIPE:
 			tInit = MemoryRead(TICK_COUNTER);
@@ -356,6 +357,7 @@ int Syscall(unsigned int service, unsigned int arg0, unsigned int arg1, unsigned
 			}
 
  			//puts("current master: "); puts(itoh(current->master_address)); puts(" cluster master: ");  puts(itoh(cluster_master_address)); puts("\n");
+			// puts("WRITEPIPE - prod: "); puts(itoa(current->id)); puts("  cons: "); puts(itoa(arg1));puts("  addr: "); puts(itoa(&arg1));puts("\n");
 
 			producer_task =  current->id;
 			consumer_task = (int) arg1;
@@ -363,7 +365,7 @@ int Syscall(unsigned int service, unsigned int arg0, unsigned int arg1, unsigned
 			appID = producer_task >> 8;
 			consumer_task = (appID << 8) | consumer_task;
 
-			//puts("WRITEPIPE - prod: "); puts(itoa(producer_task)); putsv(" consumer ", consumer_task);
+			// puts("WRITEPIPE - prod: "); puts(itoa(producer_task)); putsv(" consumer ", consumer_task);
 
 			// consumer_PE = get_task_location(consumer_task);
 			consumer_PE = get_task_location(consumer_task);
@@ -423,6 +425,7 @@ int Syscall(unsigned int service, unsigned int arg0, unsigned int arg1, unsigned
 		tEnd= MemoryRead(TICK_COUNTER);
 		session_time_puts("WRITEPIPE= ");session_time_puts(itoa(tEnd-tInit));session_time_puts("\n");
 		return 1;
+		break;
 
 		case READPIPE:
 			tInit = MemoryRead(TICK_COUNTER);
@@ -495,6 +498,7 @@ int Syscall(unsigned int service, unsigned int arg0, unsigned int arg1, unsigned
 			tEnd= MemoryRead(TICK_COUNTER);
 			session_time_puts("READPIPE= ");session_time_puts(itoa(tEnd-tInit));session_time_puts("\n");
 			return 0;
+		break;
 
 		case GETTICK:
 
@@ -614,6 +618,7 @@ int Syscall(unsigned int service, unsigned int arg0, unsigned int arg1, unsigned
 
 
 		return 1;
+		break;
 
 		case IOREADPIPE:
 			
@@ -690,9 +695,8 @@ int Syscall(unsigned int service, unsigned int arg0, unsigned int arg1, unsigned
 
 			return 0;
 
-			break;
-
-			/*
+		break;
+					/*
 			pipe_ptr = remove_PIPE(producer_task, consumer_task);
 
 			if (pipe_ptr == 0){
@@ -724,8 +728,10 @@ int Syscall(unsigned int service, unsigned int arg0, unsigned int arg1, unsigned
 			}
 
 			return 1;
-		*/		
-
+		*/
+		default:
+			return 0;
+		break;
 	}
 
 	return 0;
@@ -776,7 +782,7 @@ int Aplly_LSFR(lfsr_data_t polynom_d, lfsr_data_t init_value_d,  lfsr_data_t pol
 
 /** Handles a new packet from NoC
  */
-int handle_packet(volatile ServiceHeader * p) {
+int handle_packet(ServiceHeader * p) {
     char key[16] = {0,1,2,3,4,5,6,7,8,9,0xa,0xb,0xc,0xd,0xe,0xf};
     //char value[8] = {0x65,0x77,0x5f,0xa9,0x50,0x2f,0x08,0x33};
     char rnd[24], Ke[24];
@@ -890,9 +896,7 @@ int handle_packet(volatile ServiceHeader * p) {
 		//MemoryWrite(KERNEL_DEBUG_STATE, 0);
 		#else
 		//Remove msg from PIPE, if there is no message, them slot_ptr will be 0
-		//puts("\n\nMESSAGE_REQUEST Received \nproc:");puts(itoh(p->source_PE));puts("\n");
-		//puts("consumer_task:");puts(itoh( p->consumer_task));puts("\n");
-		//puts("p->producer_task:");puts(itoh(p->producer_task));puts("\n");
+		// puts("\nMESSAGE_REQUEST Received consumer_task:");puts(itoh( p->consumer_task));puts("\n");
 
 		slot_ptr = remove_PIPE(p->producer_task, p->consumer_task);
 
@@ -917,13 +921,12 @@ int handle_packet(volatile ServiceHeader * p) {
 			} else {
 
 				insert_message_request(p->producer_task, p->consumer_task, p->requesting_processor);
-
+				// puts("Inseriu request\n") //;puts(itoh(p->requesting_processor)); puts("\n");
 			}
 
 		} else if (p->requesting_processor != net_address){
 			send_message_delivery(p->producer_task, p->consumer_task, p->requesting_processor, &slot_ptr->message);
-			//puts("MANDOU O CONTROL Req\n");
-			// puts("target:");puts(itoh(p->requesting_processor)); puts("\n");
+			// puts("Achou no PIPE\n"); //puts(itoh(p->requesting_processor)); puts("\n");
 			// puts("ID+Source:");puts(itoh((MemoryRead(TICK_COUNTER)<<16) | (get_net_address()& 0xFFFF))); puts("\n"); 
 		//This else is executed when this slave receved a own MESSAGE_REQUEST due a by pass
 
@@ -947,6 +950,7 @@ int handle_packet(volatile ServiceHeader * p) {
 		//puts("io_port: ");puts(itoh(p->io_port)); puts("\n");
 		//puts("io_service: ");puts(itoh(p->io_service)); puts("\n");
 	break;
+
 
 
 	case  IO_ACK:
@@ -1468,7 +1472,11 @@ int handle_packet(volatile ServiceHeader * p) {
 		// 	break;
 		// }
 		// if (p->service == ((k1 ^ k2) << 16) | (KappID ^ k2)){
+<<<<<<< HEAD
+		if ((p->service & 0xffff0000) == ((k1 ^ k2) << 16)){
+=======
 		if ((p->service >> 16) == ((k1 ^ k2))){
+>>>>>>> master
 			if ((p->service & 0xffff) == (KappID ^ k2)){
 			// puts("IO packet authenticated\n");
 			p->service = p->io_service;
@@ -1565,20 +1573,13 @@ int SeekInterruptHandler(){
 	target = MemoryRead(SEEK_TARGET_REGISTER);
 	source = MemoryRead(SEEK_SOURCE_REGISTER);
 	service = MemoryRead(SEEK_SERVICE_REGISTER);
-	int t1, t2, t3;
 	// For Sessions
-	unsigned int auxProducer, auxConsumer, auxCode, auxNumber;
-	Message * msg_ptr;
-	TCB * tcb_ptr = 0;
-	PipeSlot* tmpSlot;
-	ServiceHeader* auxService = 0;
-	int task_loc;
 	static int prevSetAP = -1;
 	static prevTUS = -1;
 	static int rcvdACK =0;
 	static unsigned int nTurns, n, p = 0;
 	static ackSources[MAX_TASKS_APP];
-	int i, maskAux, timeAux;
+	int i, timeAux;
 
 	
 	switch(service){
@@ -1959,21 +1960,21 @@ case BR_TO_APPID_SERVICE: // Expand here to flexible AccessPoit configuration
 			switch (payload)
 			{
 			case 00: //00 - AP information
-				// puts("Received AP information (BR_TO_APPID_SERVICE 0)\n");
+				puts("Received AP information (BR_TO_APPID_SERVICE 0)\n");
 				APaddress = source&0xffff;
 				break;
 			case 01: //01 - FREEZE IO
-				// puts("Received Prepare Key (BR_TO_APPID_SERVICE 1)\n");
+				puts("Received Prepare Key (BR_TO_APPID_SERVICE 1)\n");
 				freezeIO = 1;
 				if (pendingIO > 0){
 					// puts("PendingIO\n");
 					break;
 				}
 				Seek(KEY_ACK, ((MemoryRead(TICK_COUNTER)<<16) | (get_net_address()&0xffff)), (source & 0xffff), 0); // Send Freeze IO	
-				// puts("Answered to "); puts(itoh(source & 0xffff));puts("\n");
+				puts("Answered to "); puts(itoh(source & 0xffff));puts("\n");
 				break;
 			case 02: //02 - KEY EVOLVE
-				// puts("Received Key Evolve (BR_TO_APPID_SERVICE 2)\n");
+				puts("Received Key Evolve (BR_TO_APPID_SERVICE 2)\n");
 				if (nTurns == (source >> 16)){
 					// puts("Já renovou - repetido\n");
 					break;
@@ -2025,7 +2026,7 @@ case BR_TO_APPID_SERVICE: // Expand here to flexible AccessPoit configuration
 		break;
 
 		case KEY_ACK:
-				// puts("Received KEY_ACK from: ");puts(itoa(rcvdACK));puts(itoh(source&0xffff)); puts ("\n");
+				puts("Received KEY_ACK from: ");puts(itoa(rcvdACK));puts(itoh(source&0xffff)); puts ("\n");
 
 				for(i=0; i <=rcvdACK; i++){
 					if (source == ackSources[i]){
@@ -2136,7 +2137,7 @@ void OS_InterruptServiceRoutine(unsigned int status) {
 
 	MemoryWrite(SCHEDULING_REPORT, INTERRUPTION);
 
-	volatile ServiceHeader p;
+	ServiceHeader p;
 	ServiceHeader * next_service;
 	unsigned call_scheduler;
 	int timeAux;
