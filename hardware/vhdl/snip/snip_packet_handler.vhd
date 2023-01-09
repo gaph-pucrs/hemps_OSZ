@@ -4,9 +4,9 @@ use ieee.std_logic_unsigned.all;
 use ieee.std_logic_arith.all;
 use work.standards.all;
 use work.seek_pkg.all;
-use work.ni_pkg.all;
+use work.snip_pkg.all;
 
-entity ni_packet_handler is
+entity snip_packet_handler is
     port
     (
         clock               : in    std_logic;
@@ -17,8 +17,8 @@ entity ni_packet_handler is
         hermes_eop_in       : in    std_logic;
         hermes_credit_out   : out   std_logic;
 
-        tableIn             : in    TableOutput;
-        tableOut            : out   TableInput;
+        tableIn             : in    AppTablePrimaryOutput;
+        tableOut            : out   AppTablePrimaryInput;
 
         response_req        : out   std_logic;
         response_param      : out   ResponseParametersType;
@@ -30,7 +30,7 @@ entity ni_packet_handler is
     );
 end entity;
 
-architecture ni_packet_handler of ni_packet_handler is
+architecture snip_packet_handler of snip_packet_handler is
 
     -----------------
     -- FSM SIGNALS --

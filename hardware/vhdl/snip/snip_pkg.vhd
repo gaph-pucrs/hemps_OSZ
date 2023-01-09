@@ -5,7 +5,7 @@ use ieee.std_logic_arith.all;
 use work.standards.all;
 use work.seek_pkg.all;
 
-package ni_pkg is
+package snip_pkg is
     
     constant TAM_WORD   : integer := TAM_FLIT*2;
     subtype regword is std_logic_vector(TAM_WORD-1 downto 0);
@@ -63,13 +63,13 @@ package ni_pkg is
     --  IO_CONFIG               zero        appId xor k0
     --  IO_REQ/DELIVERY/ACK     k1 xor k2   appId xor k2
 
-    --------------------------------
-    -- TABLE READ-WRITE INTERFACE --
-    --------------------------------
+    ----------------------------------------------
+    -- APPLICATION TABLE PRIMARY INTERFACE (RW) --
+    ----------------------------------------------
 
-    type TableInput is record
+    type AppTablePrimaryInput is record
 
-        -- ctrl
+        -- control:
 
         request         : std_logic;
         crypto          : std_logic;
@@ -78,7 +78,7 @@ package ni_pkg is
         tagAux          : regN_appID;
         clearSlot       : std_logic;
 
-        -- rw
+        -- data:
 
         appId_w         : regN_appID;
         appId_wen       : std_logic;
@@ -98,15 +98,15 @@ package ni_pkg is
 
     end record;
 
-    type TableOutput is record
+    type AppTablePrimaryOutput is record
 
-        -- ctrl
+        -- control:
 
         ready           : std_logic;
         fail            : std_logic;
         full            : std_logic;
 
-        -- rw
+        -- data:
 
         appId           : regN_appID;
         key1            : regN_keyPeriph;
@@ -116,22 +116,36 @@ package ni_pkg is
     
     end record;
     
-    -------------------------------
-    -- TABLE READ-ONLY INTERFACE --
-    -------------------------------
+    ------------------------------------------------
+    -- APPLICATION TABLE SECONDARY INTERFACE (RO) --
+    ------------------------------------------------
 
-    type TableSecondaryInput is record
-        tag             : regN_appID;        
+    type AppTableSecondaryInput is record
+
+        -- control:
+        
+        tag             : regN_appID;
+        
+        -- data:
+        
         pathFlit_idx    : intN_pathIndex;
+
     end record;
 
-    type TableSecondaryOutput is record
+    type AppTableSecondaryOutput is record
+
+        -- control:
+
         ready           : std_logic;
+
+        -- data:
+
         appId           : regN_appID;
         key1            : regN_keyPeriph;
         key2            : regN_keyPeriph;
         pathSize        : intN_pathSize;
         pathFlit        : regflit;
+
     end record;
 
     --------------------------------
@@ -165,4 +179,4 @@ package ni_pkg is
         err             : std_logic;
     end record;
     
-end package ni_pkg;
+end package;

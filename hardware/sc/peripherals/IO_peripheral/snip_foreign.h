@@ -1,11 +1,11 @@
-#ifndef _SCGENMOD_NetworkInterface_
-#define _SCGENMOD_NetworkInterface_
+#ifndef _SCGENMOD_SNIP_Foreign_
+#define _SCGENMOD_SNIP_Foreign_
 
 #include "systemc.h"
 
 #define ROUTER_VHD
 
-class NetworkInterface : public sc_foreign_module
+class SNIP_Foreign : public sc_foreign_module
 {
     public:
 
@@ -44,7 +44,7 @@ class NetworkInterface : public sc_foreign_module
         sc_out<bool>                brnoc_primary_opmode_out;
         sc_in<bool>                 brnoc_primary_ack_in;
 
-        NetworkInterface(sc_module_name nm, const char* hdl_name, int num_generics, const char** generic_list) :
+        SNIP_Foreign(sc_module_name nm, const char* hdl_name, int num_generics, const char** generic_list) :
             sc_foreign_module(nm),
 
 			clock("clock"),
@@ -81,7 +81,7 @@ class NetworkInterface : public sc_foreign_module
 			elaborate_foreign_module(hdl_name, num_generics, generic_list);
 		}
 
-		~NetworkInterface(){}
+		~SNIP_Foreign(){}
 };
 
 #endif
