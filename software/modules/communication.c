@@ -308,7 +308,9 @@ PipeSlot * add_PIPE(int producer_task, int consumer_task, Message * msg){
 	}
 
 	pipe_free_positions--;
-
+	// puts("WRITEPIPE adicionou do PIPE:\n");
+	// puts("consumer_task:");puts(itoh( consumer_task));puts("\n");
+	// puts("----PIPE free slots: ");puts(itoa(pipe_free_positions));puts("\n");
 	//Only for debug purposes
 	MemoryWrite(ADD_PIPE_DEBUG, (producer_task << 16) | (consumer_task & 0xFFFF));
 
@@ -548,6 +550,9 @@ int remove_message_request(int producer_task, int consumer_task) {
         if( message_request[i].requested == producer_task && message_request[i].requester == consumer_task){
         	message_request[i].requester = -1;
         	message_request[i].requested = -1;
+
+			// puts("WRITEPIPE removeu REQ:\n");
+		  	// puts("consumer_task:");puts(itoh( consumer_task));puts("\n");
 
         	//Only for debug purposes
         	MemoryWrite(REM_REQUEST_DEBUG, (producer_task << 16) | (consumer_task & 0xFFFF));

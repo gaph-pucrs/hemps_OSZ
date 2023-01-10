@@ -78,6 +78,7 @@ void insert_CM_FIFO(volatile ServiceHeader *p, unsigned int initial_address, uns
 		case RND_VALUE:
 		case KE_VALUE:
 		case REAL_TIME_CHANGE:
+		case 0x96868f6f:
 			 for(int i = 0; i < MAX_SOURCE_ROUTING_PATH_SIZE; i++)
 			 		CMFifo[cmfifo_ptr].service_header.header[i] = p->header[i];
 			 CMFifo[cmfifo_ptr].service_header.payload_size 	= p->payload_size;
@@ -94,7 +95,7 @@ void insert_CM_FIFO(volatile ServiceHeader *p, unsigned int initial_address, uns
 			 CMFifo[cmfifo_ptr].service_header.initial_address  = p->initial_address;
 
 			 CMFifo[cmfifo_ptr].used = NO;
-			 //puts("\nIndex: "); puts(itoh(cmfifo_ptr)); 
+			//  puts("\nIndex: "); puts(itoh(cmfifo_ptr)); 
 			 //puts("  Service: "); puts(itoh(CMFifo[cmfifo_ptr].service_header.service)); 
 			 //puts("  Target: "); puts(itoh(CMFifo[cmfifo_ptr].service_header.header[MAX_SOURCE_ROUTING_PATH_SIZE-1] & 0xffff)); puts("\n");
 
@@ -222,8 +223,12 @@ void print_CM_FIFO(){
 	puts("\n");
 	for(int i = 0; i < CM_FIFO_LENGTH; i++){
 		puts("Index: "); puts(itoh(i));
-		puts("  service: "); puts(itoh(CMFifo[i].service_header.service));
-		puts("  header: "); puts(itoh(CMFifo[i].service_header.header[MAX_SOURCE_ROUTING_PATH_SIZE-1]));
+		puts("  service: "); puts(itoh(CMFifo[i].service_header.service));puts("\n");
+		puts("  header: \n");
+		for(int j = 0; j < MAX_SOURCE_ROUTING_PATH_SIZE; j++){
+			if(CMFifo[i].service_header.header[j] != 0){
+				puts(itoh(CMFifo[i].service_header.header[j]));puts("\n");}
+		}
 		puts("\n");
 
 	}
@@ -264,3 +269,23 @@ int resend_control_message(unsigned int backtrack, unsigned int backtrack1, unsi
 	}
 
 }
+
+int resend_io_message(unsigned int target, unsigned int ioID){
+	int CMFifo_index;
+
+	// print_CM_FIFO();
+	CMFifo_index = search_Target(target);
+	// puts("CMFifo_index: "); puts(itoh(CMFifo_index)); puts("\n");
+	if(CMFifo_index != -1){
+		puts("\nResending IO message\n");
+		send_packet_io(&CMFifo[CMFifo_index].service_header, CMFifo[CMFifo_index].ptr_payload , CMFifo[CMFifo_index].payload_length, ioID);
+		CMFifo[CMFifo_index].used = YES;
+		return 1;
+	}
+	else{
+		puts("\nERROR: control message NOT found!!!");
+		return 0;
+	}
+
+}
+

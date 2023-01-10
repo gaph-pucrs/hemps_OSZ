@@ -14,6 +14,8 @@ int nodes_tasks[NUM_NODES*(NUM_NODES-1)/2][2];
 int AdjMatrix[NUM_NODES][NUM_NODES];
 int result[33];
 int ended;
+Message msg;
+
 
 int main(int argc, char *argv[])
 {
@@ -53,7 +55,6 @@ int main(int argc, char *argv[])
 
 void startThreads(void) {
 	int i, j;
-	Message msg;
 
 	/* SEND nodes_tasks[NUM_NODES*(NUM_NODES-1)/2][2] */
 	msg.length = NUM_NODES*(NUM_NODES-1)/2;

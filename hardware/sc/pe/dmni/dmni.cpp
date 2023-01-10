@@ -145,6 +145,7 @@ void dmni::receive(){
 
 	sc_uint<16 > data_in_int;
 	sc_uint<4> intr_counter_temp;
+	int pig_counter;
 
 	if (reset.read() == 1){
 		flag_middle_eop = 0;
@@ -160,6 +161,8 @@ void dmni::receive(){
 		intr_count.write(0);
 		tick_counter.write(0);
 		flit_location.write(0);
+		pig_signal.write(0);
+
 		for(int i=0; i<BUFFER_SIZE; i++){ //in vhdl replace by OTHERS=>'0'
 			is_header[i] = 0;
 		}
@@ -239,7 +242,7 @@ void dmni::receive(){
 					case HEADER:
 						cont.write(0);
 
-						intr_counter_temp = intr_counter_temp + 1;
+						intr_counter_temp = intr_counter_temp + 1; // original
 						// if(address_router == 0){
 						// 	cout<<"Master receiving msg "<<endl;}
 						is_header[last.read()] = 1;
@@ -251,10 +254,12 @@ void dmni::receive(){
 
 						is_header[last.read()] = 1;
 						SR.write(PAYLOAD_SIZE);
+						pig_signal.write(0);
 					break;
 				
 					case PAYLOAD_SIZE://payload size
 						cont.write(0);
+						// intr_counter_temp = intr_counter_temp + 1; // atraso na DMNI
 
 						is_header[last.read()] = 0;					
 						payload_size.write(data_in.read() - 1);
@@ -264,6 +269,8 @@ void dmni::receive(){
 					case DATA://payload
 						is_header[last.read()] = 0;
 						cont.write(0);
+
+						pig_signal.write(pig_signal.read()+1);
 						
 						if (payload_size.read() == 0 || eop_in.read() == 1){ // MELHORAR AQUI
 							if (eop_in.read() == 1 && payload_size.read() > 5){ // Did not interrupt, but the buffer is empty? overwritten?
@@ -278,8 +285,9 @@ void dmni::receive(){
 						}
 					break;
 				}		
-			}			
-			intr_count.write(intr_counter_temp);
+			}
+			// if (SR.read() == DATA && pig_counter == 10)			
+				intr_count.write(intr_counter_temp);
 		}
 	
 	switch (DMNI_Receive.read()) {
@@ -367,16 +375,16 @@ void dmni::receive(){
 						DMNI_Receive.write(FAILED_RECEPTION);
 					}
 				break;
-								}
-						
-						//Interruption management
-				if (reg_interrupt_received_wait.read() == 0){
-				if (intr_counter_temp > 0){
+		}
+		//Interruption management
+		if (reg_interrupt_received_wait.read() == 0){
+			if (intr_counter_temp > 0){
+				if (pig_signal.read() > 0)
 					intr.write(1);
-				} else {
-					intr.write(0);
-				}
-						}	
+			} else {
+				intr.write(0);
+			}
+		}	
 							
 				intr_count.write(intr_counter_temp);
 

@@ -86,7 +86,7 @@ signal	compare_bactrack_pending_in_table							: std_logic_vector(TABLE_SEEK_LEN
 signal	compare_searchpath_pending_in_table							: std_logic_vector(TABLE_SEEK_LENGHT-1 downto 0);
 signal  compare_service_pending_in_table							: std_logic_vector(TABLE_SEEK_LENGHT-1 downto 0);
 signal  count_clear													: std_logic_vector(4 downto 0);
-signal	backtrack_port												: std_logic_vector(1 downto 0);
+signal	backtrack_port												: std_logic_vector(2 downto 0);
 signal  req_task, req_int, is_my_turn_send_backtrack				: std_logic;
 signal	in_the_table, space_aval_in_the_table, nack_recv			: std_logic;
 signal	backtrack_pending_in_table, searchpath_pending_in_table		: std_logic;
@@ -467,7 +467,7 @@ process(clock, reset)--processo que gerencia cada estado manager
 							sel <= prox;						
 											     	                        
 					when TEST_SERVICE=>
-						backtrack_port 			<= backtrack_port_table(sel)(1 DOWNTO 0);
+						backtrack_port 			<= backtrack_port_table(sel);
 						if source_table(sel)(TARGET_SIZE-1 downto 0) = router_address and service_table(sel) = BACKTRACK_SERVICE and backtrack_id = x"FFFF" then
 							backtrack_id 		<= source_table(sel)(SOURCE_SIZE-1 downto TARGET_SIZE);
 						end if;
@@ -496,8 +496,8 @@ process(clock, reset)--processo que gerencia cada estado manager
 					when PROPAGATE =>							
 						for j in 0 to (NPORT_SEEK-2) loop  
 						--if (j /= to_integer(unsigned((backtrack_port_table(sel)))))  then       -- Backtrack local, CLEAR não passava                
-							if (j /= to_integer(unsigned((backtrack_port_table(sel)))) OR service_table(sel) = CLEAR_SERVICE)  then   
-							-- if (j /= to_integer(unsigned((backtrack_port))) OR service_table(sel) = CLEAR_SERVICE)  then   
+							-- if (j /= to_integer(unsigned((backtrack_port_table(sel)))) OR service_table(sel) = CLEAR_SERVICE)  then   
+							if (j /= to_integer(unsigned((backtrack_port))) OR service_table(sel) = CLEAR_SERVICE)  then   
 								int_out_req_router_seek(j)	<= '1';
 							end if;
 						end loop;	
@@ -506,9 +506,9 @@ process(clock, reset)--processo que gerencia cada estado manager
 
 						--do not execute acks when backtrack port is local
 						-- if backtrack_port_table(sel) /= x"4" then
-						if (backtrack_port_table(sel) /= x"4" and service_table(sel) /= CLEAR_SERVICE) then
-						-- if (backtrack_port /= x"4" and service_table(sel) /= CLEAR_SERVICE) then
-							vector_ack_ports(to_integer(unsigned(backtrack_port_table(sel)(1 DOWNTO 0)))) <= '1';
+						-- if (backtrack_port_table(sel) /= x"4" and service_table(sel) /= CLEAR_SERVICE) then -- Bug de antes, sobrescrevia o serviço e não setava o ACK manual, ficava esperando e trancava
+						if (backtrack_port /= x"4") then
+							vector_ack_ports(to_integer(unsigned(backtrack_port))) <= '1';
 						end if;
 						for j in 0 to (NPORT_SEEK-2) loop  
 --							if (int_in_ack_router_seek(j) = '1' or in_nack_router_seek(j) = '1') then
@@ -985,88 +985,88 @@ begin
 					
 end generate;
 	  
--- log, desativado ao ser sintetizado
--- synthesis translate_off
-gen_test_count: if (debug_build) generate
-	get_signals: entity work.logging
-	generic map (
-		router_address => router_address
-	)
-	port map (
-		clock => clock,
-		reset => reset,
-		in_tick_counter => in_tick_counter,
-		EA_manager => EA_manager,
-		EA_manager_input	 => EA_manager_input,
+-- -- log, desativado ao ser sintetizado
+-- -- synthesis translate_off
+-- gen_test_count: if (debug_build) generate
+-- 	get_signals: entity work.logging
+-- 	generic map (
+-- 		router_address => router_address
+-- 	)
+-- 	port map (
+-- 		clock => clock,
+-- 		reset => reset,
+-- 		in_tick_counter => in_tick_counter,
+-- 		EA_manager => EA_manager,
+-- 		EA_manager_input	 => EA_manager_input,
 
-		in_source_router_seek => in_source_router_seek,
-		in_target_router_seek => in_target_router_seek,
-		in_service_router_seek => in_service_router_seek,
-		in_payload_router_seek => in_payload_router_seek,
+-- 		in_source_router_seek => in_source_router_seek,
+-- 		in_target_router_seek => in_target_router_seek,
+-- 		in_service_router_seek => in_service_router_seek,
+-- 		in_payload_router_seek => in_payload_router_seek,
 
-		in_req_router_seek => in_req_router_seek,
-		in_ack_router_seek => in_ack_router_seek,
-		in_nack_router_seek => in_nack_router_seek,
-		in_fail_router_seek => in_fail_router_seek,
-		in_opmode_router_seek => in_opmode_router_seek,
+-- 		in_req_router_seek => in_req_router_seek,
+-- 		in_ack_router_seek => in_ack_router_seek,
+-- 		in_nack_router_seek => in_nack_router_seek,
+-- 		in_fail_router_seek => in_fail_router_seek,
+-- 		in_opmode_router_seek => in_opmode_router_seek,
 
-		in_sel_reg_backtrack_seek => in_sel_reg_backtrack_seek,
-		in_ack_send_kernel_seek	=> in_ack_send_kernel_seek,
+-- 		in_sel_reg_backtrack_seek => in_sel_reg_backtrack_seek,
+-- 		in_ack_send_kernel_seek	=> in_ack_send_kernel_seek,
 
-		out_req_router_seek => out_req_router_seek,
-		out_ack_router_seek => out_ack_router_seek,
-		out_nack_router_seek => out_nack_router_seek,
-		out_opmode_router_seek => out_opmode_router_seek,
+-- 		out_req_router_seek => out_req_router_seek,
+-- 		out_ack_router_seek => out_ack_router_seek,
+-- 		out_nack_router_seek => out_nack_router_seek,
+-- 		out_opmode_router_seek => out_opmode_router_seek,
 
-		out_service_router_seek => out_service_router_seek,
-		out_source_router_seek => out_source_router_seek,
-		out_target_router_seek => out_target_router_seek,
-		out_payload_router_seek => out_payload_router_seek,
+-- 		out_service_router_seek => out_service_router_seek,
+-- 		out_source_router_seek => out_source_router_seek,
+-- 		out_target_router_seek => out_target_router_seek,
+-- 		out_payload_router_seek => out_payload_router_seek,
 
-		out_reg_backtrack_seek => out_reg_backtrack_seek,
-		out_req_send_kernel_seek => out_req_send_kernel_seek,
+-- 		out_reg_backtrack_seek => out_reg_backtrack_seek,
+-- 		out_req_send_kernel_seek => out_req_send_kernel_seek,
 
-		sel_port => sel_port,
-		next_port => next_port,
-		next_port1 => next_port1,
-		sel => sel,
-		prox => prox,
-		prox1 => prox1,
-		free_index => free_index,
-		source_index => source_index,
-		int_in_req_router_seek => int_in_req_router_seek,
-		int_out_ack_router_seek => int_out_ack_router_seek,
-		int_out_req_router_seek => int_out_req_router_seek,
-		int_in_ack_router_seek => int_in_ack_router_seek,
-		vector_ack_ports => vector_ack_ports,
-		vector_nack_ports => vector_nack_ports,
-		reg_backtrack => reg_backtrack,
-		compare_is_source => compare_is_source,
-		pending_table => pending_table,
-		used_table => used_table,
-		pending_local => pending_local,
-		task => task,
-		opmode_table => opmode_table,
-		compare_bactrack_pending_in_table => compare_bactrack_pending_in_table,
-		compare_searchpath_pending_in_table => compare_searchpath_pending_in_table,
-		compare_service_pending_in_table => compare_service_pending_in_table,
-		count_clear => count_clear,														
-		backtrack_port => backtrack_port,
-		req_task => req_task,
-		req_int => req_int,
-		is_my_turn_send_backtrack => is_my_turn_send_backtrack,
-		in_the_table => in_the_table,
-		space_aval_in_the_table => space_aval_in_the_table,
-		nack_recv => nack_recv,
-		backtrack_pending_in_table => backtrack_pending_in_table,
-		searchpath_pending_in_table => searchpath_pending_in_table,
-		service_pending_in_table => service_pending_in_table,
-		fail_with_mode_in => fail_with_mode_in,
-		fail_with_mode_out => fail_with_mode_out,
-		source_router_port_table => source_router_port_table,
-		backtrack_id => backtrack_id
-	);
-end generate gen_test_count;
--- systhensis translate_on
+-- 		sel_port => sel_port,
+-- 		next_port => next_port,
+-- 		next_port1 => next_port1,
+-- 		sel => sel,
+-- 		prox => prox,
+-- 		prox1 => prox1,
+-- 		free_index => free_index,
+-- 		source_index => source_index,
+-- 		int_in_req_router_seek => int_in_req_router_seek,
+-- 		int_out_ack_router_seek => int_out_ack_router_seek,
+-- 		int_out_req_router_seek => int_out_req_router_seek,
+-- 		int_in_ack_router_seek => int_in_ack_router_seek,
+-- 		vector_ack_ports => vector_ack_ports,
+-- 		vector_nack_ports => vector_nack_ports,
+-- 		reg_backtrack => reg_backtrack,
+-- 		compare_is_source => compare_is_source,
+-- 		pending_table => pending_table,
+-- 		used_table => used_table,
+-- 		pending_local => pending_local,
+-- 		task => task,
+-- 		opmode_table => opmode_table,
+-- 		compare_bactrack_pending_in_table => compare_bactrack_pending_in_table,
+-- 		compare_searchpath_pending_in_table => compare_searchpath_pending_in_table,
+-- 		compare_service_pending_in_table => compare_service_pending_in_table,
+-- 		count_clear => count_clear,														
+-- 		backtrack_port => backtrack_port,
+-- 		req_task => req_task,
+-- 		req_int => req_int,
+-- 		is_my_turn_send_backtrack => is_my_turn_send_backtrack,
+-- 		in_the_table => in_the_table,
+-- 		space_aval_in_the_table => space_aval_in_the_table,
+-- 		nack_recv => nack_recv,
+-- 		backtrack_pending_in_table => backtrack_pending_in_table,
+-- 		searchpath_pending_in_table => searchpath_pending_in_table,
+-- 		service_pending_in_table => service_pending_in_table,
+-- 		fail_with_mode_in => fail_with_mode_in,
+-- 		fail_with_mode_out => fail_with_mode_out,
+-- 		source_router_port_table => source_router_port_table,
+-- 		backtrack_id => backtrack_id
+-- 	);
+-- end generate gen_test_count;
+-- -- systhensis translate_on
 
 end router_seek;

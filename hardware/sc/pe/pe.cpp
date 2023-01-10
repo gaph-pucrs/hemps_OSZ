@@ -567,7 +567,7 @@ void pe::seek_send(){
 	}
 	if ((out_nack_router_seek_local.read() == 1)) {
 		in_req_router_seek_local.write(0);
-		// MEM_waiting[w_addr.read()].write(0);
+		MEM_waiting[10].write(1);
 	}
 	else{
 		if(waiting_seek.read() == 1){

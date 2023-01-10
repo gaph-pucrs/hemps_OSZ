@@ -152,7 +152,7 @@ begin
 				end if; 
 			 
 			end if; 
-			if (pass = '1' and (enable = '1')) then 
+			if (pass = '1') and (enable = '1')then 
 				Cin <= Cin+1; 
 			elsif (apThreshold = 0) then 
 				Cin <= (others => '0'); 
@@ -170,7 +170,7 @@ begin
 		end if; 
 	end process; 
  
-	pass <= '1' when (data_in XOR k1) = k2 else 
+	pass <= '1' when ((data_in XOR k1) = k2) AND (Cin < Cout) else 
 			'0'; 
  
 	rx_router			<=	rx  when CurrentState = SPASS or CurrentState = AUTH else 

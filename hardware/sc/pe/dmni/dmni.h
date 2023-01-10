@@ -139,7 +139,7 @@ SC_MODULE(dmni){
 	sc_signal<bool>				flag_wait_kernel;
 	sc_signal<bool>				reg_interrupt_received;
 	sc_signal<bool>				reg_interrupt_received_wait;
-
+	sc_signal<sc_uint<4 > >		pig_signal;
 	void config();
 	void receive();
 	void send();
