@@ -209,10 +209,24 @@ void injector::datanoc_in_proc_FSM(){
 
 ///////////////////////////////////////////////////
 
+void injector::datanoc_out_comb_tx(){
+
+	bool send_state = (
+		EA_out_datanoc.read()==S_SEND_HEADER ||
+		EA_out_datanoc.read()==S_SEND_PAYLOAD_HIGH ||
+		EA_out_datanoc.read()==S_SEND_PAYLOAD_LOW ||
+		EA_out_datanoc.read()==S_SEND_EOP
+	);
+
+	if(send_state && (credit_i_primary.read() == true))
+		tx_primary.write(true);
+	else
+		tx_primary.write(false);
+}
+
 void injector::datanoc_out_proc_FSM(){
 	
 	if(reset.read()==true){
-		tx_primary.write(false);
 		flit_out_counter= 0 ;
 		task_number = -1;
 		EA_out_datanoc.write(S_INIT_DATANOC);
@@ -303,7 +317,6 @@ void injector::datanoc_out_proc_FSM(){
 
 			case S_SEND_DESCRIPTOR:
 					data_out_primary.write(buffer_out_flit[0]);
-					tx_primary.write(true);
 					if(credit_i_primary.read() == true){
 						tasks_sent = -1;
 						EA_out_datanoc.write(S_SEND_HEADER);
@@ -314,7 +327,6 @@ void injector::datanoc_out_proc_FSM(){
 
 			case S_SEND_TASK:
 					data_out_primary.write(buffer_out_flit[0]);
-					tx_primary.write(true);
 					if(credit_i_primary.read() == true){
 						EA_out_datanoc.write(S_SEND_HEADER);
 						flit_out_counter = flit_out_counter + 1; 
@@ -333,7 +345,6 @@ void injector::datanoc_out_proc_FSM(){
 					}
 					else{
 						EA_out_datanoc.write(S_WAIT_CREDIT_HEADER);
-						tx_primary.write(false);
 					}
 
 			break;
@@ -344,19 +355,15 @@ void injector::datanoc_out_proc_FSM(){
 					EA_out_datanoc.write(S_SEND_PAYLOAD_LOW);       
 					data_out_primary.write((repository_txt[(repo_address+flit_out_counter)] >> 16));
 					eop_out_primary.write(0);
-					tx_primary.write(1);
 				}
 				else{
-						EA_out_datanoc.write(S_WAIT_CREDIT_PAYLOAD_LOW);
-						tx_primary.write(false);
-						flit_out_counter = flit_out_counter -2;
+						EA_out_datanoc.write(S_WAIT_CREDIT_PAYLOAD_HIGH);
 				}
 			break;
 
 			case S_SEND_PAYLOAD_LOW:
 				if(credit_i_primary.read() == 1){
 					data_out_primary.write(repository_txt[(repo_address+flit_out_counter)]);
-					tx_primary.write(1);
 					flit_out_counter = flit_out_counter + 1 ;
 					if(flit_out_counter == packet_size){
 						EA_out_datanoc.write(S_SEND_EOP);
@@ -367,50 +374,32 @@ void injector::datanoc_out_proc_FSM(){
 					}
 				}
 				else{
-						EA_out_datanoc.write(S_WAIT_CREDIT_PAYLOAD_HIGH);
-						tx_primary.write(false);
+						EA_out_datanoc.write(S_WAIT_CREDIT_PAYLOAD_LOW);
 				}
 			break;
 
 
 			case S_WAIT_CREDIT_HEADER: 
 				if(credit_i_primary.read() == true){
-					flit_out_counter = flit_out_counter-3 ;
-					data_out_primary.write(buffer_out_flit[flit_out_counter]);
-					tx_primary.write(true);
 					EA_out_datanoc.write(S_SEND_HEADER);
-					flit_out_counter = flit_out_counter+1 ;
 				}
 
 			break;
 
 			case S_WAIT_CREDIT_PAYLOAD_HIGH:
 				if(credit_i_primary.read() == true){
-					tx_primary.write(true);
-					data_out_primary.write((repository_txt[repo_address+(flit_out_counter-1)]>>16));
-					flit_out_counter = flit_out_counter - 1 ;
-					EA_out_datanoc.write(S_SEND_PAYLOAD_LOW);
+					EA_out_datanoc.write(S_SEND_PAYLOAD_HIGH);
 				}				
-				else{
-					tx_primary.write(false);
-				}
 
 			break;
 
 			case S_WAIT_CREDIT_PAYLOAD_LOW:  
 				if(credit_i_primary.read() == true){
-					if(flit_out_counter == packet_size){  
-						EA_out_datanoc.write(S_SEND_EOP);
-						eop_out_primary.write(true);
-					}
-					else{
-						EA_out_datanoc.write(S_SEND_PAYLOAD_LOW);
-					}
+					EA_out_datanoc.write(S_SEND_PAYLOAD_LOW);
 				}
 			break;			
 
 			case S_SEND_EOP: //FAZER O ESTADO WAIT EOP ACK DOWN
-				tx_primary.write(false);
 				eop_out_primary.write(false);
 				flit_out_counter = 0;
 				tasks_sent = tasks_sent + 1;
