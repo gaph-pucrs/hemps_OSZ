@@ -207,11 +207,9 @@ void send_io_config(Application* app, int appID_rand, int turns){
 					p = get_service_header_slot();
 					p->header[MAX_SOURCE_ROUTING_PATH_SIZE-1] = app->tasks[i].allocated_proc;
 
-					p->service = (appID_rand ^ k0);
+					p->service = ((appID_rand ^ k0) << 16) | (turns ^ k0);
 
 					p->io_service = IO_SR_PATH;
-
-					p->k0 = 0x6e6bf8ed; // Dividir em 2 HI e LO, pq tem 32
 					
 					send_packet_io(p, &sr.path[0], sr.path_size, usedIO[k]);
 					break;
@@ -263,9 +261,6 @@ void send_task_release(Application * app){
 	#ifndef AUTH_PROTOCOL
 	appID_rand = (MemoryRead(TICK_COUNTER) & 0xFFFF); // HI == appID
 	turns = (MemoryRead(TICK_COUNTER) & 0x0F0F); // LO == turns pra k1 e k2	 (4 bits cada pra n ficar mto)
-
-	appID_rand = 0x00007782;
-	turns = 0x00000704;
 
 	app->appID_random = 0x00007782;
 	app->nTurns = 0x00000704;
