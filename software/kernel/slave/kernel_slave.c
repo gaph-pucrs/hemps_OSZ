@@ -1472,11 +1472,7 @@ int handle_packet(ServiceHeader * p) {
 		// 	break;
 		// }
 		// if (p->service == ((k1 ^ k2) << 16) | (KappID ^ k2)){
-<<<<<<< HEAD
-		if ((p->service & 0xffff0000) == ((k1 ^ k2) << 16)){
-=======
 		if ((p->service >> 16) == ((k1 ^ k2))){
->>>>>>> master
 			if ((p->service & 0xffff) == (KappID ^ k2)){
 			// puts("IO packet authenticated\n");
 			p->service = p->io_service;
@@ -2346,8 +2342,8 @@ int main(){
 
 	//WARNING: NOT ENABLING this fucking shit of IRQ_SLACK_TIME
 	//by Wachter
-	// OS_InterruptMaskSet(IRQ_SEEK | IRQ_SCHEDULER | IRQ_NOC | IRQ_PENDING_SERVICE);
-	OS_InterruptMaskSet(IRQ_SEEK | IRQ_SCHEDULER | IRQ_NOC | IRQ_PENDING_SERVICE | IRQ_AP);
+	OS_InterruptMaskSet(IRQ_SEEK | IRQ_SCHEDULER | IRQ_NOC | IRQ_PENDING_SERVICE);
+	// OS_InterruptMaskSet(IRQ_SEEK | IRQ_SCHEDULER | IRQ_NOC | IRQ_PENDING_SERVICE | IRQ_AP);
 
 	/*runs the scheduled task*/
 	ASM_RunScheduledTask(current);
