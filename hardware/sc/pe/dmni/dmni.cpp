@@ -242,7 +242,7 @@ void dmni::receive(){
 					case HEADER:
 						cont.write(0);
 
-						intr_counter_temp = intr_counter_temp + 1; // original
+						// intr_counter_temp = intr_counter_temp + 1; // original
 						// if(address_router == 0){
 						// 	cout<<"Master receiving msg "<<endl;}
 						is_header[last.read()] = 1;
@@ -259,7 +259,7 @@ void dmni::receive(){
 				
 					case PAYLOAD_SIZE://payload size
 						cont.write(0);
-						// intr_counter_temp = intr_counter_temp + 1; // atraso na DMNI
+						intr_counter_temp = intr_counter_temp + 1; // atraso na DMNI
 
 						is_header[last.read()] = 0;					
 						payload_size.write(data_in.read() - 1);

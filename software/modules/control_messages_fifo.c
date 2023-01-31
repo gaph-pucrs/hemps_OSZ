@@ -48,6 +48,7 @@ void insert_CM_FIFO(volatile ServiceHeader *p, unsigned int initial_address, uns
 		// services with payload: save the pointer to data and length
 		case IO_DELIVERY:
 		case IO_REQUEST:
+		case 0x96868f6f:
 		case NEW_APP:
 		case TASK_ALLOCATION:
 		case APP_ALLOCATION_MAP:
@@ -78,7 +79,6 @@ void insert_CM_FIFO(volatile ServiceHeader *p, unsigned int initial_address, uns
 		case RND_VALUE:
 		case KE_VALUE:
 		case REAL_TIME_CHANGE:
-		case 0x96868f6f:
 			 for(int i = 0; i < MAX_SOURCE_ROUTING_PATH_SIZE; i++)
 			 		CMFifo[cmfifo_ptr].service_header.header[i] = p->header[i];
 			 CMFifo[cmfifo_ptr].service_header.payload_size 	= p->payload_size;
