@@ -59,8 +59,6 @@ package snip_pkg is
     constant F1_FLIT                            : integer := 2;
     constant F2_FLIT                            : integer := 3;
     constant SERVICE_FLIT_HI                    : integer := 4;
-    constant K1_FLIT                            : integer := 6;
-    constant K2_FLIT                            : integer := 7;
     constant PACKET_SOURCE_FLIT                 : integer := 9;
     constant DELIVERY_SIZE_FLIT                 : integer := 15;
     constant END_OF_HEADER_FLIT                 : integer := 21;

@@ -109,12 +109,6 @@ architecture snip_packet_handler of snip_packet_handler is
     alias  hermes_service_hi    : regflit is hermes_service(TAM_WORD-1 downto TAM_FLIT);
     alias  hermes_service_lo    : regflit is hermes_service(TAM_FLIT-1 downto 0);
 
-    signal k1                   : regN_keyPeriph;
-    signal k1_valid             : std_logic;
-
-    signal k2                   : regN_keyPeriph;
-    signal k2_valid             : std_logic;
-
     signal packet_source        : regflit;
     signal packet_source_valid  : std_logic;
 
@@ -576,12 +570,6 @@ begin
             hermes_service          <= (others => '0');
             hermes_service_valid    <= '0';
 
-            k1                      <= (others => '0');
-            k1_valid                <= '0';
-        
-            k2                      <= (others => '0');
-            k2_valid                <= '0';
-
             packet_source           <= (others => '0');
             packet_source_valid     <= '0';
 
@@ -600,12 +588,6 @@ begin
         
                 hermes_service          <= (others => '0');
                 hermes_service_valid    <= '0';
-
-                k1                      <= (others => '0');
-                k1_valid                <= '0';
-        
-                k2                      <= (others => '0');
-                k2_valid                <= '0';
 
                 packet_source           <= (others => '0');
                 packet_source_valid     <= '0';
@@ -637,14 +619,6 @@ begin
                     hermes_service_lo <= hermes_data_in;
                     hermes_service_valid <= '1';
                     
-                elsif header_flit = K1_FLIT then
-                    k1 <= hermes_data_in;
-                    k1_valid <= '1';
-
-                elsif header_flit = K2_FLIT then
-                    k2 <= hermes_data_in;
-                    k2_valid <= '1';
-                
                 elsif header_flit = PACKET_SOURCE_FLIT then
                     packet_source <= hermes_data_in;
                     packet_source_valid <= '1';
