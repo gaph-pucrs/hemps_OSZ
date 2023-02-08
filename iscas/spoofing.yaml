@@ -19,7 +19,7 @@ hw:
 apps:
   - name: dtw_IO
     start_time_ms: 0
-    secure: yes
+    # secure: yes
     static_mapping:
       recognizer: [1,0]
       p4: [2,0]

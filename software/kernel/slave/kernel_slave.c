@@ -1409,7 +1409,7 @@ int handle_packet(volatile ServiceHeader * p) {
 	if (pendingIO == 1){
 		puts("xXxXxXxX  Successful attack xXxXxXxX");
 	} else{
-		puts("Invalid packet[ATK]");
+		puts("[ATK]");
 	}
 	// if(DMNI_read_data((unsigned int)trash, p->msg_lenght) == -1){
 	// 	//received a packet with incomplete payload; discard it
@@ -1972,18 +1972,18 @@ int SeekInterruptHandler(){
 		break;
 
 		case RENEW_KEY:
-			puts("Received RENEW_KEY - Request");
-			//Primeira coisa: enviar serviço para espaçar do clear
-			OS_InterruptMaskClear(IRQ_AP);
+			// puts("Received RENEW_KEY - Request");
+			// //Primeira coisa: enviar serviço para espaçar do clear
+			// OS_InterruptMaskClear(IRQ_AP);
 
-			timeAux = MemoryRead(TICK_COUNTER);
-			Seek(BR_TO_APPID_SERVICE, (timeAux<<16) | (get_net_address()&0xffff), (unsigned int)MemoryRead(APP_ID_REG), 01); // Send Freeze IO
-			// puts("Received RENEW_KEY - Interruption");puts(itoa(MemoryRead(TICK_COUNTER))); puts("\n");
-			// MemoryWrite(AP_THRESHOLD, 0);
-			freezeIO = 1;
-			Seek(CLEAR_SERVICE, ( (timeAux<<16)  | (get_net_address()&0xffff)), 0,0); // Send Freeze IO
-			// MemoryWrite(AP_THRESHOLD, 3);
-			// puts("Start: ");puts(itoa(MemoryRead(TICK_COUNTER))); puts ("\n");	// Port of the AP
+			// timeAux = MemoryRead(TICK_COUNTER);
+			// Seek(BR_TO_APPID_SERVICE, (timeAux<<16) | (get_net_address()&0xffff), (unsigned int)MemoryRead(APP_ID_REG), 01); // Send Freeze IO
+			// // puts("Received RENEW_KEY - Interruption");puts(itoa(MemoryRead(TICK_COUNTER))); puts("\n");
+			// // MemoryWrite(AP_THRESHOLD, 0);
+			// freezeIO = 1;
+			// Seek(CLEAR_SERVICE, ( (timeAux<<16)  | (get_net_address()&0xffff)), 0,0); // Send Freeze IO
+			// // MemoryWrite(AP_THRESHOLD, 3);
+			// // puts("Start: ");puts(itoa(MemoryRead(TICK_COUNTER))); puts ("\n");	// Port of the AP
 		break;
 
 		case KEY_ACK:
