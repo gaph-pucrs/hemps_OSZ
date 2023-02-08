@@ -77,10 +77,7 @@ port(
 	ap						: in regNport;
 
 	target                  : out regflit;
-	source                  : out regflit;
-	w_source_target         : out std_logic;
-	rot_table				: out matrixNportNport_std_logic;
-	w_addr                  : out std_logic_vector(3 downto 0)
+	source                  : out regflit
 );
 end RouterCC;
 
@@ -106,9 +103,6 @@ signal bufferAP				: regNport;
 signal tx_internal         	: regNport;
 begin
 	
-	rot_table	<= table;
-	-- fail_out <= "0000000000";
-
 	fifo_generation : for i in 0 to NPORT-1 generate
 		Fifo : Entity work.Hermes_buffer
 		port map(
@@ -151,9 +145,7 @@ begin
 		table           => table,
 		tx_internal		=> tx_internal,
 		target          => target,
-		source          => source,
-		w_source_target => w_source_target,
-		w_addr          => w_addr
+		source          => source
 	);
 
 	mux_control: entity work.mux_control

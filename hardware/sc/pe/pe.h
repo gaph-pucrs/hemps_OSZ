@@ -14,7 +14,8 @@
 #include "router/RouterCCwrapped2.h"
 #include "router/seek/router_seek_wrapped2.h"
 #include "fifo_pdn/fifo_pdn.h"
-#include "fail_wrapper_module/fail_wrapper_module.h"
+// #include "fail_wrapper_module/fail_wrapper_module.h"
+#include "router/seek/seek_local_controller.h"
 
 
 SC_MODULE(pe) {
@@ -201,12 +202,23 @@ SC_MODULE(pe) {
 	//Access Point
 	sc_signal <bool >			pass[NPORT];
 	sc_signal <bool >			ap_mask[NPORT]; 
-	sc_signal <bool >			unreachable[NPORT];
+	sc_signal <regNport >		unreachable;
+	sc_signal <bool >			unrOR;
 	sc_signal <	regflit> 		k1;
 	sc_signal <	regflit> 		k2;
 	sc_signal < reg_seek_target> 	app_reg;
 	sc_signal < sc_uint <8> > 	apThreshold;
 	sc_signal <bool > 			intAP;
+
+	// Unreachable
+	sc_signal 	<reg_seek_source > 				in_source_seek_slc;
+	sc_signal 	<reg_seek_target > 				in_target_seek_slc;
+	sc_signal 	<reg_seek_payload > 			in_payload_seek_slc;
+	sc_signal 	<reg_seek_service > 			in_service_seek_slc;
+	sc_signal 	<bool > 						in_req_seek_slc;
+	sc_signal 	<bool > 						in_ack_seek_slc;
+	sc_signal 	<bool > 						in_nack_seek_slc;
+	sc_signal 	<bool > 						in_opmode_seek_slc;
 
 	//pending service signal
 	sc_signal < bool > 			pending_service;
@@ -236,9 +248,6 @@ SC_MODULE(pe) {
 
 	sc_signal<reg_seek_target> 				source;
 	sc_signal<reg_seek_target> 				target;
-	sc_signal<bool> 						w_source_target;
-	sc_signal<reg4> 						w_addr;
-	sc_signal<regNport >					rot_table[NPORT];
 	sc_signal <bool > 						MEM_waiting[NPORT+1];
 	sc_signal <reg_seek_source > 			MEM_source[NPORT+1];
 	sc_signal <reg_seek_target > 			MEM_target[NPORT+1];
@@ -272,8 +281,8 @@ SC_MODULE(pe) {
 	RouterCCwrapped *router;	// wrapper para o roteador principal
 	router_seek_wrapped *seek;	// wrapper para o roteador QoS
 	fifo_PDN *fifo_pdn;			
-	fail_WRAPPER_module *fail_wrapper_module; //wrapper para o modulo de falhas
-
+	// fail_WRAPPER_module *fail_wrapper_module; //wrapper para o modulo de falhas
+	seek_local_controller *slc; 
 
 	unsigned long int log_interaction;
 	unsigned long int instant_instructions;
@@ -311,6 +320,7 @@ SC_MODULE(pe) {
 	void seek_receive();
 	void waiting_seek_trigger();
 	void fail_in_generation();
+	void trigger_unreachable();
 	void fail_out_generation();
 	void wrapper_register_handle();
 
@@ -407,12 +417,13 @@ SC_MODULE(pe) {
 		
 		router = new RouterCCwrapped("RouterCCwrapped",router_address);
 		seek = new router_seek_wrapped("router_seek_wrapped", router_address);
+		slc = new seek_local_controller("seek_local_controller", "seek_local_controller");
 		fifo_pdn = new fifo_PDN("fifo_PDN");
-		#ifdef SEEK_LOG
-		fail_wrapper_module = new fail_WRAPPER_module("fail_WRAPPER_module", router_address);
-		#else
-		fail_wrapper_module = new fail_WRAPPER_module("fail_WRAPPER_module");
-		#endif		
+		// #ifdef SEEK_LOG
+		// fail_wrapper_module = new fail_WRAPPER_module("fail_WRAPPER_module", router_address);
+		// #else
+		// fail_wrapper_module = new fail_WRAPPER_module("fail_WRAPPER_module");
+		// #endif		
 
 		router->clock(clock);
 		router->reset(reset);
@@ -430,8 +441,8 @@ SC_MODULE(pe) {
 				router->data_out[i](data_out[i]);
 				router->credit_i[i](credit_i[i]);
 				router->data_in[i](data_in[i]);
-				fail_wrapper_module->eop_out_router_ports[i](eop_out[i]);
-				fail_wrapper_module->eop_in_router_ports[i](eop_in[i]);
+				// fail_wrapper_module->eop_out_router_ports[i](eop_out[i]);
+				// fail_wrapper_module->eop_in_router_ports[i](eop_in[i]);
 			}
 			router->k1		(k1);
 			router->k2		(k2);
@@ -471,17 +482,15 @@ SC_MODULE(pe) {
 			router->eop_out		[LOCAL1](eop_in_ni);
 			
 			router->target(target);
-			router->source(source);
-			router->w_source_target(w_source_target);
-			router->w_addr(w_addr);
-			fail_wrapper_module->wrapper_mask_go_from_CPU(wrapper_mask_go_reg);
-			fail_wrapper_module->wrapper_mask_back_from_CPU(wrapper_mask_back_reg);
+			// router->source(source);
+			// fail_wrapper_module->wrapper_mask_go_from_CPU(wrapper_mask_go_reg);
+			// fail_wrapper_module->wrapper_mask_back_from_CPU(wrapper_mask_back_reg);
 			for(i=0;i<NPORT;i++){
-				router->rot_table[i](rot_table[i]);
 				router->ap[i]		(ap_mask[i]);
 				router->sz[i]	(wrapper_reg[i]);
-				router->unreachable[i]	(unreachable[i]);
+				// router->unreachable[i]	(unreachable[i]);
 			}
+			router->unreachable(unreachable);
 			seek->clock(clock);
 			seek->reset(reset);
 			for(i=0;i<NPORT_SEEK-1;i++){
@@ -505,48 +514,57 @@ SC_MODULE(pe) {
 				seek->out_opmode_router_seek[i](out_opmode_router_seek[i]);
 			}
 			// interface cpu->wrapper_local_pdn_down
-			fail_wrapper_module->clock(clock);
-			fail_wrapper_module->reset(reset);
-			fail_wrapper_module->in_source_wrapper_local(in_source_router_seek_local); 
-			fail_wrapper_module->in_target_wrapper_local(in_target_router_seek_local);
-			fail_wrapper_module->in_payload_wrapper_local(in_payload_router_seek_local);
-			fail_wrapper_module->in_service_wrapper_local(in_service_router_seek_local);
-			fail_wrapper_module->in_req_wrapper_local(in_req_router_seek_local);
-			fail_wrapper_module->in_opmode_wrapper_local(in_opmode_router_seek_local);
-			fail_wrapper_module->in_fail_wrapper_local(in_fail_router_seek_local);
-			fail_wrapper_module->out_ack_wrapper_local(out_ack_router_seek_local);
-			fail_wrapper_module->out_nack_wrapper_local(out_nack_router_seek_local);
-			fail_wrapper_module->in_fail_cpu_local(reset_cpu_fail);
-			fail_wrapper_module->in_fail_cpu_config(cpu_fail_kernel);
-			fail_wrapper_module->mem_address_service_fail_cpu(cpu_mem_data_write);						
-			// wrapper_local_pdn_down -> SEEK
-			fail_wrapper_module->out_source_wrapper_local(in_source_wrapper_local); 
-			fail_wrapper_module->out_target_wrapper_local(in_target_wrapper_local);
-			fail_wrapper_module->out_payload_wrapper_local(in_payload_wrapper_local);
-			fail_wrapper_module->out_service_wrapper_local(in_service_wrapper_local);
-			fail_wrapper_module->out_req_wrapper_local(in_req_wrapper_local);
-			fail_wrapper_module->out_opmode_wrapper_local(in_opmode_wrapper_local);
-			fail_wrapper_module->out_fail_wrapper_local(in_fail_wrapper_local);
-			fail_wrapper_module->in_ack_wrapper_local(out_ack_wrapper_local);
-			fail_wrapper_module->in_nack_wrapper_local(out_nack_wrapper_local);
-			fail_wrapper_module->cpu_mask_clear(cpu_mask_clear);
-			fail_wrapper_module->eop_in_from_router_local(eop_in_ni);
-			fail_wrapper_module->clock_rx_from_router_local(clock_rx_ni);
-			fail_wrapper_module->rx_from_router_local(rx_ni);
-			fail_wrapper_module->data_in_from_router_local(data_in_ni);
-			fail_wrapper_module->wrapper_mask_router_in(wrapper_mask_router_in);
-			fail_wrapper_module->wrapper_mask_router_out(wrapper_mask_router_out);
+			// fail_wrapper_module->clock(clock);
+			// fail_wrapper_module->reset(reset);
+			// fail_wrapper_module->in_source_wrapper_local(in_source_router_seek_local); 
+			// fail_wrapper_module->in_target_wrapper_local(in_target_router_seek_local);
+			// fail_wrapper_module->in_payload_wrapper_local(in_payload_router_seek_local);
+			// fail_wrapper_module->in_service_wrapper_local(in_service_router_seek_local);
+			// fail_wrapper_module->in_req_wrapper_local(in_req_router_seek_local);
+			// fail_wrapper_module->in_opmode_wrapper_local(in_opmode_router_seek_local);
+			// fail_wrapper_module->in_fail_wrapper_local(in_fail_router_seek_local);
+			// fail_wrapper_module->out_ack_wrapper_local(out_ack_router_seek_local);
+			// fail_wrapper_module->out_nack_wrapper_local(out_nack_router_seek_local);
+			// fail_wrapper_module->in_fail_cpu_local(reset_cpu_fail);
+			// fail_wrapper_module->in_fail_cpu_config(cpu_fail_kernel);
+			// fail_wrapper_module->mem_address_service_fail_cpu(cpu_mem_data_write);						
+			// // wrapper_local_pdn_down -> SEEK
+			// fail_wrapper_module->out_source_wrapper_local(in_source_wrapper_local); 
+			// fail_wrapper_module->out_target_wrapper_local(in_target_wrapper_local);
+			// fail_wrapper_module->out_payload_wrapper_local(in_payload_wrapper_local);
+			// fail_wrapper_module->out_service_wrapper_local(in_service_wrapper_local);
+			// fail_wrapper_module->out_req_wrapper_local(in_req_wrapper_local);
+			// fail_wrapper_module->out_opmode_wrapper_local(in_opmode_wrapper_local);
+			// fail_wrapper_module->out_fail_wrapper_local(in_fail_wrapper_local);
+			// fail_wrapper_module->in_ack_wrapper_local(out_ack_wrapper_local);
+			// fail_wrapper_module->in_nack_wrapper_local(out_nack_wrapper_local);
+			// fail_wrapper_module->cpu_mask_clear(cpu_mask_clear);
+			// fail_wrapper_module->eop_in_from_router_local(eop_in_ni);
+			// fail_wrapper_module->clock_rx_from_router_local(clock_rx_ni);
+			// fail_wrapper_module->rx_from_router_local(rx_ni);
+			// fail_wrapper_module->data_in_from_router_local(data_in_ni);
+			// fail_wrapper_module->wrapper_mask_router_in(wrapper_mask_router_in);
+			// fail_wrapper_module->wrapper_mask_router_out(wrapper_mask_router_out);
 			// interface PE->SEEK //fochi
-			seek->in_source_router_seek[LOCAL](in_source_wrapper_local); 
-			seek->in_target_router_seek[LOCAL](in_target_wrapper_local);
-			seek->in_payload_router_seek[LOCAL](in_payload_wrapper_local);
-			seek->in_service_router_seek[LOCAL](in_service_wrapper_local);
-			seek->in_req_router_seek[LOCAL](in_req_wrapper_local);
-			seek->in_opmode_router_seek[LOCAL](in_opmode_wrapper_local);
-			seek->in_fail_router_seek[LOCAL](in_fail_wrapper_local);
+			// seek->in_source_router_seek[LOCAL](in_source_wrapper_local); 
+			// seek->in_target_router_seek[LOCAL](in_target_wrapper_local);
+			// seek->in_payload_router_seek[LOCAL](in_payload_wrapper_local);
+			// seek->in_service_router_seek[LOCAL](in_service_wrapper_local);
+			// seek->in_req_router_seek[LOCAL](in_req_wrapper_local);
+			// seek->in_opmode_router_seek[LOCAL](in_opmode_wrapper_local);
+			// seek->in_fail_router_seek[LOCAL](in_fail_wrapper_local);
+			// seek->out_ack_router_seek[LOCAL](out_ack_wrapper_local);
+			// seek->out_nack_router_seek[LOCAL](out_nack_wrapper_local);
+			// interface SEEK -> FIFO_PDN
+			seek->in_source_router_seek[LOCAL](in_source_seek_slc); 
+			seek->in_target_router_seek[LOCAL](in_target_seek_slc);
+			seek->in_payload_router_seek[LOCAL](in_payload_seek_slc);
+			seek->in_service_router_seek[LOCAL](in_service_seek_slc);
+			seek->in_req_router_seek[LOCAL](in_req_seek_slc);
+			seek->in_opmode_router_seek[LOCAL](in_opmode_seek_slc);
+			seek->in_fail_router_seek[LOCAL](in_fail_wrapper_local); // Mudar
 			seek->out_ack_router_seek[LOCAL](out_ack_wrapper_local);
 			seek->out_nack_router_seek[LOCAL](out_nack_wrapper_local);
-			// interface SEEK -> FIFO_PDN
 			//seek->out_service_router_seek[LOCAL](out_service_router_seek_local);
 			seek->out_service_router_seek[LOCAL](in_service_fifopdn_local);
 			seek->out_source_router_seek[LOCAL](in_source_fifopdn_local);
@@ -562,6 +580,34 @@ SC_MODULE(pe) {
 			seek->in_ack_send_kernel_seek(in_ack_send_kernel_seek_local);
 			seek->in_AppID_reg(app_reg);
 			//seek->out_target_send_seek(out_target_send_seek_local);
+
+			//Seek Local Port
+			slc->clock(clock);
+			slc->reset(reset);
+			slc->pe_target(in_target_router_seek_local);
+			slc->pe_source(in_source_router_seek_local);
+			slc->pe_service(in_service_router_seek_local);
+			slc->pe_payload(in_payload_router_seek_local);
+			slc->pe_opmode(in_opmode_router_seek_local);
+			slc->pe_req(in_req_router_seek_local);
+			slc->pe_ack(out_ack_router_seek_local);
+			slc->pe_nack(out_nack_router_seek_local);
+			slc->unr_target(target);
+			slc->unr_source(source);
+			// for(i=0;i<NPORT;i++){
+			// 	slc->unr_service[i](unreachable[i]);
+			// }
+			slc->unr_service(unreachable);
+			slc->seek_target(in_target_seek_slc);
+			slc->seek_source(in_source_seek_slc);
+			slc->seek_service(in_service_seek_slc);
+			slc->seek_payload(in_payload_seek_slc);
+			slc->seek_opmode(in_opmode_seek_slc);
+			slc->seek_req(in_req_seek_slc);
+			slc->seek_ack(out_ack_wrapper_local);
+			slc->seek_nack(out_nack_wrapper_local);
+
+
 			// FIFO_PDN to SEEK
 			fifo_pdn->clock(clock);
 			fifo_pdn->reset(reset);
@@ -612,7 +658,7 @@ SC_MODULE(pe) {
 			router->data_in[LOCAL](data_out_sender);//se for canal unico liga aqui.
 		#endif
 		router->tick_counter(tick_counter);
-		fail_wrapper_module->tick_counter(tick_counter);
+		// fail_wrapper_module->tick_counter(tick_counter);
 		#ifdef SEEK_LOG
 			seek->in_tick_counter(tick_counter);
 		#endif
@@ -648,44 +694,18 @@ SC_MODULE(pe) {
 		SC_METHOD(seek_access);
 		sensitive << clock.pos();
 		sensitive << reset;
-		SC_METHOD(seek_fault_middle_packet);
-		// sensitive << clock.pos();
-		for(i=0;i<NPORT;i++){
-			sensitive << rot_table[i];
-			sensitive << router_fail_in[i];
-		}
-		SC_METHOD(src_tgt_control);
-		sensitive << clock.pos();
-		// sensitive << w_source_target;
+
 		SC_METHOD(seek_send);
 		sensitive << clock.pos();
 		sensitive << reset;
-		// sensitive << waiting_seek;
-		// sensitive << out_ack_router_seek_local;
-		// sensitive << w_source_target;
-		// sensitive << MEM_waiting[10];
+
 		SC_METHOD(seek_receive);
 		sensitive << clock.pos();
 		sensitive << reset;
-		SC_METHOD(waiting_seek_trigger);
-		sensitive << clock.pos();
-		// // sensitive << reset;
-		// for(i=0;i<NPORT-2;i++){
-		// 	sensitive << MEM_waiting[i];
-		// 	sensitive << access_i[i];
-		// }
-		// sensitive << MEM_waiting[10];
-		// SC_METHOD(fail_out_generation);
-		// for(i=0;i<NPORT-1;i++){
-		// 	// sensitive << wrapper_mask_router_out[i];
-		// 	sensitive << router_fail_out[i];
-		// 	sensitive << wrapper_reg[i];
-		// 	sensitive << pass[i];
-		// }
-		SC_METHOD(fail_in_generation);
-		for(i=0;i<NPORT-1;i++){
-			sensitive << unreachable[i];
-		}
+
+		SC_METHOD(trigger_unreachable);
+		sensitive << unreachable;
+
 		SC_METHOD(wrapper_register_handle);
 		sensitive << clock.pos();
 		sensitive << reset;

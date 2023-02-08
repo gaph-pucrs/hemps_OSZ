@@ -29,13 +29,10 @@ SC_MODULE(RouterCCwrapped) {
 		sc_in<sc_uint<8 > >		apThreshold;
 		sc_out<bool>            intAP;
 
-		sc_out<bool > 		unreachable[NPORT];
+		sc_out<regNport > 		unreachable;
 
 		sc_out<regflit> 			source;
 		sc_out<regflit> 			target;
-		sc_out<bool> 				w_source_target;
-    	sc_out<regNport >           rot_table[NPORT];
-		sc_out<reg4> w_addr;
 
 
 		//signals to bind in wrapped module
@@ -69,7 +66,7 @@ SC_MODULE(RouterCCwrapped) {
 		void upd_ap();
 		void upd_sz();
 		// void upd_keys();
-		void upd_unreach();
+		// void upd_unreach();
 		void upd_access_i();
 		void upd_access_o();
 		void upd_intAP();
@@ -139,21 +136,10 @@ SC_MODULE(RouterCCwrapped) {
 				router->data_out[EAST1](data_out[LOCAL0]);
 				router->data_out[EAST0](data_out[LOCAL1]);
 
-				router->rot_table[LOCAL1](rot_table[EAST0]);
-				router->rot_table[LOCAL0](rot_table[EAST1]);
-				router->rot_table[SOUTH1](rot_table[WEST0]);
-				router->rot_table[SOUTH0](rot_table[WEST1]);
-				router->rot_table[NORTH1](rot_table[NORTH0]);
-				router->rot_table[NORTH0](rot_table[NORTH1]);
-				router->rot_table[WEST1](rot_table[SOUTH0]);
-				router->rot_table[WEST0](rot_table[SOUTH1]);
-				router->rot_table[EAST1](rot_table[LOCAL0]);
-				router->rot_table[EAST0](rot_table[LOCAL1]);
-
 				router->credit_i(credit_i_internal);
 				router->ap(ap_internal);
 				router->sz(sz_internal);
-				router->unreachable(unreachable_internal);
+				router->unreachable(unreachable);
 			#else
 				router->reset(reset);
 				router->clock(clock);
@@ -184,9 +170,6 @@ SC_MODULE(RouterCCwrapped) {
 				// router->ap(ap);
 				router->target(target);
 				router->source(source);
-				router->w_source_target(w_source_target);
-				router->w_addr(w_addr);
-			
 
 			// Cleanup the memory allocated for the generic list
 			for (i = 0; i < 1; i++)
@@ -232,8 +215,8 @@ SC_MODULE(RouterCCwrapped) {
 			// SC_METHOD(upd_keys);
 			// 	sensitive << k1 << k2;
 
-			SC_METHOD(upd_unreach);
-			sensitive << unreachable_internal;
+			// SC_METHOD(upd_unreach);
+			// sensitive << unreachable_internal;
 			// for (i = 0; i < NPORT; i++){
 			// 	sensitive << unreachable[i];
 			// }

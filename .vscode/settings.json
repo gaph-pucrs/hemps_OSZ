@@ -6,6 +6,7 @@
         "algorithm": "c",
         "iostream": "cpp",
         "applications.h": "c",
-        "kernel_pkg.h": "c"
+        "kernel_pkg.h": "c",
+        "functional": "cpp"
     }
 }

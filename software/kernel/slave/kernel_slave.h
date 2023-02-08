@@ -31,7 +31,7 @@
 int get_cluster_ID(int x, int y);
  
 #define MIGRATION_ENABLED			9		//!< Enable or disable the migration module
-#define AP_THRESHOLD_VALUE			4		//!< Enable or disable the migration module
+#define AP_THRESHOLD_VALUE			4		// (N-1) IOs < 4 = 5 IOs>
 // #define AUTH_PROTOCOL
 
 

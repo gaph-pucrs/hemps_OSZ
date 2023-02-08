@@ -45,9 +45,7 @@ port(
 
     --signals for writing source target pair
     target          : out regflit;
-    source          : out regflit;
-    w_source_target : out std_logic;
-    w_addr          : out std_logic_vector(3 downto 0)
+    source          : out regflit
     );
 end SwitchControl_SR_write;
 
@@ -98,19 +96,6 @@ begin
 	target <= header_fixed(FLIT16-1 downto 0);
 	target_internal	<= "000" & header(12 downto 8) & "000" & header(4 downto 0);
 	--input port
-	--w_addr <= std_logic_vector(to_unsigned(sel, 4));
-
-	--output port
-	w_addr <= 	"0000" when rot_table(sel) = "0000000001" else
-				"0001" when rot_table(sel) = "0000000010" else
-				"0010" when rot_table(sel) = "0000000100" else
-				"0011" when rot_table(sel) = "0000001000" else
-				"0100" when rot_table(sel) = "0000010000" else
-				"0101" when rot_table(sel) = "0000100000" else
-				"0110" when rot_table(sel) = "0001000000" else
-				"0111" when rot_table(sel) = "0010000000" else
-				"1000" when rot_table(sel) = "0100000000" else
-				"1001";
 
     ask <=	req_routing(LOCAL0) or req_routing(LOCAL1) or req_routing(EAST0) or req_routing(WEST0) or 
     		req_routing(NORTH0) or req_routing(SOUTH0) or req_routing(EAST1) or req_routing(WEST1) or 
@@ -269,7 +254,6 @@ begin
             counter        := 0;
 			try_again       <= false;
 			EA              <= S0;
-			w_source_target <= '0';
 			enable_shift	<= (others => '0');
 			shift_counter 	<= (others=>'0');
 
@@ -280,6 +264,7 @@ begin
 					-- Wait for a port request.
 					if ask = '1' then						
 						if try_again and sel /= prox and req_routing(sel) = '1' then
+
 							try_again <= false;
 						else
 							sel <= prox;
@@ -298,7 +283,6 @@ begin
 							rot_table(i) <= (others=>'0');
 						end if;
 					end loop;
-					w_source_target 	<= '0';
                     enable_shift 		<= (others=>'0');
                     shift_counter 		<= (others=>'0');
 
@@ -315,8 +299,6 @@ begin
 	                                --rot_table(sel)(LOCAL0+to_integer(unsigned'("" & sr_channel_0))) <= '1';
 	                                rot_table(sel)(LOCAL1) <= '1';
 									EA <= S3;
-
-									w_source_target <= '1';
 								else 
                                 	EA <= S0;
                                 end if;
@@ -325,8 +307,6 @@ begin
                                 rot_table(sel)(to_integer(unsigned(sr_port_0))*2+to_integer(unsigned'("" & sr_channel_0))) <= '1';
 								EA <= Sshift;
                                 --enable_shift(sel)<= '1';
-
-								w_source_target <= '1';
                             else
                                 EA <= S0;
                             end if;
@@ -344,7 +324,6 @@ begin
 	                        	    rot_table(sel)(LOCAL1) <= '1';
 	                        	    ack_routing(sel) <= '1';
 	                        	    EA <= S3;
-									w_source_target <= '1';									
 	                        	else
 	                        	    EA <= S0;
 	                        	end if;
@@ -353,7 +332,6 @@ begin
                                     rot_table(sel)(LOCAL1) <= '1';
                                     ack_routing(sel) <= '1';
                                     EA <= S3;
-                                    w_source_target <= '1';
                                 else
                                     EA <= S0;
                                 end if;
@@ -363,7 +341,6 @@ begin
 	                        	    rot_table(sel)(NORTH0) <= '1';
 	                        	    ack_routing(sel) <= '1';
 	                        	    EA <= S3;
-									w_source_target <= '1';
 	                        	else
 	                        	    EA <= S0;
 	                        	end if;
@@ -373,7 +350,6 @@ begin
 	                        	    rot_table(sel)(SOUTH0) <= '1';
 	                        	    ack_routing(sel) <= '1';
 	                        	    EA <= S3;
-									w_source_target <= '1';
 	                        	else
 	                        	    EA <= S0;
 	                        	end if;
@@ -383,7 +359,6 @@ begin
 	                        	    rot_table(sel)(EAST0) <= '1';
 	                        	    ack_routing(sel) <= '1';
 	                        	    EA <= S3;
-									w_source_target <= '1';
 	                        	else
 	                        	    EA <= S0;
 	                        	end if;
@@ -393,7 +368,6 @@ begin
 	                        	    rot_table(sel)(WEST0) <= '1';
 	                        	    ack_routing(sel) <= '1';
 	                        	    EA <= S3;
-									w_source_target <= '1';
 	                        	else
 	                        	    EA <= S0;
 	                        	end if;
@@ -406,13 +380,11 @@ begin
 	                            rot_table(sel)(dirx) <= '1';
 	                            EA <= S3;
 
-								w_source_target <= '1';
 	                        elsif free_port(dirx+1) = '1' then
 	                            ack_routing(sel) <= '1';
 	                            rot_table(sel)(dirx+1) <= '1';
 	                            EA <= S3;
 
-								w_source_target <= '1';                 
 	                        -- No free channel
 	                        else 
 	                            EA <= S0; 
@@ -426,14 +398,12 @@ begin
 	                        EA <= S3;
 
 
-							w_source_target <= '1';
 	                    elsif free_port(diry+1) = '1' then		
 	                        ack_routing(sel) <= '1';
 	                        rot_table(sel)(diry+1) <= '1'; 
 	                        EA <= S3;
 
 
-							w_source_target <= '1';
 	                    else 
 	                        EA <= S0; 
 	                    end if;
@@ -470,7 +440,6 @@ begin
 					EA <= S0;
 
 
-					w_source_target <= '0';
 				when others =>
 					EA <= S0;
 				

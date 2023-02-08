@@ -1474,6 +1474,7 @@ int handle_packet(ServiceHeader * p) {
 		// 	break;
 		// }
 		// if (p->service == ((k1 ^ k2) << 16) | (KappID ^ k2)){
+
 		if ((p->service >> 16) == ((k1 ^ k2))){
 			if ((p->service & 0xffff) == (KappID ^ k2)){
 			// puts("IO packet authenticated\n");
