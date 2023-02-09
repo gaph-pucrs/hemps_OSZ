@@ -278,3 +278,9 @@ int sub_migrations(int App_ID){
 	return -1;
 }
 
+Application * get_app_ptr_from_task_location(int task_addr) {
+	for(int i=0; i<MAX_CLUSTER_APP; i++)
+		for(int j=0; j<applications[i].tasks_number; j++)
+			if(applications[i].tasks[j].allocated_proc == task_addr)
+				return &applications[i];
+}

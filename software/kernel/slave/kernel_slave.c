@@ -1310,6 +1310,12 @@ int handle_packet(ServiceHeader * p) {
 		}
 		k2 = glfsr_app.data;
 		
+		puts("----- [DEBUG] KeyGen:\n");
+		puts("----- appID = "); puts(itoh(KappID)); puts("\n");
+		puts("----- n     = "); puts(itoh(nt1)); puts("\n");
+		puts("----- p     = "); puts(itoh(nt2)); puts("\n");
+		puts("----- k1    = "); puts(itoh(k1)); puts("\n");
+		puts("----- k2    = "); puts(itoh(k2)); puts("\n");
 		
 		// puts("Recuperação do AppID: ");puts(itoh(KappID));puts("\n");
 		// puts("-----k1 = ");puts(itoh(k1));puts("\n");
@@ -2004,8 +2010,14 @@ case BR_TO_APPID_SERVICE: // Expand here to flexible AccessPoit configuration
 					pendingIO++;
 					APopened = 2;
 				}
-				// puts("-----k1 = ");puts(itoh(k1_aux));puts("\n");
-				// puts("-----k2 = ");puts(itoh(k2_aux));puts("\n");
+				
+				k1 = k1_aux;
+				k2 = k2_aux;
+				
+				puts("-----nTurns = ");puts(itoh(nTurns));puts("\n");
+				puts("-----k1     = ");puts(itoh(k1_aux));puts("\n");
+				puts("-----k2     = ");puts(itoh(k2_aux));puts("\n");
+
 				// puts("End RENEW: ");puts(itoa(MemoryRead(TICK_COUNTER))); puts ("\n");	// Port of the AP
 			 	break;
 			}
@@ -2046,6 +2058,8 @@ case BR_TO_APPID_SERVICE: // Expand here to flexible AccessPoit configuration
 					n = nTurns >>8;
 					p = nTurns & 0xf;
 
+					Seek(REQUEST_SNIP_RENEWAL, ((nTurns<<16) | (get_net_address()&0xffff)), cluster_master_address, 0); // Request MPE to renew SNIP keys
+
 					Seek(BR_TO_APPID_SERVICE, ((nTurns<<16) | (get_net_address()&0xffff)), (unsigned int)MemoryRead(APP_ID_REG), 02); // Send Freeze IO
 
 					glfsr_app.data = k2;
@@ -2068,9 +2082,16 @@ case BR_TO_APPID_SERVICE: // Expand here to flexible AccessPoit configuration
 					OS_InterruptMaskSet(IRQ_AP);
 		
 					MemoryWrite(AP_THRESHOLD, AP_THRESHOLD_VALUE);
+
+					k1 = k1_aux;
+					k2 = k2_aux;
+					MemoryWrite(K1_REG, k1);
+					MemoryWrite(K2_REG, k2);
+
 					puts("#$#$ Chaves Renovadas  #$#$");puts(itoa(MemoryRead(TICK_COUNTER))); puts ("\n");
-					// puts("-----k1 = ");puts(itoh(k1_aux));puts("\n");
-					// puts("-----k2 = ");puts(itoh(k2_aux));puts("\n");
+					puts("-----nTurns = ");puts(itoh(nTurns));puts("\n");
+					puts("-----k1     = ");puts(itoh(k1_aux));puts("\n");
+					puts("-----k2     = ");puts(itoh(k2_aux));puts("\n");
 					Seek(CLEAR_SERVICE, ((nTurns<<16) | (get_net_address()&0xffff)), 0,0);
 					// puts("End RENEW: ");puts(itoa(MemoryRead(TICK_COUNTER))); puts ("\n");	// Port of the AP
 					// Seek(BR_TO_APPID_SERVICE, ((nTurns<<16) | (get_net_address()&0xffff)), (unsigned int)MemoryRead(APP_ID_REG), 02); // Send Freeze IO

@@ -51,7 +51,7 @@ package snip_pkg is
 
     constant IO_INIT_SERVICE                    : regword := x"00000305";
     constant IO_CONFIG_SERVICE                  : regword := x"00000300";
-    constant IO_PERIODIC_RENEWAL_MASTER_SERVICE : regword := x"0000a310";
+    constant IO_RENEW_KEYS                      : regword := x"00000330";
     constant IO_REQUEST_SERVICE                 : regword := x"00000015";
     constant IO_DELIVERY_SERVICE                : regword := x"00000025";
     constant IO_ACK_SERVICE                     : regword := x"00000026";
