@@ -2058,7 +2058,9 @@ case BR_TO_APPID_SERVICE: // Expand here to flexible AccessPoit configuration
 					n = nTurns >>8;
 					p = nTurns & 0xf;
 
-					Seek(REQUEST_SNIP_RENEWAL, ((nTurns<<16) | (get_net_address()&0xffff)), cluster_master_address, 0); // Request MPE to renew SNIP keys
+					// First seek message would conflict with the second as they have the same source
+					// To fix this: add 1 to nTurns, subtract 1 upon reception
+					Seek(REQUEST_SNIP_RENEWAL, (((nTurns+1)<<16) | (get_net_address()&0xffff)), cluster_master_address, 0); // Request MPE to renew SNIP keys
 
 					Seek(BR_TO_APPID_SERVICE, ((nTurns<<16) | (get_net_address()&0xffff)), (unsigned int)MemoryRead(APP_ID_REG), 02); // Send Freeze IO
 

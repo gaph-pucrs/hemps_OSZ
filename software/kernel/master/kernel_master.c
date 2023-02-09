@@ -1330,8 +1330,12 @@ int SeekInterruptHandler(){
 		break;
 		
 		case REQUEST_SNIP_RENEWAL:
+			
+			//MSB(source) contains nTurns+1 to avoid conflicting with other messages with same source
+			
 			app = get_app_ptr_from_task_location(source & 0xffff);
-			send_io_renew(app, app->appID_random, source>>16);
+			send_io_renew(app, app->appID_random, (source>>16)-1);
+
 		break;
 		
 		//----------------------------------------------------------------------
