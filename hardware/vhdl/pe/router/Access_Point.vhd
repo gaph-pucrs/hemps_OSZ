@@ -131,7 +131,7 @@ begin
 			reg_K1 <= (others => '0');
 			reg_K2 <= (others => '0');
 		elsif rising_edge(clock) then 
-			if (auth = '1') and (enable = '1')then 
+			if (auth  and enable and rx)then 
 				Cin <= Cin+1; 
 			elsif (apThreshold = 0) then 
 				Cin <= (others => '0'); 

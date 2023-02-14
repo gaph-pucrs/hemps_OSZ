@@ -75,7 +75,7 @@ int APaddress = 0;
 
 // Leave IO opened
 int openTime = 345123; // 1,23ms
-int APopened = 0;
+int APopened = 99;
 int resendIOid = 80;
 
 #ifdef AES_MODULE
@@ -542,7 +542,7 @@ int Syscall(unsigned int service, unsigned int arg0, unsigned int arg1, unsigned
 
 			//FreezeIO - Activated in KeyRenew
 			if(freezeIO == 1){
-				puts("IO freezado");
+				// puts("[writePIPE] frozen IO\n");
 				return 0;
 			}
 
@@ -565,6 +565,7 @@ int Syscall(unsigned int service, unsigned int arg0, unsigned int arg1, unsigned
 				send_message_io_key(producer_task, arg1, msg_read, 0,0);
 				pendingIO ++;
 			}else{
+				// puts("[writePIPE] finding target IO\n");
 			#ifdef GRAY_AREA
 			for(i = 0; i < IO_NUMBER; i++){
 				if(io_info[i].peripheral_id == arg1){
@@ -607,6 +608,7 @@ int Syscall(unsigned int service, unsigned int arg0, unsigned int arg1, unsigned
 			#endif
 			send_message_io_key(producer_task, arg1, msg_read, current->secure, ((k1 ^ k2) << 16) | (k2 ^ KappID));
 			pendingIO ++;
+			// puts("[writePIPE] Message Sent\n");
 			}
 
 
@@ -629,7 +631,7 @@ int Syscall(unsigned int service, unsigned int arg0, unsigned int arg1, unsigned
 
 			//FreezeIO - Activated in KeyRenew
 			if(freezeIO == 1){
-				puts("IO freezado");
+				// puts("[FRZN IO] readPIPE	");
 				return 0;
 			}
 			consumer_task =  current->id;
@@ -688,11 +690,11 @@ int Syscall(unsigned int service, unsigned int arg0, unsigned int arg1, unsigned
 
 			schedule_after_syscall = 1;
 
-			if((MemoryRead(TICK_COUNTER) > openTime) && (APopened == 0)){
-				send_io_request_key(arg1, consumer_task, net_address, current->secure, MemoryRead(TICK_COUNTER));
-				puts("!!!!!!!!!!! Forçando abertura AP !!!!!! \n");
-				APopened = 1;
-			}
+			// if((MemoryRead(TICK_COUNTER) > openTime) && (APopened == 0)){
+			// 	send_io_request_key(arg1, consumer_task, net_address, current->secure, MemoryRead(TICK_COUNTER));
+			// 	puts("!!!!!!!!!!! Forçando abertura AP !!!!!! \n");
+			// 	APopened = 1;
+			// }
 
 			return 0;
 
@@ -1126,7 +1128,7 @@ int handle_packet(ServiceHeader * p) {
 				if (freezeIO){
 					// puts("Recebeu IO ACK pendente, congelando Comunicação\n");
 					Seek(KEY_ACK, ((MemoryRead(TICK_COUNTER)<<16) | (get_net_address()&0xffff)), APaddress, 0); // Send Freeze IO	
-					// puts("Answered to "); puts(itoh(APaddress));puts("\n");
+					puts("Answered to "); puts(itoh(APaddress));puts("\n");
 				}	
 			}
 			
@@ -1980,8 +1982,8 @@ case BR_TO_APPID_SERVICE: // Expand here to flexible AccessPoit configuration
 					break;
 				}
 				nTurns = source >> 16;
-				n = nTurns >>8;
-				p = nTurns & 0xf;
+				n = (nTurns >>8) & 0xf;
+				p = (nTurns) & 0xf;
 
 				glfsr_app.data = k2;
 				while (n > 0){
@@ -2042,9 +2044,9 @@ case BR_TO_APPID_SERVICE: // Expand here to flexible AccessPoit configuration
 				// puts("acks: ");puts(itoa(rcvdACK)); puts ("\n");
 			
 				if (rcvdACK == (appTasks - 1)){
-					nTurns = (MemoryRead(TICK_COUNTER) & 0x0F0F); // LO == turns pra k1 e k2	 (4 bits cada pra n ficar mto)
-					n = nTurns >>8;
-					p = nTurns & 0xf;
+					nTurns = (MemoryRead(TICK_COUNTER)); // LO == turns pra k1 e k2	 (4 bits cada pra n ficar mto)
+					n = (nTurns >>8) & 0xf;
+					p = (nTurns) & 0xf;
 
 					Seek(BR_TO_APPID_SERVICE, ((nTurns<<16) | (get_net_address()&0xffff)), (unsigned int)MemoryRead(APP_ID_REG), 02); // Send Freeze IO
 
@@ -2063,11 +2065,11 @@ case BR_TO_APPID_SERVICE: // Expand here to flexible AccessPoit configuration
 					freezeIO = 0;
 					rcvdACK=0;
 
-					// MemoryWrite(AP_THRESHOLD, 0);
+					MemoryWrite(AP_THRESHOLD, 0);
 
-					// OS_InterruptMaskSet(IRQ_AP);
+					OS_InterruptMaskSet(IRQ_AP);
 		
-					// MemoryWrite(AP_THRESHOLD, AP_THRESHOLD_VALUE);
+					MemoryWrite(AP_THRESHOLD, AP_THRESHOLD_VALUE);
 					puts("#$#$ Chaves Renovadas  #$#$");puts(itoa(MemoryRead(TICK_COUNTER))); puts ("\n");
 					// puts("-----k1 = ");puts(itoh(k1_aux));puts("\n");
 					// puts("-----k2 = ");puts(itoh(k2_aux));puts("\n");
@@ -2346,8 +2348,8 @@ int main(){
 
 	//WARNING: NOT ENABLING this fucking shit of IRQ_SLACK_TIME
 	//by Wachter
-	OS_InterruptMaskSet(IRQ_SEEK | IRQ_SCHEDULER | IRQ_NOC | IRQ_PENDING_SERVICE);
-	// OS_InterruptMaskSet(IRQ_SEEK | IRQ_SCHEDULER | IRQ_NOC | IRQ_PENDING_SERVICE | IRQ_AP);
+	// OS_InterruptMaskSet(IRQ_SEEK | IRQ_SCHEDULER | IRQ_NOC | IRQ_PENDING_SERVICE);
+	OS_InterruptMaskSet(IRQ_SEEK | IRQ_SCHEDULER | IRQ_NOC | IRQ_PENDING_SERVICE | IRQ_AP);
 
 	/*runs the scheduled task*/
 	ASM_RunScheduledTask(current);

@@ -210,14 +210,14 @@ for pe in range(0,max_pe):
 
 			# Signals internos do AP
 				access_point_pfx = "add wave -noupdate -group {%s %dx%d - %d} -group %s -group {router %dx%d AP %s} -radix hexadecimal /test_bench/HeMPS/%s%dx%d/RouterCCwrapped/RouterCC_AP/" % 	(pe_type_str, posX, posY, pe,location, posX, posY, portname[port], pe_type_str, posX, posY)
-				access_point_sds = ["k1","k2"]
+				access_point_sds = ["k1","k2","intAP"]
 				for it in map(lambda sd: access_point_pfx + sd ,access_point_sds):
 					print (it)
-				access_point_sds = ["sz","ap","unreachable","eop_out_router"]
+				access_point_sds = ["sz","apThreshold"]
 				for it in map(lambda sd: access_point_pfx + sd + f"({port:d})",access_point_sds):
 					print (it)
 				access_point_pfx = "add wave -noupdate -group {%s %dx%d - %d} -group %s -group {router %dx%d AP %s} -radix hexadecimal /test_bench/HeMPS/%s%dx%d/RouterCCwrapped/RouterCC_AP/AP_gen(%d)/AP_CH0/" % 	(pe_type_str, posX, posY, pe,location, posX, posY, portname[port], pe_type_str, posX, posY,ap)
-				access_point_sds = ["pass","mask", "Cin", "Cout" ]
+				access_point_sds = ["pass", "auth" ,"mask", "enable", "Cin", "Cout"]
 				for it in map(lambda sd: access_point_pfx + sd,access_point_sds):
 					print (it)
 				ap += 1
