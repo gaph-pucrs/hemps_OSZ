@@ -25,7 +25,7 @@
 #define TL 6
 #define TC 7
 #define TR 8
-#define I0_LIMITS 2
+#define I0_LIMITS 0
 
 
 SC_MODULE(hemps) {

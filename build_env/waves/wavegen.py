@@ -362,7 +362,7 @@ for snip_idx in range(0, snip_number):
 	### States
 
 	snip_handler_states_pfx = "add wave -noupdate -group {%s} -group {States} %s/PacketHandler/" % (snip_name, snip_top)
-	snip_handler_states_sds = ["stage", "start_rx_state", "table_state", "data_state", "finish_rx_state", "respond_state"]
+	snip_handler_states_sds = ["stage", "start_rx_state", "table_state", "keygen_state", "data_state", "finish_rx_state", "respond_state"]
 	for it in map(lambda sd: snip_handler_states_pfx + sd, snip_handler_states_sds):
 		print (it)
 
@@ -406,6 +406,10 @@ for snip_idx in range(0, snip_number):
 	print(snip_handler_regs_divider_pfx + "AppID_(Decoded)")
 	print(snip_handler_regs_pfx + "app_id")
 	print(snip_handler_regs_pfx + "app_id_valid")
+
+	print(snip_handler_regs_divider_pfx + "KeyParams_(Decoded)")
+	print(snip_handler_regs_pfx + "key_params")
+	print(snip_handler_regs_pfx + "key_params_valid")
 
 	print(snip_handler_regs_divider_pfx + "Crypto_Tag_(Decoded)")
 	print(snip_handler_regs_pfx + "crypto_tag")
@@ -454,6 +458,13 @@ for snip_idx in range(0, snip_number):
 	print(snip_hander_table_data_pfx + "tableOut.pathFlit_w")
 	print(snip_hander_table_data_pfx + "tableOut.pathFlit_wen")
 
+	### Key Generator
+
+	snip_handler_keygen_pfx = "add wave -noupdate -group {%s} -group {Key Generator} %s/PacketHandler/" % (snip_name, snip_top)
+	snip_handler_keygen_sds = ["keygen.request", "keygen.appID", "keygen.n", "keygen.p", "keygen.busy", "keygen.ready", "keygen.k1", "keygen.k2"]
+	for it in map(lambda sd: snip_handler_keygen_pfx + sd, snip_handler_keygen_sds):
+		print (it)
+
 	### Response Request Interface
 
 	snip_handler_respond_pfx = "add wave -noupdate -group {%s} -group {Response Request} %s/PacketHandler/" % (snip_name, snip_top)
@@ -469,7 +480,7 @@ for snip_idx in range(0, snip_number):
 	
 	### Internal Control Signals
 	snip_handler_buffer_pfx = "add wave -noupdate -group {%s} -group {Handler Control Signals} %s/PacketHandler/" % (snip_name, snip_top)
-	snip_handler_buffer_sds = ["hermesControl", "tableControl", "unknown_service", "authenticated", "response_necessary", "data_to_write_on_table", "end_of_handling"]
+	snip_handler_buffer_sds = ["hermesControl", "tableControl", "unknown_service", "authenticated", "keygen_necessary", "response_necessary", "data_to_write_on_table", "end_of_handling"]
 	for it in map(lambda sd: snip_handler_buffer_pfx + sd, snip_handler_buffer_sds):
 		print (it)
 
@@ -522,7 +533,7 @@ for snip_idx in range(0, snip_number):
 	snip_builder_ctrl_payload_pfx = "add wave -noupdate -group {%s} -group {Builder Control Signals} -group {Data Payload Control} %s/PacketBuilder/" % (snip_name, snip_top)
 	snip_builder_ctrl_payload_sds = ["send_data", "data_words_to_read", "data_flit_low", "data_flit_ready", "last_data_flit", "data_flit_blocked", "data_tx", "data_eop"]
 	for it in map(lambda sd: snip_builder_ctrl_payload_pfx + sd, snip_builder_ctrl_payload_sds):
-		print (it)	
+		print (it) 
 
 print ("TreeUpdate [SetDefaultTree]\n\
 WaveRestoreCursors {{Cursor 1} {10 ps} 0}\n\

@@ -38,7 +38,7 @@ architecture snip_packet_handler of snip_packet_handler is
 
     -- master fsm
 
-    type MainStateType              is (START_RECEPTION, ACCESS_TABLE, RECEIVE_DATA, FINISH_RECEPTION, RESPOND);
+    type MainStateType              is (START_RECEPTION, ACCESS_TABLE, RECEIVE_DATA, GENERATE_KEYS, FINISH_RECEPTION, RESPOND);
     signal stage                    : MainStateType;
     signal next_stage               : MainStateType;
 
@@ -56,6 +56,10 @@ architecture snip_packet_handler of snip_packet_handler is
     signal data_state               : ReceiveDataStateType;
     signal next_data_state          : ReceiveDataStateType;
 
+    type KeyGenStateType            is (WAIT_KEYS, SAVE_KEYS, EXIT_STAGE);
+    signal keygen_state             : KeyGenStateType;
+    signal next_keygen_state        : KeyGenStateType;
+
     type FinishReceptionStateType   is (DROP_FLIT, EXIT_STAGE);
     signal finish_rx_state          : FinishReceptionStateType;
     signal next_finish_rx_state     : FinishReceptionStateType;
@@ -70,6 +74,7 @@ architecture snip_packet_handler of snip_packet_handler is
         start_rx            : std_logic;
         table               : std_logic;
         data                : std_logic;
+        keygen              : std_logic;
         finish_rx           : std_logic;
         respond             : std_logic;
     end record;
@@ -123,11 +128,31 @@ architecture snip_packet_handler of snip_packet_handler is
     signal app_id               : regN_appID;
     signal app_id_valid         : std_logic;
 
+    signal key_params          : regflit;
+    signal key_params_valid    : std_logic;
+
     signal crypto_tag           : regN_appID;
     signal crypto_tag_valid     : std_logic;
 
     signal crypto_tag2          : regN_appID;
     signal crypto_tag2_valid    : std_logic;
+
+    ----------------------------
+    -- Key Generation Signals --
+    ----------------------------
+
+    type KeyGenSignals is record
+        request : std_logic;
+        appID   : regN_appID;
+        n       : regN_keyParam;
+        p       : regN_keyParam;
+        busy    : std_logic;
+        ready   : std_logic;
+        k1      : regN_keyPeriph;
+        k2      : regN_keyPeriph;
+    end record;
+
+    signal keygen   : KeyGenSignals;
 
     ---------------------
     -- CONTROL SIGNALS --
@@ -179,6 +204,7 @@ architecture snip_packet_handler of snip_packet_handler is
     signal unknown_service          : std_logic;
     signal authenticated            : std_logic;
     signal response_necessary       : std_logic;
+    signal keygen_necessary         : std_logic;
     signal data_to_write_on_table   : std_logic;
     signal end_of_handling          : std_logic;
 
@@ -197,7 +223,7 @@ begin
         end if;
     end process;
 
-    NextStage: process(stage, changing_stage, unknown_service, authenticated, hermesControl, response_necessary)
+    NextStage: process(stage, changing_stage, unknown_service, authenticated, hermesControl, response_necessary, keygen_necessary)
     begin
         case stage is
 
@@ -213,11 +239,17 @@ begin
 
                 if authenticated='1' and hermesControl.payloadIsData='1' then
                     next_stage <= RECEIVE_DATA;
+                elsif authenticated='1' and keygen_necessary='1' then
+                    next_stage <= GENERATE_KEYS;
                 else
                     next_stage <= FINISH_RECEPTION;
                 end if;
 
             when RECEIVE_DATA =>
+
+                next_stage <= FINISH_RECEPTION;
+            
+            when GENERATE_KEYS =>
 
                 next_stage <= FINISH_RECEPTION;
 
@@ -236,7 +268,7 @@ begin
         end case;
     end process;
 
-    changing_stage <= exiting.start_rx or exiting.table or exiting.data or exiting.finish_rx or exiting.respond;
+    changing_stage <= exiting.start_rx or exiting.table or exiting.data or exiting.keygen or exiting.finish_rx or exiting.respond;
 
     ----------------
     -- SLAVE FSMS --
@@ -248,6 +280,7 @@ begin
             start_rx_state  <= WAIT_REQUEST;
             table_state     <= CHECK_TABLE_SLOT;
             data_state      <= CONSUME_DATA_FLIT;
+            keygen_state    <= WAIT_KEYS;
             finish_rx_state <= DROP_FLIT;
             respond_state   <= WAIT_TX_AVAILABLE;
         
@@ -275,6 +308,14 @@ begin
                     data_state <= CONSUME_DATA_FLIT;
                 else
                     data_state <= next_data_state;
+                end if;
+            
+            elsif stage=GENERATE_KEYS then
+
+                if exiting.keygen='1' then
+                    keygen_state <= WAIT_KEYS;
+                else
+                    keygen_state <= next_keygen_state;
                 end if;
 
             elsif stage=FINISH_RECEPTION then
@@ -407,6 +448,33 @@ begin
     end process;
 
     exiting.data <= '1' when stage=RECEIVE_DATA and next_data_state=EXIT_STAGE else '0';
+
+    -- generate keys
+
+    NextState_GenerateKeys: process(keygen_state, keygen)
+    begin
+        case keygen_state is
+        
+            when WAIT_KEYS =>
+
+                if keygen.ready='1' then
+                    next_keygen_state <= SAVE_KEYS;
+                else
+                    next_keygen_state <= WAIT_KEYS;
+                end if;
+            
+            when SAVE_KEYS =>
+
+                next_keygen_state <= EXIT_STAGE;
+            
+            when EXIT_STAGE =>
+            
+                next_keygen_state <= EXIT_STAGE;
+            
+        end case;
+    end process;
+
+    exiting.keygen <= '1' when stage=GENERATE_KEYS and next_keygen_state=EXIT_STAGE else '0';
 
     -- finish reception
 
@@ -613,14 +681,52 @@ begin
         end if;
     end process;
 
-    app_id <= f2 xor k0;
-    app_id_valid <= '1' when hermes_service_valid='1' and hermes_service=IO_CONFIG_SERVICE and f2_valid='1' else '0';
+    app_id <= f1 xor k0;
+    app_id_valid <= '1' when hermes_service_valid='1' and hermes_service=IO_CONFIG_SERVICE and f1_valid='1' else '0';
+
+    key_params <= f2 xor k0;
+    key_params_valid <= '1' when hermes_service_valid='1' and hermes_service=IO_CONFIG_SERVICE and f2_valid='1' else '0';
 
     crypto_tag <= f2;
     crypto_tag_valid <= '1' when hermes_service_valid='1' and (hermes_service=IO_REQUEST_SERVICE or hermes_service=IO_DELIVERY_SERVICE) and f2_valid='1' else '0';
 
     crypto_tag2 <= f1;
     crypto_tag2_valid <= '1' when hermes_service_valid='1' and (hermes_service=IO_REQUEST_SERVICE or hermes_service=IO_DELIVERY_SERVICE) and f1_valid='1' else '0';
+
+    --------------------
+    -- KEY GENERATION --
+    --------------------
+
+    KeyGenerator: entity work.snip_key_generator
+    port map
+    (
+        clock   => clock,
+        reset   => reset,
+
+        request => keygen.request,
+        appID   => keygen.appID,
+        n       => keygen.n,
+        p       => keygen.p,
+
+        busy    => keygen.busy,
+        ready   => keygen.ready,
+        k1      => keygen.k1,
+        k2      => keygen.k2
+    );
+
+    keygen.request <= '1' when keygen_necessary='1' and app_id_valid='1' and key_params_valid='1' else '0';
+
+    keygen.appID    <= app_id                   when app_id_valid='1'       else (others => '0');
+    keygen.n        <= key_params(15 downto 8)  when key_params_valid='1'   else (others => '0');
+    keygen.p        <= key_params(7 downto 0)   when key_params_valid='1'   else (others => '0');
+
+    -- write keys on table
+
+    tableOut.key1_w         <= keygen.k1;
+    tableOut.key1_wen       <= '1' when stage=GENERATE_KEYS and keygen_state=SAVE_KEYS else '0';
+
+    tableOut.key2_w         <= keygen.k2;
+    tableOut.key2_wen       <= '1' when stage=GENERATE_KEYS and keygen_state=SAVE_KEYS else '0';
 
     ---------------------
     -- TABLE INTERFACE --
@@ -642,12 +748,6 @@ begin
 
     tableOut.appId_w        <= app_id;
     tableOut.appId_wen      <= tableControl.enableWriting and tableControl.saveAppId;
-
-    tableOut.key1_w         <= k1;
-    tableOut.key1_wen       <= tableControl.enableWriting and tableControl.saveKey1;
-
-    tableOut.key2_w         <= k2;
-    tableOut.key2_wen       <= tableControl.enableWriting and tableControl.saveKey2;
 
     -- write path
 
@@ -747,6 +847,8 @@ begin
     authenticated <= tableControl.slotAvailable;
 
     response_necessary <= '1' when hermes_service_valid='1' and (hermes_service=IO_REQUEST_SERVICE or hermes_service=IO_DELIVERY_SERVICE) else '0';
+
+    keygen_necessary <= '1' when hermes_service_valid='1' and (hermes_service=IO_CONFIG_SERVICE) else '0';
 
     data_to_write_on_table <= tableControl.saveAppId or tableControl.saveKey1 or tableControl.saveKey2;
 

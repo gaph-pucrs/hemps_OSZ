@@ -170,6 +170,7 @@ SC_MODULE(injector){
 
   void datanoc_in_proc_FSM();
   void datanoc_out_proc_FSM();
+  void datanoc_out_comb_tx();
 
   void brnoc_in_proc_FSM();
   void brnoc_out_proc_FSM();
@@ -193,6 +194,10 @@ SC_MODULE(injector){
     SC_METHOD(datanoc_out_proc_FSM);
     sensitive << reset;
     sensitive << clock.pos();
+
+    SC_METHOD(datanoc_out_comb_tx);
+    sensitive << EA_out_datanoc;
+    sensitive << credit_i_primary;
 
     SC_METHOD(brnoc_in_proc_FSM);
     sensitive << reset;
