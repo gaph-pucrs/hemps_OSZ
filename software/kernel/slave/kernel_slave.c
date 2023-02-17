@@ -1320,7 +1320,7 @@ int handle_packet(ServiceHeader * p) {
 		// puts("Recuperação do AppID: ");puts(itoh(KappID));puts("\n");
 		// puts("-----k1 = ");puts(itoh(k1));puts("\n");
 		// puts("-----k2 = ");puts(itoh(k2));puts("\n");
-		MemoryWrite(APP_ID_REG, KappID & 0x3);
+		MemoryWrite(APP_ID_REG, KappID & 0xff);
 		appTasks = p->app_task_number;
 		// puts("-----numTasks = ");puts(itoh(appTasks));puts("\n");
 		#endif
