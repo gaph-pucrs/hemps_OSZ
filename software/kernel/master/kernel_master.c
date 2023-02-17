@@ -1089,6 +1089,8 @@ int SeekInterruptHandler(){
 	target = MemoryRead(SEEK_TARGET_REGISTER);
 	source = MemoryRead(SEEK_SOURCE_REGISTER);
 	service = MemoryRead(SEEK_SERVICE_REGISTER);
+	// For Sessions
+	static unsigned int nTurns = 0;
 	switch(service){
 		case TARGET_UNREACHABLE_SERVICE:
 			puts(itoa(MemoryRead(TICK_COUNTER))); puts(" Received SeekUnreachable "); puts(itoh(source)); puts("\n");
@@ -1332,9 +1334,16 @@ int SeekInterruptHandler(){
 		case REQUEST_SNIP_RENEWAL:
 			
 			//MSB(source) contains nTurns+1 to avoid conflicting with other messages with same source
-			
+
+			if( nTurns == ((source >> 16)-1) ) {
+				puts("recebeu REQUEST_SNIP_RENEWAL repetido\n");
+				break;
+			}
+
+			nTurns = (source >> 16)-1;
+
 			app = get_app_ptr_from_task_location(source & 0xffff);
-			send_io_renew(app, app->appID_random, (source>>16)-1);
+			send_io_renew(app, app->appID_random, nTurns);
 
 		break;
 		
