@@ -1,6 +1,6 @@
 /* hardware/sc/peripherals/IO_peripheral/sabotage_param.h */
 
-#define T_START         175000  //100000
+#define T_START         100000  //100000
 #define T_END           500000  //120000
 #define PERIOD          10000       //500
 
@@ -11,7 +11,7 @@
 #define HEADER_ROUT_LO  0x0300  //header
 
 #define F1_FLIT         0x9686  //f1 //sao as chaves corretas, pra passar pelo AP
-#define F2_FLIT         0x1234  //f2 //mas considerar como se o AP fosse aberto
+#define F2_FLIT         0x8f6f  //f2 //mas considerar como se o AP fosse aberto
 
 #define SERVICE_FLIT    0x0320  //service
 

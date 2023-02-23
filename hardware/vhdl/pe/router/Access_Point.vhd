@@ -63,15 +63,15 @@ port(
 end Access_Point; 
  
 architecture Access_Point of Access_Point is 
-	type apState is (SPASS, AUTH, SBLOCK); 
-	signal CurrentState, NextState : apState; 
- 
-	signal pass:	std_logic; 
+
+	signal pass, auth:	std_logic; 
 	signal mask: 	std_logic; 
 	signal Cin, Cout: std_logic_vector(8 downto 0); --Counters with 4 bits 
-	-- signal reg_F1	:	regflit; 
-	-- signal reg_F2	:	regflit; 
-	signal flit_counter: std_logic_vector(5 downto 0); 
+	signal reg_K1	:	std_logic_vector(11 downto 0); 
+	signal reg_K2	:	std_logic_vector(11 downto 0); 
+	alias data_in12:  std_logic_vector(11 downto 0) is data_in(11 downto 0);
+	alias packetType:  std_logic_vector(3 downto 0) is data_in(15 downto 12);
+
 	-- signal invalid , eop_ap, terminate 	:std_logic; 
 	-- signal mask_rx: std_logic; 
  
@@ -94,65 +94,44 @@ begin
 	-- Connecting the sides 
 	-- Input 
 	data_in_router		<=	data_in; 
-	credit_o			<=	credit_o_router; 
- 
-	--Counters 
+	credit_o			<=	credit_o_router;
+	rx_router			<=	rx and pass;
+	eop_in_router	<=	eop_in;
+
+	auth <= '1' when ((data_in12 XOR reg_K1) = reg_K2) AND (Cin < Cout) AND (packetType = IO_PACKET) else 
+			'0'; 
+
 	intAP <= '1' when (Cout(7 downto 0) > apThreshold and enable = '1') else -- When the out counter is 0, reached the Threshold 
 			 '0'; 
  
+	process (clock, reset) -- Controle do pass 
+	begin
+		if reset = '1' then 
+			pass <= '0'; 
+		elsif rising_edge(clock) then 		
+			if enable = '0' then
+				pass <= '1';
+			elsif auth = '1' and enable = '1' then -- Se autenticar o 1 flit, aciona pass
+				pass <= '1';
+			elsif pass = '1' then -- Mantem pass até o eop
+				if eop_in = '1' then
+					pass <= '0';
+				end if;
+			else				-- Mantém pass em 0 até outro auth
+				pass <= '0';
+			end if;
+		end if;
+	end process;
  
-	-- FSM state update 
-	FSM: process(clock, reset) 
+	process (clock, reset) -- Registradores Cin, Cout, K1 e K2
 	begin 
 		if reset = '1' then 
-			CurrentState <= SPASS; 
-		elsif rising_edge(clock) then 
-			CurrentState <= NextState; 
-		end if; 
-	end process;	 
- 
-	NextStateProcess: process(CurrentState, pass, flit_counter) 
-	begin 
-		case CurrentState is 
-			when SPASS => 
-				if flit_counter = SERVICE_F1 then 
-					NextState <= AUTH; 
-				else 
-					NextState <= SPASS; 
-				end if; 
-			when AUTH => 
-				if pass = '1' and (Cin < Cout) then 
-					NextState <= SPASS; 
-				else 
-					NextState <= SBLOCK; 
-				end if; 
-			when SBLOCK => 
-				if eop_in = '1' then 
-					NextState <= SPASS; 
-				else 
-					NextState <= SBLOCK; 
-				end if; 
-			when others => 
-				-- NextState <= CurrentState;sim:/test_bench 
-		end case; 
-	end process; 
- 
-	process (clock, reset) 
-	begin 
-		if reset = '1' then 
-			flit_counter <= (others => '0'); 
 			Cin <= (others => '0'); 
-			Cout <= (others => '0'); 
+			Cout <= (others => '0');
+			reg_K1 <= (others => '0');
+			reg_K2 <= (others => '0');
 		elsif rising_edge(clock) then 
-			if (rx = '1') and (enable = '1') then 
-				if (eop_in = '1') then 
-					flit_counter <= (others => '0'); 
-				else 
-					flit_counter <= flit_counter+1; 
-				end if; 
-			 
-			end if; 
-			if (pass = '1') and (enable = '1')then 
+			if (auth  and enable and rx)then 
 				Cin <= Cin+1; 
 			elsif (apThreshold = 0) then 
 				Cin <= (others => '0'); 
@@ -166,66 +145,17 @@ begin
 				Cout <= (others => '0'); 
 			else 
 				Cout<=Cout; 
-			end if; 
+			end if;
+			
+			if enable = '1' then
+				reg_K1 <= k1(11 downto 0);
+				reg_K2 <= k2(11 downto 0);
+			end if;
 		end if; 
 	end process; 
  
-	pass <= '1' when ((data_in XOR k1) = k2) AND (Cin < Cout) else 
-			'0'; 
- 
-	rx_router			<=	rx  when CurrentState = SPASS or CurrentState = AUTH else 
-							'0'; 
- 
-	eop_in_router		<=	'0' when  CurrentState = SBLOCK else 
-							(not pass) when CurrentState = AUTH else 
-							eop_in; 
+
 end Access_Point; 
- 
- 
--- 	-- Authentication process 
--- 	packetAuth: process(clock, reset) 
--- 	variable counter : integer; 
--- 	begin		  	    
--- 		if (reset = '1') then 
--- 			counter	:= 0; 
--- 			reg_F1	<= (others => '0');	 
--- 			reg_F2	<= (others => '0');	 
--- 			terminate <= '0'; 
--- 			eop_ap <= '0'; 
--- 			mask_rx <= '1'; 
--- 		elsif rising_edge(clock) then 
--- 			if (rx = '1') and (enable = '1') then 
--- 				-- Save flits according to counter 
--- 				case counter is 
--- 					when SERVICE_F1 => -- Read Service HI 
--- 						reg_F1 <= data_in; 
--- 					when SERVICE_F2 => -- Read Service LO 
--- 						reg_F2 <= data_in; 
--- 						-- terminate <= '1'; 
--- 					when SERVICE_F2 + 1 => -- After having the Service 
--- 						if (pass = '0') then -- Service /= IO_DELIVERY or _ACK 
--- 							terminate <= '1'; -- Cancel sending 
--- 							eop_ap <= '1';	  -- Force EOP						 
--- 						end if; -- ELSE, terminate is not set, following the eop_in 
--- 					when others => 
--- 						eop_ap <= '0';	-- Lowers EOP from cancelling packet 
--- 				end case; 
--- 				mask_rx <= NOT terminate; -- Rx must recieve terminate delayed 1cycle, to properly send the EOP 
--- 				-- Counter increment and reset in case of eop 
--- 				if eop_in = '1' then 
--- 					counter := 0; 
--- 					terminate <= '0'; -- resets terminate in case of dropped packet 
--- 				else 
--- 					counter	:= counter + 1; 
--- 				end if;	 
--- 			elsif (rx = '0') and (credit_o_router = '1') then -- If no transmission  
--- 				mask_rx <= '1'; -- Reset Mask 
--- 			end if;	 
-	 
--- 		end if; 
--- 	end process; 
--- end Access_Point; 
- 
  
 	-- Mapa de Karnaugh for masking signals 
 	--	   a_i  sz  en  | mask_tx 

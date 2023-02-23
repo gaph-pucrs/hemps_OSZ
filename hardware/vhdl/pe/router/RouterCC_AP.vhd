@@ -48,10 +48,7 @@ port(
 	unreachable				: out regNport; 
  
 	target                  : out regflit; 
-	source                  : out regflit; 
-	w_source_target         : out std_logic; 
-	rot_table				: out matrixNportNport_std_logic; 
-	w_addr                  : out std_logic_vector(3 downto 0) 
+	source                  : out regflit
 ); 
 end RouterCC_AP; 
  
@@ -97,13 +94,10 @@ begin
 		ap						=>	ap_rout, 
  
 		target                  =>	target, 
-		source                  =>	source, 
-		w_source_target         =>	w_source_target, 
-		rot_table				=>	rot_table, 
-		w_addr                  =>	w_addr 
+		source                  =>	source 
 	); 
  
-	unreachable <= access_i OR (sz AND (NOT ap)); 
+	unreachable <= (access_i OR (sz AND (NOT ap))) AND tx_router; 
  
 	--Directly connecting local port: 
 	rx_router(LOCAL0) <= rx(LOCAL0); 

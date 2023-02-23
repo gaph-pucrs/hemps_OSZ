@@ -245,7 +245,8 @@ begin
         if state=HERMES_FIXED_HEADER then
 
             if fixed_header_flit=0 then
-                hermes_data_out <= x"6021";
+                -- hermes_data_out <= x"6021";
+                hermes_data_out <= x"6" & (tableIn.key1(11 downto 0) xor tableIn.key2(11 downto 0));
             else
                 hermes_data_out <= response_param_reg.target;
             end if;

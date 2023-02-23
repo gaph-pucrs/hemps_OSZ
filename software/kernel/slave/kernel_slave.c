@@ -74,7 +74,7 @@ int pendingIO = 0;
 int APaddress = 0;
 
 // Leave IO opened
-int openTime = 245123; // 1,23ms
+int openTime = 345123; // 1,23ms
 int APopened = 99;
 int resendIOid = 80;
 
@@ -542,7 +542,7 @@ int Syscall(unsigned int service, unsigned int arg0, unsigned int arg1, unsigned
 
 			//FreezeIO - Activated in KeyRenew
 			if(freezeIO == 1){
-				// puts("IO freezado");
+				// puts("[writePIPE] frozen IO\n");
 				return 0;
 			}
 
@@ -565,6 +565,7 @@ int Syscall(unsigned int service, unsigned int arg0, unsigned int arg1, unsigned
 				send_message_io_key(producer_task, arg1, msg_read, 0,0);
 				pendingIO ++;
 			}else{
+				// puts("[writePIPE] finding target IO\n");
 			#ifdef GRAY_AREA
 			for(i = 0; i < IO_NUMBER; i++){
 				if(io_info[i].peripheral_id == arg1){
@@ -607,6 +608,7 @@ int Syscall(unsigned int service, unsigned int arg0, unsigned int arg1, unsigned
 			#endif
 			send_message_io_key(producer_task, arg1, msg_read, current->secure, ((k1 ^ k2) << 16) | (k2 ^ KappID));
 			pendingIO ++;
+			// puts("[writePIPE] Message Sent\n");
 			}
 
 
@@ -629,7 +631,7 @@ int Syscall(unsigned int service, unsigned int arg0, unsigned int arg1, unsigned
 
 			//FreezeIO - Activated in KeyRenew
 			if(freezeIO == 1){
-				// puts("IO freezado");
+				// puts("[FRZN IO] readPIPE	");
 				return 0;
 			}
 			consumer_task =  current->id;
@@ -688,10 +690,11 @@ int Syscall(unsigned int service, unsigned int arg0, unsigned int arg1, unsigned
 
 			schedule_after_syscall = 1;
 
-			if((MemoryRead(TICK_COUNTER) > openTime) && (APopened == 0)){
-				send_io_request_key(arg1, consumer_task, net_address, current->secure, MemoryRead(TICK_COUNTER));
-				APopened = 1;
-			}
+			// if((MemoryRead(TICK_COUNTER) > openTime) && (APopened == 0)){
+			// 	send_io_request_key(arg1, consumer_task, net_address, current->secure, MemoryRead(TICK_COUNTER));
+			// 	puts("!!!!!!!!!!! Forçando abertura AP !!!!!! \n");
+			// 	APopened = 1;
+			// }
 
 			return 0;
 
@@ -1099,16 +1102,17 @@ int handle_packet(ServiceHeader * p) {
 			puts("payload incompleto...\n");
 		}
 		else{
-			if (APopened == 1)
-			{
-				pendingIO --;
-				puts("[IO opened = 1] -- discard \n");
-				break;
-			}else if (APopened == 2)
-			{
-				puts("[IO opened = 2] -- Recebido pacote recuperado \n");
-				APopened = 3;
-			}
+			// if (APopened == 1)
+			// {
+			// 	// pendingIO --;
+			// 	puts("[IO opened = 1] -- discard \n");
+			// 	need_scheduling = 1;
+			// 	break;
+			// }else if (APopened == 2)
+			// {
+			// 	puts("[IO opened = 2] -- Recebido pacote recuperado \n");
+			// 	APopened = 3;
+			// }
 			
 			//puts("payload Completo...\n");
 			tcb_ptr->reg[0] = 1;
@@ -1124,7 +1128,7 @@ int handle_packet(ServiceHeader * p) {
 				if (freezeIO){
 					// puts("Recebeu IO ACK pendente, congelando Comunicação\n");
 					Seek(KEY_ACK, ((MemoryRead(TICK_COUNTER)<<16) | (get_net_address()&0xffff)), APaddress, 0); // Send Freeze IO	
-					// puts("Answered to "); puts(itoh(APaddress));puts("\n");
+					puts("Answered to "); puts(itoh(APaddress));puts("\n");
 				}	
 			}
 			
@@ -1478,6 +1482,7 @@ int handle_packet(ServiceHeader * p) {
 		// 	break;
 		// }
 		// if (p->service == ((k1 ^ k2) << 16) | (KappID ^ k2)){
+
 		if ((p->service >> 16) == ((k1 ^ k2))){
 			if ((p->service & 0xffff) == (KappID ^ k2)){
 			// puts("IO packet authenticated\n");
@@ -1488,6 +1493,7 @@ int handle_packet(ServiceHeader * p) {
 			} else{
 				puts("Wrong F2! - Trigger KeyRenew\n");
 				Seek(RENEW_KEY, (MemoryRead(TICK_COUNTER) << 16) | get_net_address(), APaddress, 0);
+				pendingIO = 0;
 				break;
 			}
 
@@ -1982,8 +1988,8 @@ case BR_TO_APPID_SERVICE: // Expand here to flexible AccessPoit configuration
 					break;
 				}
 				nTurns = source >> 16;
-				n = nTurns >>8;
-				p = nTurns & 0xf;
+				n = (nTurns >>8) & 0xf;
+				p = (nTurns) & 0xf;
 
 				glfsr_app.data = k2;
 				while (n > 0){
@@ -2000,12 +2006,14 @@ case BR_TO_APPID_SERVICE: // Expand here to flexible AccessPoit configuration
 				
 				freezeIO = 0;
 				puts("#$#$ Chaves Renovadas  #$#$");puts(itoa(MemoryRead(TICK_COUNTER))); puts ("\n");
-				if(APopened == 1){
-					// print_CM_FIFO();
-					resend_io_message(0x0103,80);
-					pendingIO++;
-					APopened = 2;
-				}
+				// if(APopened == 1){
+				// 	// print_CM_FIFO();
+				// 	resend_io_message(0x0103,80);
+				// 	pendingIO++;
+				// 	APopened = 2;
+				// }
+				// puts("-----k1 = ");puts(itoh(k1_aux));puts("\n");
+				// puts("-----k2 = ");puts(itoh(k2_aux));puts("\n");
 				
 				k1 = k1_aux;
 				k2 = k2_aux;
@@ -2050,9 +2058,9 @@ case BR_TO_APPID_SERVICE: // Expand here to flexible AccessPoit configuration
 				// puts("acks: ");puts(itoa(rcvdACK)); puts ("\n");
 			
 				if (rcvdACK == (appTasks - 1)){
-					nTurns = (MemoryRead(TICK_COUNTER) & 0x0F0F); // LO == turns pra k1 e k2	 (4 bits cada pra n ficar mto)
-					n = nTurns >>8;
-					p = nTurns & 0xf;
+					nTurns = (MemoryRead(TICK_COUNTER)); // LO == turns pra k1 e k2	 (4 bits cada pra n ficar mto)
+					n = (nTurns >>8) & 0xf;
+					p = (nTurns) & 0xf;
 
 					// First seek message would conflict with the second as they have the same source
 					// To fix this: add 1 to nTurns, subtract 1 upon reception

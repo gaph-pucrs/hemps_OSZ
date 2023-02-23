@@ -101,7 +101,7 @@ for pe in range(0,max_pe):
 		print (it)
 	#faults signals
 	group_faults_signals_pfx = "add wave -noupdate -group {%s %dx%d - %d} -group faults /test_bench/HeMPS/%s%dx%d/" % (pe_type_str, posX, posY, pe, pe_type_str, posX, posY)
-	group_faults_signals_sds = ['clock','external_fail_in','external_fail_out','fail_in','fail_out','router_fail_in','router_fail_out','wrapper_reg']
+	group_faults_signals_sds = ['clock','external_fail_in','external_fail_out','fail_in','fail_out','router_fail_in','router_fail_out','unreachable']
 	for it in map(lambda sd: group_faults_signals_pfx + sd,group_faults_signals_sds):
 		print (it)
 
@@ -123,6 +123,12 @@ for pe in range(0,max_pe):
 	signals_sds = ["router_address", "backtrack_id", "EA_manager", "EA_manager_input", "sel_port", "next_port", "req_int", "task", "req_task", "sel", "prox", "free_index", "source_index", "source_table", "target_table", "service_table", "payload_table", "opmode_table", "my_payload_table", "backtrack_port_table", "source_router_port_table", "used_table", "pending_table", "pending_local", "int_out_ack_router_seek", "out_nack_router_seek", "out_ack_router_seek", "in_fail_router_seek", "fail_with_mode_in", "fail_with_mode_out", "int_in_req_router_seek", "in_nack_router_seek", "in_ack_router_seek", "int_in_ack_router_seek", "in_source_router_seek", "in_target_router_seek", "in_payload_router_seek", "in_service_router_seek", "in_opmode_router_seek", "int_out_req_router_seek", "out_service_router_seek", "out_source_router_seek", "out_target_router_seek", "out_payload_router_seek", "out_opmode_router_seek", "backtrack_port", "reg_backtrack", "vector_ack_ports", "vector_nack_ports", "in_the_table", "space_aval_in_the_table", "is_my_turn_send_backtrack"]
 	for it in map(lambda sd: signals_pfx + sd, signals_sds):
 		print (it)
+	
+	slc_signals_pfx = "add wave -noupdate -group {%s %dx%d - %d} -group seek -group slc /test_bench/HeMPS/%s%dx%d/seek_local_controller/" % 			(pe_type_str, posX, posY, pe, pe_type_str, posX, posY)
+	slc_signals_sds = ["pe_target", "pe_source", "pe_service", "pe_payload", "pe_opmode", "pe_req", "pe_ack", "pe_nack", "unr_target", "unr_source", "unr_service", "seek_target", "seek_source", "seek_service", "seek_payload", "seek_opmode", "seek_req", "seek_ack", "seek_nack", "reg_target", "reg_source", "ask_unr", "sending"]
+	for it in map(lambda sd: slc_signals_pfx + sd, slc_signals_sds):
+		print (it)
+		
 		
 	# #fifo_PDN signals
 	fifo_signals_pfx = "add wave -noupdate -group {%s %dx%d - %d} -group fifo_PDN /test_bench/HeMPS/%s%dx%d/fifo_PDN/" % 	(pe_type_str, posX, posY, pe, pe_type_str, posX, posY)
@@ -204,14 +210,14 @@ for pe in range(0,max_pe):
 
 			# Signals internos do AP
 				access_point_pfx = "add wave -noupdate -group {%s %dx%d - %d} -group %s -group {router %dx%d AP %s} -radix hexadecimal /test_bench/HeMPS/%s%dx%d/RouterCCwrapped/RouterCC_AP/" % 	(pe_type_str, posX, posY, pe,location, posX, posY, portname[port], pe_type_str, posX, posY)
-				access_point_sds = ["k1","k2"]
+				access_point_sds = ["k1","k2","intAP"]
 				for it in map(lambda sd: access_point_pfx + sd ,access_point_sds):
 					print (it)
-				access_point_sds = ["sz","ap","unreachable","eop_out_router"]
+				access_point_sds = ["sz","apThreshold"]
 				for it in map(lambda sd: access_point_pfx + sd + f"({port:d})",access_point_sds):
 					print (it)
 				access_point_pfx = "add wave -noupdate -group {%s %dx%d - %d} -group %s -group {router %dx%d AP %s} -radix hexadecimal /test_bench/HeMPS/%s%dx%d/RouterCCwrapped/RouterCC_AP/AP_gen(%d)/AP_CH0/" % 	(pe_type_str, posX, posY, pe,location, posX, posY, portname[port], pe_type_str, posX, posY,ap)
-				access_point_sds = ["pass","mask", "Cin", "Cout", "CurrentState" ]
+				access_point_sds = ["pass", "auth" ,"mask", "enable", "Cin", "Cout"]
 				for it in map(lambda sd: access_point_pfx + sd,access_point_sds):
 					print (it)
 				ap += 1

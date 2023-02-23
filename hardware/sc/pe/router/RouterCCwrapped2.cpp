@@ -109,16 +109,16 @@ void RouterCCwrapped::upd_sz(){
 // 	 sz_internal.write(l_sz_internal);
 // }
 
-void RouterCCwrapped::upd_unreach(){
-	int i;
-	sc_uint<NPORT > l_sz_unreachable;
+// void RouterCCwrapped::upd_unreach(){
+// 	int i;
+// 	sc_uint<NPORT > l_sz_unreachable;
 
-	l_sz_unreachable = unreachable_internal.read();
-	 for(i=0;i<NPORT;i++){
-		//modified to add faults
-		unreachable[i] = (l_sz_unreachable[i]);
-	 }
-}
+// 	l_sz_unreachable = unreachable_internal.read();
+// 	 for(i=0;i<NPORT;i++){
+// 		//modified to add faults
+// 		unreachable[i] = (l_sz_unreachable[i]);
+// 	 }
+// }
 
 //output signals
 //read from internal, write in output

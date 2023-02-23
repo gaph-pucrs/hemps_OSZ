@@ -37,9 +37,6 @@ public:
     
     sc_out<regflit>                 source;
     sc_out<regflit>                 target;
-    sc_out<bool>                    w_source_target;
-    sc_out<reg4>                    w_addr;
-    sc_out<regNport >               rot_table[NPORT];
 
     // RouterCC(sc_module_name nm)
     // : sc_foreign_module(nm,"RouterCC", num_generics, generic_list),
@@ -67,10 +64,7 @@ public:
        intAP("intAP"),
        unreachable("unreachable"),
        target("target"),
-       source("source"),
-       w_source_target("w_source_target"),
-       w_addr("w_addr")
-
+       source("source")
     { 
         elaborate_foreign_module(hdl_name, num_generics, generic_list);
     }

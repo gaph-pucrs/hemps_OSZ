@@ -44,10 +44,10 @@ int get_task_location(int task_ID){
 
 int get_task_location_FAKE(int task_ID){
 
-	if (task_ID == 256){
-		puts("Devolvendo valor errado do endereço da task 00 - Testando AP\n");
-		return (3*256 + 0);
-	} 
+	// if (task_ID == 256){
+	// 	puts("Devolvendo valor errado do endereço da task 00 - Testando AP\n");
+	// 	return (3*256 + 0);
+	// } 
 	for(int i=0; i<MAX_TASK_LOCATION; i++) {
 		if (task_location[i].id == task_ID){
 			return task_location[i].proc_address;

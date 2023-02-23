@@ -10,4 +10,6 @@ cp $iscasdir/$1.yaml $simdir/$1.yaml
 
 cd $simdir
 hemps-gen $simdir/$1.yaml
+# cd $simdir/$1
+# make all
 cd $iscasdir/scripts
