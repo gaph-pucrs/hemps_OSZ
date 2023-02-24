@@ -127,5 +127,7 @@ int  add_migrations(int App_ID);
 
 int  sub_migrations(int App_ID);
 
+Application * get_app_ptr_from_task_location(int task_addr); 
+
 
 #endif /* SOFTWARE_INCLUDE_APPLICATIONS_APPLICATIONS_H_ */

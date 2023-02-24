@@ -61,6 +61,7 @@
 #define	MSG_REQUEST_CONTROL				35
 #define	RENEW_KEY						36
 #define	KEY_ACK							37
+#define REQUEST_SNIP_RENEWAL			38
 
 
 

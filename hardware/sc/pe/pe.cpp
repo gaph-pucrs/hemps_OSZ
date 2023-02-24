@@ -728,6 +728,10 @@ void pe::seek_receive(){
 						cout << "KEY_ACK";
 						int_seek.write(1);
 					break;		
+					case 0x26:
+						cout << "REQUEST_SNIP_RENEWAL";
+						int_seek.write(1);
+					break;		
 					default:
 						cout << out_service_fifopdn.read() << " unknown --- ERROR! " ;
 						in_ack_fifopdn.write(1);

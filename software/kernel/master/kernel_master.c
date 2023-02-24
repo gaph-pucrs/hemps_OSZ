@@ -223,6 +223,47 @@ void send_io_config(Application* app, int appID_rand, int turns){
 	}
 }
 
+void send_io_renew(Application* app, int appID, int turns){
+
+	ServiceHeader *p;
+	int usedIO[IO_NUMBER];
+	int k0;
+
+	//puts("*** IO_RENEWAL ***\n");
+	//puts("appID: ");puts(itoh(appID));puts("\n");
+	//puts("turns: ");puts(itoh(turns));puts("\n");
+
+	for(int i = 0; i < IO_NUMBER; i++)
+		usedIO[i] = 0;
+
+	for(int i=0; i<app->tasks_number; i++) {
+		for(int j=0; j<app->tasks[i].dependences_number; j++) {
+			for(int k = 0; k<IO_NUMBER; k++) {
+				
+				if(usedIO[k] == app->tasks[i].dependences[j].flits)
+					break;
+				
+				if(usedIO[k] == 0) {
+
+					puts("----Enviando conf para: ");puts(itoa(app->tasks[i].dependences[j].flits));puts("\n");
+					usedIO[k] = app->tasks[i].dependences[j].flits;
+					k0 = get_NI_k0(usedIO[k]);
+					
+					p = get_service_header_slot();
+					p->header[MAX_SOURCE_ROUTING_PATH_SIZE-1] = app->tasks[i].allocated_proc;
+					p->service = ((appID ^ k0) << 16) | (turns ^ k0);
+					p->io_service = IO_RENEW_KEYS;
+
+					send_packet_io(p, 0, 0, usedIO[k]);
+
+					break;
+				}
+					
+			}
+		}			
+	}
+}
+
 
 /** Assembles and sends a TASK_ALLOCATION packet to a slave kernel
  *  \param new_t The NewTask instance
@@ -1048,6 +1089,9 @@ int SeekInterruptHandler(){
 	target = MemoryRead(SEEK_TARGET_REGISTER);
 	source = MemoryRead(SEEK_SOURCE_REGISTER);
 	service = MemoryRead(SEEK_SERVICE_REGISTER);
+	// For Sessions
+	static unsigned int nTurns = 0;
+	unsigned int nTurns_aux;
 	switch(service){
 		case TARGET_UNREACHABLE_SERVICE:
 			puts(itoa(MemoryRead(TICK_COUNTER))); puts(" Received SeekUnreachable "); puts(itoh(source)); puts("\n");
@@ -1286,6 +1330,26 @@ int SeekInterruptHandler(){
 		case RCV_FREEZE_TASK_SERVICE:
 					puts("RCV_FREEZE_TASK "); puts(itoh(source)); puts("\n"); // used to reset the time_out
 		
+		break;
+		
+		case REQUEST_SNIP_RENEWAL:
+			
+			//MSB(source) contains nTurns+1 to avoid conflicting with other messages with same source
+			nTurns_aux = ((source >> 16)-1);
+
+			if(nTurns == nTurns_aux) {
+				puts("recebeu REQUEST_SNIP_RENEWAL repetido\n");
+				break;
+			}
+
+			nTurns = nTurns_aux;
+
+			//Enforce the maximum values for {n,p} values
+			nTurns_aux = nTurns_aux & 0x0f0f;
+
+			app = get_app_ptr_from_task_location(source & 0xffff);
+			send_io_renew(app, app->appID_random, nTurns_aux);
+
 		break;
 		
 		//----------------------------------------------------------------------

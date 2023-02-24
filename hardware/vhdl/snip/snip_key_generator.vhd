@@ -12,7 +12,7 @@ entity snip_key_generator is
         reset   : in    std_logic;
 
         request : in    std_logic;
-        appID   : in    regN_appID;
+        seed    : in    regN_appID;
         n, p    : in    regN_keyParam;
 
         busy    : out   std_logic;
@@ -140,10 +140,10 @@ begin
 
     w_seed <= '1' when state=INIT_K1 else '0';
 
-    setSeed: process(appID)
+    setSeed: process(seed)
     begin
         lfsr_seed <= (others => '0');
-        lfsr_seed(APPID_SIZE-1 downto 0) <= appID;
+        lfsr_seed(APPID_SIZE-1 downto 0) <= seed;
     end process;
 
     generated_key <= lfsr_output(KEYPERIPH_SIZE-1 downto 0);

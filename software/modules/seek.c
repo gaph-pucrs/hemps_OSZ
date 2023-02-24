@@ -177,7 +177,6 @@ void Seek(unsigned int service, unsigned int source, unsigned int target, unsign
 			case INITIALIZE_CLUSTER_SERVICE:
 			case GMV_READY_SERVICE:
 			case RENEW_KEY:
-			case KEY_ACK:
 				 MemoryWrite(SEEK_OPMODE_REGISTER,GLOBAL_MODE);
 			break;
 
@@ -191,6 +190,7 @@ void Seek(unsigned int service, unsigned int source, unsigned int target, unsign
 			case MSG_DELIVERY_CONTROL:
 			case MSG_REQUEST_CONTROL:
 			case BR_TO_APPID_SERVICE:
+			case KEY_ACK:
 				 MemoryWrite(SEEK_OPMODE_REGISTER,RESTRICT_MODE);
 			break;
 

@@ -387,14 +387,6 @@ for snip_idx in range(0, snip_number):
 	print(snip_handler_regs_pfx + "k0")
 	print(snip_handler_regs_pfx + "k0_valid")
 
-	print(snip_handler_regs_divider_pfx + "k1")
-	print(snip_handler_regs_pfx + "k1")
-	print(snip_handler_regs_pfx + "k1_valid")
-
-	print(snip_handler_regs_divider_pfx + "k2")
-	print(snip_handler_regs_pfx + "k2")
-	print(snip_handler_regs_pfx + "k2_valid")
-
 	print(snip_handler_regs_divider_pfx + "Source")
 	print(snip_handler_regs_pfx + "packet_source")
 	print(snip_handler_regs_pfx + "packet_source_valid")

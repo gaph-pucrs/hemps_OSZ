@@ -109,12 +109,6 @@ architecture snip_packet_handler of snip_packet_handler is
     alias  hermes_service_hi    : regflit is hermes_service(TAM_WORD-1 downto TAM_FLIT);
     alias  hermes_service_lo    : regflit is hermes_service(TAM_FLIT-1 downto 0);
 
-    signal k1                   : regN_keyPeriph;
-    signal k1_valid             : std_logic;
-
-    signal k2                   : regN_keyPeriph;
-    signal k2_valid             : std_logic;
-
     signal packet_source        : regflit;
     signal packet_source_valid  : std_logic;
 
@@ -143,7 +137,7 @@ architecture snip_packet_handler of snip_packet_handler is
 
     type KeyGenSignals is record
         request : std_logic;
-        appID   : regN_appID;
+        seed    : regN_appID;
         n       : regN_keyParam;
         p       : regN_keyParam;
         busy    : std_logic;
@@ -152,7 +146,8 @@ architecture snip_packet_handler of snip_packet_handler is
         k2      : regN_keyPeriph;
     end record;
 
-    signal keygen   : KeyGenSignals;
+    signal keygen               : KeyGenSignals;
+    signal keygen_seed_is_ready : std_logic;
 
     ---------------------
     -- CONTROL SIGNALS --
@@ -576,12 +571,6 @@ begin
             hermes_service          <= (others => '0');
             hermes_service_valid    <= '0';
 
-            k1                      <= (others => '0');
-            k1_valid                <= '0';
-        
-            k2                      <= (others => '0');
-            k2_valid                <= '0';
-
             packet_source           <= (others => '0');
             packet_source_valid     <= '0';
 
@@ -600,12 +589,6 @@ begin
         
                 hermes_service          <= (others => '0');
                 hermes_service_valid    <= '0';
-
-                k1                      <= (others => '0');
-                k1_valid                <= '0';
-        
-                k2                      <= (others => '0');
-                k2_valid                <= '0';
 
                 packet_source           <= (others => '0');
                 packet_source_valid     <= '0';
@@ -637,14 +620,6 @@ begin
                     hermes_service_lo <= hermes_data_in;
                     hermes_service_valid <= '1';
                     
-                elsif header_flit = K1_FLIT then
-                    k1 <= hermes_data_in;
-                    k1_valid <= '1';
-
-                elsif header_flit = K2_FLIT then
-                    k2 <= hermes_data_in;
-                    k2_valid <= '1';
-                
                 elsif header_flit = PACKET_SOURCE_FLIT then
                     packet_source <= hermes_data_in;
                     packet_source_valid <= '1';
@@ -682,10 +657,10 @@ begin
     end process;
 
     app_id <= f1 xor k0;
-    app_id_valid <= '1' when hermes_service_valid='1' and hermes_service=IO_CONFIG_SERVICE and f1_valid='1' else '0';
+    app_id_valid <= '1' when hermes_service_valid='1' and (hermes_service=IO_CONFIG_SERVICE or hermes_service=IO_RENEW_KEYS) and f1_valid='1' else '0';
 
     key_params <= f2 xor k0;
-    key_params_valid <= '1' when hermes_service_valid='1' and hermes_service=IO_CONFIG_SERVICE and f2_valid='1' else '0';
+    key_params_valid <= '1' when hermes_service_valid='1' and (hermes_service=IO_CONFIG_SERVICE or hermes_service=IO_RENEW_KEYS) and f2_valid='1' else '0';
 
     crypto_tag <= f2;
     crypto_tag_valid <= '1' when hermes_service_valid='1' and (hermes_service=IO_REQUEST_SERVICE or hermes_service=IO_DELIVERY_SERVICE) and f2_valid='1' else '0';
@@ -704,7 +679,7 @@ begin
         reset   => reset,
 
         request => keygen.request,
-        appID   => keygen.appID,
+        seed    => keygen.seed,
         n       => keygen.n,
         p       => keygen.p,
 
@@ -714,9 +689,18 @@ begin
         k2      => keygen.k2
     );
 
-    keygen.request <= '1' when keygen_necessary='1' and app_id_valid='1' and key_params_valid='1' else '0';
+    keygen.request <= '1' when keygen_necessary='1' and keygen_seed_is_ready='1' and key_params_valid='1' else '0';
 
-    keygen.appID    <= app_id                   when app_id_valid='1'       else (others => '0');
+    keygen_seed_is_ready <=
+        '1' when hermes_service_valid='1' and hermes_service=IO_CONFIG_SERVICE  and app_id_valid='1'                else
+        '1' when hermes_service_valid='1' and hermes_service=IO_RENEW_KEYS      and tableControl.slotAvailable='1'  else
+        '0';
+
+    keygen.seed <=
+        app_id          when hermes_service_valid='1' and hermes_service=IO_CONFIG_SERVICE  else
+        tableIn.key2    when hermes_service_valid='1' and hermes_service=IO_RENEW_KEYS      else
+        (others => '0');
+    
     keygen.n        <= key_params(15 downto 8)  when key_params_valid='1'   else (others => '0');
     keygen.p        <= key_params(7 downto 0)   when key_params_valid='1'   else (others => '0');
 
@@ -814,7 +798,7 @@ begin
 
     -- table control signals
 
-    tableControl.fetchPlaintext <= '0';
+    tableControl.fetchPlaintext <= '1' when hermes_service_valid='1'    and (hermes_service=IO_RENEW_KEYS)                                              else '0';
     tableControl.fetchCrypto    <= '1' when hermes_service_valid='1'    and (hermes_service=IO_REQUEST_SERVICE or hermes_service=IO_DELIVERY_SERVICE)   else '0';
     tableControl.fetchNewSlot   <= '1' when hermes_service_valid='1'    and (hermes_service=IO_CONFIG_SERVICE)                                          else '0';
 
@@ -840,6 +824,7 @@ begin
     (
         hermes_service=IO_INIT_SERVICE or
         hermes_service=IO_CONFIG_SERVICE or
+        hermes_service=IO_RENEW_KEYS or
         hermes_service=IO_REQUEST_SERVICE or
         hermes_service=IO_DELIVERY_SERVICE
     ) else '1';
@@ -848,7 +833,7 @@ begin
 
     response_necessary <= '1' when hermes_service_valid='1' and (hermes_service=IO_REQUEST_SERVICE or hermes_service=IO_DELIVERY_SERVICE) else '0';
 
-    keygen_necessary <= '1' when hermes_service_valid='1' and (hermes_service=IO_CONFIG_SERVICE) else '0';
+    keygen_necessary <= '1' when hermes_service_valid='1' and (hermes_service=IO_CONFIG_SERVICE or hermes_service=IO_RENEW_KEYS) else '0';
 
     data_to_write_on_table <= tableControl.saveAppId or tableControl.saveKey1 or tableControl.saveKey2;
 
