@@ -122,8 +122,8 @@ SC_MODULE(hemps) {
 	sc_signal<bool > 									in_opmode_router_seek[N_PE][NPORT_SEEK-1];
 	sc_signal<bool > 									external_fail_in[N_PE][NPORT-1];
 	sc_signal<bool > 									external_fail_out[N_PE][NPORT-1];
-	sc_signal<bool > 									fail_out[N_PE][NPORT-1];
-	sc_signal<bool > 									fail_in[N_PE][NPORT-1];
+	sc_signal<bool > 									access_o[N_PE][NPORT-1];
+	sc_signal<bool > 									access_i[N_PE][NPORT-1];
 	sc_signal<bool > 									out_req_router_seek[N_PE][NPORT_SEEK-1];
 	sc_signal<bool > 									out_ack_router_seek[N_PE][NPORT_SEEK-1];
 	sc_signal<bool > 									out_nack_router_seek[N_PE][NPORT_SEEK-1];
@@ -204,10 +204,8 @@ SC_MODULE(hemps) {
 				PE[j]->rx						[i]	(rx				[j][i]);
 				PE[j]->credit_o					[i]	(credit_o		[j][i]);
 				PE[j]->eop_in					[i]	(eop_in			[j][i]);
-				PE[j]->fail_in					[i]	(fail_in			[j][i]);
-				PE[j]->fail_out					[i]	(fail_out			[j][i]);
-				PE[j]->external_fail_out		[i]	(external_fail_out	[j][i]);
-				PE[j]->external_fail_in			[i]	(external_fail_in	[j][i]);
+				PE[j]->access_i					[i]	(access_i			[j][i]);
+				PE[j]->access_o					[i]	(access_o			[j][i]);
 			}
 			
 			for(i=0;i<NPORT_SEEK-1;i++){
@@ -229,8 +227,8 @@ SC_MODULE(hemps) {
 				PE[j]->out_payload_router_seek	[i]	(out_payload_router_seek		[j][i]);
 			}
 		}
- 		SC_THREAD(fault_injection);
-		sensitive << reset;
+ 		// SC_THREAD(fault_injection);
+		// sensitive << reset;
 
 		SC_METHOD(pes_interconnection);
 		for (j = 0; j < N_PE; j++) {

@@ -49,7 +49,7 @@ port(
 	tx_router				: in  std_logic; 
 	eop_out_router			: in  std_logic; 
  
-	ap						: out std_logic;  
+	change_routing			: out std_logic;  
  
 	-- PE -> AP 
 	enable					: in  std_logic; 
@@ -86,7 +86,7 @@ begin
 	-- Wrapper filters (from local) 
 	access_o <= sz AND (NOT enable); 
  
-	ap 	<=	enable; 
+	change_routing 	<=	enable; 
 	--Output 
 	data_out	<=	data_out_router; 
 	eop_out		<=	eop_out_router; 

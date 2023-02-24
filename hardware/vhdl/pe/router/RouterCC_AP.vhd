@@ -45,7 +45,7 @@ port(
  
  
 	--Packet blocked by wrapper 
-	unreachable				: out regNport; 
+	link_control_message	: out regNport; 
  
 	target                  : out regflit; 
 	source                  : out regflit
@@ -66,8 +66,8 @@ architecture RouterCC_AP of RouterCC_AP is
 	signal credit_i_router     	: regNport;         
 	signal eop_out_router		: regNport; 
  
-	signal ap_rout					:regNport; 
-	signal szCH1					:regNport; 
+	signal change_routing		:regNport; 
+	signal szCH1				:regNport; 
 	signal intAPs				: std_logic_vector(3 downto 0); 
  
 begin 
@@ -91,13 +91,13 @@ begin
 		credit_i                =>	credit_i_router, 
 		eop_out					=>	eop_out_router, 
  
-		ap						=>	ap_rout, 
+		change_routing			=>	change_routing, 
  
 		target                  =>	target, 
 		source                  =>	source 
 	); 
  
-	unreachable <= (access_i OR (sz AND (NOT ap))) AND tx_router; 
+	link_control_message <= (access_i OR (sz AND (NOT ap))) AND tx_router; 
  
 	--Directly connecting local port: 
 	rx_router(LOCAL0) <= rx(LOCAL0); 
@@ -152,7 +152,7 @@ begin
 			credit_i_router			=> credit_i_router(i*2), 
 			tx_router				=> tx_router(i*2), 
 			eop_out_router			=> eop_out_router(i*2), 
-			ap 						=> ap_rout(i*2), 
+			change_routing			=> change_routing(i*2), 
  
 			--Mem Mapped Regs from PE 
 			enable					=> ap(i*2), 
@@ -179,7 +179,7 @@ begin
 		credit_i_router(i*2+1) <= credit_i(i*2+1) OR (szCH1(i*2+1)); 
  
 		access_o(i*2+1)	<= sz(i*2+1); 
-		ap_rout(i*2+1) <= '0'; -- Indicates that there is no AP in this port 
+		change_routing(i*2+1) <= '0'; -- Indicates that there is no AP in this port 
  
 		intAP <= or intAPs; 
  

@@ -30,7 +30,7 @@ public:
     sc_in<regflit >  k2;
     sc_in<regNport > sz;
     sc_in<regNport > ap;
-    sc_out<regNport > unreachable;
+    sc_out<regNport > link_control_message;
 	  sc_in < sc_uint <8 > >  	apThreshold;
     sc_out<bool>              intAP;
 
@@ -62,7 +62,7 @@ public:
        ap("ap"),
        apThreshold("apThreshold"),
        intAP("intAP"),
-       unreachable("unreachable"),
+       link_control_message("link_control_message"),
        target("target"),
        source("source")
     { 

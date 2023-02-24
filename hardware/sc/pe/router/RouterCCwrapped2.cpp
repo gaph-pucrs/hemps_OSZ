@@ -111,12 +111,12 @@ void RouterCCwrapped::upd_sz(){
 
 // void RouterCCwrapped::upd_unreach(){
 // 	int i;
-// 	sc_uint<NPORT > l_sz_unreachable;
+// 	sc_uint<NPORT > l_sz_link_control_message;
 
-// 	l_sz_unreachable = unreachable_internal.read();
+// 	l_sz_link_control_message = link_control_message_internal.read();
 // 	 for(i=0;i<NPORT;i++){
 // 		//modified to add faults
-// 		unreachable[i] = (l_sz_unreachable[i]);
+// 		link_control_message[i] = (l_sz_link_control_message[i]);
 // 	 }
 // }
 

@@ -190,14 +190,14 @@ void fifo_PDN::out_proc_FSM(){
 			break;
 
 			case S_WAIT_ACK:
-				if(in_ack_fifo_seek.read()==true){//confirmação do envio do header
+				if(in_ack_fifo_seek.read()==true){//confirmaï¿½ï¿½o do envio do header
 					EA_out.write(S_WAIT_ACK_DOWN);
 					out_req_pe.write(false);
 				}
 			break;
 			  
 			case S_WAIT_ACK_DOWN:
-				if(in_ack_fifo_seek.read()==false || in_fail_cpu.read() == true){//confirmação do envio de um dado que não é o tail
+				if(in_ack_fifo_seek.read()==false){//confirmaï¿½ï¿½o do envio de um dado que nï¿½o ï¿½ o tail
 					EA_out.write(S_INIT_OUT);
 					
 					if(local_first==(BUFFER_TAM_FIFO_PDN - 1))

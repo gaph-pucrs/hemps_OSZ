@@ -21,7 +21,7 @@ void pe::mem_mapped_registers(){
 	
 	if(l_cpu_mem_address_reg.range(30,28 ) == 1){
 
-		in_sel_reg_backtrack_seek_local.write(0);
+		in_sel_reg_backtrack_fifoPDN.write(0);
 
 	} else{
 
@@ -59,7 +59,7 @@ void pe::mem_mapped_registers(){
 				int_seek.write(0);
 				int_dmni_seek.write(0);
 				if(cpu_mem_write_byte_enable_reg.read() == 0){
-					in_ack_router_seek_local.write(1);
+					in_ack_fifopdn.write(1);
 				}
 			break;
 			case SEEK_SOURCE_REGISTER:
@@ -73,7 +73,7 @@ void pe::mem_mapped_registers(){
 				cpu_mem_data_read.write(in_cpu_opmode_seek.read());
 			break;
 			case SEEK_BACKTRACK:
-				cpu_mem_data_read.write(out_reg_backtrack_seek_local.read());
+				cpu_mem_data_read.write(out_reg_backtrack_fifoPDN.read());
 				// in_sel_reg_backtrack_seek_local.write(0);
 			break;
 			case APP_ID_REG:
@@ -147,7 +147,7 @@ void pe::comb_assignments(){
 	//warning using same signal to read and write
 	dmni_timeout_ni.write((((cpu_mem_address_reg.read() == DMNI_TIMEOUT_SIGNAL) && (write_enable.read() == 1))) ? 0  : dmni_timeout_ni.read() );
 
-	in_sel_reg_backtrack_seek_local.write((((cpu_mem_address_reg.read() == SEEK_BACKTRACK_REG_SEL) && (write_enable.read() == 1))) ? cpu_mem_data_write.read()(1,0) : in_sel_reg_backtrack_seek_local.read() );
+	in_sel_reg_backtrack_fifoPDN.write((((cpu_mem_address_reg.read() == SEEK_BACKTRACK_REG_SEL) && (write_enable.read() == 1))) ? cpu_mem_data_write.read()(1,0) : in_sel_reg_backtrack_fifoPDN.read() );
 	
 	dmni_data_read.write( cpu_mem_data_write_reg.read());
 	//dmni_mem_data_read.write( (dmni_enable_internal_ram.read() == 1) ? mem_data_read.read()  : data_read.read() );
@@ -168,10 +168,6 @@ void pe::comb_assignments(){
 	l_irq_status[0] = (!dmni_send_active_sig.read() && pending_service.read());
 	
 	irq_status.write(l_irq_status);
-	// result_rx = rx_ni & mask_local_tx_output_local;
-	result_rx = rx_ni;
-
-
 }
 
 void pe::sequential_attr(){
@@ -456,7 +452,7 @@ void pe::log_process(){
 	}
 }
 
-void pe::wrapper_register_handle(){
+void pe::access_point_reg(){
 	sc_uint<NPORT > l_wrapper_reg;
  	sc_uint<NPORT > l_ap_mask;
 
@@ -490,7 +486,7 @@ void pe::wrapper_register_handle(){
 void pe::seek_access(){
 	//triggers SEEK MODULE with
 	if ((cpu_mem_address_reg.read() == SEEK_SERVICE_REGISTER) and (write_enable.read()==1) ) {
-		in_service_router_seek_local.write(cpu_mem_data_write_reg.read());
+		in_service_seek_slc.write(cpu_mem_data_write_reg.read());
 	}
 	if ((cpu_mem_address_reg.read() == SEEK_SOURCE_REGISTER) and (write_enable.read()==1) ) {
 		MEM_source[10].write(cpu_mem_data_write_reg.read());
@@ -509,65 +505,15 @@ void pe::seek_access(){
 	}
 }
 
-// void pe::seek_fault_middle_packet(){
-// 		regNport local_rot_table;
-// 		int i,j;
-	
-// 	int addr = w_addr.read();
-// 	for(i=0;i<NPORT;i++){
-// 		local_rot_table = rot_table[i].read();
-// 		if(local_rot_table != 0){
-// 			for(j=0;j<NPORT;j++){
-// 				// if((local_rot_table[j] & router_fail_in[j].read()) == 1  && MEM_waiting[j].read() == 0){
-// 				if((local_rot_table[j] & router_fail_in[j].read() & (~ap_mask[j].read())) == 1 ){ // Se o roteamento aponta para uma porta que esteja bloqueada - gerar UNREACHABLE
-// 					MEM_waiting[j].write(1);
-// 				}
-// 				else if ((local_rot_table[j] & router_fail_in[j].read()) == 0)
-// 				{
-// 					MEM_waiting[j].write(0);
-// 				}
-// 			}
-// 		}
-// 	}
-// }
-
-	
-// //this function stores source target destinations for each port in the router
-// void pe::src_tgt_control(){
-// 	int addr = w_addr.read();
-// 	if(w_source_target.read() == 1){//a packet is routed
-// 		MEM_source[addr].write(source.read());
-// 		MEM_target[addr].write(target.read());
-// 	}
-// }
-// void pe::waiting_seek_trigger(){ // Analisar essa parte P/ vhdl
-// 	waiting_seek.write(		(MEM_waiting[0].read() & router_fail_in[0].read()) |
-// 							(MEM_waiting[1].read() & router_fail_in[1].read()) |
-// 							(MEM_waiting[2].read() & router_fail_in[2].read()) |
-// 							(MEM_waiting[3].read() & router_fail_in[3].read()) |
-// 							(MEM_waiting[4].read() & router_fail_in[4].read()) |
-// 							(MEM_waiting[5].read() & router_fail_in[5].read()) |
-// 							(MEM_waiting[6].read() & router_fail_in[6].read()) |
-// 							(MEM_waiting[7].read() & router_fail_in[7].read()) |
-// 						// ((MEM_waiting[8].read() | MEM_waiting[9].read()) & router_fail_in[4].read()) |
-// 						MEM_waiting[10].read()
-// 					  );
-// }
-/*
-description: reads MEM_waiting signal. If this signal is set AND there is a fault in the channel
-(in_failed_router_seek), trigger a target_unreachable_service to the seek network
-if it was to local port, triggers seek interruption
-*/
-
 void pe::seek_send(){
 	int i;
 	//down the req
-	if ((out_ack_router_seek_local.read() == 1)) {
-		in_req_router_seek_local.write(0);
+	if ((out_ack_seek_slc.read() == 1)) {
+		in_req_seek_slc.write(0);
 		MEM_waiting[MEM_index_forwarded.read()].write(0);
 	}
-	if ((out_nack_router_seek_local.read() == 1)) {
-		in_req_router_seek_local.write(0);
+	if ((out_nack_seek_slc.read() == 1)) {
+		in_req_seek_slc.write(0);
 		MEM_waiting[10].write(1);
 	}
 	else{
@@ -580,11 +526,11 @@ void pe::seek_send(){
 					   		cout << " MUST wait req down to send to " << MEM_source[10].read() << endl;
 				}	
 				// in_service_router_seek_local.write(MEM_source[10].read());
-				in_target_router_seek_local.write(MEM_target[10].read());
-				in_source_router_seek_local.write(MEM_source[10].read());
-				in_payload_router_seek_local.write(MEM_payload[10].read());
-				in_opmode_router_seek_local.write(MEM_opmode[10].read());
-				in_req_router_seek_local.write(1);
+				in_target_seek_slc.write(MEM_target[10].read());
+				in_source_seek_slc.write(MEM_source[10].read());
+				in_payload_seek_slc.write(MEM_payload[10].read());
+				in_opmode_seek_slc.write(MEM_opmode[10].read());
+				in_req_seek_slc.write(1);
 				MEM_waiting[10].write(0);	
 			}
 			else{//checks all other ports
@@ -592,15 +538,13 @@ void pe::seek_send(){
 				for (i=0;i<9; i++){
 					// 	if(w_addr.read() == i){
 						if(MEM_waiting[i].read() == 1){
-							in_service_router_seek_local.write(2);//2 is the TARGET_UNREACHABLE_SERVICE
-							in_source_router_seek_local.write((MEM_target[i].read() << 16) | MEM_source[i].read());
-							in_target_router_seek_local.write(MEM_source[i].read());
+							in_service_seek_slc.write(2);//2 is the TARGET_UNREACHABLE_SERVICE
+							in_source_seek_slc.write((MEM_target[i].read() << 16) | MEM_source[i].read());
+							in_target_seek_slc.write(MEM_source[i].read());
 							MEM_index_forwarded.write(i);
-							// (MEM_target[i].range(11,8) << 4) | MEM_target[i].range(3,0);
-							in_payload_router_seek_local.write((MEM_target[i].read()(11,8) << 4) | MEM_target[i].read()(3,0));
-							in_opmode_router_seek_local.write(MEM_opmode[10].read());
-							in_req_router_seek_local.write(1);
-							// MEM_waiting[i].write(0);
+							in_payload_seek_slc.write((MEM_target[i].read()(11,8) << 4) | MEM_target[i].read()(3,0));
+							in_opmode_seek_slc.write(MEM_opmode[10].read());
+							in_req_seek_slc.write(1);
 							break;
 						}
 				}
@@ -614,7 +558,7 @@ void pe::seek_receive(){
 	if(reset.read()==1){
 		int_seek.write(0);
 		int_dmni_seek.write(0);
-		in_ack_router_seek_local.write(0);
+		in_ack_fifopdn.write(0);
 		in_cpu_service_seek.write(0);
 		in_cpu_source_seek.write(0);
 		in_cpu_target_seek.write(0);
@@ -622,17 +566,17 @@ void pe::seek_receive(){
 		in_cpu_opmode_seek.write(0);
 	}
 	else{
-		if (out_req_router_seek_local.read() == 1 && out_service_router_seek_local.read() != 0x3){
-			if (in_ack_router_seek_local.read() == 0 && int_seek.read()==0 && int_dmni_seek.read() == 0){
+		if (out_req_fifopdn.read() == 1 && out_service_fifopdn.read() != 0x3){
+			if (in_ack_fifopdn.read() == 0 && int_seek.read()==0 && int_dmni_seek.read() == 0){
 				cout << "router ";
 				cout << hex << router_address;
 				cout << ": received service ";
-				in_cpu_service_seek.write(out_service_router_seek_local.read());
-				in_cpu_source_seek.write(out_source_router_seek_local.read());
-				in_cpu_target_seek.write(out_target_router_seek_local.read());
-				in_cpu_payload_seek.write(out_payload_router_seek_local.read());
-				in_cpu_opmode_seek.write(out_opmode_router_seek_local.read());
-				switch (out_service_router_seek_local.read()){
+				in_cpu_service_seek.write(out_service_fifopdn.read());
+				in_cpu_source_seek.write(out_source_fifopdn.read());
+				in_cpu_target_seek.write(out_target_fifopdn.read());
+				in_cpu_payload_seek.write(out_payload_fifopdn.read());
+				in_cpu_opmode_seek.write(out_opmode_fifopdn.read());
+				switch (out_service_fifopdn.read()){
 					case 0X1:
 						cout << "START APP SERVICE";
 						int_seek.write(1);
@@ -655,9 +599,9 @@ void pe::seek_receive(){
 					case 0x6:
 						cout << "END TASK SERVICE";
 						cout << " Id ";
-						cout << hex << out_payload_router_seek_local.read();
+						cout << hex << out_payload_fifopdn.read();
 						cout << " from ";
-						cout << hex << out_source_router_seek_local.read();
+						cout << hex << out_service_fifopdn.read();
 						int_seek.write(1);
 					break;
 					case 0x7:
@@ -785,48 +729,19 @@ void pe::seek_receive(){
 						int_seek.write(1);
 					break;		
 					default:
-						cout << out_service_router_seek_local.read() << " unknown --- ERROR! " ;
-						in_ack_router_seek_local.write(1);
+						cout << out_service_fifopdn.read() << " unknown --- ERROR! " ;
+						in_ack_fifopdn.write(1);
 					break;
 				}
 				cout << " time:" << sc_time_stamp() << endl;
-				// in_ack_router_seek_local.write(1);
 			}
 		}
 		else{
-			if (in_ack_router_seek_local.read() == 1){
-				in_ack_router_seek_local.write(0);
+			if (in_ack_fifopdn.read() == 1){
+				in_ack_fifopdn.write(0);
 			}
 		}
 	}
-}
-
-// void pe::fail_in_generation(){ // analisar a tranferência p/ VHDL
-// 	for(i=0;i<NPORT-1;i++){
-// 		// router_fail_in[i].write(unreachable[i].read());
-// 	}
-// }
-
-void pe::trigger_unreachable(){
-	int i;
-	// if ((out_ack_router_seek_local.read() == 1)) {
-	// 	in_req_router_seek_local.write(0);
-	// }if ((out_nack_router_seek_local.read() == 1)) {
-	// 	in_req_router_seek_local.write(0);
-	// }
-	// else if (in_req_router_seek_local.read() == 0){
-	// 	for(i=0;i<NPORT-1;i++){
-	// 		if (unreachable.read()[i] == 1){
-	// 			in_service_router_seek_local.write(2);//2 is the TARGET_UNREACHABLE_SERVICE
-	// 			in_source_router_seek_local.write((target.read() << 16) | source.read());
-	// 			in_target_router_seek_local.write(source.read());
-	// 			in_payload_router_seek_local.write((target.read()(11,8) << 4) | target.read()(3,0));
-	// 			in_opmode_router_seek_local.write(MEM_opmode[10].read()); //? hard code opmode
-	// 			in_req_router_seek_local.write(1);
-	// 			break;
-	// 		}
-	// 	}
-	// }
 }
 
 void pe::clock_stop(){
@@ -843,13 +758,6 @@ void pe::clock_stop(){
 		clock_aux.write(true);
 	}
 
-	// if(cpu_mem_address_reg.read() == CLOCK_HOLD_WAIT_KERNEL){
-	// 	clock_wait_kernel.write(0);
-	// }
-	// else{
-	// 	clock_wait_kernel.write(1);
-	 //}
-	
 	if((clock.read() && clock_aux.read() && clock_wait_kernel.read()) == true){
 		tick_counter_local.write((tick_counter_local.read() + 1) );
 	}

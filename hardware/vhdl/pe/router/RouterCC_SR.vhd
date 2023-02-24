@@ -74,7 +74,7 @@ port(
 	credit_i                :  in regNport;
 	eop_out					: out regNport;
 
-	ap						: in regNport;
+	change_routing			: in regNport;
 
 	target                  : out regflit;
 	source                  : out regflit
@@ -123,7 +123,7 @@ begin
 			credit_in 		=> data_ack(i),
 			next_flit 		=> next_flit(i),
 			credit_out 		=> credit_o(i),
-			fail_in			=> ap(i)
+			change_routing	=> change_routing(i)
 			);
 	end generate ; -- fifo_generation
 

@@ -29,7 +29,7 @@ SC_MODULE(RouterCCwrapped) {
 		sc_in<sc_uint<8 > >		apThreshold;
 		sc_out<bool>            intAP;
 
-		sc_out<regNport > 		unreachable;
+		sc_out<regNport > 		link_control_message;
 
 		sc_out<regflit> 			source;
 		sc_out<regflit> 			target;
@@ -46,7 +46,7 @@ SC_MODULE(RouterCCwrapped) {
 		sc_signal<regNport > credit_i_internal;
 		sc_signal<regNport > ap_internal;
 		sc_signal<regNport > sz_internal;
-		sc_signal<regNport > unreachable_internal;
+		sc_signal<regNport > link_control_message_internal;
 		sc_signal<regNport > access_i_internal;
 		sc_signal<regNport > access_o_internal;
 		sc_signal<bool > intAP_internal;
@@ -139,7 +139,7 @@ SC_MODULE(RouterCCwrapped) {
 				router->credit_i(credit_i_internal);
 				router->ap(ap_internal);
 				router->sz(sz_internal);
-				router->unreachable(unreachable);
+				router->link_control_message(link_control_message);
 			#else
 				router->reset(reset);
 				router->clock(clock);
@@ -216,9 +216,9 @@ SC_MODULE(RouterCCwrapped) {
 			// 	sensitive << k1 << k2;
 
 			// SC_METHOD(upd_unreach);
-			// sensitive << unreachable_internal;
+			// sensitive << link_control_message_internal;
 			// for (i = 0; i < NPORT; i++){
-			// 	sensitive << unreachable[i];
+			// 	sensitive << link_control_message[i];
 			// }
 
 			//output

@@ -13,29 +13,29 @@ public:
 		sc_in<sc_uint<32 > > in_tick_counter;
 		#endif
 
-		sc_in<reg_seek_source >					 in_source_router_seek[NPORT_SEEK];
-		sc_in<reg_seek_target >					 in_target_router_seek[NPORT_SEEK];
-		sc_in<reg_seek_payload >					in_payload_router_seek[NPORT_SEEK];
-		sc_in<reg_seek_service >					in_service_router_seek[NPORT_SEEK];
-		sc_in<sc_uint<NPORT_SEEK> >			 in_req_router_seek;
-		sc_in<sc_uint<NPORT_SEEK> >			 in_ack_router_seek;
-		sc_in<sc_uint<NPORT_SEEK> >			 in_nack_router_seek;
-		sc_in<sc_uint<NPORT_SEEK> >			 in_fail_router_seek;
-		sc_in<sc_uint<NPORT_SEEK> >			 in_opmode_router_seek;
-		sc_out<sc_uint<NPORT_SEEK> >			out_req_router_seek;
-		sc_out<sc_uint<NPORT_SEEK> >			out_ack_router_seek;
-		sc_out<sc_uint<NPORT_SEEK> >			out_nack_router_seek;
-		sc_out<sc_uint<NPORT_SEEK> >			out_opmode_router_seek;
-		sc_out<reg_seek_service >				 out_service_router_seek[NPORT_SEEK];
-		sc_out<reg_seek_source >					out_source_router_seek[NPORT_SEEK];
-		sc_out<reg_seek_target >					out_target_router_seek[NPORT_SEEK];
-		sc_out<reg_seek_payload >				 out_payload_router_seek[NPORT_SEEK];
+		sc_in<reg_seek_source >			in_source_router_seek[NPORT_SEEK];
+		sc_in<reg_seek_target >			in_target_router_seek[NPORT_SEEK];
+		sc_in<reg_seek_payload >		in_payload_router_seek[NPORT_SEEK];
+		sc_in<reg_seek_service >		in_service_router_seek[NPORT_SEEK];
+		sc_in<sc_uint<NPORT_SEEK> >		in_req_router_seek;
+		sc_in<sc_uint<NPORT_SEEK> >		in_ack_router_seek;
+		sc_in<sc_uint<NPORT_SEEK> >		in_nack_router_seek;
+		sc_in<sc_uint<NPORT_SEEK> >		in_fail_router_seek;
+		sc_in<sc_uint<NPORT_SEEK> >		in_opmode_router_seek;
+		sc_out<sc_uint<NPORT_SEEK> >	out_req_router_seek;
+		sc_out<sc_uint<NPORT_SEEK> >	out_ack_router_seek;
+		sc_out<sc_uint<NPORT_SEEK> >	out_nack_router_seek;
+		sc_out<sc_uint<NPORT_SEEK> >	out_opmode_router_seek;
+		sc_out<reg_seek_service >		out_service_router_seek[NPORT_SEEK];
+		sc_out<reg_seek_source >		out_source_router_seek[NPORT_SEEK];
+		sc_out<reg_seek_target >		out_target_router_seek[NPORT_SEEK];
+		sc_out<reg_seek_payload >		out_payload_router_seek[NPORT_SEEK];
 
-		sc_in<sc_uint<2> >								in_sel_reg_backtrack_seek;
-		sc_out<sc_uint<32> >							out_reg_backtrack_seek;
-		sc_in<reg_seek_target >								in_AppID_reg;
-		sc_out<bool >										 out_req_send_kernel_seek;
-		sc_in<bool >											in_ack_send_kernel_seek;
+		sc_in<sc_uint<2> >				in_sel_reg_backtrack_seek;
+		sc_out<sc_uint<32> >			out_reg_backtrack_seek;
+		sc_in<reg_seek_target >			in_AppID_reg;
+		sc_out<bool >					out_req_send_kernel_seek;
+		sc_in<bool >					in_ack_send_kernel_seek;
 
 		router_seek(sc_module_name nm, const char* hdl_name,
 			 int num_generics, const char** generic_list)

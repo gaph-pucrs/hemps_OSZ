@@ -131,76 +131,76 @@ int hemps::test_faults_inserted(int nbr_faults){
 	return 1;
 }
 
-void hemps::fault_injection(){
-	FILE *fp;
-	char line[100];
-	char port[10];
-	// #define MAX_FAULTS 10
-	// struct struct_faults{
-	// 	int pe[MAX_FAULTS];
-	// 	int port[MAX_FAULTS];
-	// 	int time[MAX_FAULTS];
-	// }faults;
-	int nbr_faults;
+// void hemps::fault_injection(){
+// 	FILE *fp;
+// 	char line[100];
+// 	char port[10];
+// 	// #define MAX_FAULTS 10
+// 	// struct struct_faults{
+// 	// 	int pe[MAX_FAULTS];
+// 	// 	int port[MAX_FAULTS];
+// 	// 	int time[MAX_FAULTS];
+// 	// }faults;
+// 	int nbr_faults;
 
-	sc_time t_1micro(1,SC_US);
-	sc_time t_FAULT;
+// 	sc_time t_1micro(1,SC_US);
+// 	sc_time t_FAULT;
 
-	int i;
+// 	int i;
 
-	fp = fopen ("faults", "r");
+// 	fp = fopen ("faults", "r");
 
-	if (fp != NULL){
+// 	if (fp != NULL){
 
 
-		i=0;
-		while(fgets(line, 100, fp) != NULL){
+// 		i=0;
+// 		while(fgets(line, 100, fp) != NULL){
 			
-			//TODO: add the option 'in' and 'out' in faults model
-			if(line[0]!='#'){//character # acts as comment
-				//cout << "inserting faults:\n";
-				sscanf(line,"%d %s %d",&faults.pe[i], port, &faults.time[i]);
-				switch(port[0]){//in fact I will just check the first letter
-					case 'E': faults.port[i] = 0;//EAST
-					break;
-					case 'W': faults.port[i] = 2;//WEST
-					break;
-					case 'N': faults.port[i] = 4;//NORTH
-					break;
-					default: faults.port[i] = 6; //SOUTH
-					break;
-				}
-				if(port[1]=='1'){
-					faults.port[i]++;
-				}
-				printf("pe:%d;port:%d;time:%d\n",faults.pe[i], faults.port[i], faults.time[i]);
-				i++;
-			}
-		}
+// 			//TODO: add the option 'in' and 'out' in faults model
+// 			if(line[0]!='#'){//character # acts as comment
+// 				//cout << "inserting faults:\n";
+// 				sscanf(line,"%d %s %d",&faults.pe[i], port, &faults.time[i]);
+// 				switch(port[0]){//in fact I will just check the first letter
+// 					case 'E': faults.port[i] = 0;//EAST
+// 					break;
+// 					case 'W': faults.port[i] = 2;//WEST
+// 					break;
+// 					case 'N': faults.port[i] = 4;//NORTH
+// 					break;
+// 					default: faults.port[i] = 6; //SOUTH
+// 					break;
+// 				}
+// 				if(port[1]=='1'){
+// 					faults.port[i]++;
+// 				}
+// 				printf("pe:%d;port:%d;time:%d\n",faults.pe[i], faults.port[i], faults.time[i]);
+// 				i++;
+// 			}
+// 		}
 
-		nbr_faults = i;
+// 		nbr_faults = i;
 
-		while(1){
-			for (int i=0; i<nbr_faults; i++){
-				t_FAULT = (sc_time) t_1micro * faults.time[i] - t_1micro;//the simulation time differs in 1 us
-				if(sc_time_stamp() > t_FAULT){
-					cout << t_FAULT;
-					external_fail_in	[faults.pe[i]][faults.port[i]].write(1);
-					external_fail_out	[faults.pe[i]][faults.port[i]].write(1);
-					printf(" INSERTING FAULT = pe:%d;port:%d;time:%d\n",faults.pe[i], faults.port[i], faults.time[i]);
-				}
+// 		while(1){
+// 			for (int i=0; i<nbr_faults; i++){
+// 				t_FAULT = (sc_time) t_1micro * faults.time[i] - t_1micro;//the simulation time differs in 1 us
+// 				if(sc_time_stamp() > t_FAULT){
+// 					cout << t_FAULT;
+// 					external_fail_in	[faults.pe[i]][faults.port[i]].write(1);
+// 					external_fail_out	[faults.pe[i]][faults.port[i]].write(1);
+// 					printf(" INSERTING FAULT = pe:%d;port:%d;time:%d\n",faults.pe[i], faults.port[i], faults.time[i]);
+// 				}
 
-			}
-			if(test_faults_inserted(nbr_faults)==1){
-				break;
-			}
-			else{
-				wait(1, SC_US);
-			}
-		}
-	}
+// 			}
+// 			if(test_faults_inserted(nbr_faults)==1){
+// 				break;
+// 			}
+// 			else{
+// 				wait(1, SC_US);
+// 			}
+// 		}
+// 	}
 
-}
+// }
 
 void hemps::io_interconnection(){
 
@@ -321,8 +321,8 @@ void hemps::pes_interconnection(){
 				//in_ack_router_seek		[i][EAST].write(1);
 				in_nack_router_seek		[i][EAST].write(sig_in_nack_router_seek_io[io_count].read());
 				in_opmode_router_seek	[i][EAST].write(sig_in_opmode_router_seek_io[io_count].read());
-				fail_in 				[i][EAST0].write(sig_fail_in_io[io_count].read());
-				fail_in 				[i][EAST1].write(0);
+				access_i 				[i][EAST0].write(sig_fail_in_io[io_count].read());
+				access_i 				[i][EAST1].write(0);
 				sig_out_req_router_seek_io[io_count].write(out_req_router_seek[i][EAST].read());
 				sig_out_ack_router_seek_io[io_count].write(out_ack_router_seek[i][EAST].read());
 				sig_out_nack_router_seek_io[io_count].write(out_nack_router_seek[i][EAST].read());
@@ -356,8 +356,8 @@ void hemps::pes_interconnection(){
 				in_ack_router_seek		[i][EAST].write(1);
 				in_nack_router_seek		[i][EAST].write(0);
 				in_opmode_router_seek	[i][EAST].write(0);
-				fail_in 				[i][EAST0].write(0);
-				fail_in 				[i][EAST1].write(0);
+				access_i 				[i][EAST0].write(0);
+				access_i 				[i][EAST1].write(0);
 			#else
  			credit_i[i][EAST].write(0);
  			clock_rx[i][EAST].write(0);
@@ -385,8 +385,8 @@ void hemps::pes_interconnection(){
 				in_ack_router_seek		[i][EAST].write(out_ack_router_seek		[i+1][WEST].read());
 				in_nack_router_seek		[i][EAST].write(out_nack_router_seek	[i+1][WEST].read());
 				in_opmode_router_seek	[i][EAST].write(out_opmode_router_seek	[i+1][WEST].read());
-				fail_in 				[i][EAST0].write(fail_out 				[i+1][WEST0].read());
-				fail_in 				[i][EAST1].write(fail_out 				[i+1][WEST1].read());
+				access_i 				[i][EAST0].write(access_o 				[i+1][WEST0].read());
+				access_i 				[i][EAST1].write(access_o 				[i+1][WEST1].read());
 			#else
  			credit_i[i][EAST].write(credit_o[i+1][WEST].read());
  			clock_rx[i][EAST].write(clock_tx[i+1][WEST].read());
@@ -426,8 +426,8 @@ void hemps::pes_interconnection(){
 				in_ack_router_seek		[i][WEST].write(sig_in_ack_router_seek_io[io_count].read());
 				in_nack_router_seek		[i][WEST].write(sig_in_nack_router_seek_io[io_count].read());
 				in_opmode_router_seek	[i][WEST].write(sig_in_opmode_router_seek_io[io_count].read());
-				fail_in 				[i][WEST0].write(sig_fail_in_io[io_count].read());
-				fail_in 				[i][WEST1].write(0);
+				access_i 				[i][WEST0].write(sig_fail_in_io[io_count].read());
+				access_i 				[i][WEST1].write(0);
 				sig_out_req_router_seek_io[io_count].write(out_req_router_seek[i][WEST].read());
 				sig_out_ack_router_seek_io[io_count].write(out_ack_router_seek[i][WEST].read());
 				sig_out_nack_router_seek_io[io_count].write(out_nack_router_seek[i][WEST].read());
@@ -461,8 +461,8 @@ void hemps::pes_interconnection(){
 				in_ack_router_seek		[i][WEST].write(1);
 				in_nack_router_seek		[i][WEST].write(0);
 				in_opmode_router_seek	[i][WEST].write(0);
-				fail_in 				[i][WEST0].write(0);
-				fail_in 				[i][WEST1].write(0);
+				access_i 				[i][WEST0].write(0);
+				access_i 				[i][WEST1].write(0);
 			#else
  			credit_i[i][WEST].write(0);
  			clock_rx[i][WEST].write(0);
@@ -490,8 +490,8 @@ void hemps::pes_interconnection(){
 				in_ack_router_seek		[i][WEST].write(out_ack_router_seek		[i-1][EAST]);
 				in_nack_router_seek		[i][WEST].write(out_nack_router_seek	[i-1][EAST]);
 				in_opmode_router_seek	[i][WEST].write(out_opmode_router_seek	[i-1][EAST]);
-				fail_in 				[i][WEST0].write(fail_out 				[i-1][EAST0]);
-				fail_in 				[i][WEST1].write(fail_out 				[i-1][EAST1]);
+				access_i 				[i][WEST0].write(access_o 				[i-1][EAST0]);
+				access_i 				[i][WEST1].write(access_o 				[i-1][EAST1]);
 			#else
 			credit_i[i][WEST].write(credit_o[i-1][EAST].read());
  			clock_rx[i][WEST].write(clock_tx[i-1][EAST].read());
@@ -531,8 +531,8 @@ void hemps::pes_interconnection(){
 				in_ack_router_seek		[i][NORTH].write(sig_in_ack_router_seek_io[io_count].read());
 				in_nack_router_seek		[i][NORTH].write(sig_in_nack_router_seek_io[io_count].read());
 				in_opmode_router_seek	[i][NORTH].write(sig_in_opmode_router_seek_io[io_count].read());
-				fail_in 				[i][NORTH0].write(sig_fail_in_io[io_count].read());
-				fail_in 				[i][NORTH1].write(0);
+				access_i 				[i][NORTH0].write(sig_fail_in_io[io_count].read());
+				access_i 				[i][NORTH1].write(0);
 				sig_out_req_router_seek_io[io_count].write(out_req_router_seek[i][NORTH].read());
 				sig_out_ack_router_seek_io[io_count].write(out_ack_router_seek[i][NORTH].read());
 				sig_out_nack_router_seek_io[io_count].write(out_nack_router_seek[i][NORTH].read());
@@ -565,8 +565,8 @@ void hemps::pes_interconnection(){
 				in_ack_router_seek		[i][NORTH].write(1);
 				in_nack_router_seek		[i][NORTH].write(0);
 				in_opmode_router_seek	[i][NORTH].write(0);
-				fail_in 				[i][NORTH0].write(0);
-				fail_in 				[i][NORTH1].write(0);
+				access_i 				[i][NORTH0].write(0);
+				access_i 				[i][NORTH1].write(0);
 			#else
  			credit_i[i][NORTH].write(1);
  			clock_rx[i][NORTH].write(0);
@@ -594,8 +594,8 @@ void hemps::pes_interconnection(){
 				in_ack_router_seek		[i][NORTH].write(out_ack_router_seek		[i+N_PE_X][SOUTH].read());
 				in_nack_router_seek		[i][NORTH].write(out_nack_router_seek		[i+N_PE_X][SOUTH].read());
 				in_opmode_router_seek	[i][NORTH].write(out_opmode_router_seek		[i+N_PE_X][SOUTH].read());
-				fail_in 				[i][NORTH0].write(fail_out 					[i+N_PE_X][SOUTH0].read());
-				fail_in 				[i][NORTH1].write(fail_out 					[i+N_PE_X][SOUTH1].read());
+				access_i 				[i][NORTH0].write(access_o 					[i+N_PE_X][SOUTH0].read());
+				access_i 				[i][NORTH1].write(access_o 					[i+N_PE_X][SOUTH1].read());
 			#else
 			credit_i[i][NORTH].write(credit_o[i+N_PE_X][SOUTH].read());
  			clock_rx[i][NORTH].write(clock_tx[i+N_PE_X][SOUTH].read());
@@ -634,8 +634,8 @@ void hemps::pes_interconnection(){
 				in_ack_router_seek		[i][SOUTH].write(sig_in_ack_router_seek_io[io_count].read());
 				in_nack_router_seek		[i][SOUTH].write(sig_in_nack_router_seek_io[io_count].read());
 				in_opmode_router_seek	[i][SOUTH].write(sig_in_opmode_router_seek_io[io_count].read());
-				fail_in 				[i][SOUTH0].write(sig_fail_in_io[io_count].read());
-				fail_in 				[i][SOUTH1].write(0);
+				access_i 				[i][SOUTH0].write(sig_fail_in_io[io_count].read());
+				access_i 				[i][SOUTH1].write(0);
 				sig_out_req_router_seek_io[io_count].write(out_req_router_seek[i][SOUTH].read());
 				sig_out_ack_router_seek_io[io_count].write(out_ack_router_seek[i][SOUTH].read());
 				sig_out_nack_router_seek_io[io_count].write(out_nack_router_seek[i][SOUTH].read());
@@ -668,8 +668,8 @@ void hemps::pes_interconnection(){
 				in_ack_router_seek		[i][SOUTH].write(1);
 				in_nack_router_seek		[i][SOUTH].write(0);
 				in_opmode_router_seek		[i][SOUTH].write(0);
-				fail_in 				[i][SOUTH0].write(0);
-				fail_in 				[i][SOUTH1].write(0);
+				access_i 				[i][SOUTH0].write(0);
+				access_i 				[i][SOUTH1].write(0);
 			#else
  			credit_i[i][SOUTH].write(0);
  			clock_rx[i][SOUTH].write(0);
@@ -697,8 +697,8 @@ void hemps::pes_interconnection(){
 				in_ack_router_seek		[i][SOUTH].write(out_ack_router_seek		[i-N_PE_X][NORTH].read());
 				in_nack_router_seek		[i][SOUTH].write(out_nack_router_seek		[i-N_PE_X][NORTH].read());
 				in_opmode_router_seek	[i][SOUTH].write(out_opmode_router_seek		[i-N_PE_X][NORTH].read());
-				fail_in 				[i][SOUTH0].write(fail_out 					[i-N_PE_X][NORTH0].read());
-				fail_in 				[i][SOUTH1].write(fail_out 					[i-N_PE_X][NORTH1].read());
+				access_i 				[i][SOUTH0].write(access_o 					[i-N_PE_X][NORTH0].read());
+				access_i 				[i][SOUTH1].write(access_o 					[i-N_PE_X][NORTH1].read());
 			#else
 			credit_i[i][SOUTH].write(credit_o[i-N_PE_X][NORTH].read());
  			clock_rx[i][SOUTH].write(clock_tx[i-N_PE_X][NORTH].read());

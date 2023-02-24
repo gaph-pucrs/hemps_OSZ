@@ -99,10 +99,10 @@ for pe in range(0,max_pe):
 	group_pe_signals_sds = ['irq','int_seek','irq_mask_reg','irq_status','cpu/mem_address','cpu/mem_byte_we','cpu/mem_data_r','cpu/mem_data_w','cpu/page','ap_mask']
 	for it in map(lambda sd: group_pe_signals_pfx + sd,group_pe_signals_sds):
 		print (it)
-	#faults signals
-	group_faults_signals_pfx = "add wave -noupdate -group {%s %dx%d - %d} -group faults /test_bench/HeMPS/%s%dx%d/" % (pe_type_str, posX, posY, pe, pe_type_str, posX, posY)
-	group_faults_signals_sds = ['clock','external_fail_in','external_fail_out','fail_in','fail_out','router_fail_in','router_fail_out','unreachable']
-	for it in map(lambda sd: group_faults_signals_pfx + sd,group_faults_signals_sds):
+	#security signals
+	group_security_signals_pfx = "add wave -noupdate -group {%s %dx%d - %d} -group security /test_bench/HeMPS/%s%dx%d/" % (pe_type_str, posX, posY, pe, pe_type_str, posX, posY)
+	group_security_signals_sds = ['clock','access_i','access_o', 'link_control_message']
+	for it in map(lambda sd: group_security_signals_pfx + sd,group_security_signals_sds):
 		print (it)
 
 	for port in range(0,5):
@@ -535,7 +535,7 @@ for snip_idx in range(0, snip_number):
 	for it in map(lambda sd: snip_builder_ctrl_payload_pfx + sd, snip_builder_ctrl_payload_sds):
 		print (it) 
 
-print ("TreeUpdate [SetDefaultTree]\n\
+print ("TreeUpdate [SetDesecurityTree]\n\
 WaveRestoreCursors {{Cursor 1} {10 ps} 0}\n\
 quietly wave cursor active 1\n\
 configure wave -namecolwidth 242\n\

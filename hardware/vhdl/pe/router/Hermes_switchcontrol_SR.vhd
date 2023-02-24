@@ -92,7 +92,7 @@ alias sr_port_0:std_logic_vector(1 downto 0)    is header(TAM_FLIT_32-7 downto T
 begin
 
 	--signals for writing source target pair
-	source <= "00" & Xsource & "00" & Ysource;
+	source <= header_fixed(TAM_FLIT_32-1 downto FLIT16);
 	target <= header_fixed(FLIT16-1 downto 0);
 	target_internal	<= "000" & header(12 downto 8) & "000" & header(4 downto 0);
 	--input port

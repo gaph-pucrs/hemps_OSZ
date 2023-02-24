@@ -55,8 +55,8 @@ end Seek_Local_Controller;
  
 architecture Seek_Local_Controller of Seek_Local_Controller is 
 
-	signal reg_target	:regflit;
-	signal reg_source	:regflit;
+	signal reg_target		:regflit;
+	signal reg_source		:regflit;
 	signal ask_unr,sending	:std_logic;
 	signal ORunr_service	:std_logic;
 	signal prev_unreach		:regNport;

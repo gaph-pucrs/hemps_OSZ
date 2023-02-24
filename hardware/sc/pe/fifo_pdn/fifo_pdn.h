@@ -26,26 +26,25 @@ SC_MODULE(fifo_PDN){
   sc_in   <reg_seek_target >          in_target_fifo_seek;
   sc_in   <reg_seek_payload >         in_payload_fifo_seek;
   sc_in   <reg_seek_service >         in_service_fifo_seek;
-  sc_in   <reg_seek_reg_backtrack >   in_reg_backtrack_seek;
-  sc_in   <sc_uint<2> >               in_sel_reg_backtrack; 
-  sc_in   <bool >                     in_req_fifo_seek;
-  sc_in   <bool >                     in_ack_fifo_seek;
   sc_in   <bool >                     in_opmode_fifo_seek;
-  
-  sc_in   <bool >                     in_fail_cpu; // Fochi signal fails from cpu
-  //sc_in   <bool >                     in_nack_fifo_seek;
+  sc_in   <bool >                     in_req_fifo_seek;
+  sc_out  <bool >                     out_ack_fifo_seek;
+  sc_out  <bool >                     out_nack_fifo_seek;
+
+  sc_out  <sc_uint<2> >               out_sel_reg_backtrack_seek;
+  sc_in   <reg_seek_reg_backtrack >   in_reg_backtrack_seek;
 
   sc_out  <reg_seek_service >         out_service_fifo_seek;
   sc_out  <reg_seek_source >          out_source_fifo_seek;
   sc_out  <reg_seek_target >          out_target_fifo_seek;
   sc_out  <reg_seek_payload >         out_payload_fifo_seek;
-  sc_out  <sc_uint<2> >               out_sel_reg_backtrack_seek;
-  sc_out  <reg_seek_reg_backtrack >   out_reg_backtrack;
-  sc_out  <bool >                     out_req_pe;
-  sc_out  <bool >                     out_ack_fifo_seek;
-  sc_out  <bool >                     out_nack_fifo_seek;
   sc_out  <bool >                     out_opmode_fifo_seek;
+  sc_out  <bool >                     out_req_pe;
+  sc_in   <bool >                     in_ack_fifo_seek;
 
+  sc_in   <sc_uint<2> >               in_sel_reg_backtrack; 
+  sc_out  <reg_seek_reg_backtrack >   out_reg_backtrack;
+/////////////////////////////////////////////////////////////////////
     
   sc_signal<bool >              out_req_send_kernel_seek_local;
   sc_signal<bool >              in_ack_send_kernel_seek_local;
