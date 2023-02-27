@@ -63,11 +63,17 @@ architecture Seek_Local_Controller of Seek_Local_Controller is
 begin
 	ORunr_service <= OR unr_service;
 
-	seek_target  <= reg_target when sending else
-					pe_target;
+	-- seek_target  <= reg_target when sending else
+	-- 				pe_target;
 
-	seek_source  <= reg_source & reg_source when sending else
+	-- seek_source  <= reg_source & reg_source when sending else
+	-- 				pe_source;
+
+	seek_source  <= reg_target & reg_target when sending else 
 					pe_source;
+	
+	seek_target  <= reg_source  when sending else 
+					pe_target;
 
 	seek_service <= "000010" when sending else
 					pe_service;
