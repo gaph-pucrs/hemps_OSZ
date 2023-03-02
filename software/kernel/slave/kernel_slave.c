@@ -1289,30 +1289,42 @@ int handle_packet(ServiceHeader * p) {
 		//tcb_ptr->secure = p->secure;
 
 		#ifndef AUTH_PROTOCOL
-		// puts("TASK_RELEASE F1 e F2: ");puts(itoh(p->k0));puts("\n");
-		KappID = p->k0 ^ k0; // Decrypt LO
+
 		int nt1, nt2;
-		nt1 = (KappID & 0xffff) >> 8; // Get turns
-		nt2 = (KappID & 0xff);	
-		KappID = (KappID >> 16) ^ k0; // Decrypt HI
 
-		glfsr_app.data = KappID;
+		if(p->secure) {
 
-		while (nt1 > 0)
-		{
-			GLFSR_next(&glfsr_app);
-			// puts("-----k1 = ");puts(itoh(glfsr_app.data));puts("\n");
-			nt1--;
+			// puts("TASK_RELEASE F1 e F2: ");puts(itoh(p->k0));puts("\n");
+			KappID = p->k0 ^ k0; // Decrypt LO
+			nt1 = (KappID & 0xffff) >> 8; // Get turns
+			nt2 = (KappID & 0xff);
+			KappID = (KappID >> 16) ^ k0; // Decrypt HI
+
+			glfsr_app.data = KappID;
+
+			while (nt1 > 0)
+			{
+				GLFSR_next(&glfsr_app);
+				// puts("-----k1 = ");puts(itoh(glfsr_app.data));puts("\n");
+				nt1--;
+			}
+			k1 = glfsr_app.data;
+
+			while (nt2 > 0)
+			{
+				GLFSR_next(&glfsr_app);
+				// puts("-----k2 = ");puts(itoh(glfsr_app.data));puts("\n");
+				nt2--;
+			}
+			k2 = glfsr_app.data;
+
+		} else {
+			KappID = 0;
+			k1 = 0;
+			k2 = 0;
+			nt1 = 0;
+			nt2 = 0;
 		}
-		k1 = glfsr_app.data;
-		
-		while (nt2 > 0)
-		{
-			GLFSR_next(&glfsr_app);
-			// puts("-----k2 = ");puts(itoh(glfsr_app.data));puts("\n");
-			nt2--;
-		}
-		k2 = glfsr_app.data;
 		
 		puts("----- [DEBUG] KeyGen:\n");
 		puts("----- appID = "); puts(itoh(KappID)); puts("\n");

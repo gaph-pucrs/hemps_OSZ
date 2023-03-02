@@ -517,7 +517,7 @@ for snip_idx in range(0, snip_number):
 
 	##### Header Control
 	snip_builder_ctrl_hdr_pfx = "add wave -noupdate -group {%s} -group {Builder Control Signals} -group {Header Control} %s/PacketBuilder/" % (snip_name, snip_top)
-	snip_builder_ctrl_hdr_sds = ["fixed_header_flit", "fixed_header_end", "path_flit", "path_end", "header_flit", "header_end", "header_tx", "header_eop"]
+	snip_builder_ctrl_hdr_sds = ["fixed_header_flit", "fixed_header_end", "path_flit", "path_end", "header_flit", "header_end", "header_tx", "header_eop", "sent_fixed_header", "nonsecure"]
 	for it in map(lambda sd: snip_builder_ctrl_hdr_pfx + sd, snip_builder_ctrl_hdr_sds):
 		print (it)
 
