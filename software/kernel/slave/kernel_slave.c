@@ -989,6 +989,10 @@ int handle_packet(ServiceHeader * p) {
 			break;
 		}		
 		
+		if (current == &idle_tcb){
+			need_scheduling = 1;
+		}
+
 	break;
 
 
