@@ -966,8 +966,7 @@ int handle_packet(ServiceHeader * p) {
 		// puts("source:");puts(itoh(p->source_PE)); puts("\n");
 		// puts("length:");puts(itoh(p->msg_lenght)); puts("\n");
 
-		tcb_ptr = get_tcb_index_ptr(1);
-		// tcb_ptr = searchTCB(p->producer_task);
+		tcb_ptr = searchTCB(p->io_task_ID);
 		//puts("tcb_ptr:");puts(itoh(tcb_ptr)); puts("\n");
 
 		// puts("Status scheduler antes:");puts(itoh(tcb_ptr->scheduling_ptr->status)); puts("\n");
@@ -1082,7 +1081,7 @@ int handle_packet(ServiceHeader * p) {
 		}
 		
 	#else
-		tcb_ptr = get_tcb_index_ptr(0);
+		tcb_ptr = searchTCB(p->io_task_ID);
 		// puts("tcb_ptr:");puts(itoa(tcb_ptr->id)); puts("\n");
 
 		// tcb_ptr = searchTCB(p->consumer_task);

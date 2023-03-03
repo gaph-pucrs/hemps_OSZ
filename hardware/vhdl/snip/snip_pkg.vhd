@@ -60,6 +60,7 @@ package snip_pkg is
     constant F1_FLIT                            : integer := 2;
     constant F2_FLIT                            : integer := 3;
     constant SERVICE_FLIT_HI                    : integer := 4;
+    constant TASK_ID_FLIT_HI                    : integer := 6;
     constant PACKET_SOURCE_FLIT                 : integer := 9;
     constant DELIVERY_SIZE_FLIT                 : integer := 15;
     constant END_OF_HEADER_FLIT                 : integer := 21;
@@ -169,6 +170,7 @@ package snip_pkg is
         brnocService    : seek_bitN_service;
         source          : regflit;
         target          : regflit;
+        taskId          : regword;
     end record;
 
     type TransmissionStatusType is record

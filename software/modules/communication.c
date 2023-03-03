@@ -817,11 +817,9 @@ void send_message_io_key(int producer_task, int peripheral_ID, Message * msg_ptr
 
 	p->service = f1f2;
 
-	p->io_service = IO_REQUEST;
+	p->io_service = IO_DELIVERY;
 
-	// p->task_ID = producer_task;
-
-	p->peripheral_ID = producer_task;
+	p->io_task_ID = producer_task;
 
 	p->msg_lenght = msg_ptr->length;
 
@@ -844,9 +842,7 @@ void send_io_request_key(int peripheral_ID, int consumer_task, unsigned int sour
 
 	p->requesting_processor = sourcePE;
 
-	// p->task_ID = producer_task;
-
-	p->peripheral_ID = consumer_task;
+	p->io_task_ID = consumer_task;
 
 	//add_msg_request(p->header[MAX_SOURCE_ROUTING_PATH_SIZE-1], consumer_task, peripheral_ID); //caimi: arrumar header
 

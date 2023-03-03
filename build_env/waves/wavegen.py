@@ -395,6 +395,10 @@ for snip_idx in range(0, snip_number):
 	print(snip_handler_regs_pfx + "packet_target")
 	print(snip_handler_regs_pfx + "packet_target_valid")
 
+	print(snip_handler_regs_divider_pfx + "Task ID")
+	print(snip_handler_regs_pfx + "task_id")
+	print(snip_handler_regs_pfx + "task_id_valid")
+
 	print(snip_handler_regs_divider_pfx + "AppID_(Decoded)")
 	print(snip_handler_regs_pfx + "app_id")
 	print(snip_handler_regs_pfx + "app_id_valid")

@@ -56,6 +56,7 @@ typedef struct {
 	   	unsigned int period;
 		unsigned int io_port;
 		unsigned int k0; 
+		unsigned int io_task_ID;
 	};
 
 	unsigned int source_PE;				//!<Store the packet source PE address

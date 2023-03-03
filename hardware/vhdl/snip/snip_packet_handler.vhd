@@ -109,6 +109,11 @@ architecture snip_packet_handler of snip_packet_handler is
     alias  hermes_service_hi    : regflit is hermes_service(TAM_WORD-1 downto TAM_FLIT);
     alias  hermes_service_lo    : regflit is hermes_service(TAM_FLIT-1 downto 0);
 
+    signal task_id              : regword;
+    signal task_id_valid        : std_logic;
+    alias  task_id_hi           : regflit is task_id(TAM_WORD-1 downto TAM_FLIT);
+    alias  task_id_lo           : regflit is task_id(TAM_FLIT-1 downto 0);
+
     signal packet_source        : regflit;
     signal packet_source_valid  : std_logic;
 
@@ -571,6 +576,9 @@ begin
             hermes_service          <= (others => '0');
             hermes_service_valid    <= '0';
 
+            task_id                 <= (others => '0');
+            task_id_valid           <= '0';
+
             packet_source           <= (others => '0');
             packet_source_valid     <= '0';
 
@@ -589,6 +597,9 @@ begin
         
                 hermes_service          <= (others => '0');
                 hermes_service_valid    <= '0';
+
+                task_id                 <= (others => '0');
+                task_id_valid           <= '0';
 
                 packet_source           <= (others => '0');
                 packet_source_valid     <= '0';
@@ -619,6 +630,12 @@ begin
                 elsif header_flit = SERVICE_FLIT_HI+1 then
                     hermes_service_lo <= hermes_data_in;
                     hermes_service_valid <= '1';
+                
+                elsif header_flit = TASK_ID_FLIT_HI then
+                    task_id_hi <= hermes_data_in;
+                elsif header_flit = TASK_ID_FLIT_HI+1 then
+                    task_id_lo <= hermes_data_in;
+                    task_id_valid <= '1';
                     
                 elsif header_flit = PACKET_SOURCE_FLIT then
                     packet_source <= hermes_data_in;
@@ -852,6 +869,7 @@ begin
 
     response_param.source <= packet_target;
     response_param.target <= packet_source;
+    response_param.taskId <= task_id;
 
     ----------------
     -- WRITE DATA --
