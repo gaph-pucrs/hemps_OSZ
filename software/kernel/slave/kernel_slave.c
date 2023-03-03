@@ -1302,7 +1302,7 @@ int handle_packet(ServiceHeader * p) {
 
 			glfsr_app.data = KappID;
 
-			while (nt1 > 0)
+			while (nt1 >= 0)
 			{
 				GLFSR_next(&glfsr_app);
 				// puts("-----k1 = ");puts(itoh(glfsr_app.data));puts("\n");
@@ -1310,7 +1310,7 @@ int handle_packet(ServiceHeader * p) {
 			}
 			k1 = glfsr_app.data;
 
-			while (nt2 > 0)
+			while (nt2 >= 0)
 			{
 				GLFSR_next(&glfsr_app);
 				// puts("-----k2 = ");puts(itoh(glfsr_app.data));puts("\n");
@@ -1597,7 +1597,7 @@ int SeekInterruptHandler(){
 	static int prevSetAP = -1;
 	static prevTUS = -1;
 	static int rcvdACK =0;
-	static unsigned int nTurns, n, p = 0;
+	static int nTurns, n, p = 0;
 	static ackSources[MAX_TASKS_APP];
 	int i, timeAux;
 
@@ -2004,13 +2004,13 @@ case BR_TO_APPID_SERVICE: // Expand here to flexible AccessPoit configuration
 				p = (nTurns) & 0xf;
 
 				glfsr_app.data = k2;
-				while (n > 0){
+				while (n >= 0){
 					GLFSR_next(&glfsr_app);
 					n--;
 				}
 				k1_aux = glfsr_app.data;
 				
-				while (p > 0){
+				while (p >= 0){
 					GLFSR_next(&glfsr_app);
 					p--;
 				}
@@ -2081,13 +2081,13 @@ case BR_TO_APPID_SERVICE: // Expand here to flexible AccessPoit configuration
 					Seek(BR_TO_APPID_SERVICE, ((nTurns<<16) | (get_net_address()&0xffff)), (unsigned int)MemoryRead(APP_ID_REG), 02); // Send Freeze IO
 
 					glfsr_app.data = k2;
-					while (n > 0){
+					while (n >= 0){
 						GLFSR_next(&glfsr_app);
 						n--;
 					}
 					k1_aux = glfsr_app.data;
 					
-					while (p > 0){
+					while (p >= 0){
 						GLFSR_next(&glfsr_app);
 						p--;
 					}

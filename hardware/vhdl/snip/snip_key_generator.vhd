@@ -77,11 +77,7 @@ begin
             
             when INIT_K1 =>
 
-                if n=x"00" then
-                    next_state <= INIT_K2; -- no shifts required
-                else
-                    next_state <= GEN_K1;
-                end if;
+                next_state <= GEN_K1;
 
             when GEN_K1 =>
 
@@ -93,11 +89,7 @@ begin
             
             when INIT_K2 =>
 
-                if p=x"00" then
-                    next_state <= KEYS_READY; -- no shifts required
-                else
-                    next_state <= GEN_K2;
-                end if;
+                next_state <= GEN_K2;
 
             when GEN_K2 =>
                 
@@ -167,7 +159,7 @@ begin
         end if;
     end process;
 
-    key_is_ready <= '1' when shift_counter=x"01" else '0';
+    key_is_ready <= '1' when shift_counter=x"00" else '0';
 
     -----------------
     -- OUTPUT KEYS --
