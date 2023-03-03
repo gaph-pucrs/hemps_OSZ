@@ -48,7 +48,6 @@ void insert_CM_FIFO(volatile ServiceHeader *p, unsigned int initial_address, uns
 		// services with payload: save the pointer to data and length
 		case IO_DELIVERY:
 		case IO_REQUEST:
-		case 0x96868f6f:
 		case NEW_APP:
 		case TASK_ALLOCATION:
 		case APP_ALLOCATION_MAP:
