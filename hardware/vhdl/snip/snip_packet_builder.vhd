@@ -68,8 +68,6 @@ architecture snip_packet_builder of snip_packet_builder is
     signal header_tx            : std_logic;
     signal header_eop           : std_logic;
 
-    signal sent_fixed_header    : std_logic;
-
     --------------------------
     -- DATA PAYLOAD SIGNALS --
     --------------------------
@@ -100,7 +98,7 @@ begin
         end if;
     end process;
 
-    NextState: process(state, response_req, response_param_reg, tableIn, fixed_header_end, path_end, header_end, data_eop, hermes_tx, nonsecure, sent_fixed_header)
+    NextState: process(state, response_req, response_param_reg, tableIn, fixed_header_end, path_end, header_end, data_eop, hermes_tx)
     begin
         case state is
 
@@ -125,18 +123,7 @@ begin
             when HERMES_FIXED_HEADER =>
 
                 if fixed_header_end='1' and hermes_tx='1' then
-
-                    if nonsecure='1' then
-                    
-                        if sent_fixed_header='0' then
-                            next_state <= HERMES_FIXED_HEADER;
-                        else
-                            next_state <= HERMES_HEADER;
-                        end if;
-
-                    else
-                        next_state <= HERMES_PATH;
-                    end if; 
+                    next_state <= HERMES_PATH;
                 else
                     next_state <= HERMES_FIXED_HEADER;
                 end if;
@@ -215,26 +202,7 @@ begin
             if state=WAIT_REQ then
                 fixed_header_flit <= 0;
             elsif state=HERMES_FIXED_HEADER and hermes_credit_in='1' then
-                if fixed_header_flit=(FIXED_HEADER_SIZE-1) then
-                    fixed_header_flit <= 0;
-                else    
-                    fixed_header_flit <= fixed_header_flit + 1;
-                end if;
-            end if;
-        end if;
-    end process;
-
-    -- for XY routing the fixed header is duplicated
-    -- this register is used to keep differentiate between the first and second occurences
-    SentFixedHeaderRegister: process(clock, reset)
-    begin
-        if reset='1' then
-            sent_fixed_header <= '0';
-        elsif rising_edge(clock) then
-            if state=WAIT_REQ then
-                sent_fixed_header <= '0';
-            elsif state=HERMES_FIXED_HEADER and hermes_credit_in='1' and fixed_header_end='1' then
-                sent_fixed_header <= '1';
+                fixed_header_flit <= fixed_header_flit + 1;
             end if;
         end if;
     end process;
@@ -291,7 +259,15 @@ begin
 
         elsif state=HERMES_PATH then
 
-            hermes_data_out <= tableIn.pathFlit;
+            -- for NONSECURE applications:
+            -- path(0) contains XY/YX header used as the first routing flit
+            -- the second routing flit should be the target address
+
+            if path_flit=1 and nonsecure='1' then
+                hermes_data_out <= response_param_reg.target;
+            else
+                hermes_data_out <= tableIn.pathFlit;
+            end if;
         
         ---- HEADER ----
 

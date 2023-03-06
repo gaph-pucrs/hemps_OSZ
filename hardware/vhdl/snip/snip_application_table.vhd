@@ -229,7 +229,9 @@ begin
             table.key1          <= (others => (others => '0'));
             table.key2          <= (others => (others => '0'));
             table.path_size     <= (others => 0);
+            table.path_size(0)  <= 1;
             table.path          <= (others => (others => (others => '0')));
+            table.path(0)(0)    <= x"6000";
 
         elsif rising_edge(clock) and write_enable='1' then
 
