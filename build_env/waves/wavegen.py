@@ -456,8 +456,8 @@ for snip_idx in range(0, snip_number):
 
 	### Key Generator
 
-	snip_handler_keygen_pfx = "add wave -noupdate -group {%s} -group {Key Generator} %s/PacketHandler/" % (snip_name, snip_top)
-	snip_handler_keygen_sds = ["keygen.request", "keygen.appID", "keygen.n", "keygen.p", "keygen.busy", "keygen.ready", "keygen.k1", "keygen.k2"]
+	snip_handler_keygen_pfx = "add wave -noupdate -group {%s} -group {Key Generator} %s/PacketHandler/KeyGenerator/" % (snip_name, snip_top)
+	snip_handler_keygen_sds = ["request", "seed", "n", "p", "busy", "ready", "k1", "k2", "state", "shift_lfsr", "w_seed", "lfsr_seed", "lfsr_output", "generated_key", "shift_counter", "key_is_ready"]
 	for it in map(lambda sd: snip_handler_keygen_pfx + sd, snip_handler_keygen_sds):
 		print (it)
 
