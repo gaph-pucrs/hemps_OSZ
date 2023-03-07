@@ -223,6 +223,45 @@ void send_io_config(Application* app, int appID_rand, int turns){
 	}
 }
 
+void send_nonsecure_io_config(Application* app){
+
+	ServiceHeader *p;
+
+	int usedIO[IO_NUMBER];
+	for(int i = 0; i < IO_NUMBER; i++)
+		usedIO[i] = 0;
+	
+	// XY hardcoded for now
+	unsigned int pathSR = 0x60007EEE; //XY: 0x60007EEE; YX: 0x50007EEE
+
+	//for all io dependencies of the application
+	for(int i =0; i<app->tasks_number; i++){
+		for(int j =0; j < app->tasks[i].dependences_number; j++){
+			for (int k = 0; k < IO_NUMBER; k++){
+
+				if(usedIO[k] == app->tasks[i].dependences[j].flits)
+					break;
+				
+				//send io_config
+				if(usedIO[k] == 0){
+
+					puts("----Enviando conf para: ");puts(itoa(app->tasks[i].dependences[j].flits));puts("\n");
+					usedIO[k] = app->tasks[i].dependences[j].flits;
+
+					p = get_service_header_slot();	
+					p->service = 0;
+					p->io_service = IO_SR_PATH;
+
+					send_packet_io(p, &pathSR, 1, usedIO[k]);
+					break;
+				}
+					
+			}
+		}			
+	}
+
+}
+
 void send_io_renew(Application* app, int appID, int turns){
 
 	ServiceHeader *p;
@@ -1052,6 +1091,10 @@ void handle_new_app(int app_ID, volatile unsigned int *ref_address, unsigned int
 	mapping_completed = application_mapping(clusterID, application->app_ID);//
 
 	if (mapping_completed){
+
+		if(application->secure == 0)
+			send_nonsecure_io_config(application);
+
 		putsv("end mapping - ", MemoryRead(TICK_COUNTER));
 
 		application->status = READY_TO_LOAD;

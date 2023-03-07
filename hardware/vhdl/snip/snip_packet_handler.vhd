@@ -673,7 +673,7 @@ begin
         end if;
     end process;
 
-    app_id <= f1 xor k0;
+    app_id <= x"0000" when f1=x"0000" else f1 xor k0;
     app_id_valid <= '1' when hermes_service_valid='1' and (hermes_service=IO_CONFIG_SERVICE or hermes_service=IO_RENEW_KEYS) and f1_valid='1' else '0';
 
     key_params <= f2 xor k0;
