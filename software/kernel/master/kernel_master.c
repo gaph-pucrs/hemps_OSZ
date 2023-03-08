@@ -231,9 +231,6 @@ void send_nonsecure_io_config(Application* app){
 	for(int i = 0; i < IO_NUMBER; i++)
 		usedIO[i] = 0;
 	
-	// XY hardcoded for now
-	unsigned int pathSR = 0x10007EEE; //XY: 0x60007EEE; YX: 0x10007EEE
-
 	//for all io dependencies of the application
 	for(int i =0; i<app->tasks_number; i++){
 		for(int j =0; j < app->tasks[i].dependences_number; j++){
@@ -248,11 +245,41 @@ void send_nonsecure_io_config(Application* app){
 					puts("----Enviando conf para: ");puts(itoa(app->tasks[i].dependences[j].flits));puts("\n");
 					usedIO[k] = app->tasks[i].dependences[j].flits;
 
+					//finds out the io_number of the peripheral
+					
+					int io_idx;
+					while(io_idx < IO_NUMBER)
+					{
+						if(io_info[io_idx].peripheral_id == app->tasks[i].dependences[j].flits)
+							break;
+						io_idx++;
+					}	
+
+					//decides whether peripheral uses XY or YX routing
+
+					unsigned int snip_Y_addr = io_info[io_idx].default_address_y;
+
+					int useXY = 0; 
+					for(int row = 0; row < MAX_GRAY_COLS; row++)
+					{
+						// puts("ga_row_y="); puts(itoa(ga.rows[row])); puts("; io_y="); puts(itoa(snip_Y_addr)); puts("; io_id="); puts(itoa(io_info[io_idx].peripheral_id)); puts("\n");
+						if(ga.rows[row] == snip_Y_addr)
+						{
+							useXY = 1;
+							break;
+						}
+					}
+					// puts(useXY ? "Using XY\n" : "Using YX\n");
+
+					unsigned int routing_cfg = useXY ? 0x60007EEE : 0x10007EEE;		
+
+					//builds and sends io_config packet
+
 					p = get_service_header_slot();	
 					p->service = 0;
 					p->io_service = IO_SR_PATH;
 
-					send_packet_io(p, &pathSR, 1, usedIO[k]);
+					send_packet_io(p, &routing_cfg, 1, usedIO[k]);
 					break;
 				}
 					
