@@ -50,6 +50,7 @@ unsigned int 	cluster_load[CLUSTER_NUMBER];										//!< Keep the cluster load,
 unsigned int 	terminated_app_count = 0;											//!< Used to fires the END OF ALL APPLIATIONS
 unsigned int 	waiting_app_allocation = 0;											//!< Signal that an application is not fully mapped
 unsigned int 	app_id_counter = 0;
+char			nonsecure_io_dependents[IO_NUMBER];									//!< Keep track of how many non-secure dependent apps each peripheral has
 
 extern int shape_index;
 //extern Shapes shapes[MAX_SHAPES];
@@ -242,7 +243,6 @@ void send_nonsecure_io_config(Application* app){
 				//send io_config
 				if(usedIO[k] == 0){
 
-					puts("----Enviando conf para: ");puts(itoa(app->tasks[i].dependences[j].flits));puts("\n");
 					usedIO[k] = app->tasks[i].dependences[j].flits;
 
 					//finds out the io_number of the peripheral
@@ -254,6 +254,15 @@ void send_nonsecure_io_config(Application* app){
 							break;
 						io_idx++;
 					}	
+
+					nonsecure_io_dependents[io_idx]++;
+
+					//if the peripheral was already configured for non-secure communication, it's not configured again
+					if(nonsecure_io_dependents[io_idx] > 1)
+						break;
+					
+					//else: perform the configuration normally
+					puts("----Enviando conf para: ");puts(itoa(app->tasks[i].dependences[j].flits));puts("\n");
 
 					//decides whether peripheral uses XY or YX routing
 
@@ -1020,6 +1029,8 @@ void initialize_IO(){ 	// TODO  peripheral recieve k0
 		k0NItable[i] = k0rand;
 		// puts("K0: ");  puts(itoh(k0NItable[i]));  puts("\n");
 		k0rand =0;
+
+		nonsecure_io_dependents[i] = 0; //each peripheral starts with zero dependent non-secure apps
 	}
 
 	// send_packet_io(p, 0, 0, peripheralID);
