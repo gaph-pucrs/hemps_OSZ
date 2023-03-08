@@ -232,7 +232,7 @@ void send_nonsecure_io_config(Application* app){
 		usedIO[i] = 0;
 	
 	// XY hardcoded for now
-	unsigned int pathSR = 0x60007EEE; //XY: 0x60007EEE; YX: 0x50007EEE
+	unsigned int pathSR = 0x10007EEE; //XY: 0x60007EEE; YX: 0x10007EEE
 
 	//for all io dependencies of the application
 	for(int i =0; i<app->tasks_number; i++){
