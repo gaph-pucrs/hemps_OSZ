@@ -1677,6 +1677,8 @@ int SeekInterruptHandler(){
 					send_peripheral_SR_path(slot_seek, peripheral_id, target, 0); //should not happen with semap, sends task_id=0 to ni
 				}
 			}
+
+			prevTUS = -1;
 		break;
 
 		case SET_SECURE_ZONE_SERVICE:

@@ -72,7 +72,7 @@ begin
 	seek_source  <= reg_target & reg_target when sending else 
 					pe_source;
 	
-	seek_target  <= reg_source  when sending else 
+	seek_target  <= reg_source and x"0F0F" when sending else 
 					pe_target;
 
 	seek_service <= "000010" when sending else
