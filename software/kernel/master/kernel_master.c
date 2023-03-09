@@ -247,7 +247,7 @@ void send_nonsecure_io_config(Application* app){
 
 					//finds out the io_number of the peripheral
 					
-					int io_idx;
+					int io_idx = 0;
 					while(io_idx < IO_NUMBER)
 					{
 						if(io_info[io_idx].peripheral_id == app->tasks[i].dependences[j].flits)
