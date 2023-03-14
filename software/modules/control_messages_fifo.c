@@ -55,10 +55,10 @@ void insert_CM_FIFO(volatile ServiceHeader *p, unsigned int initial_address, uns
 		default:
 			// Non-recognized services exit
 			if((p->io_service != IO_REQUEST) && (p->io_service != IO_DELIVERY)) {
-				puts("\nERROR: control message NOT treat in CM_FIFO structure\n");
+				// puts("\nERROR: control message NOT treat in CM_FIFO structure\n");
 				// //while(1);
-				puts("Service: "); puts(itoh(p->service)); puts("\n");
-				puts("IO Service: "); puts(itoh(p->io_service)); puts("\n");
+				// puts("Service: "); puts(itoh(p->service)); puts("\n");
+				// puts("IO Service: "); puts(itoh(p->io_service)); puts("\n");
 				break;
 			}
 			// IO packets continue
