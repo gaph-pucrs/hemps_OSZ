@@ -1,11 +1,13 @@
 testcases/*
 !testcases/examples/
+!testcases/regression/
 
 testcases/examples/*
 !testcases/examples/*.yaml
 !testcases/examples/dsz/
 !testcases/examples/semap/
 
+testcases/regression/*
 !testcases/regression/*.yaml
 !testcases/regression/*.sh
 
