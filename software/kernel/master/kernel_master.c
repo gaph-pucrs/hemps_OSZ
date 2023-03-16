@@ -175,6 +175,24 @@ void send_authenticate_nip(int periphID, int k0){
 // 	} 
 // } 
  
+// returns 1 if given peripheral is connected in a gray line
+int is_peripheral_in_gray_line(int peripheral_id){
+
+	int io_idx = 0;
+	while(io_idx < IO_NUMBER)
+	{
+		if(io_info[io_idx].peripheral_id == peripheral_id)
+			break;
+		io_idx++;
+	}
+
+	int peripheral_y = io_info[io_idx].default_address_y;
+
+	for(int row = 0; row < MAX_GRAY_ROWS; row++)
+		if(ga.rows[row] == peripheral_y)
+			return 1;
+	return 0;
+} 
 
 void send_io_config(Application* app, int appID_rand, int turns){
 
@@ -203,7 +221,8 @@ void send_io_config(Application* app, int appID_rand, int turns){
 					puts("----Enviando conf para: ");puts(itoa(app->tasks[i].dependences[j].flits));puts("\n");
 					usedIO[k] = app->tasks[i].dependences[j].flits;
 					k0 = get_NI_k0(usedIO[k]);
-					pathSR = IOtoAPmaster(usedIO[k], app->ap.address_go, app->ap.port_go);
+					int ioInGrayLine = is_peripheral_in_gray_line(usedIO[k]);
+					pathSR = IOtoAPmaster(usedIO[k], app->ap.address_go, app->ap.port_go, ioInGrayLine);
 					ProcessTurnsPointer(pathSR & 0xffffFFFF,
   										pathSR >> 32 & 0xffffFFFF,
   										pathSR >> 64 & 0xffffFFFF,
@@ -245,45 +264,29 @@ void send_nonsecure_io_config(Application* app){
 
 					usedIO[k] = app->tasks[i].dependences[j].flits;
 
+					/* Manage Peripheral Dependents */
 					//finds out the io_number of the peripheral
-					
 					int io_idx = 0;
 					while(io_idx < IO_NUMBER)
 					{
 						if(io_info[io_idx].peripheral_id == app->tasks[i].dependences[j].flits)
 							break;
 						io_idx++;
-					}	
-
+					}
+					//updates number of nonsecure dependents
 					nonsecure_io_dependents[io_idx]++;
-
 					//if the peripheral was already configured for non-secure communication, it's not configured again
 					if(nonsecure_io_dependents[io_idx] > 1)
 						break;
-					
 					//else: perform the configuration normally
+
 					puts("----Enviando conf para: ");puts(itoa(app->tasks[i].dependences[j].flits));puts("\n");
 
 					//decides whether peripheral uses XY or YX routing
-
-					unsigned int snip_Y_addr = io_info[io_idx].default_address_y;
-
-					int useXY = 0; 
-					for(int row = 0; row < MAX_GRAY_COLS; row++)
-					{
-						// puts("ga_row_y="); puts(itoa(ga.rows[row])); puts("; io_y="); puts(itoa(snip_Y_addr)); puts("; io_id="); puts(itoa(io_info[io_idx].peripheral_id)); puts("\n");
-						if(ga.rows[row] == snip_Y_addr)
-						{
-							useXY = 1;
-							break;
-						}
-					}
-					// puts(useXY ? "Using XY\n" : "Using YX\n");
-
+					int useXY = is_peripheral_in_gray_line(usedIO[k]);
 					unsigned int routing_cfg = useXY ? 0x60007EEE : 0x10007EEE;		
 
 					//builds and sends io_config packet
-
 					p = get_service_header_slot();	
 					p->service = 0;
 					p->io_service = IO_SR_PATH;

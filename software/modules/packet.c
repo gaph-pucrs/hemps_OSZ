@@ -561,43 +561,88 @@ int pathToIO(int peripheral_id, int * positionAP){
     }; // Mais um pra "sair" da OSZ   
   }
   *positionAP = (shift/2) -1;
-  //Arrived on the AccessPoint - Now travel to the IO
-  //UP
-  while (auxPosY < PER_Y_addr)
-  {
-    bt = bt | (0x2 << shift);
-    shift += 2;
-    auxPosY ++;
-  };
-  // East or West, depending on the side of the PER
-  if(auxPosX > PER_X_addr){    
-    // puts("--Gray Area a esquerda\n");
-    while (auxPosX > PER_X_addr){
-      bt = bt | (0x1 << shift);
-      shift += 2;
-      auxPosX --;
-    } ; // Mais um pra "sair" da OSZ
-    bt = bt | (0x0 << shift);
-  }
-  else if(auxPosX < PER_X_addr){
-    // puts("--Gray Area a direita\n");
-    while (auxPosX < PER_X_addr){
-      bt = bt | (0x0 << shift);
-      shift += 2;
-      auxPosX ++;
-    } ;
-    bt = bt | (0x1 << shift);
-  }else{
-    bt = bt | (0x3 << shift);
+
+  /* Arrived on the AccessPoint - Now travel to the IO */
+
+  // Choose between XY or YX depending whereas the AP is positioned in a Gray Row or Gray Column
+  int apInGrayLine = 0;
+  for(int row = 0; row < MAX_GRAY_ROWS; row++){
+    if(ga.rows[row] == auxPosY){
+      apInGrayLine = 1;
+      break;
+    }
   }
 
-//   puts("Backtrack MADE ");puts(itoh(bt));puts("\n");
+  puts("routing="); puts(apInGrayLine ? "XY\n" : "YX\n");
+  puts("auxPos=");puts(itoa(auxPosX));puts("x");puts(itoa(auxPosY));puts("\n"); 
+  puts("perPos=");puts(itoa(PER_X_addr));puts("x");puts(itoa(PER_Y_addr));puts("\n"); 
+  puts("portIO=");puts(itoa(port_io));puts("\n"); 
+
+  // Route using XY if the AP is connected in a GA row, else use YX 
+  if(apInGrayLine){
+    
+    // Travel first to the GA collumn 
+    while(auxPosX > PER_X_addr){ 
+      bt = bt | (0x1 << shift); //WEST 
+      shift += 2; 
+      auxPosX--; 
+    } 
+    while(auxPosX < PER_X_addr){ 
+      bt = bt | (0x0 << shift); //EAST 
+      shift += 2; 
+      auxPosX++; 
+    }
+
+    // Arrived at the GA collumn - Now travel to the IO row 
+    while(auxPosY > PER_Y_addr){ 
+        bt = bt | (0x3 << shift); //SOUTH 
+        shift += 2; 
+        auxPosY--;
+    } 
+    while(auxPosY < PER_Y_addr){ 
+      bt = bt | (0x2 << shift); //NORTH 
+      shift += 2; 
+      auxPosY++; 
+    } 
+  } 
+  else {
+
+    // Travel first to the GA row 
+    while(auxPosY > PER_Y_addr){ 
+      bt = bt | (0x3 << shift); //SOUTH 
+      shift += 2; 
+      auxPosY--; 
+    } 
+    while(auxPosY < PER_Y_addr){ 
+      bt = bt | (0x2 << shift); //NORTH 
+      shift += 2; 
+      auxPosY++; 
+    }
+
+    // Arrived at the GA row - Now travel to the IO collumn 
+    while(auxPosX > PER_X_addr){ 
+      bt = bt | (0x1 << shift); //WEST 
+      shift += 2; 
+      auxPosX--; 
+    }
+    while(auxPosX < PER_X_addr){ 
+      bt = bt | (0x0 << shift); //EAST 
+      shift += 2; 
+      auxPosX++; 
+    }
+  }
+
+  // Opposite turn to end the path
+  int lastTurn = bt >> (shift-2);
+  bt = bt | (oppositePort(lastTurn) << shift);
+  
+  // puts("Backtrack MADE ");puts(itoh(bt));puts("\n");
 
   return bt; 
 
 }
 
-unsigned int oppositePort(unsigned int p){
+int oppositePort(unsigned int p){
 	switch (p)
 	{
 	case NORTH:
@@ -757,7 +802,7 @@ int IOtoAP(int peripheral_id){ // Colocar parametro com o AP addr
 
 }
 
-int IOtoAPmaster(int peripheral_id, int ap_addr, int ap_port){ // Colocar parametro com o AP addr
+int IOtoAPmaster(int peripheral_id, int ap_addr, int ap_port, int ioInGrayLine){ // Colocar parametro com o AP addr
   unsigned int IO_X_addr, IO_Y_addr;
   unsigned int AP_X_addr, AP_Y_addr, port_io, i;
   unsigned int bt1, bt2, bt3, auxPosX, auxPosY;
@@ -805,28 +850,55 @@ int IOtoAPmaster(int peripheral_id, int ap_addr, int ap_port){ // Colocar parame
   auxPosX = IO_X_addr;
   auxPosY = IO_Y_addr;
 
-  if(AP_X_addr < IO_X_addr){  // SPECIFIC for IO on top row and GA on only one side
-    while (AP_X_addr < auxPosX){
-      bt = bt | (0x1 << shift);
+  // Route using XY if the peripheral is connected in a GA row, else use YX
+  if(ioInGrayLine) {
+    // Travel first to the GA collumn
+    while(auxPosX > AP_X_addr){
+      bt = bt | (0x1 << shift); //WEST
+      shift += 2;
+      auxPosX--;
+    } 
+    while(auxPosX < AP_X_addr){
+      bt = bt | (0x0 << shift); //EAST
+      shift += 2;
+      auxPosX++;
+    }
+    // Arrived at the GA collumn - Now travel to the AP row
+    while(auxPosY > AP_Y_addr){
+      bt = bt | (0x3 << shift); //SOUTH
+      shift += 2;
+      auxPosY--;
+    }
+    while(auxPosY < AP_Y_addr){
+      bt = bt | (0x2 << shift); //NORTH
+      shift += 2;
+      auxPosY++;
+    }
+  }
+  else {
+    // Travel first to the GA row
+    while(auxPosY > AP_Y_addr){
+      bt = bt | (0x3 << shift); //SOUTH
+      shift += 2;
+      auxPosY--;
+    }
+    while(auxPosY < AP_Y_addr){
+      bt = bt | (0x2 << shift); //NORTH
+      shift += 2;
+      auxPosY++;
+    }
+    // Arrived at the GA row - Now travel to the AP collumn
+    while(auxPosX > AP_X_addr){
+      bt = bt | (0x1 << shift); //WEST
       shift += 2;
       auxPosX --;
-    }; 
-  }else if(AP_X_addr > IO_X_addr){
-    while (AP_X_addr > auxPosX){
-      bt = bt | (0x0 << shift);
+    } 
+    while(auxPosX < AP_X_addr){
+      bt = bt | (0x0 << shift); //EAST
       shift += 2;
       auxPosX ++;
-    }; 
+    } 
   }
-
-  //Arrived at the GA collumn - Now travel to the AP row
-  //DOWN
-  while (auxPosY > AP_Y_addr)
-  {
-    bt = bt | (0x3 << shift);
-    shift += 2;
-    auxPosY --;
-  };
 
   // Last hop to enter the SZ
   switch (ap_port){
