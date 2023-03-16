@@ -6,7 +6,8 @@ testcases/examples/*
 !testcases/examples/dsz/
 !testcases/examples/semap/
 
-
+!testcases/regression/*.yaml
+!testcases/regression/*.sh
 
 .Trash-2189
 
