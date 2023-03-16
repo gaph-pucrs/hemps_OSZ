@@ -1,6 +1,6 @@
 rm -f runall_pids.txt
 
-for app in aesIO dijkstraIO dtwIO fixeIO mpegIO mpeg2IO prodconsIO prodcons2IO syntheticIO vopdIO wmdIO nonsec_prodcons nonsec_mpegs
+for app in aesIO dijkstraIO dtwIO fixeIO mpegIO mpeg2IO mwdIO prodconsIO prodcons2IO syntheticIO vopdIO nonsec_prodcons nonsec_mpegs
 do
     echo "$app:" >> runall_pids.txt
     
