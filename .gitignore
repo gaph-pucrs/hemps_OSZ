@@ -12,4 +12,4 @@ vhdltool-config.yaml
 build_env/gui_router_seek_lite
 build_env/gui_router_seek_lite/p_properties.json
 
-.vscode/*
+.vscode
