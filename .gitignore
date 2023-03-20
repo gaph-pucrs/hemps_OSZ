@@ -1,5 +1,4 @@
-sandbox/*
-
+sandbox
 .Trash-2189
 
 
@@ -13,3 +12,5 @@ vhdltool-config.yaml
 .vscode/c_cpp_properties.json
 build_env/gui_router_seek_lite
 build_env/gui_router_seek_lite/p_properties.json
+
+.vscode
