@@ -374,83 +374,48 @@ begin
 	                        	end if;
 	                    	end if;
 	                    	
-						-- Special case: IO Packet using YX overrides usual XY routing
+						-- Special case: IO Packet using YX overrides usual XY routing (CHANNEL 1)
 						elsif header(TAM_FLIT_32-1 downto TAM_FLIT_32-4) = PACKET_SWITCHING_YX then
 							
 							-- First route through Y axis
-							if ly/=ty then
-							
-								--TODO
-								-- Verifies if the channel 0 is free 
-	                    	    if free_port(diry) = '1' then
-	                    	        ack_routing(sel) <= '1';
-	                    	        rot_table(sel)(diry) <= '1';
-	                    	        EA <= S3;
-								
-	                    	    elsif free_port(diry+1) = '1' then
+							if ly/=ty then	
+	                    	    if free_port(diry+1) = '1' then			-- Verifies if the channel 1 is free
 	                    	        ack_routing(sel) <= '1';
 	                    	        rot_table(sel)(diry+1) <= '1';
 	                    	        EA <= S3;
-
-	                    	    -- No free channel
 	                    	    else 
 	                    	        EA <= S0; 
 	                    	    end if;
 
 							-- Then route through X axis
 							else
-
-								-- Verifies if the channel 0 is free
-								if free_port(dirx) = '1' then
-	                    		    ack_routing(sel) <= '1';
-	                    		    rot_table(sel)(dirx) <= '1'; 
-	                    		    EA <= S3;
-
-	                    		elsif free_port(dirx+1) = '1' then		
+								if free_port(dirx+1) = '1' then			-- Verifies if the channel 1 is free
 	                    		    ack_routing(sel) <= '1';
 	                    		    rot_table(sel)(dirx+1) <= '1'; 
 	                    		    EA <= S3;
-
-								-- No free channel
-	                    		else 
+								else 
 	                    		    EA <= S0; 
 	                    		end if;
 							end if;
 						
-						-- Procedes with the regular XY algorithm
+						-- Procedes with the regular XY algorithm (CHANNEL 0)
 						else
 						
 							-- Packet is switched to EAST or WEST
 	                    	if lx /= tx then
-	                    	    if free_port(dirx) = '1' then						-- Verifies if the channel 0 is free 
+	                    	    if free_port(dirx) = '1' then			-- Verifies if the channel 0 is free 
 	                    	        ack_routing(sel) <= '1';
 	                    	        rot_table(sel)(dirx) <= '1';
 	                    	        EA <= S3;
-
-	                    	    elsif free_port(dirx+1) = '1' then
-	                    	        ack_routing(sel) <= '1';
-	                    	        rot_table(sel)(dirx+1) <= '1';
-	                    	        EA <= S3;
-
-	                    	    -- No free channel
 	                    	    else 
 	                    	        EA <= S0; 
 	                    	    end if;
 								
 	                    	-- Packet is switched to NORTH or SOUTH 
-	                    	-- Verifies if the channel 0 is free
-	                    	elsif free_port(diry) = '1' then
+	                    	elsif free_port(diry) = '1' then			-- Verifies if the channel 0 is free
 	                    	    ack_routing(sel) <= '1';
 	                    	    rot_table(sel)(diry) <= '1'; 
 	                    	    EA <= S3;
-
-
-	                    	elsif free_port(diry+1) = '1' then		
-	                    	    ack_routing(sel) <= '1';
-	                    	    rot_table(sel)(diry+1) <= '1'; 
-	                    	    EA <= S3;
-
-
 	                    	else 
 	                    	    EA <= S0; 
 	                    	end if;
