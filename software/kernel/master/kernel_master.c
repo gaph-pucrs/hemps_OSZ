@@ -197,7 +197,7 @@ int is_peripheral_in_gray_line(int peripheral_id){
 void send_io_config(Application* app, int appID_rand, int turns){
 
 	ServiceHeader *p;
-	SourceRoutingTableSlot sr;
+	SourceRoutingTableSlot sr[IO_NUMBER];
 	int usedIO[IO_NUMBER];
 	int k0;
 	long unsigned int pathSR = 0;
@@ -226,7 +226,7 @@ void send_io_config(Application* app, int appID_rand, int turns){
 					ProcessTurnsPointer(pathSR & 0xffffFFFF,
   										pathSR >> 32 & 0xffffFFFF,
   										pathSR >> 64 & 0xffffFFFF,
-										&sr);
+										&sr[k]);
 					p = get_service_header_slot();
 					p->header[MAX_SOURCE_ROUTING_PATH_SIZE-1] = app->tasks[i].allocated_proc;
 
@@ -234,7 +234,7 @@ void send_io_config(Application* app, int appID_rand, int turns){
 
 					p->io_service = IO_SR_PATH;
 					
-					send_packet_io(p, &sr.path[0], sr.path_size, usedIO[k]);
+					send_packet_io(p, &sr[k].path[0], sr[k].path_size, usedIO[k]);
 					break;
 				}
 					
