@@ -983,10 +983,13 @@ int handle_packet(ServiceHeader * p) {
 		#endif
 		pendingIO --;
 		if (freezeIO){
-			// puts("Recebeu IO ACK pendente, congelando Comunicação\n");
-			Seek(KEY_ACK, ((MemoryRead(TICK_COUNTER)<<16) | (get_net_address()&0xffff)), APaddress, 0); // Send Freeze IO	
-			// puts("Answered to "); puts(itoh(APaddress));puts("\n");
-			break;
+			if (APaddress == get_net_address()){
+				OS_InterruptMaskSet(IRQ_AP);
+			}else{
+				// puts("Recebeu IO ACK pendente, congelando Comunicação\n");
+				Seek(KEY_ACK, ((MemoryRead(TICK_COUNTER)<<16) | (get_net_address()&0xffff)), APaddress, 0); // Send Freeze IO	
+				// puts("Answered to "); puts(itoh(APaddress));puts("\n");
+			}	
 		}		
 		
 		if (current == &idle_tcb){
@@ -1129,10 +1132,14 @@ int handle_packet(ServiceHeader * p) {
 			}else{
 				pendingIO --;
 				if (freezeIO){
-					// puts("Recebeu IO ACK pendente, congelando Comunicação\n");
-					Seek(KEY_ACK, ((MemoryRead(TICK_COUNTER)<<16) | (get_net_address()&0xffff)), APaddress, 0); // Send Freeze IO	
-					puts("Answered to "); puts(itoh(APaddress));puts("\n");
-				}	
+					if (APaddress == get_net_address()){
+						OS_InterruptMaskSet(IRQ_AP);
+					}else{
+						// puts("Recebeu IO ACK pendente, congelando Comunicação\n");
+						Seek(KEY_ACK, ((MemoryRead(TICK_COUNTER)<<16) | (get_net_address()&0xffff)), APaddress, 0); // Send Freeze IO	
+						// puts("Answered to "); puts(itoh(APaddress));puts("\n");
+					}	
+				}
 			}
 			
 
@@ -1693,7 +1700,8 @@ int SeekInterruptHandler(){
 				break;
 			}	
 			Seek(BR_TO_APPID_SERVICE, ((get_net_address()&0xffff) | (get_net_address()&0xffff)), (unsigned int)MemoryRead(APP_ID_REG), 0);
-		
+			APaddress = get_net_address();
+
 			MemoryWrite(K1_REG, k1);
 			MemoryWrite(K2_REG, k2);
 			MemoryWrite(AP_THRESHOLD, AP_THRESHOLD_VALUE);
@@ -2059,9 +2067,10 @@ case BR_TO_APPID_SERVICE: // Expand here to flexible AccessPoit configuration
 		break;
 
 		case KEY_ACK:
-				puts("Received KEY_ACK from: ");puts(itoa(rcvdACK));puts(itoh(source&0xffff)); puts ("\n");
+				puts("Received KEY_ACK from: ");puts(itoa(rcvdACK));puts(itoh(source&0xffff));puts("*** Time: ");puts(itoa(MemoryRead(TICK_COUNTER))); puts ("\n");
 
-				for(i=0; i <=rcvdACK; i++){
+				//for(i=0; i <=rcvdACK; i++){
+				for(i=0; i <=appTasks; i++){
 					if (source == ackSources[i]){
 						puts("--repetido\n");
 						break;
@@ -2236,18 +2245,17 @@ void OS_InterruptServiceRoutine(unsigned int status) {
 	}
 	
 	if ( status & IRQ_AP ){
-		//Primeira coisa: enviar serviço para espaçar do clear
-		
 		OS_InterruptMaskClear(IRQ_AP);
-
-		timeAux = MemoryRead(TICK_COUNTER);
-		Seek(BR_TO_APPID_SERVICE, (timeAux<<16) | (get_net_address()&0xffff), (unsigned int)MemoryRead(APP_ID_REG), 01); // Send Freeze IO
-		// puts("Received RENEW_KEY - Interruption");puts(itoa(MemoryRead(TICK_COUNTER))); puts("\n");
-		// MemoryWrite(AP_THRESHOLD, 0);
-		freezeIO = 1;
-		Seek(CLEAR_SERVICE, ( (timeAux<<16)  | (get_net_address()&0xffff)), 0,0); // Send Freeze IO
-		// MemoryWrite(AP_THRESHOLD, 3);
-		// puts("Start: ");puts(itoa(MemoryRead(TICK_COUNTER))); puts ("\n");	// Port of the AP
+		if(pendingIO){
+			freezeIO = 1;
+		}else{
+			timeAux = MemoryRead(TICK_COUNTER);
+			Seek(BR_TO_APPID_SERVICE, (timeAux<<16) | (get_net_address()&0xffff), (unsigned int)MemoryRead(APP_ID_REG), 01); // Send Freeze IO
+			for (int i = 0; i < 5; i++){}			
+			Seek(CLEAR_SERVICE, ( (timeAux<<16)  | (get_net_address()&0xffff)), 0,0); // Send Freeze IO
+			// MemoryWrite(AP_THRESHOLD, 3);
+			// puts("Start: ");puts(itoa(MemoryRead(TICK_COUNTER))); puts ("\n");	// Port of the AP
+		}
 	}
 	if (call_scheduler){
 
