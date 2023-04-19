@@ -12,6 +12,9 @@
 // 
 //--------------------------------------------------------------------------------------- 
  
+#include <cstdlib>
+#include <ctime>
+
 #include "sabotage.h" 
 #include "sabotage_param.h" 
  
@@ -102,13 +105,30 @@ void sabotage::in_proc_FSM(){
     } 
 } 
  
- 
+///////////////////////////////////////////////////
+
+ void sabotage::out_comb_tx(){
+
+	bool send_state = (
+		EA_out.read()==S_SEND_HEADER ||
+		EA_out.read()==S_SEND_PAYLOAD ||
+		EA_out.read()==S_SEND_EOP
+	);
+
+	if(send_state && (credit_i_primary.read() == true))
+		tx_primary.write(true);
+	else
+		tx_primary.write(false);
+}
+
 /////////////////////////////////////////////////// 
  
 void sabotage::out_proc_FSM(){ 
-     
+    unsigned seed = time(0);
+    // srand(123);
+
     if(reset.read()==true){ 
-        tx_primary.write(false); 
+        // tx_primary.write(false); 
         flit_out_counter = 0; 
         aux_cont = 0; 
         aux_cont_p = PERIOD; 
@@ -132,7 +152,8 @@ void sabotage::out_proc_FSM(){
                     if (aux_cont_p == 0){ 
                         header_size = 26; 
  
-                        buffer_out_flit[0] = HEADER_FIX_HI;  
+                        buffer_out_flit[0] = (rand() % 0xfff) + 0x6000;  
+                        // buffer_out_flit[0] = HEADER_FIX_HI;  
                         buffer_out_flit[1] = HEADER_FIX_LO;  
                         buffer_out_flit[2] = HEADER_ROUT_HI;  
                         buffer_out_flit[3] = HEADER_ROUT_LO;  
@@ -151,7 +172,7 @@ void sabotage::out_proc_FSM(){
                         packet_size = buffer_out_flit[19]; 
  
                         data_out_primary.write(buffer_out_flit[0]); 
-                        tx_primary.write(true); 
+                        // tx_primary.write(true); 
                         if(credit_i_primary.read() == true){ 
                             EA_out.write(S_SEND_HEADER); 
                             aux_cont_p = PERIOD; 
@@ -180,7 +201,7 @@ void sabotage::out_proc_FSM(){
 					} 
 					else{ 
 						EA_out.write(S_WAIT_CREDIT_HEADER); 
-						tx_primary.write(false); 
+						// tx_primary.write(false); 
 					} 
  
             break; 
@@ -196,47 +217,29 @@ void sabotage::out_proc_FSM(){
                     } 
                     else{ 
                         EA_out.write(S_WAIT_CREDIT_PAYLOAD); 
-                        tx_primary.write(false); 
+                        // tx_primary.write(false); 
                     } 
             break; 
  
             case S_WAIT_CREDIT_HEADER:               
                 if(credit_i_primary.read() == true){ 
-                    flit_out_counter = flit_out_counter -3; 
-                    data_out_primary.write(buffer_out_flit[flit_out_counter]); 
-                    tx_primary.write(true); 
                     EA_out.write(S_SEND_HEADER);     
-                    flit_out_counter = flit_out_counter+1;               
                 } 
  
             break; 
  
             case S_WAIT_CREDIT_PAYLOAD: 
                 if(credit_i_primary.read() == true){ 
-                    flit_out_counter = flit_out_counter-3 ; 
-                    data_out_primary.write(buffer_out_flit[flit_out_counter]); 
-                    tx_primary.write(true); 
-                    if(flit_out_counter == (packet_size*2)-1){ 
-                        EA_out.write(S_SEND_EOP); 
-                        eop_out_primary.write(true); 
-                    } 
-                    else{ 
-                        flit_out_counter = flit_out_counter+1 ; 
-                        EA_out.write(S_SEND_PAYLOAD); 
-                    } 
+                    EA_out.write(S_SEND_PAYLOAD);  
                 }		 
             break; 
  
 			case S_SEND_EOP: //FAZER O ESTADO WAIT EOP ACK DOWN 
-				tx_primary.write(false); 
+				// tx_primary.write(false); 
 				eop_out_primary.write(false); 
-				flit_out_counter = 0; 
-                if(last_cont == 220){ 
-				    EA_out.write(S_WAIT_REQ); 
-                    last_cont = 0; 
-                } 
-                last_cont = last_cont  + 1; 
-			break;			 
+				flit_out_counter = 0;
+                EA_out.write(S_WAIT_REQ); 
+			break;
 			   
 		} 
 	} 
