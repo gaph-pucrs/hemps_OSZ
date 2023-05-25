@@ -301,6 +301,41 @@ void send_nonsecure_io_config(Application* app){
 
 }
 
+void send_io_clear(Application* app){
+
+	int usedIO[IO_NUMBER];
+	for(int i = 0; i < IO_NUMBER; i++)
+		usedIO[i] = 0;
+
+	for (int i =0; i<app->tasks_number; i++){
+		for(int j =0; j < app->tasks[i].dependences_number; j++){
+			for (int k = 0; k < IO_NUMBER; k++){
+				
+				if(usedIO[k] == app->tasks[i].dependences[j].flits)
+					break;
+				
+				if(usedIO[k] == 0){
+					puts("----Enviando clear para: ");puts(itoa(app->tasks[i].dependences[j].flits));puts("\n");
+					usedIO[k] = app->tasks[i].dependences[j].flits;
+					int k0 = get_NI_k0(usedIO[k]);
+
+					ServiceHeader *p = get_service_header_slot();
+					p->header[MAX_SOURCE_ROUTING_PATH_SIZE-1] = app->tasks[i].allocated_proc;
+
+					p->service = ((app->appID_random ^ k0) << 16);
+
+					p->io_service = IO_CLEAR;
+					
+					send_packet_io(p, 0, 0, usedIO[k]);
+					break;
+				}
+					
+			}
+		}			
+	}
+
+}
+
 void send_io_renew(Application* app, int appID, int turns){
 
 	ServiceHeader *p;
@@ -1240,6 +1275,7 @@ int SeekInterruptHandler(){
 				//puts("Secure: "); puts(itoh(app->secure)); puts("\n");
 				if(app->secure == 1){
 					Seek(OPEN_SECURE_ZONE_SERVICE, MemoryRead(TICK_COUNTER)<<16 | get_net_address(), app_id, app->RH_Address);
+					send_io_clear(app);
 				}
 				else{
 			

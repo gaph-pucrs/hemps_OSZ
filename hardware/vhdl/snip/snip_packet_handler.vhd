@@ -195,6 +195,7 @@ architecture snip_packet_handler of snip_packet_handler is
         saveAppId           : std_logic;
         saveKey1            : std_logic;
         saveKey2            : std_logic;
+        clear               : std_logic;
     end record;
 
     signal tableControl : TableControlSignals;
@@ -674,7 +675,7 @@ begin
     end process;
 
     app_id <= x"0000" when f1=x"0000" else f1 xor k0;
-    app_id_valid <= '1' when hermes_service_valid='1' and (hermes_service=IO_CONFIG_SERVICE or hermes_service=IO_RENEW_KEYS) and f1_valid='1' else '0';
+    app_id_valid <= '1' when hermes_service_valid='1' and (hermes_service=IO_CONFIG_SERVICE or hermes_service=IO_RENEW_KEYS or hermes_service=IO_CLEAR) and f1_valid='1' else '0';
 
     key_params <= f2 xor k0;
     key_params_valid <= '1' when hermes_service_valid='1' and (hermes_service=IO_CONFIG_SERVICE or hermes_service=IO_RENEW_KEYS) and f2_valid='1' else '0';
@@ -743,7 +744,7 @@ begin
     tableOut.tag        <= crypto_tag when tableControl.fetchCrypto='1' else app_id;
     tableOut.tagAux     <= crypto_tag2;
 
-    tableOut.clearSlot  <= '0';
+    tableOut.clearSlot  <= tableControl.enableWriting and tableControl.clear;
     
     -- write fields
 
@@ -815,7 +816,7 @@ begin
 
     -- table control signals
 
-    tableControl.fetchPlaintext <= '1' when hermes_service_valid='1'    and (hermes_service=IO_RENEW_KEYS)                                              else '0';
+    tableControl.fetchPlaintext <= '1' when hermes_service_valid='1'    and (hermes_service=IO_RENEW_KEYS or hermes_service=IO_CLEAR)                   else '0';
     tableControl.fetchCrypto    <= '1' when hermes_service_valid='1'    and (hermes_service=IO_REQUEST_SERVICE or hermes_service=IO_DELIVERY_SERVICE)   else '0';
     tableControl.fetchNewSlot   <= '1' when hermes_service_valid='1'    and (hermes_service=IO_CONFIG_SERVICE)                                          else '0';
 
@@ -834,6 +835,7 @@ begin
     tableControl.saveAppId  <= '1' when hermes_service_valid='1'    and (hermes_service=IO_CONFIG_SERVICE)  else '0';
     tableControl.saveKey1   <= '1' when hermes_service_valid='1'    and (hermes_service=IO_CONFIG_SERVICE)  else '0';
     tableControl.saveKey2   <= '1' when hermes_service_valid='1'    and (hermes_service=IO_CONFIG_SERVICE)  else '0';
+    tableControl.clear      <= '1' when hermes_service_valid='1'    and (hermes_service=IO_CLEAR)           else '0';
 
     -- other control signals
 
@@ -841,6 +843,7 @@ begin
     (
         hermes_service=IO_INIT_SERVICE or
         hermes_service=IO_CONFIG_SERVICE or
+        hermes_service=IO_CLEAR or
         hermes_service=IO_RENEW_KEYS or
         hermes_service=IO_REQUEST_SERVICE or
         hermes_service=IO_DELIVERY_SERVICE
@@ -852,7 +855,7 @@ begin
 
     keygen_necessary <= '1' when hermes_service_valid='1' and (hermes_service=IO_CONFIG_SERVICE or hermes_service=IO_RENEW_KEYS) else '0';
 
-    data_to_write_on_table <= tableControl.saveAppId or tableControl.saveKey1 or tableControl.saveKey2;
+    data_to_write_on_table <= tableControl.saveAppId or tableControl.saveKey1 or tableControl.saveKey2 or tableControl.clear;
 
     end_of_handling <= '1' when next_stage=START_RECEPTION and changing_stage='1' else '0';
 
