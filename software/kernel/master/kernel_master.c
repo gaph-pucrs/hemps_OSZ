@@ -34,6 +34,7 @@
 #include "../../modules/lfsr.h"
 
 #include "../../modules/osz_master.h"
+#include "../../modules/snip_master.h"
 
 
 NewTask * pending_new_task;
@@ -50,7 +51,6 @@ unsigned int 	cluster_load[CLUSTER_NUMBER];										//!< Keep the cluster load,
 unsigned int 	terminated_app_count = 0;											//!< Used to fires the END OF ALL APPLIATIONS
 unsigned int 	waiting_app_allocation = 0;											//!< Signal that an application is not fully mapped
 unsigned int 	app_id_counter = 0;
-char			nonsecure_io_dependents[IO_NUMBER];									//!< Keep track of how many non-secure dependent apps each peripheral has
 
 extern int shape_index;
 //extern Shapes shapes[MAX_SHAPES];
@@ -175,208 +175,6 @@ void send_authenticate_nip(int periphID, int k0){
 // 	} 
 // } 
  
-// returns 1 if given peripheral is connected in a gray line
-int is_peripheral_in_gray_line(int peripheral_id){
-
-	int io_idx = 0;
-	while(io_idx < IO_NUMBER)
-	{
-		if(io_info[io_idx].peripheral_id == peripheral_id)
-			break;
-		io_idx++;
-	}
-
-	int peripheral_y = io_info[io_idx].default_address_y;
-
-	for(int row = 0; row < MAX_GRAY_ROWS; row++)
-		if(ga.rows[row] == peripheral_y)
-			return 1;
-	return 0;
-} 
-
-void send_io_config(Application* app, int appID_rand, int turns){
-
-	ServiceHeader *p;
-	SourceRoutingTableSlot sr[IO_NUMBER];
-	int usedIO[IO_NUMBER];
-	int k0;
-	long unsigned int pathSR = 0;
-
-	// appID_rand = 0x00007782;
-	// turns = 0x00000704;
-
-	puts("AppID rand: ");puts(itoh(appID_rand));puts("\n");
-	puts("turns: ");puts(itoh(turns));puts("\n");
-
-	for(int i = 0; i < IO_NUMBER; i++)
-		usedIO[i] = 0;
-
-	for (int i =0; i<app->tasks_number; i++){
-		// puts("TaskID ");puts(itoh(app->tasks[i].id));puts("\n");
-		for(int j =0; j < app->tasks[i].dependences_number; j++){
-			for (int k = 0; k < IO_NUMBER; k++){
-				if(usedIO[k] == app->tasks[i].dependences[j].flits)
-					break;
-				if(usedIO[k] == 0){
-					puts("----Enviando conf para: ");puts(itoa(app->tasks[i].dependences[j].flits));puts("\n");
-					usedIO[k] = app->tasks[i].dependences[j].flits;
-					k0 = get_NI_k0(usedIO[k]);
-					int ioInGrayLine = is_peripheral_in_gray_line(usedIO[k]);
-					pathSR = IOtoAPmaster(usedIO[k], app->ap.address_go, app->ap.port_go, ioInGrayLine);
-					ProcessTurnsPointer(pathSR & 0xffffFFFF,
-  										pathSR >> 32 & 0xffffFFFF,
-  										pathSR >> 64 & 0xffffFFFF,
-										&sr[k]);
-					p = get_service_header_slot();
-					p->header[MAX_SOURCE_ROUTING_PATH_SIZE-1] = app->tasks[i].allocated_proc;
-
-					p->service = ((appID_rand ^ k0) << 16) | (turns ^ k0);
-
-					p->io_service = IO_SR_PATH;
-					
-					send_packet_io(p, &sr[k].path[0], sr[k].path_size, usedIO[k]);
-					break;
-				}
-					
-			}
-		}			
-	}
-}
-
-void send_nonsecure_io_config(Application* app){
-
-	ServiceHeader *p;
-
-	int usedIO[IO_NUMBER];
-	for(int i = 0; i < IO_NUMBER; i++)
-		usedIO[i] = 0;
-	
-	//for all io dependencies of the application
-	for(int i =0; i<app->tasks_number; i++){
-		for(int j =0; j < app->tasks[i].dependences_number; j++){
-			for (int k = 0; k < IO_NUMBER; k++){
-
-				if(usedIO[k] == app->tasks[i].dependences[j].flits)
-					break;
-				
-				//send io_config
-				if(usedIO[k] == 0){
-
-					usedIO[k] = app->tasks[i].dependences[j].flits;
-
-					/* Manage Peripheral Dependents */
-					//finds out the io_number of the peripheral
-					int io_idx = 0;
-					while(io_idx < IO_NUMBER)
-					{
-						if(io_info[io_idx].peripheral_id == app->tasks[i].dependences[j].flits)
-							break;
-						io_idx++;
-					}
-					//updates number of nonsecure dependents
-					nonsecure_io_dependents[io_idx]++;
-					//if the peripheral was already configured for non-secure communication, it's not configured again
-					if(nonsecure_io_dependents[io_idx] > 1)
-						break;
-					//else: perform the configuration normally
-
-					puts("----Enviando conf para: ");puts(itoa(app->tasks[i].dependences[j].flits));puts("\n");
-
-					//decides whether peripheral uses XY or YX routing
-					int useXY = is_peripheral_in_gray_line(usedIO[k]);
-					unsigned int routing_cfg = useXY ? 0x60007EEE : 0x10007EEE;		
-
-					//builds and sends io_config packet
-					p = get_service_header_slot();	
-					p->service = 0;
-					p->io_service = IO_SR_PATH;
-
-					send_packet_io(p, &routing_cfg, 1, usedIO[k]);
-					break;
-				}
-					
-			}
-		}			
-	}
-
-}
-
-void send_io_clear(Application* app){
-
-	int usedIO[IO_NUMBER];
-	for(int i = 0; i < IO_NUMBER; i++)
-		usedIO[i] = 0;
-
-	for (int i =0; i<app->tasks_number; i++){
-		for(int j =0; j < app->tasks[i].dependences_number; j++){
-			for (int k = 0; k < IO_NUMBER; k++){
-				
-				if(usedIO[k] == app->tasks[i].dependences[j].flits)
-					break;
-				
-				if(usedIO[k] == 0){
-					puts("----Enviando clear para: ");puts(itoa(app->tasks[i].dependences[j].flits));puts("\n");
-					usedIO[k] = app->tasks[i].dependences[j].flits;
-					int k0 = get_NI_k0(usedIO[k]);
-
-					ServiceHeader *p = get_service_header_slot();
-					p->header[MAX_SOURCE_ROUTING_PATH_SIZE-1] = app->tasks[i].allocated_proc;
-
-					p->service = ((app->appID_random ^ k0) << 16);
-
-					p->io_service = IO_CLEAR;
-					
-					send_packet_io(p, 0, 0, usedIO[k]);
-					break;
-				}
-					
-			}
-		}			
-	}
-
-}
-
-void send_io_renew(Application* app, int appID, int turns){
-
-	ServiceHeader *p;
-	int usedIO[IO_NUMBER];
-	int k0;
-
-	//puts("*** IO_RENEWAL ***\n");
-	//puts("appID: ");puts(itoh(appID));puts("\n");
-	//puts("turns: ");puts(itoh(turns));puts("\n");
-
-	for(int i = 0; i < IO_NUMBER; i++)
-		usedIO[i] = 0;
-
-	for(int i=0; i<app->tasks_number; i++) {
-		for(int j=0; j<app->tasks[i].dependences_number; j++) {
-			for(int k = 0; k<IO_NUMBER; k++) {
-				
-				if(usedIO[k] == app->tasks[i].dependences[j].flits)
-					break;
-				
-				if(usedIO[k] == 0) {
-
-					puts("----Enviando conf para: ");puts(itoa(app->tasks[i].dependences[j].flits));puts("\n");
-					usedIO[k] = app->tasks[i].dependences[j].flits;
-					k0 = get_NI_k0(usedIO[k]);
-					
-					p = get_service_header_slot();
-					p->header[MAX_SOURCE_ROUTING_PATH_SIZE-1] = app->tasks[i].allocated_proc;
-					p->service = ((appID ^ k0) << 16) | (turns ^ k0);
-					p->io_service = IO_RENEW_KEYS;
-
-					send_packet_io(p, 0, 0, usedIO[k]);
-
-					break;
-				}
-					
-			}
-		}			
-	}
-}
-
 
 /** Assembles and sends a TASK_ALLOCATION packet to a slave kernel
  *  \param new_t The NewTask instance
@@ -1067,9 +865,9 @@ void initialize_IO(){ 	// TODO  peripheral recieve k0
 		k0NItable[i] = k0rand;
 		// puts("K0: ");  puts(itoh(k0NItable[i]));  puts("\n");
 		k0rand =0;
-
-		nonsecure_io_dependents[i] = 0; //each peripheral starts with zero dependent non-secure apps
 	}
+
+	init_snip_structures();
 
 	// send_packet_io(p, 0, 0, peripheralID);
 }
@@ -1169,7 +967,7 @@ void handle_new_app(int app_ID, volatile unsigned int *ref_address, unsigned int
 	if (mapping_completed){
 
 		if(application->secure == 0)
-			send_nonsecure_io_config(application);
+			config_snips(application);
 
 		putsv("end mapping - ", MemoryRead(TICK_COUNTER));
 
@@ -1272,10 +1070,10 @@ int SeekInterruptHandler(){
 			if (app->terminated_tasks == app->tasks_number){
 			
 				puts("All Tasks Finished AppID: "); puts(itoh(app_id)); puts("\n");
+				clear_snips(app);
 				//puts("Secure: "); puts(itoh(app->secure)); puts("\n");
 				if(app->secure == 1){
 					Seek(OPEN_SECURE_ZONE_SERVICE, MemoryRead(TICK_COUNTER)<<16 | get_net_address(), app_id, app->RH_Address);
-					send_io_clear(app);
 				}
 				else{
 			
@@ -1412,7 +1210,7 @@ int SeekInterruptHandler(){
 						set_RH_Address(app->app_ID, RH_addr);
 						#ifndef AUTH_PROTOCOL
 						set_AccessPoint(RH_addr, LL_addr, &app->ap);
-						send_io_config(app, app->appID_random, app->nTurns);
+						config_snips(app);
 						#endif
 						//get_Secure_Zone_index(RH_addr);
 						puts("SET_SECURE_ZONE at time: "); puts(itoa(MemoryRead(TICK_COUNTER))); puts("\n");
@@ -1468,7 +1266,8 @@ int SeekInterruptHandler(){
 			nTurns_aux = nTurns_aux & 0x0f0f;
 
 			app = get_app_ptr_from_task_location(source & 0xffff);
-			send_io_renew(app, app->appID_random, nTurns_aux);
+			app->nTurns = nTurns_aux;
+			renew_snips(app);
 
 		break;
 		

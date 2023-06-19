@@ -227,6 +227,34 @@ Application * read_and_create_application(unsigned int app_id, volatile unsigned
 		}
 	}
 
+	/* IO Dependencies */
+
+	int num_dependencies = 0;
+
+	int usedIO[IO_NUMBER];
+	for(int i = 0; i < IO_NUMBER; i++)
+		usedIO[i] = 0;
+
+	for(int t = 0; t < app->tasks_number; t++){
+		for(int d = 0; d < app->tasks[t].dependences_number; d++){
+			for(int i = 0; i < IO_NUMBER; i++){
+				
+				if(usedIO[i] == app->tasks[t].dependences[d].flits)
+					break;
+
+				if(usedIO[i] == 0){
+					app->io_dependencies[num_dependencies].peripheralID = app->tasks[t].dependences[d].flits;
+					num_dependencies++;
+					usedIO[i] = app->tasks[t].dependences[d].flits;
+					break;
+				}
+
+			}
+		}
+	}
+
+	app->io_dependencies_number = num_dependencies;
+
 	return app;
 }
 

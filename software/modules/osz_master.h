@@ -167,4 +167,6 @@ int PE_belong_SZ(int PE_x, int PE_y);
         Secure_Zone > processors.c
 */
 
+int get_NI_k0(int periphID);
+
 #endif

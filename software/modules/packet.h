@@ -151,5 +151,7 @@ int pathToIO(int, int*);
 
 int pathFromIO(long unsigned int);
 
+int IOtoAPmaster(int peripheral_id, int ap_addr, int ap_port, int ioInGrayLine);
+
 
 #endif /* SOFTWARE_INCLUDE_PACKET_PACKET_H_ */
