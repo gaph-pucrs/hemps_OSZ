@@ -432,7 +432,7 @@ void handle_app_terminated(int appID, unsigned int app_task_number, unsigned int
 	terminated_app_count++;
 	puts("SIMUL_PROGRESS "); puts(itoa(((terminated_app_count*100)/APP_NUMBER)));puts("%\n");
 
-	//puts("\n-------\n");
+	clear_snips(get_application_ptr(appID));
 
 	if (terminated_app_count == APP_NUMBER){
 		puts("FINISH ");puts(itoa(MemoryRead(TICK_COUNTER))); puts("\n");
@@ -1070,7 +1070,6 @@ int SeekInterruptHandler(){
 			if (app->terminated_tasks == app->tasks_number){
 			
 				puts("All Tasks Finished AppID: "); puts(itoh(app_id)); puts("\n");
-				clear_snips(app);
 				//puts("Secure: "); puts(itoh(app->secure)); puts("\n");
 				if(app->secure == 1){
 					Seek(OPEN_SECURE_ZONE_SERVICE, MemoryRead(TICK_COUNTER)<<16 | get_net_address(), app_id, app->RH_Address);

@@ -122,10 +122,30 @@ void clear_snips_secure(Application *app) {
 	}
 }
 
-//TODO
 void clear_snips_nonsecure(Application *app) {
+
 	puts("[DEBUG SNIP] Entrando em clear_snips_nonsecure\n");
-	return;
+
+	for(int i = 0; i < app->io_dependencies_number; i++) {
+
+		int peripheralID = app->io_dependencies[i].peripheralID;
+		int io_idx = get_io_number(peripheralID);
+
+		/* updates number of nonsecure dependents */
+
+		nonsecure_io_dependents[io_idx]--;
+
+		if(nonsecure_io_dependents[io_idx] != 0)
+			break;
+
+		puts("[DEBUG SNIP] Sending non-secure IO_CLEAR to peripheral "); puts(itoa(peripheralID)); puts("\n");
+
+		ServiceHeader *p = get_service_header_slot();
+		//p->header[MAX_SOURCE_ROUTING_PATH_SIZE-1] = app->tasks[i].allocated_proc;
+		p->service = 0;
+		p->io_service = IO_CLEAR;
+		send_packet_io(p, 0, 0, peripheralID);
+	}
 }
 
 void clear_snips(Application *app) {
