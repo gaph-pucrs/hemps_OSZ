@@ -18,7 +18,8 @@
 void pe::mem_mapped_registers(){
 	
 	sc_uint <32 > l_cpu_mem_address_reg = cpu_mem_address_reg.read();
-	
+	sc_uint<NPORT > l_ap_mask;
+
 	if(l_cpu_mem_address_reg.range(30,28 ) == 1){
 
 		in_sel_reg_backtrack_fifoPDN.write(0);
@@ -81,6 +82,15 @@ void pe::mem_mapped_registers(){
 			break;
 			case AP_THRESHOLD:
 				cpu_mem_data_read.write(apThreshold.read());
+			break;
+			case AP_STATUS:
+				cpu_mem_data_read.write(AP_status.read());
+			break;
+			case AP_MASK:
+				cpu_mem_data_read.write(ap_mask.read());
+			break;
+			case K1_REG:
+				cpu_mem_data_read.write(k1.read());
 			break;
 			// case SEEK_BACKTRACK1:
 			// 	cpu_mem_data_read.write(out_reg_backtrack_seek_local.read());
@@ -469,10 +479,7 @@ void pe::access_point_reg(){
 		k2 = cpu_mem_data_write_reg.read();
 	}
 	if ((cpu_mem_address_reg.read() == AP_MASK) and (write_enable.read()==1) ) {
-		l_ap_mask = cpu_mem_data_write_reg.read();
-		for(i=0;i<NPORT;i++){
-			ap_mask[i].write(l_ap_mask[i]);
-		}
+		ap_mask = cpu_mem_data_write_reg.read();
 	}
 	if ((cpu_mem_address_reg.read() == APP_ID_REG) and (write_enable.read()==1) ) {
 		app_reg = cpu_mem_data_write_reg.read();
@@ -731,7 +738,11 @@ void pe::seek_receive(){
 					case 0x26:
 						cout << "REQUEST_SNIP_RENEWAL";
 						int_seek.write(1);
-					break;		
+					break;
+					case 0x27:
+						cout << "LC_NOTIFICATION";
+						int_seek.write(1);
+					break;
 					default:
 						cout << out_service_fifopdn.read() << " unknown --- ERROR! " ;
 						in_ack_fifopdn.write(1);

@@ -86,6 +86,7 @@ typedef struct {
 
 	int secure;					//!< Indicates if the Application run in secure zone
 	int RH_Address;				//!< Stores the Right High corner of secure zone when secure xone is used
+	int LL_Address;				//!< Stores the Right High corner of secure zone when secure xone is used
 
 	AccessPoint ap;
 	int appID_random;

@@ -46,8 +46,25 @@ void insert_CM_FIFO(volatile ServiceHeader *p, unsigned int initial_address, uns
 					return; 								// @suppress("No break at end of case")
 
 		// services with payload: save the pointer to data and length
-		case IO_DELIVERY:
-		case IO_REQUEST:
+
+		/****** DEFAULT CASE ******/
+
+		// Used for special cases: IO packets and non-recognized services
+		// IO messages use a different packet structure, thus the packet service is contained in a different flit: "io_service"
+
+		default:
+			// Non-recognized services exit
+			if((p->io_service != IO_REQUEST) && (p->io_service != IO_DELIVERY)) {
+				// puts("\nERROR: control message NOT treat in CM_FIFO structure\n");
+				// //while(1);
+				// puts("Service: "); puts(itoh(p->service)); puts("\n");
+				// puts("IO Service: "); puts(itoh(p->io_service)); puts("\n");
+				break;
+			}
+			// IO packets continue
+		
+		/**************************/
+		
 		case NEW_APP:
 		case TASK_ALLOCATION:
 		case APP_ALLOCATION_MAP:
@@ -110,13 +127,6 @@ void insert_CM_FIFO(volatile ServiceHeader *p, unsigned int initial_address, uns
 			 //aux = search_Target_Service((p->header[MAX_SOURCE_ROUTING_PATH_SIZE-1] & 0xffff), p->service);
 			 //puts("achou: "); puts(itoh(aux)); puts("\n");
 		break;
-
-		default:
-			// puts("\nERROR: control message NOT treat in CM_FIFO structure\n");
-			// //while(1);
-			// puts(itoh(p->service)); puts("\n");
-		break;
-
 	}
 }
 
@@ -241,7 +251,7 @@ int resend_control_message(unsigned int backtrack, unsigned int backtrack1, unsi
 	CMFifo_index = search_Target(target);
 	puts("CMFifo_index: "); puts(itoh(CMFifo_index)); puts("\n");
 	if(CMFifo_index != -1){
-		if((CMFifo[CMFifo_index].service_header.service != IO_DELIVERY) && (CMFifo[CMFifo_index].service_header.service != IO_REQUEST)){
+		if((CMFifo[CMFifo_index].service_header.io_service != IO_DELIVERY) && (CMFifo[CMFifo_index].service_header.io_service != IO_REQUEST)){
 			//puts("\nSR control message\n");
 			send_packet(&CMFifo[CMFifo_index].service_header, CMFifo[CMFifo_index].ptr_payload , CMFifo[CMFifo_index].payload_length);
 			CMFifo[CMFifo_index].used = YES;

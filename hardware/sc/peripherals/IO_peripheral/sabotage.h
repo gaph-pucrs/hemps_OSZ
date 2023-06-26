@@ -64,7 +64,7 @@ SC_MODULE(sabotage) {
 		S_SEND_PAYLOAD, 
 		S_WAIT_CREDIT_PAYLOAD, 
 		S_WAIT_CREDIT_HEADER, 
-		S_SEND_EOP, 
+		S_SEND_EOP,
 		S_WAIT_RX_OF_EOP 
 	}; 
 	sc_signal<FSM_out> EA_out; 
@@ -91,7 +91,7 @@ SC_MODULE(sabotage) {
   	reg8  header_size; 
   	reg32 payload_size; 
  
- 
+  	void out_comb_tx();
 	void out_proc_FSM(); 
 	void in_proc_FSM(); 
  
@@ -112,7 +112,12 @@ SC_MODULE(sabotage) {
 		sensitive << clock.pos(); 
  
 		SC_METHOD(seek_ack); 
-		sensitive << clock.pos(); 
+		sensitive << clock.pos();
+
+		SC_METHOD(out_comb_tx);
+		sensitive << EA_out;
+		sensitive << credit_i_primary;
+
 	} 
 private: 
 	int io_id; 

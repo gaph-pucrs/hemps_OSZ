@@ -99,7 +99,7 @@
 #define AP_MASK               0x20000568 
 #define APP_ID_REG            0x20000570 
 #define AP_THRESHOLD          0x20000574 
- 
+#define AP_STATUS             0x20000578
  
  
 //Kernel pending service FIFO 

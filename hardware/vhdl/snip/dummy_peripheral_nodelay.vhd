@@ -23,7 +23,6 @@ end entity;
 
 architecture dummy_peripheral of dummy_peripheral is
 
-    constant RW_LATENCY : integer := 2;
     constant BUFFER_SIZE : integer := 64;
 
     type FlitArray is array(0 to BUFFER_SIZE-1) of regflit;
@@ -34,76 +33,19 @@ architecture dummy_peripheral of dummy_peripheral is
     signal ptr_in       : integer range 0 to BUFFER_SIZE-1;
     signal ptr_out      : integer range 0 to BUFFER_SIZE-1;
 
-    type ReceiveState is (WAIT_REQ, WAIT_LAT, WRITE_FLIT);
-    signal r_state      : ReceiveState;
-    signal r_next_state : ReceiveState;
-    signal lat_count_r  : integer range 0 to RW_LATENCY;
-
 begin
 
-    --------------------
-    -- Read from SNIP --
-    --------------------
+    ----------
+    -- Read --
+    ----------
 
-    ChangeReceiveState: process(clock, reset)
-    begin
-        if reset='1' then
-            r_state <= WAIT_REQ;
-        elsif rising_edge(clock) then
-            r_state <= r_next_state;
-        end if;
-    end process;
+    r_en <= not data_unavailable;
 
-    ReceiveStateLogic: process(r_state, data_unavailable, lat_count_r)
-    begin
-        case r_state is
-
-            when WAIT_REQ =>
-
-                if data_unavailable='0' then
-                    r_next_state <= WAIT_LAT;
-                else
-                    r_next_state <= WAIT_REQ;
-                end if;
-            
-            when WAIT_LAT =>
-
-                if lat_count_r=RW_LATENCY then
-                    r_next_state <= WRITE_FLIT;
-                else
-                    r_next_state <= WAIT_LAT;
-                end if;
-            
-            when WRITE_FLIT =>
-
-                r_next_state <= WAIT_REQ;
-            
-        end case;
-    end process;
-
-    CountReceiveLatency: process(clock, reset)
-    begin
-        if reset='1' then
-            lat_count_r <= 0;
-        elsif rising_edge(clock) then
-
-            if r_state=WAIT_REQ then
-                lat_count_r <= 0;
-
-            elsif r_state=WAIT_LAT and lat_count_r/=RW_LATENCY then
-                lat_count_r <= lat_count_r + 1;
-            end if;
-
-        end if;
-    end process;
-
-    r_en <= '1' when r_state=WAIT_LAT and lat_count_r=RW_LATENCY else '0';
-
-    WriteData: process(clock, reset)
+    ReceiveData: process(clock, reset)
     begin
         if reset='1' then
             buffer_in <= (others => (others => '0'));
-        elsif rising_edge(clock) and r_state=WRITE_FLIT then
+        elsif rising_edge(clock) and r_en='1' then
             buffer_in(ptr_in) <= data_in;
         end if;
     end process;
@@ -112,7 +54,7 @@ begin
     begin
         if reset='1' then
             ptr_in <= 0;
-        elsif rising_edge(clock) and r_state=WRITE_FLIT then
+        elsif rising_edge(clock) and r_en='1' then
             if ptr_in=BUFFER_SIZE-1 then
                 ptr_in <= 0;
             else

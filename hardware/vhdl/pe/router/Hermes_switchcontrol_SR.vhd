@@ -319,7 +319,7 @@ begin
                     else
 						-- Packet achieved the target_internal
 	                    if target_internal = address  then
-	                      	if header(TAM_FLIT_32-1 downto TAM_FLIT_32-4) = PACKET_SWITCHING_XY or header(TAM_FLIT_32-1 downto TAM_FLIT_32-4) = IO_PACKET then
+	                      	if header(TAM_FLIT_32-1 downto TAM_FLIT_32-4) = PACKET_SWITCHING_XY or header(TAM_FLIT_32-1 downto TAM_FLIT_32-4) = IO_PACKET or header(TAM_FLIT_32-1 downto TAM_FLIT_32-4) = PACKET_SWITCHING_YX then
 	                        	if free_port(LOCAL1)='1' then
 	                        	    rot_table(sel)(LOCAL1) <= '1';
 	                        	    ack_routing(sel) <= '1';
@@ -327,14 +327,15 @@ begin
 	                        	else
 	                        	    EA <= S0;
 	                        	end if;
-                            elsif  header(TAM_FLIT_32-1 downto TAM_FLIT_32-4) = OUT_WRAPPER then
-                                if free_port(LOCAL1)='1' then
-                                    rot_table(sel)(LOCAL1) <= '1';
-                                    ack_routing(sel) <= '1';
-                                    EA <= S3;
-                                else
-                                    EA <= S0;
-                                end if;
+							
+                            -- elsif  header(TAM_FLIT_32-1 downto TAM_FLIT_32-4) = OUT_WRAPPER then
+                            --     if free_port(LOCAL1)='1' then
+                            --         rot_table(sel)(LOCAL1) <= '1';
+                            --         ack_routing(sel) <= '1';
+                            --         EA <= S3;
+                            --     else
+                            --         EA <= S0;
+                            --     end if;
 
 	                      	elsif  header(TAM_FLIT_32-1 downto TAM_FLIT_32-4) = OUT_NORTH then
 	                        	if free_port(NORTH0)='1' then
@@ -373,40 +374,53 @@ begin
 	                        	end if;
 	                    	end if;
 	                    	
-	                    -- Packet is switched to EAST or WEST
-	                    elsif lx /= tx then
-	                        if free_port(dirx) = '1' then						-- Verifies if the channel 0 is free 
-	                            ack_routing(sel) <= '1';
-	                            rot_table(sel)(dirx) <= '1';
-	                            EA <= S3;
+						-- Special case: IO Packet using YX overrides usual XY routing (CHANNEL 1)
+						elsif header(TAM_FLIT_32-1 downto TAM_FLIT_32-4) = PACKET_SWITCHING_YX then
+							
+							-- First route through Y axis
+							if ly/=ty then	
+	                    	    if free_port(diry+1) = '1' then			-- Verifies if the channel 1 is free
+	                    	        ack_routing(sel) <= '1';
+	                    	        rot_table(sel)(diry+1) <= '1';
+	                    	        EA <= S3;
+	                    	    else 
+	                    	        EA <= S0; 
+	                    	    end if;
 
-	                        elsif free_port(dirx+1) = '1' then
-	                            ack_routing(sel) <= '1';
-	                            rot_table(sel)(dirx+1) <= '1';
-	                            EA <= S3;
+							-- Then route through X axis
+							else
+								if free_port(dirx+1) = '1' then			-- Verifies if the channel 1 is free
+	                    		    ack_routing(sel) <= '1';
+	                    		    rot_table(sel)(dirx+1) <= '1'; 
+	                    		    EA <= S3;
+								else 
+	                    		    EA <= S0; 
+	                    		end if;
+							end if;
+						
+						-- Procedes with the regular XY algorithm (CHANNEL 0)
+						else
+						
+							-- Packet is switched to EAST or WEST
+	                    	if lx /= tx then
+	                    	    if free_port(dirx) = '1' then			-- Verifies if the channel 0 is free 
+	                    	        ack_routing(sel) <= '1';
+	                    	        rot_table(sel)(dirx) <= '1';
+	                    	        EA <= S3;
+	                    	    else 
+	                    	        EA <= S0; 
+	                    	    end if;
+								
+	                    	-- Packet is switched to NORTH or SOUTH 
+	                    	elsif free_port(diry) = '1' then			-- Verifies if the channel 0 is free
+	                    	    ack_routing(sel) <= '1';
+	                    	    rot_table(sel)(diry) <= '1'; 
+	                    	    EA <= S3;
+	                    	else 
+	                    	    EA <= S0; 
+	                    	end if;
+						end if;
 
-	                        -- No free channel
-	                        else 
-	                            EA <= S0; 
-	                        end if;
-	                                      
-	                    -- Packet is switched to NORTH or SOUTH 
-	                    -- Verifies if the channel 0 is free
-	                    elsif free_port(diry) = '1' then
-	                        ack_routing(sel) <= '1';
-	                        rot_table(sel)(diry) <= '1'; 
-	                        EA <= S3;
-
-
-	                    elsif free_port(diry+1) = '1' then		
-	                        ack_routing(sel) <= '1';
-	                        rot_table(sel)(diry+1) <= '1'; 
-	                        EA <= S3;
-
-
-	                    else 
-	                        EA <= S0; 
-	                    end if;
 	                end if;
 				when Sshift =>
 					--if shift_counter = "01" then

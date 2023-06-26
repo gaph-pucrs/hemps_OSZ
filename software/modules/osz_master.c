@@ -412,6 +412,15 @@ void set_RH_Address(int App_ID, int Address){
 	}
 }
 
+void set_LL_Address(int App_ID, int Address){
+	for(int i=0; i<MAX_CLUSTER_APP; i++){
+		if(applications[i].app_ID == App_ID){
+			applications[i].LL_Address = Address;
+			//puts("\nFound App: "); puts(itoh(App_ID)); puts(" to set RH: "); puts(itoh(Address)); puts("\n");
+		}
+	}
+}
+
 //////////////////////////////////////////////////////////////////////////////////////
 int get_AppID_with_RH_Address(int Address){
 	for(int i=0; i<MAX_CLUSTER_APP; i++){
