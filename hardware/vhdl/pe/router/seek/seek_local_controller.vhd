@@ -70,12 +70,9 @@ begin
 	seek_source  <= reg_target & reg_target when sending else 
 					pe_source;
 	
-<<<<<<< Updated upstream
-	seek_target  <= reg_source and x"0F0F" when sending else 
-=======
+
 	seek_target  <= reg_source 	when ((sending = '1') AND (packetType /= x"6")) else
 					x"0003" 	when sending else 
->>>>>>> Stashed changes
 					pe_target;
 
 	seek_service <= TARGET_UNREACHABLE_SERVICE when ((sending = '1') AND (packetType /= x"6")) else
