@@ -2,7 +2,7 @@
 
 #define T_START         100000  // 1 ms
 #define T_END           500000  // 7 ms
-#define PERIOD          2000       //500
+#define PERIOD          3000       //500
 
 // #define HEADER_FIX_HI   0x6C77  //header  Source: 0203 (usando 12 bits)
 // #define HEADER_FIX_LO   0x0001  //header 

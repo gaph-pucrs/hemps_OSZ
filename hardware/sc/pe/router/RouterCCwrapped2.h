@@ -24,10 +24,11 @@ SC_MODULE(RouterCCwrapped) {
 
     	sc_in<regflit> 		k1;
 		sc_in<regflit> 		k2;
-		sc_in<bool > 		ap[NPORT];
+		sc_in<regNport > 	ap;
 		sc_in<bool > 		sz[NPORT];
 		sc_in<sc_uint<8 > >		apThreshold;
 		sc_out<bool>            intAP;
+   		sc_out < sc_uint <3 > >  	AP_status;  
 
 		sc_out<regNport > 		link_control_message;
 
@@ -63,7 +64,7 @@ SC_MODULE(RouterCCwrapped) {
 		void upd_tx();
 		void upd_eop_out();
 		void upd_credit_i();
-		void upd_ap();
+		// void upd_ap();
 		void upd_sz();
 		// void upd_keys();
 		// void upd_unreach();
@@ -137,7 +138,7 @@ SC_MODULE(RouterCCwrapped) {
 				router->data_out[EAST0](data_out[LOCAL1]);
 
 				router->credit_i(credit_i_internal);
-				router->ap(ap_internal);
+				router->ap(ap);
 				router->sz(sz_internal);
 				router->link_control_message(link_control_message);
 			#else
@@ -167,7 +168,8 @@ SC_MODULE(RouterCCwrapped) {
 				router->k2(k2);
 				router->apThreshold(apThreshold);
 				router->intAP(intAP_internal);
-				// router->ap(ap);
+				router->AP_status(AP_status);
+
 				router->target(target);
 				router->source(source);
 
@@ -202,10 +204,10 @@ SC_MODULE(RouterCCwrapped) {
 				sensitive << access_i[i];
 			}
 
-			SC_METHOD(upd_ap);
-			for (i = 0; i < NPORT; i++){
-				sensitive << ap[i];
-			}
+			// SC_METHOD(upd_ap);
+			// for (i = 0; i < NPORT; i++){
+			// 	sensitive << ap[i];
+			// }
 
 			SC_METHOD(upd_sz);
 			for (i = 0; i < NPORT; i++){

@@ -7,6 +7,9 @@
         "iostream": "cpp",
         "applications.h": "c",
         "kernel_pkg.h": "c",
-        "functional": "cpp"
+        "functional": "cpp",
+        "control_messages_fifo.h": "c",
+        "local_scheduler.h": "c",
+        "processors.h": "c"
     }
 }

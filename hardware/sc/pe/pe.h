@@ -227,12 +227,13 @@ SC_MODULE(pe) {///////////////////////// INPUT AND OUTPUT //////////////////////
 	sc_signal<	bool> 			dmni_timeout_ni;
 
 	//Access Point
-	sc_signal<bool >			ap_mask[NPORT]; 
+	sc_signal<regNport >		ap_mask; 
 	sc_signal<regNport >		link_control_message;
 	sc_signal< regflit> 		k1;
 	sc_signal< regflit> 		k2;
 	sc_signal< reg_seek_target> app_reg;
 	sc_signal< sc_uint <8> > 	apThreshold;
+	sc_signal< sc_uint <3> > 	AP_status;
 	sc_signal<bool > 			intAP;
 
 
@@ -445,10 +446,13 @@ SC_MODULE(pe) {///////////////////////// INPUT AND OUTPUT //////////////////////
 			router->k2			(k2);
 			router->apThreshold (apThreshold);
 			router->intAP		(intAP);
+			router->AP_status	(AP_status);
+
 			router->target		(target);
 			router->source		(source);
+			router->ap			(ap_mask);
 			for(i=0;i<NPORT;i++){
-				router->ap[i]	(ap_mask[i]);
+				// router->ap[i]	(ap_mask[i]);
 				router->sz[i]	(wrapper_reg[i]);
 			}
 			router->link_control_message(link_control_message);

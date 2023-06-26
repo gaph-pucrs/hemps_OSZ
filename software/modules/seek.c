@@ -411,7 +411,7 @@ int ProcessTurnsPointer(unsigned int backtrack, unsigned int backtrack1, unsigne
 		}
 	}
 
-	while (shift >= 0)
+	while (shift >= 0 && shift<24)
 	{
 		ptrSR->path[(int)(i/6)] = ptrSR->path[(int)(i/6)]|((0xE) << shift);
 		switch(shift){

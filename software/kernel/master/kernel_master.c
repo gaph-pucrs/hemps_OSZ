@@ -180,7 +180,7 @@ void send_io_config(Application* app, int appID_rand, int turns){
 	ServiceHeader *p;
 	SourceRoutingTableSlot sr;
 	int usedIO[IO_NUMBER];
-	int k0;
+	int k0 = 0;
 	long unsigned int pathSR = 0;
 
 	// appID_rand = 0x00007782;
@@ -188,7 +188,7 @@ void send_io_config(Application* app, int appID_rand, int turns){
 
 	puts("AppID rand: ");puts(itoh(appID_rand));puts("\n");
 	puts("turns: ");puts(itoh(turns));puts("\n");
-
+	puts("----Sending configs:");puts(itoa(MemoryRead(TICK_COUNTER)));puts("\n");
 	for(int i = 0; i < IO_NUMBER; i++)
 		usedIO[i] = 0;
 
@@ -200,6 +200,7 @@ void send_io_config(Application* app, int appID_rand, int turns){
 					break;
 				if(usedIO[k] == 0){
 					puts("----Enviando conf para: ");puts(itoa(app->tasks[i].dependences[j].flits));puts("\n");
+					puts("START NEW IO PATH:");puts(itoa(MemoryRead(TICK_COUNTER)));puts("\n");
 					usedIO[k] = app->tasks[i].dependences[j].flits;
 					k0 = get_NI_k0(usedIO[k]);
 					pathSR = IOtoAPmaster(usedIO[k], app->ap.address_go, app->ap.port_go);
@@ -215,12 +216,14 @@ void send_io_config(Application* app, int appID_rand, int turns){
 					p->io_service = IO_SR_PATH;
 					
 					send_packet_io(p, &sr.path[0], sr.path_size, usedIO[k]);
+					puts("END NEW IO PATH:  ");puts(itoa(MemoryRead(TICK_COUNTER)));puts(" path size:");puts(itoa(sr.path_size));puts("\n");
 					break;
 				}
 					
 			}
 		}			
 	}
+	puts("----IO confs enviados");puts(itoa(MemoryRead(TICK_COUNTER)));puts("\n");
 }
 
 void send_io_renew(Application* app, int appID, int turns){
@@ -245,7 +248,7 @@ void send_io_renew(Application* app, int appID, int turns){
 				
 				if(usedIO[k] == 0) {
 
-					puts("----Enviando conf para: ");puts(itoa(app->tasks[i].dependences[j].flits));puts("\n");
+					puts("----Enviando renew para: ");puts(itoa(app->tasks[i].dependences[j].flits));puts("\n");
 					usedIO[k] = app->tasks[i].dependences[j].flits;
 					k0 = get_NI_k0(usedIO[k]);
 					
@@ -1068,6 +1071,47 @@ void handle_new_app(int app_ID, volatile unsigned int *ref_address, unsigned int
 }
 
 
+
+
+void changeAPlocation(Application *app){
+	int LL_x, LL_y, RH_x, RH_y, AP_x, AP_y, newAP;
+	LL_x = app->LL_Address >> 4;
+	LL_y = app->LL_Address & 0xf;
+	RH_x = app->RH_Address >> 4;
+	RH_y = app->RH_Address & 0xf;
+	AP_x = app->ap.address_go >> 8;
+	AP_y = app->ap.address_go & 0xf;
+
+	puts("Changing AP from: "); puts(itoh(app->ap.address_go));puts("   start:"); puts(itoa(MemoryRead(TICK_COUNTER)));puts("\n");
+	puts("LL / RH "); puts(itoh(app->LL_Address));puts(" // "); puts(itoh(app->RH_Address));puts("\n");
+
+	if (app->ap.port_go == NORTH){ // AP_X == LL_X
+		if (AP_x == LL_x){
+			AP_x = RH_x;
+		}else{
+			AP_x--;
+		}
+		app->ap.address_go   = ( AP_x << 8 ) | AP_y;
+      	app->ap.address_back = ( AP_x << 8 ) | AP_y;
+      	app->ap.port_go = NORTH;
+      	app->ap.port_back = NORTH;
+	}
+	if (app->ap.port_go == WEST){ // AP_X == LL_X
+		if (AP_y == LL_y)
+			AP_y++;
+		else
+			AP_y--;
+		app->ap.address_go   = ( AP_x << 8 ) | AP_y;
+      	app->ap.address_back = ( AP_x << 8 ) | AP_y;
+      	app->ap.port_go = WEST;
+      	app->ap.port_back = WEST;
+	}
+	puts("to NEW AP address: "); puts(itoh(app->ap.address_go)); puts("\n");
+    Seek(SET_AP_SERVICE, ((MemoryRead(TICK_COUNTER)) << 16) | get_net_address(), app->ap.address_go, app->ap.port_go);
+}
+
+
+
 int SeekInterruptHandler(){
 	
 	int LL_addr, RH_addr, master_address,selected_cluster,selected_cluster_proc;
@@ -1075,6 +1119,7 @@ int SeekInterruptHandler(){
 	static unsigned int seek_unr_count = 0;
 	unsigned int backtrack, backtrack1, backtrack2;
 	int allocated_tasks, aux;
+	static int apChanged;
 	Application *app;
 	 // terminated_task_list[MAX_APP_SIZE];;
 	unsigned int target, source, service, payload;
@@ -1090,8 +1135,9 @@ int SeekInterruptHandler(){
 	source = MemoryRead(SEEK_SOURCE_REGISTER);
 	service = MemoryRead(SEEK_SERVICE_REGISTER);
 	// For Sessions
-	static unsigned int nTurns = 0;
-	unsigned int nTurns_aux;
+	static unsigned int appID_aux = 0;
+	static unsigned int prevPayload;
+	unsigned int nTurns;
 	switch(service){
 		case TARGET_UNREACHABLE_SERVICE:
 			puts(itoa(MemoryRead(TICK_COUNTER))); puts(" Received SeekUnreachable "); puts(itoh(source)); puts("\n");
@@ -1290,6 +1336,7 @@ int SeekInterruptHandler(){
 						//puts("RH_addr: "); puts(itoh(RH_addr)); puts("\n");
 						//puts("LL_addr: "); puts(itoh(LL_addr)); puts("\n");
 						set_RH_Address(app->app_ID, RH_addr);
+						set_LL_Address(app->app_ID, LL_addr);
 						#ifndef AUTH_PROTOCOL
 						set_AccessPoint(RH_addr, LL_addr, &app->ap);
 						send_io_config(app, app->appID_random, app->nTurns);
@@ -1335,20 +1382,43 @@ int SeekInterruptHandler(){
 		case REQUEST_SNIP_RENEWAL:
 			
 			//MSB(source) contains nTurns+1 to avoid conflicting with other messages with same source
-			nTurns_aux = ((source >> 16)-1);
-
-			if(nTurns == nTurns_aux) {
-				puts("recebeu REQUEST_SNIP_RENEWAL repetido\n");
+			puts("recebeu REQUEST_SNIP_RENEWAL: ")puts(itoh(payload));
+			if (prevPayload == payload){
+				puts("---repetido\n");
 				break;
 			}
 
-			nTurns = nTurns_aux;
+			// puts("recebeu REQUEST_SNIP_RENEWAL válido")puts(itoh(payload));puts("\n");
 
-			//Enforce the maximum values for {n,p} values
-			nTurns_aux = nTurns_aux & 0x0f0f;
+			prevPayload = payload;
+
+			appID_aux = (source >> 16);
+			
+			nTurns = ((payload & 0xf0)<< 4) |  (payload & 0xf);
 
 			app = get_app_ptr_from_task_location(source & 0xffff);
-			send_io_renew(app, app->appID_random, nTurns_aux);
+
+			if(app->appID_random == appID_aux){
+				send_io_renew(app, app->appID_random, nTurns);
+			}else{
+				app->appID_random = appID_aux;
+				app->nTurns = nTurns;
+				send_io_config(app, app->appID_random, app->nTurns);
+				apChanged = 0;
+			}
+			// if(nTurns == appID_aux) {
+			// 	puts("recebeu REQUEST_SNIP_RENEWAL repetido\n");
+			// 	break;
+			// }
+
+			// nTurns = nTurns_aux;
+
+			// //Enforce the maximum values for {n,p} values
+			// nTurns_aux = ((payload & 0xf0)<< 4) |  (payload & 0xf);
+
+			// app = get_app_ptr_from_task_location(source & 0xffff);
+
+			// send_io_renew(app, app->appID_random, nTurns_aux);
 
 		break;
 		
@@ -1375,6 +1445,16 @@ int SeekInterruptHandler(){
 				app_id_counter++;	
 			}
 		break;
+
+		case LC_NOTIFICATION: //enviado pelo Mastre WARD do cluster
+			puts("  ************ Attack Notification Service ************"); puts("\n");
+			apChanged ++;
+
+			if (apChanged == 50){
+				app = get_app_ptr_from_task_location(source & 0xffff);
+				changeAPlocation(app);
+			}			
+		break;	
 		//-----------------------------------------------------------------------
 		default:
 			puts("Received unknown seek service\n");
@@ -1385,7 +1465,6 @@ int SeekInterruptHandler(){
 	return 0;
 
 }
-
 
 int main() {
 	int auxKey = 0;
@@ -1443,7 +1522,6 @@ int main() {
 		// }
 		//LM looping
 		if (noc_interruption){
-
 			handle_packet();
 
 		}

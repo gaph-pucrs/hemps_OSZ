@@ -697,6 +697,8 @@ process(EA_manager, req_task , source_table, service_table, target_table, payloa
 					PE_manager <= INIT_CLEAR;
 				elsif (int_in_ack_router_seek(LOCAL) = '1'  and  service_table(sel) = REQUEST_SNIP_RENEWAL ) then
 					PE_manager <= INIT_CLEAR;
+				elsif (int_in_ack_router_seek(LOCAL) = '1'  and  service_table(sel) = LC_NOTIFICATION ) then
+					PE_manager <= INIT_CLEAR;
 				elsif (int_in_ack_router_seek(LOCAL) = '1' ) then
 					PE_manager <= S_INIT;
 					--report "SEND LOCAL: "                           

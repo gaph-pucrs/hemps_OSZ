@@ -31,5 +31,6 @@
 //These functions are externed only for remove warings into kernel_master.c code
 void handle_new_app(int, volatile unsigned int *, unsigned int);
 void initialize_slaves();
+// void changeAPlocation(Application *app);
 
 #endif

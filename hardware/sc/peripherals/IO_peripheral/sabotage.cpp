@@ -152,8 +152,8 @@ void sabotage::out_proc_FSM(){
                     if (aux_cont_p == 0){ 
                         header_size = 26; 
  
-                        buffer_out_flit[0] = (rand() % 0xfff) + 0x6000;  
-                        // buffer_out_flit[0] = HEADER_FIX_HI;  
+                        // buffer_out_flit[0] = (rand() % 0xfff) + 0x6000;  
+                        buffer_out_flit[0] = HEADER_FIX_HI;  
                         buffer_out_flit[1] = HEADER_FIX_LO;  
                         buffer_out_flit[2] = HEADER_ROUT_HI;  
                         buffer_out_flit[3] = HEADER_ROUT_LO;  

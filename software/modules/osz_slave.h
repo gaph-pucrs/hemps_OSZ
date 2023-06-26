@@ -18,6 +18,13 @@
 #include "../../include/kernel_pkg.h"
 #include "../include/api.h"
 
+/** \brief This structure store variables useful to the kernel master manage the Access Point
+ */
+typedef struct 
+{
+    unsigned int address;
+    unsigned int port;
+} AccessPoint;
 
 void Set_Secure_Zone(unsigned int left_low_corner, unsigned int right_high_corner, unsigned int master_PE);
 /*  Origem: seek.c

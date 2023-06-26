@@ -56,7 +56,8 @@ port(
 	sz						: in  std_logic; 
 	k1						: in  regflit; 
 	k2						: in  regflit; 
-	apThreshold				: in  std_logic_vector(7 downto 0); 
+	apThreshold				: in  std_logic_vector(7 downto 0);
+	auth_status				: out std_logic_vector(2 downto 0);
 	intAP					: out std_logic 
  
 ); 
@@ -64,65 +65,71 @@ end Access_Point;
  
 architecture Access_Point of Access_Point is 
 
-	signal pass, auth:	std_logic; 
-	signal mask: 	std_logic; 
+	signal pass, ANDauth	:	std_logic;
+	signal auth		: std_logic_vector(2 downto 0);
+
+	signal mask		: 	std_logic; 
 	signal Cin, Cout: std_logic_vector(8 downto 0); --Counters with 4 bits 
 	signal reg_K1	:	std_logic_vector(11 downto 0); 
-	signal reg_K2	:	std_logic_vector(11 downto 0); 
+	signal reg_K2	:	std_logic_vector(11 downto 0);
+	signal reg_auth	:	std_logic_vector(2 downto 0);
+	signal sig_intAP:	std_logic;
+	signal renew_key:  	std_logic;
+
+	-- alias
 	alias data_in12:  std_logic_vector(11 downto 0) is data_in(11 downto 0);
 	alias packetType:  std_logic_vector(3 downto 0) is data_in(15 downto 12);
-
-	-- signal invalid , eop_ap, terminate 	:std_logic; 
-	-- signal mask_rx: std_logic; 
  
 begin 
  
 	mask <= ((NOT sz) AND (not access_i)) OR enable; 
 				    
 	-- Wrapper filters (from neighbor) 
-	tx <= tx_router AND mask; 
-	credit_i_router <= credit_i OR (NOT mask); 
- 
+	tx 				<= tx_router AND mask; 
+	credit_i_router <= credit_i OR (NOT mask);
+	eop_out			<=	eop_out_router AND mask; 
+
+
 	-- Wrapper filters (from local) 
-	access_o <= sz AND (NOT enable); 
+	access_o <= sz AND (enable NAND pass);
  
 	change_routing 	<=	enable; 
+
 	--Output 
 	data_out	<=	data_out_router; 
-	eop_out		<=	eop_out_router; 
  
 	-- Connecting the sides 
 	-- Input 
 	data_in_router		<=	data_in; 
 	credit_o			<=	credit_o_router;
-	rx_router			<=	rx and pass;
-	eop_in_router	<=	eop_in;
+	eop_in_router		<=	eop_in; 
+	rx_router			<=	rx;
 
-	auth <= '1' when ((data_in12 XOR reg_K1) = reg_K2) AND (Cin < Cout) AND (packetType = IO_PACKET) else 
-			'0'; 
+	-- rx_router			<=	rx and pass;
+	-- eop_in_router		<=	eop_in and pass;
 
-	intAP <= '1' when (Cout(7 downto 0) > apThreshold and enable = '1') else -- When the out counter is 0, reached the Threshold 
+	-- constant KEY_AUTH       : integer := 0;
+	-- constant COUNT_AUTH     : integer := 1;
+	-- constant TYPE_AUTH      : integer := 2;
+
+	auth(KEY_AUTH) <= 	'1' when (data_in12 XOR reg_K1) = reg_K2 else 
+						'0';
+	
+	auth(COUNT_AUTH) <= '1' when (Cin < Cout) else 
+						'0';
+
+	auth(TYPE_AUTH) <= 	'1' when (packetType = IO_PACKET) else 
+						'0';
+	
+	ANDauth <= and auth;
+
+	renew_key <= reg_auth(KEY_AUTH) AND (reg_auth(COUNT_AUTH) NAND reg_auth(TYPE_AUTH));
+	
+	intAP <= '1' when ((Cout(7 downto 0) > apThreshold)) OR (renew_key) = '1' else -- When the out counter is 0, reached the Threshold 
 			 '0'; 
- 
-	process (clock, reset) -- Controle do pass 
-	begin
-		if reset = '1' then 
-			pass <= '0'; 
-		elsif rising_edge(clock) then 		
-			if enable = '0' then
-				pass <= '1';
-			elsif auth = '1' and enable = '1' then -- Se autenticar o 1 flit, aciona pass
-				pass <= '1';
-			elsif pass = '1' then -- Mantem pass até o eop
-				if eop_in = '1' then
-					pass <= '0';
-				end if;
-			else				-- Mantém pass em 0 até outro auth
-				pass <= '0';
-			end if;
-		end if;
-	end process;
- 
+
+	auth_status <= reg_auth;
+
 	process (clock, reset) -- Registradores Cin, Cout, K1 e K2
 	begin 
 		if reset = '1' then 
@@ -130,26 +137,44 @@ begin
 			Cout <= (others => '0');
 			reg_K1 <= (others => '0');
 			reg_K2 <= (others => '0');
+			reg_auth <= (others => '0');
+			pass <= '0';
 		elsif rising_edge(clock) then 
-			if (auth  and enable and rx)then 
-				Cin <= Cin+1; 
-			elsif (apThreshold = 0) then 
-				Cin <= (others => '0'); 
-			else 
-				Cin <= Cin; 
-			end if; 
- 
-			if (eop_out_router = '1' and (enable = '1') ) then 
-				Cout <= Cout+1; 
-			elsif (apThreshold = 0) then 
-				Cout <= (others => '0'); 
-			else 
-				Cout<=Cout; 
-			end if;
-			
 			if enable = '1' then
 				reg_K1 <= k1(11 downto 0);
 				reg_K2 <= k2(11 downto 0);
+				
+				-- REG_AUTH
+				if (rx OR renew_key OR pass) then -- caso tenha renew_key, segurar o auth status pro kernel
+					reg_auth <= reg_auth;		  -- pass também, pra não perder auth caso caia o crédito
+				else
+					reg_auth <= auth;
+				end if;
+
+				-- PASS
+				if ANDauth then
+					pass <= '1';
+				elsif eop_in then
+					pass <= '0';
+				end if;
+				
+				-- Cin
+				if (eop_in_router)then 
+					Cin <= Cin+1;
+				end if;
+				
+				-- Cout
+				if (eop_out_router) then 
+					Cout <= Cout+1; 
+				end if;
+
+			else
+				Cin <= (others => '0'); 
+				Cout <= (others => '0');
+				reg_K1 <= (others => '1'); -- reg k1 e k2 diferentes
+				reg_K2 <= (others => '0'); -- caso contrário, enable vai salvar valor 100, indicando ataque
+				reg_auth <= (others => '0');
+				pass <= '0';
 			end if;
 		end if; 
 	end process; 

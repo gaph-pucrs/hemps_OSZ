@@ -60,22 +60,22 @@ architecture Seek_Local_Controller of Seek_Local_Controller is
 	signal ask_unr,sending	:std_logic;
 	signal ORunr_service	:std_logic;
 	signal prev_unreach		:regNport;
+
+	alias packetType:  std_logic_vector(3 downto 0) is reg_source(15 downto 12);
+
+
 begin
 	ORunr_service <= OR unr_service;
-
-	-- seek_target  <= reg_target when sending else
-	-- 				pe_target;
-
-	-- seek_source  <= reg_source & reg_source when sending else
-	-- 				pe_source;
 
 	seek_source  <= reg_target & reg_target when sending else 
 					pe_source;
 	
-	seek_target  <= reg_source  when sending else 
+	seek_target  <= reg_source 	when ((sending = '1') AND (packetType /= x"6")) else
+					x"0004" 	when sending else 
 					pe_target;
 
-	seek_service <= "000010" when sending else
+	seek_service <= TARGET_UNREACHABLE_SERVICE when ((sending = '1') AND (packetType /= x"6")) else
+					LC_NOTIFICATION when (sending) else
 					pe_service;
 
 	seek_payload <= x"AA" when sending else

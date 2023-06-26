@@ -597,6 +597,180 @@ int pathToIO(int peripheral_id, int * positionAP){
 
 }
 
+int pathToIO_XY(int peripheral_id, int* positionAP, int ap, int port){
+  unsigned int my_X_addr, my_Y_addr, last_port;
+  unsigned int PER_X_addr, PER_Y_addr, port_io, i;
+  unsigned int RH_X_addr, RH_Y_addr;
+  unsigned int LL_X_addr, LL_Y_addr;
+  unsigned int AP_X, AP_Y;
+  unsigned int bt1, bt2, bt3, auxPosX, auxPosY;
+  long unsigned int bt = 0;
+  unsigned int shift =0;
+  int medium_X = -1;
+  bt1 = bt2 = bt3 = 0;
+
+
+  AP_X = (ap & 0xF00) >> 8;
+  AP_Y = ap & 0x00F;
+
+  RH_X_addr = (LOCAL_right_high_corner & 0xF0) >> 4;
+  RH_Y_addr = LOCAL_right_high_corner & 0x0F;
+
+  LL_X_addr = (LOCAL_left_low_corner & 0xF0) >> 4;
+  LL_Y_addr = LOCAL_left_low_corner & 0x0F;
+
+  my_X_addr = (get_net_address() & 0xF00) >> 8;
+  my_Y_addr = get_net_address() & 0x00F;
+
+  port_io = -1;
+  for(i = 0; i < IO_NUMBER; i++){
+      if(io_info[i].peripheral_id == peripheral_id){
+          PER_X_addr = io_info[i].default_address_x ;
+          PER_Y_addr = io_info[i].default_address_y;
+          port_io = io_info[i].default_port;
+          break;
+      }
+  }
+  puts("Caminho até o IO: ");puts(itoh(PER_X_addr<<8 | PER_Y_addr));
+  puts(" passando pelo AP em: ");puts(itoh(ap));puts(" port:");puts(itoh(port)); puts("\n");
+
+  if (port_io == -1) {
+      puts("[packet]ERROR: peripheral_id not found!\n");
+      return -1;
+  }
+  // Calculate the Turns
+  auxPosX = my_X_addr;
+  auxPosY = my_Y_addr;
+
+  // Traveling X
+  while (auxPosX != AP_X)
+  {
+    if (auxPosX < AP_X){
+      bt = bt | (EAST << shift);
+      shift += 2;
+      auxPosX ++;
+    }else{
+      bt = bt | (WEST << shift);
+      shift += 2;
+      auxPosX --;
+    }
+  }
+
+  // Traveling Y
+  while (auxPosY != AP_Y)
+  {
+    if (auxPosY < AP_Y){
+      bt = bt | (NORTH << shift);
+      shift += 2;
+      auxPosY ++;
+    }else{
+      bt = bt | (SOUTH << shift);
+      shift += 2;
+      auxPosY --;
+    }
+  }
+
+  if((auxPosX == AP_X) && (auxPosY == AP_Y)){
+    // puts("Caminho até AP construido corretamente \n");
+    // puts("Path MADE ");puts(itoh(bt));puts("\n");
+  }else
+    puts("Não foi possível construir caminho XY dentro da OSZ\n");
+
+  bt = bt | (port << shift);
+  shift += 2;
+  switch (port){
+    case WEST:
+      auxPosX--;
+    break;
+    case EAST:
+      auxPosX++;
+    break;
+    case NORTH:
+      auxPosY++;
+    break;
+    case SOUTH:
+      auxPosY--;
+    break;
+    default:
+    break;
+  }
+
+  *positionAP = (shift/2) -1;
+
+
+  // Dá pra fazer um laço aqui fora para repetir isso ate chegar no destino, caso tenha uma GA em U por exemplo
+  if (ga.rows[MAX_GRAY_ROWS-1] == auxPosY || ga.rows[0] == auxPosY ){ // Se tiver em alguma GrayRow, fazer XY
+    while (auxPosX != PER_X_addr)
+    {
+      if (auxPosX < PER_X_addr){
+        bt = bt | (EAST << shift);
+        shift += 2;
+        auxPosX ++;
+      }else{
+        bt = bt | (WEST << shift);
+        shift += 2;
+        auxPosX --;
+      }
+    }
+
+    // Traveling Y
+    while (auxPosY != PER_Y_addr)
+    {
+      if (auxPosY < PER_Y_addr){
+        bt = bt | (NORTH << shift);
+        shift += 2;
+        auxPosY ++;
+      }else{
+        bt = bt | (SOUTH << shift);
+        shift += 2;
+        auxPosY --;
+      }
+    }
+  }
+  if (ga.cols[MAX_GRAY_COLS-1] == auxPosX || ga.cols[0] == auxPosX){ // Se tiver em alguma GrayCol, fazer YX
+    // Traveling Y
+    while (auxPosY != PER_Y_addr)
+    {
+      if (auxPosY < PER_Y_addr){
+        bt = bt | (NORTH << shift);
+        shift += 2;
+        auxPosY ++;
+      }else{
+        bt = bt | (SOUTH << shift);
+        shift += 2;
+        auxPosY --;
+      }
+    }
+
+    // Traveling X
+    while (auxPosX != PER_X_addr)
+    {
+      if (auxPosX < PER_X_addr){
+        bt = bt | (EAST << shift);
+        shift += 2;
+        auxPosX ++;
+      }else{
+        bt = bt | (WEST << shift);
+        shift += 2;
+        auxPosX --;
+      }
+    }
+  }
+
+  if((auxPosX == PER_X_addr) && (auxPosY == PER_Y_addr)){
+    // puts("Caminho até IO construido corretamente \n");
+    last_port = bt >> (shift -2);
+    bt = bt | (oppositePort(last_port) << shift);
+    shift += 2;
+  }else
+    puts("Não foi possível construir caminho XY dentro da OSZ\n");
+
+  // puts("Path MADE ");puts(itoh(bt));puts("\n");
+
+  return bt; 
+
+}
+
 unsigned int oppositePort(unsigned int p){
 	switch (p)
 	{

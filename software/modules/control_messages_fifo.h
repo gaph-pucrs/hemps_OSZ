@@ -15,7 +15,7 @@
 #define CONTROL_MESSAGES_FIFO_H_
 
 #include "packet.h"
-#include "osz_slave.h"
+// #include "osz_slave.h"
 
 #define     CM_FIFO_LENGTH  16
 #define     YES     1

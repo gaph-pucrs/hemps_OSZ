@@ -5,24 +5,29 @@ hw:
   physical_channels: 2
   model_description: hybrid    # sc (gcc) | scmod (questa) | vhdl | hybrid (top module sc, internal vhdl)
   noc_buffer_size: 8       # must be power of 2 
-  mpsoc_dimension: [9,3]     # for while, must be a square shape
-  cluster_dimension: [9,3] # for while, must be a square shape
+  mpsoc_dimension: [9,4]     # for while, must be a square shape
+  cluster_dimension: [9,4] # for while, must be a square shape
   master_location: LT     # LB
   gray_area:
     rows: [2]
     cols: [0]
   open_port:
-    - port: [Injector,90,0,2,N,0,1,W] 
-    - port: [io_peripheral,80,8,2,N]
-    - port: [io_peripheral2,70,7,2,N]
-    - port: [io_peripheral3,60,6,2,N]
-    - port: [io_peripheral4,50,5,2,N]
-    - port: [io_peripheral5,40,4,2,N]
-    - port: [io_peripheral6,30,3,2,N]
-    - port: [io_peripheral7,20,2,2,N]
-    - port: [io_peripheral8,10,1,2,N]
+    - port: [Injector,90,0,0,W,0,1,W] 
+    - port: [io_peripheral,80,8,3,N]
+    - port: [io_peripheral2,70,7,3,N]
+    - port: [io_peripheral3,60,6,3,N]
+    - port: [io_peripheral4,50,5,3,N]
+    - port: [io_peripheral5,40,4,3,N]
+    - port: [io_peripheral6,30,3,3,N]
+    - port: [io_peripheral7,20,2,3,N]
+    - port: [io_peripheral8,10,1,3,N]
+    - port: [io_peripheral9,05,0,3,N]
+    - port: [io_peripheral10,01,0,2,W]
    # - port: [sabotage,70,3,3,E] 
-apps:                
+apps:   
+  - name: prod_cons
+    start_time_ms: 0 #any unsigned integer number
+    secure: yes             
   - name: MPEG4_IO
     start_time_ms: 0 #any unsigned integer number
     secure: yes

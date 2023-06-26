@@ -371,7 +371,7 @@ begin
 
     -- access table
 
-    NextState_AccessTable: process(table_state, tableControl, hermesControl, data_to_write_on_table)
+    NextState_AccessTable: process(table_state, tableControl, hermesControl, data_to_write_on_table, hermes_data_in)
     begin
         case table_state is
 
@@ -404,11 +404,14 @@ begin
             when SAVE_PATH =>
 
                 if hermesControl.receivedEndOfPacket='1' or (hermesControl.endOfPacket='1' and hermesControl.acceptingFlit='1') then
-                    if hermes_data_in = x"7EEE" then
+                    -- if hermes_data_in = x"7EEE" then
+                    if hermes_data_in(7 downto 0) = x"EE" then 
                         next_table_state <= EXIT_STAGE;
                     else
                         next_table_state <= SAVE_EXTRA_PATH;
                     end if;
+                elsif hermes_data_in(7 downto 0) = x"EE" then 
+                    next_table_state <= EXIT_STAGE;
                 else
                     next_table_state <= SAVE_PATH;
                 end if;

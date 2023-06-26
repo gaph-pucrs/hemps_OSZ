@@ -149,6 +149,8 @@ int read_packet(ServiceHeader *);
 
 int pathToIO(int, int*);
 
+unsigned int oppositePort(unsigned int p);
+
 int pathFromIO(long unsigned int);
 
 

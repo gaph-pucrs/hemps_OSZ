@@ -816,6 +816,7 @@ void send_message_io_key(int producer_task, int peripheral_ID, Message * msg_ptr
 	#endif
 
 	p->service = f1f2;
+	// puts("--f1f2: ");puts(itoh(f1f2)); puts("\n");
 
 	p->io_service = IO_DELIVERY;
 
@@ -837,6 +838,7 @@ void send_io_request_key(int peripheral_ID, int consumer_task, unsigned int sour
 	#endif
 
 	p->service = f1f2;
+	// puts("--f1f2: ");puts(itoh(f1f2)); puts("\n");
 
 	p->io_service = IO_REQUEST;
 
