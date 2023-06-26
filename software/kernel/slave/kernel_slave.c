@@ -649,8 +649,8 @@ int Syscall(unsigned int service, unsigned int arg0, unsigned int arg1, unsigned
           			PER_Y_addr = io_info[i].default_address_y;
 					auxSlot = SearchSourceRoutingDestination((PER_X_addr << 8) | PER_Y_addr);
 					if (auxSlot == -1){
-						puts("Configurando novo IO:");puts(itoa(arg1)); puts(" START:")puts(itoa(MemoryRead(TICK_COUNTER)));puts("\n");
-						auxBT = pathToIO_XY(arg1, &positionAP, currentAP.address, currentAP.port);
+						puts("Configurando novo IO:");puts(itoa(arg1)); puts("\n");
+						auxBT = pathToIO(arg1, &positionAP);
 						// puts("--path: ");puts(itoh(auxBT)); puts("\n");
 						slotSR = GetFreeSlotSourceRouting((PER_X_addr << 8) | PER_Y_addr);
 						// puts("--slot: ");puts(itoa(slotSR)); puts("\n");
@@ -1510,8 +1510,7 @@ int handle_packet(ServiceHeader * p) {
 			break;
 			} else{
 				puts("Wrong F2! - Trigger KeyRenew\n");
-				putsv("Time: ", MemoryRead(TICK_COUNTER));
-				// Seek(RENEW_KEY, (MemoryRead(TICK_COUNTER) << 16) | get_net_address(), currentAP.address, 0);
+				Seek(RENEW_KEY, (MemoryRead(TICK_COUNTER) << 16) | get_net_address(), APaddress, 0);
 				pendingIO = 0;
 				break;
 			}
@@ -2000,17 +1999,8 @@ int SeekInterruptHandler(){
 			{
 			case 00: //00 - AP information
 				puts("Received AP information (BR_TO_APPID_SERVICE 0)\n");
-				if (currentAP.address == 0){ // Se for o primeiro SET_AP, não renova a chave
-					currentAP.address = source&0xffff;
-					currentAP.port = source >> 16;
-					break;
-				}
-				for(i = 0; i < IO_NUMBER; i++){
-					ClearSlotSourceRouting((io_info[i].default_address_x << 8) | io_info[i].default_address_y);
-					changeAP = 1;
-				}
-				currentAP.address = source&0xffff; // Caso for um SET_AP em cima de um AP existente -> Troca de AP
-				currentAP.port = source >> 16;	// SEM BREAK - Vai direto pro case abaixo, iniciando a troca de chave
+				APaddress = source&0xffff;
+				break;
 			case 01: //01 - FREEZE IO
 				puts("Received Prepare Key (BR_TO_APPID_SERVICE 1)\n");
 				freezeIO = 1;
@@ -2104,28 +2094,13 @@ int SeekInterruptHandler(){
 				// puts("acks: ");puts(itoa(rcvdACK)); puts ("\n");
 			
 				if (rcvdACK == (appTasks - 1)){
-					puts("---- Sincronizado: ");puts(itoa(MemoryRead(TICK_COUNTER))); puts ("\n");
-					// if (nTurns == 0x0203){
-					// 	nTurns = 0x0302;
-					// }else{
-					// 	nTurns = 0x0203;
-					// }
-					nTurns = (MemoryRead(TICK_COUNTER)) & 0xFFFF; // LO == turns pra k1 e k2	 (4 bits cada pra n ficar mto)
+					nTurns = (MemoryRead(TICK_COUNTER)); // LO == turns pra k1 e k2	 (4 bits cada pra n ficar mto)
 					n = (nTurns >>8) & 0xf;
 					p = (nTurns) & 0xf;
 					// First seek message would conflict with the second as they have the same source
 					// To fix this: add 1 to nTurns, subtract 1 upon reception
 
-					if (changeAP){//Mudar appID
-						KappID = MemoryRead(TICK_COUNTER) & 0xFFFF;
-						changeAP = 0;
-						k2 = KappID;
-					}
-
-					Seek(REQUEST_SNIP_RENEWAL, (((KappID)<<16) | (get_net_address()&0xffff)), cluster_master_address, (n<<4) | p); // Request MPE to renew SNIP keys
-					// Seek(BR_TO_APPID_SERVICE, ((nTurns<<16) | (get_net_address()&0xffff)), (unsigned int)MemoryRead(APP_ID_REG), 02); // Send Freeze IO
-					Seek(BR_TO_APPID_SERVICE, ((nTurns<<16) | (KappID)), (unsigned int)MemoryRead(APP_ID_REG), 02); // Send Freeze IO
-
+					Seek(BR_TO_APPID_SERVICE, ((nTurns<<16) | (get_net_address()&0xffff)), (unsigned int)MemoryRead(APP_ID_REG), 02); // Send Freeze IO
 
 					glfsr_app.data = k2;
 					while (n >= 0){
@@ -2144,10 +2119,12 @@ int SeekInterruptHandler(){
 
 					
 
-					MemoryWrite(AP_MASK, 0);
+					OS_InterruptMaskSet(IRQ_AP);
+		
+					MemoryWrite(AP_THRESHOLD, AP_THRESHOLD_VALUE);
 
-					
-
+					k1 = k1_aux;
+					k2 = k2_aux;
 					MemoryWrite(K1_REG, k1);
 					MemoryWrite(K2_REG, k2);
 					MemoryWrite(AP_THRESHOLD, AP_THRESHOLD_VALUE);
@@ -2288,20 +2265,6 @@ void OS_InterruptServiceRoutine(unsigned int status) {
 		//Primeira coisa: enviar serviço para espaçar do clear
 		
 		OS_InterruptMaskClear(IRQ_AP);
-
-		apStatus = MemoryRead(AP_STATUS);
-		puts("IRQ_AP - status: ");puts(itoh(apStatus)); puts ("\n");	// Port of the AP
-		puts("Start KR: ");puts(itoa(MemoryRead(TICK_COUNTER))); puts ("\n");	// Port of the AP
-
-		if (apStatus != 0){
-			puts("Attack Detected!\n");
-			if ((apStatus & 0x1) != 0)
-				puts("-- Correct Key\n");
-			if ((apStatus & 0x2) != 0)
-				puts("-- Correct Counts\n");
-			if ((apStatus & 0x4) != 0)
-				puts("-- Correct Type\n");
-		}
 
 		timeAux = MemoryRead(TICK_COUNTER);
 		Seek(BR_TO_APPID_SERVICE, (timeAux<<16) | (get_net_address()&0xffff), (unsigned int)MemoryRead(APP_ID_REG), 01); // Send Freeze IO
@@ -2452,8 +2415,8 @@ int main(){
 
 	//WARNING: NOT ENABLING this fucking shit of IRQ_SLACK_TIME
 	//by Wachter
-	// OS_InterruptMaskSet(IRQ_SEEK | IRQ_SCHEDULER | IRQ_NOC | IRQ_PENDING_SERVICE);
-	OS_InterruptMaskSet(IRQ_SEEK | IRQ_SCHEDULER | IRQ_NOC | IRQ_PENDING_SERVICE | IRQ_AP);
+	OS_InterruptMaskSet(IRQ_SEEK | IRQ_SCHEDULER | IRQ_NOC | IRQ_PENDING_SERVICE);
+	// OS_InterruptMaskSet(IRQ_SEEK | IRQ_SCHEDULER | IRQ_NOC | IRQ_PENDING_SERVICE | IRQ_AP);
 
 	/*runs the scheduled task*/
 	ASM_RunScheduledTask(current);

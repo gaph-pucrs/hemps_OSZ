@@ -71,7 +71,7 @@ begin
 					pe_source;
 	
 	seek_target  <= reg_source 	when ((sending = '1') AND (packetType /= x"6")) else
-					x"0004" 	when sending else 
+					x"0003" 	when sending else 
 					pe_target;
 
 	seek_service <= TARGET_UNREACHABLE_SERVICE when ((sending = '1') AND (packetType /= x"6")) else
