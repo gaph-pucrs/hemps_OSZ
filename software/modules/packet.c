@@ -571,7 +571,6 @@ int pathToIO(int peripheral_id, int * positionAP){
       apInGrayLine = 1;
       break;
     }
-<<<<<<< Updated upstream
   }
 
   puts("routing="); puts(apInGrayLine ? "XY\n" : "YX\n");
@@ -638,159 +637,6 @@ int pathToIO(int peripheral_id, int * positionAP){
   bt = bt | (oppositePort(lastTurn) << shift);
   
   // puts("Backtrack MADE ");puts(itoh(bt));puts("\n");
-=======
-  }
-
-  puts("routing="); puts(apInGrayLine ? "XY\n" : "YX\n");
-  puts("auxPos=");puts(itoa(auxPosX));puts("x");puts(itoa(auxPosY));puts("\n"); 
-  puts("perPos=");puts(itoa(PER_X_addr));puts("x");puts(itoa(PER_Y_addr));puts("\n"); 
-  puts("portIO=");puts(itoa(port_io));puts("\n"); 
-
-  // Route using XY if the AP is connected in a GA row, else use YX 
-  if(apInGrayLine){
-    
-    // Travel first to the GA collumn 
-    while(auxPosX > PER_X_addr){ 
-      bt = bt | (0x1 << shift); //WEST 
-      shift += 2; 
-      auxPosX--; 
-    } 
-    while(auxPosX < PER_X_addr){ 
-      bt = bt | (0x0 << shift); //EAST 
-      shift += 2; 
-      auxPosX++; 
-    }
-
-    // Arrived at the GA collumn - Now travel to the IO row 
-    while(auxPosY > PER_Y_addr){ 
-        bt = bt | (0x3 << shift); //SOUTH 
-        shift += 2; 
-        auxPosY--;
-    } 
-    while(auxPosY < PER_Y_addr){ 
-      bt = bt | (0x2 << shift); //NORTH 
-      shift += 2; 
-      auxPosY++; 
-    } 
-  } 
-  else {
-
-    // Travel first to the GA row 
-    while(auxPosY > PER_Y_addr){ 
-      bt = bt | (0x3 << shift); //SOUTH 
-      shift += 2; 
-      auxPosY--; 
-    } 
-    while(auxPosY < PER_Y_addr){ 
-      bt = bt | (0x2 << shift); //NORTH 
-      shift += 2; 
-      auxPosY++; 
-    }
-
-    // Arrived at the GA row - Now travel to the IO collumn 
-    while(auxPosX > PER_X_addr){ 
-      bt = bt | (0x1 << shift); //WEST 
-      shift += 2; 
-      auxPosX--; 
-    }
-    while(auxPosX < PER_X_addr){ 
-      bt = bt | (0x0 << shift); //EAST 
-      shift += 2; 
-      auxPosX++; 
-    }
-  }
-
-  // Opposite turn to end the path
-  int lastTurn = bt >> (shift-2);
-  bt = bt | (oppositePort(lastTurn) << shift);
-  
-  // puts("Backtrack MADE ");puts(itoh(bt));puts("\n");
-
-  return bt; 
-
-}
-
-<<<<<<< Updated upstream
-int oppositePort(unsigned int p){
-=======
-int pathToIO_XY(int peripheral_id, int* positionAP, int ap, int port){
-  unsigned int my_X_addr, my_Y_addr, last_port;
-  unsigned int PER_X_addr, PER_Y_addr, port_io, i;
-  unsigned int RH_X_addr, RH_Y_addr;
-  unsigned int LL_X_addr, LL_Y_addr;
-  unsigned int AP_X, AP_Y;
-  unsigned int bt1, bt2, bt3, auxPosX, auxPosY;
-  long unsigned int bt = 0;
-  unsigned int shift =0;
-  int medium_X = -1;
-  bt1 = bt2 = bt3 = 0;
-
-
-  AP_X = (ap & 0xF00) >> 8;
-  AP_Y = ap & 0x00F;
-
-  RH_X_addr = (LOCAL_right_high_corner & 0xF0) >> 4;
-  RH_Y_addr = LOCAL_right_high_corner & 0x0F;
-
-  LL_X_addr = (LOCAL_left_low_corner & 0xF0) >> 4;
-  LL_Y_addr = LOCAL_left_low_corner & 0x0F;
-
-  my_X_addr = (get_net_address() & 0xF00) >> 8;
-  my_Y_addr = get_net_address() & 0x00F;
-
-  port_io = -1;
-  for(i = 0; i < IO_NUMBER; i++){
-      if(io_info[i].peripheral_id == peripheral_id){
-          PER_X_addr = io_info[i].default_address_x ;
-          PER_Y_addr = io_info[i].default_address_y;
-          port_io = io_info[i].default_port;
-          break;
-      }
-  }
-  puts("Caminho até o IO: ");puts(itoh(PER_X_addr<<8 | PER_Y_addr));
-  puts(" passando pelo AP em: ");puts(itoh(ap));puts(" port:");puts(itoh(port)); puts("\n");
-
-  if (port_io == -1) {
-      puts("[packet]ERROR: peripheral_id not found!\n");
-      return -1;
-  }
-  // Calculate the Turns
-  auxPosX = my_X_addr;
-  auxPosY = my_Y_addr;
-
-  // Traveling X
-  while (auxPosX != AP_X)
-  {
-    if (auxPosX < AP_X){
-      bt = bt | (EAST << shift);
-      shift += 2;
-      auxPosX ++;
-    }else{
-      bt = bt | (WEST << shift);
-      shift += 2;
-      auxPosX --;
-    }
-  }
-
-  // Traveling Y
-  while (auxPosY != AP_Y)
-  {
-    if (auxPosY < AP_Y){
-      bt = bt | (NORTH << shift);
-      shift += 2;
-      auxPosY ++;
-    }else{
-      bt = bt | (SOUTH << shift);
-      shift += 2;
-      auxPosY --;
-    }
-  }
-
-  if((auxPosX == AP_X) && (auxPosY == AP_Y)){
-    // puts("Caminho até AP construido corretamente \n");
-    // puts("Path MADE ");puts(itoh(bt));puts("\n");
-  }else
-    puts("Não foi possível construir caminho XY dentro da OSZ\n");
 
   bt = bt | (port << shift);
   shift += 2;
@@ -888,12 +734,7 @@ int pathToIO_XY(int peripheral_id, int* positionAP, int ap, int port){
 
 }
 
-<<<<<<< Updated upstream
 int oppositePort(unsigned int p){
-=======
-unsigned int oppositePort(unsigned int p){
->>>>>>> Stashed changes
->>>>>>> Stashed changes
 	switch (p)
 	{
 	case NORTH:

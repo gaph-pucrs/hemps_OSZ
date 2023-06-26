@@ -984,10 +984,6 @@ int handle_packet(ServiceHeader * p) {
 		#endif
 		pendingIO --;
 		if (freezeIO){
-<<<<<<< Updated upstream
-=======
-<<<<<<< Updated upstream
->>>>>>> Stashed changes
 			if (APaddress == get_net_address()){
 				OS_InterruptMaskSet(IRQ_AP);
 			}else{
@@ -995,15 +991,6 @@ int handle_packet(ServiceHeader * p) {
 				Seek(KEY_ACK, ((MemoryRead(TICK_COUNTER)<<16) | (get_net_address()&0xffff)), APaddress, 0); // Send Freeze IO	
 				// puts("Answered to "); puts(itoh(APaddress));puts("\n");
 			}	
-<<<<<<< Updated upstream
-=======
-=======
-			// puts("Recebeu IO ACK pendente, congelando Comunicação\n");
-			Seek(KEY_ACK, ((MemoryRead(TICK_COUNTER)<<16) | (get_net_address()&0xffff)), currentAP.address, 0); // Send Freeze IO	
-			// puts("Answered to "); puts(itoh(currentAP.address));puts("\n");
-			break;
->>>>>>> Stashed changes
->>>>>>> Stashed changes
 		}		
 		
 		if (current == &idle_tcb){
@@ -1146,10 +1133,6 @@ int handle_packet(ServiceHeader * p) {
 			}else{
 				pendingIO --;
 				if (freezeIO){
-<<<<<<< Updated upstream
-=======
-<<<<<<< Updated upstream
->>>>>>> Stashed changes
 					if (APaddress == get_net_address()){
 						OS_InterruptMaskSet(IRQ_AP);
 					}else{
@@ -1158,15 +1141,6 @@ int handle_packet(ServiceHeader * p) {
 						// puts("Answered to "); puts(itoh(APaddress));puts("\n");
 					}	
 				}
-<<<<<<< Updated upstream
-=======
-=======
-					// puts("Recebeu IO ACK pendente, congelando Comunicação\n");
-					Seek(KEY_ACK, ((MemoryRead(TICK_COUNTER)<<16) | (get_net_address()&0xffff)), currentAP.address, 0); // Send Freeze IO	
-					puts("Answered to "); puts(itoh(currentAP.address));puts("\n");
-				}	
->>>>>>> Stashed changes
->>>>>>> Stashed changes
 			}
 			
 
@@ -2334,10 +2308,6 @@ void OS_InterruptServiceRoutine(unsigned int status) {
 	
 	if ( status & IRQ_AP ){
 		OS_InterruptMaskClear(IRQ_AP);
-<<<<<<< Updated upstream
-=======
-<<<<<<< Updated upstream
->>>>>>> Stashed changes
 		if(pendingIO){
 			freezeIO = 1;
 		}else{
@@ -2348,33 +2318,6 @@ void OS_InterruptServiceRoutine(unsigned int status) {
 			// MemoryWrite(AP_THRESHOLD, 3);
 			// puts("Start: ");puts(itoa(MemoryRead(TICK_COUNTER))); puts ("\n");	// Port of the AP
 		}
-<<<<<<< Updated upstream
-=======
-=======
-
-		apStatus = MemoryRead(AP_STATUS);
-		puts("IRQ_AP - status: ");puts(itoh(apStatus)); puts ("\n");	// Port of the AP
-
-		if (apStatus != 0){
-			puts("Attack Detected!\n");
-			if ((apStatus & 0x1) != 0)
-				puts("-- Correct Key\n");
-			if ((apStatus & 0x2) != 0)
-				puts("-- Correct Counts\n");
-			if ((apStatus & 0x4) != 0)
-				puts("-- Correct Type\n");
-		}
-
-		timeAux = MemoryRead(TICK_COUNTER);
-		Seek(BR_TO_APPID_SERVICE, (timeAux<<16) | (get_net_address()&0xffff), (unsigned int)MemoryRead(APP_ID_REG), 01); // Send Freeze IO
-		// puts("Received RENEW_KEY - Interruption");puts(itoa(MemoryRead(TICK_COUNTER))); puts("\n");
-		// MemoryWrite(AP_THRESHOLD, 0);
-		freezeIO = 1;
-		Seek(CLEAR_SERVICE, ( (timeAux<<16)  | (get_net_address()&0xffff)), 0,0); // Send Freeze IO
-		// MemoryWrite(AP_THRESHOLD, 3);
-		// puts("Start: ");puts(itoa(MemoryRead(TICK_COUNTER))); puts ("\n");	// Port of the AP
->>>>>>> Stashed changes
->>>>>>> Stashed changes
 	}
 	if (call_scheduler){
 
