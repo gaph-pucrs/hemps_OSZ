@@ -574,8 +574,9 @@ int Syscall(unsigned int service, unsigned int arg0, unsigned int arg1, unsigned
 					auxSlot = SearchSourceRoutingDestination((PER_X_addr << 8) | PER_Y_addr);
 					if (auxSlot == -1){
 						puts("Configurando novo IO:");puts(itoa(arg1)); puts("\n");
-						auxBT = pathToIO_XY(arg1, &positionAP, currentAP.address, currentAP.port);
+						// auxBT = pathToIO(arg1, &positionAP, currentAP.address, currentAP.port);
 						// auxBT = pathToIO(arg1, &positionAP, currentAP.address);
+						auxBT = pathToIO(arg1, &positionAP);
 						// puts("--path: ");puts(itoh(auxBT)); puts("\n");
 						slotSR = GetFreeSlotSourceRouting((PER_X_addr << 8) | PER_Y_addr);
 						// puts("--slot: ");puts(itoa(slotSR)); puts("\n");
@@ -649,7 +650,8 @@ int Syscall(unsigned int service, unsigned int arg0, unsigned int arg1, unsigned
 					auxSlot = SearchSourceRoutingDestination((PER_X_addr << 8) | PER_Y_addr);
 					if (auxSlot == -1){
 						puts("Configurando novo IO:");puts(itoa(arg1)); puts("\n");
-						auxBT = pathToIO_XY(arg1, &positionAP, currentAP.address, currentAP.port);
+						// auxBT = pathToIO(arg1, &positionAP, currentAP.address, currentAP.port);
+						auxBT = pathToIO(arg1, &positionAP);
 						// puts("--path: ");puts(itoh(auxBT)); puts("\n");
 						slotSR = GetFreeSlotSourceRouting((PER_X_addr << 8) | PER_Y_addr);
 						// puts("--slot: ");puts(itoa(slotSR)); puts("\n");
@@ -984,12 +986,12 @@ int handle_packet(ServiceHeader * p) {
 		#endif
 		pendingIO --;
 		if (freezeIO){
-			if (APaddress == get_net_address()){
+			if (currentAP.address == get_net_address()){
 				OS_InterruptMaskSet(IRQ_AP);
 			}else{
 				// puts("Recebeu IO ACK pendente, congelando Comunicação\n");
-				Seek(KEY_ACK, ((MemoryRead(TICK_COUNTER)<<16) | (get_net_address()&0xffff)), APaddress, 0); // Send Freeze IO	
-				// puts("Answered to "); puts(itoh(APaddress));puts("\n");
+				Seek(KEY_ACK, ((MemoryRead(TICK_COUNTER)<<16) | (get_net_address()&0xffff)), currentAP.address, 0); // Send Freeze IO	
+				// puts("Answered to "); puts(itoh(currentAP.address));puts("\n");
 			}	
 		}		
 		
@@ -1133,12 +1135,12 @@ int handle_packet(ServiceHeader * p) {
 			}else{
 				pendingIO --;
 				if (freezeIO){
-					if (APaddress == get_net_address()){
+					if (currentAP.address == get_net_address()){
 						OS_InterruptMaskSet(IRQ_AP);
 					}else{
 						// puts("Recebeu IO ACK pendente, congelando Comunicação\n");
-						Seek(KEY_ACK, ((MemoryRead(TICK_COUNTER)<<16) | (get_net_address()&0xffff)), APaddress, 0); // Send Freeze IO	
-						// puts("Answered to "); puts(itoh(APaddress));puts("\n");
+						Seek(KEY_ACK, ((MemoryRead(TICK_COUNTER)<<16) | (get_net_address()&0xffff)), currentAP.address, 0); // Send Freeze IO	
+						// puts("Answered to "); puts(itoh(currentAP.address));puts("\n");
 					}	
 				}
 			}
@@ -1690,12 +1692,6 @@ int SeekInterruptHandler(){
 			prevTUS = -1;
 		break;
 
-<<<<<<< Updated upstream
-		case SET_SECURE_ZONE_SERVICE:
-			// seek_puts("Received SET_SECURE_ZONE"); seek_puts("\n");
-			Set_Secure_Zone(target, payload, source); // verificação interna
-		break;
-
 		case SET_AP_SERVICE:
 			puts("Received SET_AP_SERVICE"); seek_puts("\n");
 			if ((source == prevSetAP)){ //TUS agora vem com o timestamp no payload para evitar reverberação
@@ -1703,7 +1699,7 @@ int SeekInterruptHandler(){
 				break;
 			}	
 			Seek(BR_TO_APPID_SERVICE, ((get_net_address()&0xffff) | (get_net_address()&0xffff)), (unsigned int)MemoryRead(APP_ID_REG), 0);
-			APaddress = get_net_address();
+			currentAP.address = get_net_address();
 
 			MemoryWrite(K1_REG, k1);
 			MemoryWrite(K2_REG, k2);
@@ -1718,8 +1714,6 @@ int SeekInterruptHandler(){
 			prevSetAP = source;
 			Seek(CLEAR_SERVICE, ((get_net_address()&0xffff) | (get_net_address()&0xffff)), 0, 0);
 		break;
-=======
->>>>>>> Stashed changes
 
 		#ifdef SESSION_MANAGER
 		case MSG_DELIVERY_CONTROL: //MDC_HANDLER
@@ -1995,37 +1989,6 @@ int SeekInterruptHandler(){
 		case SET_SECURE_ZONE_SERVICE:
 			// seek_puts("Received SET_SECURE_ZONE"); seek_puts("\n");
 			Set_Secure_Zone(target, payload, source); // verificação interna
-		break;
-
-		case SET_AP_SERVICE:
-			puts("Received SET_AP_SERVICE"); seek_puts("\n");
-			if ((source == prevSetAP)){ //TUS agora vem com o timestamp no payload para evitar reverberação
-				puts("----repetido\n");
-				break;
-			}
-			Seek(BR_TO_APPID_SERVICE, ((payload << 16) | (get_net_address()&0xffff)), (unsigned int)MemoryRead(APP_ID_REG), 0);
-			
-			if (currentAP.address == 0){
-				MemoryWrite(K1_REG, k1);
-				MemoryWrite(K2_REG, k2);
-				MemoryWrite(AP_THRESHOLD, AP_THRESHOLD_VALUE);
-				puts("--source(caller): "); puts(itoh(source)); puts("\n");
-				puts("--target(AP addr): "); puts(itoh(target)); puts("\n");
-				puts("--payload(port): "); puts(itoh(payload)); puts("\n");
-				puts("--ApID(port): "); puts(itoh(MemoryRead(APP_ID_REG))); puts("\n");
-				MemoryWrite(AP_MASK, (1 << (payload*2))); // Mascarar as duas portas, 01 - E, 23 - W, 45-N, 67-S 
-			}else{
-				puts("Trocou AP, limpando SR pra novo path\n");
-				for(i = 0; i < IO_NUMBER; i++){
-					ClearSlotSourceRouting((io_info[i].default_address_x << 8) | io_info[i].default_address_y);
-				}
-				changeAP = 1; // No KEY ACK vai mudar o APPID
-			}
-
-			currentAP.address = get_net_address();
-			currentAP.port = payload;
-			prevSetAP = source;
-			Seek(CLEAR_SERVICE, ((get_net_address()&0xffff) | (get_net_address()&0xffff)), 0, 0);
 		break;
 
 		case BR_TO_APPID_SERVICE: // Expand here to flexible AccessPoit configuration
