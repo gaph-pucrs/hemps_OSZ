@@ -1135,11 +1135,7 @@ int handle_packet(ServiceHeader * p) {
 			}else{
 				pendingIO --;
 				if (freezeIO){
-<<<<<<< Updated upstream
-=======
-<<<<<<< Updated upstream
->>>>>>> Stashed changes
-					if (APaddress == get_net_address()){
+					if (currentAP.address == get_net_address()){
 						OS_InterruptMaskSet(IRQ_AP);
 					}else{
 						// puts("Recebeu IO ACK pendente, congelando Comunicação\n");
