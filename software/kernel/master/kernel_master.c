@@ -235,73 +235,12 @@ void send_io_config(Application* app, int appID_rand, int turns){
 					p->io_service = IO_SR_PATH;
 					
 					send_packet_io(p, &sr[k].path[0], sr[k].path_size, usedIO[k]);
-<<<<<<< Updated upstream
 					break;
 				}
 					
 			}
 		}			
 	}
-}
-
-void send_nonsecure_io_config(Application* app){
-
-	ServiceHeader *p;
-
-	int usedIO[IO_NUMBER];
-	for(int i = 0; i < IO_NUMBER; i++)
-		usedIO[i] = 0;
-	
-	//for all io dependencies of the application
-	for(int i =0; i<app->tasks_number; i++){
-		for(int j =0; j < app->tasks[i].dependences_number; j++){
-			for (int k = 0; k < IO_NUMBER; k++){
-
-				if(usedIO[k] == app->tasks[i].dependences[j].flits)
-					break;
-				
-				//send io_config
-				if(usedIO[k] == 0){
-
-					usedIO[k] = app->tasks[i].dependences[j].flits;
-
-					/* Manage Peripheral Dependents */
-					//finds out the io_number of the peripheral
-					int io_idx = 0;
-					while(io_idx < IO_NUMBER)
-					{
-						if(io_info[io_idx].peripheral_id == app->tasks[i].dependences[j].flits)
-							break;
-						io_idx++;
-					}
-					//updates number of nonsecure dependents
-					nonsecure_io_dependents[io_idx]++;
-					//if the peripheral was already configured for non-secure communication, it's not configured again
-					if(nonsecure_io_dependents[io_idx] > 1)
-						break;
-					//else: perform the configuration normally
-
-					puts("----Enviando conf para: ");puts(itoa(app->tasks[i].dependences[j].flits));puts("\n");
-
-					//decides whether peripheral uses XY or YX routing
-					int useXY = is_peripheral_in_gray_line(usedIO[k]);
-					unsigned int routing_cfg = useXY ? 0x60007EEE : 0x10007EEE;		
-
-					//builds and sends io_config packet
-					p = get_service_header_slot();	
-					p->service = 0;
-					p->io_service = IO_SR_PATH;
-
-					send_packet_io(p, &routing_cfg, 1, usedIO[k]);
-=======
->>>>>>> Stashed changes
-					break;
-				}
-					
-			}
-		}			
-	}
-
 }
 
 void send_nonsecure_io_config(Application* app){
