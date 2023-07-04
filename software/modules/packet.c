@@ -573,10 +573,10 @@ int pathToIO(int peripheral_id, int * positionAP){
     } 
   } 
  
-  puts("routing="); puts(apInGrayLine ? "XY\n" : "YX\n"); 
-  puts("auxPos=");puts(itoa(auxPosX));puts("x");puts(itoa(auxPosY));puts("\n");  
-  puts("perPos=");puts(itoa(PER_X_addr));puts("x");puts(itoa(PER_Y_addr));puts("\n");  
-  puts("portIO=");puts(itoa(port_io));puts("\n");  
+  // puts("routing="); puts(apInGrayLine ? "XY\n" : "YX\n"); 
+  // puts("auxPos=");puts(itoa(auxPosX));puts("x");puts(itoa(auxPosY));puts("\n");  
+  // puts("perPos=");puts(itoa(PER_X_addr));puts("x");puts(itoa(PER_Y_addr));puts("\n");  
+  // puts("portIO=");puts(itoa(port_io));puts("\n");  
  
   // Route using XY if the AP is connected in a GA row, else use YX  
   if(apInGrayLine){ 

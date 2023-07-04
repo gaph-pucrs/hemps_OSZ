@@ -588,21 +588,6 @@ int Syscall(unsigned int service, unsigned int arg0, unsigned int arg1, unsigned
   							auxBT >> 64 & 0xffffFFFF,
 							(PER_X_addr << 8) | PER_Y_addr,
 							positionAP);
-						// // puts("--slot_adjust: ");puts(itoa(slotSR)); puts("\n");
-						// auxBT = pathFromIO(auxBT);
-						// //auxBT = IOtoAP(arg1);
-						// puts("-- enviando caminho:");puts(itoh(auxBT)); puts("\n");
-						// slotSR = GetFreeSlotSourceRouting(get_net_address());
-						// // puts("--slot: ");puts(itoa(slotSR)); puts("\n");
-						// SR_Table[slotSR].target = get_net_address();
-    					// SR_Table[slotSR].tableSlotStatus = SR_USADO;
-						// slotSR = ProcessTurns(
-						// 	auxBT & 0xffffFFFF,
-  						// 	auxBT >> 32 & 0xffffFFFF,
-  						// 	auxBT >> 64 & 0xffffFFFF);
-						// send_peripheral_SR_path(slotSR, arg1, current->secure, producer_task);
-						// puts("--slot_adjust: ");puts(itoa(slotSR)); puts("\n");
-						// ClearSlotSourceRouting(get_net_address());
 					}
 				break;
 				}
@@ -663,22 +648,6 @@ int Syscall(unsigned int service, unsigned int arg0, unsigned int arg1, unsigned
   							auxBT >> 64 & 0xffffFFFF,
 							(PER_X_addr << 8) | PER_Y_addr,
 							positionAP);
-						// // puts("--slot_adjust: ");puts(itoa(slotSR)); puts("\n");
-						// auxBT = pathFromIO(auxBT);
-						// //auxBT = IOtoAP(arg1);((k1 ^ k2) << 8) | (k2 ^ MemoryRead(APP_ID_REG)));
-
-						// puts("-- enviando caminho:");puts(itoh(auxBT)); puts("\n");
-						// slotSR = GetFreeSlotSourceRouting(get_net_address());
-						// // puts("--slot: ");puts(itoa(slotSR)); puts("\n");
-						// SR_Table[slotSR].target = get_net_address();
-    					// SR_Table[slotSR].tableSlotStatus = SR_USADO;
-						// slotSR = ProcessTurns(
-						// 	auxBT & 0xffffFFFF,
-  						// 	auxBT >> 32 & 0xffffFFFF,
-  						// 	auxBT >> 64 & 0xffffFFFF);
-						// send_peripheral_SR_path(slotSR, arg1, current->secure, consumer_task);
-						// puts("--slot_adjust: ");puts(itoa(slotSR)); puts("\n");
-						// ClearSlotSourceRouting(get_net_address());
 					}
 				break;
 				}
@@ -749,11 +718,8 @@ int Aplly_LSFR(lfsr_data_t polynom_d, lfsr_data_t init_value_d,  lfsr_data_t pol
     unsigned char bit0, bitc0, bitr = 0;
     char byte = 0, bitpos = 7;
     unsigned long long bitcounter = 0, ones = 0, zeros = 0, dropped = 0;
-//    lfsr_data_t polynom_d, init_value_d,
-                //polynom_c, init_value_c;
 
     GLFSR_init(&glfsr_d0, polynom_d, init_value_d);
-
     GLFSR_init(&glfsr_c0, polynom_c, init_value_c);
 
     do {
@@ -1339,12 +1305,12 @@ int handle_packet(ServiceHeader * p) {
 			nt2 = 0;
 		}
 		
-		puts("----- [DEBUG] KeyGen:\n");
-		puts("----- appID = "); puts(itoh(KappID)); puts("\n");
-		puts("----- n     = "); puts(itoh(nt1)); puts("\n");
-		puts("----- p     = "); puts(itoh(nt2)); puts("\n");
-		puts("----- k1    = "); puts(itoh(k1)); puts("\n");
-		puts("----- k2    = "); puts(itoh(k2)); puts("\n");
+		// puts("----- [DEBUG] KeyGen:\n");
+		// puts("----- appID = "); puts(itoh(KappID)); puts("\n");
+		// puts("----- n     = "); puts(itoh(nt1)); puts("\n");
+		// puts("----- p     = "); puts(itoh(nt2)); puts("\n");
+		// puts("----- k1    = "); puts(itoh(k1)); puts("\n");
+		// puts("----- k2    = "); puts(itoh(k2)); puts("\n");
 		
 		// puts("Recuperação do AppID: ");puts(itoh(KappID));puts("\n");
 		// puts("-----k1 = ");puts(itoh(k1));puts("\n");
@@ -1697,22 +1663,30 @@ int SeekInterruptHandler(){
 			if ((source == prevSetAP)){ //TUS agora vem com o timestamp no payload para evitar reverberação
 				puts("----repetido\n");
 				break;
-			}	
-			Seek(BR_TO_APPID_SERVICE, ((get_net_address()&0xffff) | (get_net_address()&0xffff)), (unsigned int)MemoryRead(APP_ID_REG), 0);
+			}
+			Seek(BR_TO_APPID_SERVICE, ((payload << 16) | (get_net_address()&0xffff)), (unsigned int)MemoryRead(APP_ID_REG), 0);
+			
+			if (currentAP.address == 0){
+				MemoryWrite(K1_REG, k1);
+				MemoryWrite(K2_REG, k2);
+				MemoryWrite(AP_THRESHOLD, AP_THRESHOLD_VALUE);
+				puts("--source(caller): "); puts(itoh(source)); puts("\n");
+				puts("--target(AP addr): "); puts(itoh(target)); puts("\n");
+				puts("--payload(port): "); puts(itoh(payload)); puts("\n");
+				puts("--ApID(port): "); puts(itoh(MemoryRead(APP_ID_REG))); puts("\n");
+				MemoryWrite(AP_MASK, (1 << (payload*2))); // Mascarar as duas portas, 01 - E, 23 - W, 45-N, 67-S 
+			}else{
+				puts("Trocou AP, limpando SR pra novo path\n");
+				for(i = 0; i < IO_NUMBER; i++){
+					ClearSlotSourceRouting((io_info[i].default_address_x << 8) | io_info[i].default_address_y);
+				}
+				changeAP = 1; // No KEY ACK vai mudar o APPID
+			}
+
 			currentAP.address = get_net_address();
-
-			MemoryWrite(K1_REG, k1);
-			MemoryWrite(K2_REG, k2);
-			MemoryWrite(AP_THRESHOLD, AP_THRESHOLD_VALUE);
-			puts("--source(caller): "); puts(itoh(source)); puts("\n");
-			puts("--target(AP addr): "); puts(itoh(target)); puts("\n");
-			puts("--payload(port): "); puts(itoh(payload)); puts("\n");
-			puts("--ApID(port): "); puts(itoh(MemoryRead(APP_ID_REG))); puts("\n");
-
-			MemoryWrite(AP_MASK, (3 << (payload*2))); // Mascarar as duas portas, 01 - E, 23 - W, 45-N, 67-S 
-			// ENABLE IRA_AP - Enable only when setting the AP!
+			currentAP.port = payload;
 			prevSetAP = source;
-			Seek(CLEAR_SERVICE, ((get_net_address()&0xffff) | (get_net_address()&0xffff)), 0, 0);
+			Seek(CLEAR_SERVICE, ((payload << 16)  | (get_net_address()&0xffff)), 0, 0);
 		break;
 
 		#ifdef SESSION_MANAGER
@@ -2278,7 +2252,6 @@ void OS_InterruptServiceRoutine(unsigned int status) {
 			Seek(BR_TO_APPID_SERVICE, (timeAux<<16) | (get_net_address()&0xffff), (unsigned int)MemoryRead(APP_ID_REG), 01); // Send Freeze IO
 			for (int i = 0; i < 5; i++){}			
 			Seek(CLEAR_SERVICE, ( (timeAux<<16)  | (get_net_address()&0xffff)), 0,0); // Send Freeze IO
-			// MemoryWrite(AP_THRESHOLD, 3);
 			// puts("Start: ");puts(itoa(MemoryRead(TICK_COUNTER))); puts ("\n");	// Port of the AP
 		}
 	}
@@ -2401,30 +2374,9 @@ int main(){
 	/*disable interrupts*/
 	OS_InterruptMaskClear(0xffffffff);
 
-	//if (get_net_address() == 0x00000202){
-	//puts("maooiii: "); puts(itoh(((io_info[0].default_address_x << 8) | io_info[0].default_address_y))); puts("\n");	
-	//puts("maooiii: "); puts(itoh(io_info[0].default_port)); puts("\n");	
-	//ServiceHeader *p = get_service_header_slot();
-//
-//	//p->service = MIGRATION_CODE;
-//
-//	//send_packet_io(p, 0, 0, 9);
-//
-//
-//	//p->service = MIGRATION_CODE;
-//
-//	//send_packet_io(p, 0, 0, 8);
-//
-//
-	//}
 
-
-	/*enables timeslice counter and wrapper interrupts*/
-
-	//WARNING: NOT ENABLING this fucking shit of IRQ_SLACK_TIME
-	//by Wachter
-	OS_InterruptMaskSet(IRQ_SEEK | IRQ_SCHEDULER | IRQ_NOC | IRQ_PENDING_SERVICE);
-	// OS_InterruptMaskSet(IRQ_SEEK | IRQ_SCHEDULER | IRQ_NOC | IRQ_PENDING_SERVICE | IRQ_AP);
+	// OS_InterruptMaskSet(IRQ_SEEK | IRQ_SCHEDULER | IRQ_NOC | IRQ_PENDING_SERVICE);
+	OS_InterruptMaskSet(IRQ_SEEK | IRQ_SCHEDULER | IRQ_NOC | IRQ_PENDING_SERVICE | IRQ_AP);
 
 	/*runs the scheduled task*/
 	ASM_RunScheduledTask(current);

@@ -408,7 +408,7 @@ void send_task_release(Application * app){
 
 			#ifndef AUTH_PROTOCOL
 			kaux = get_k0(app->tasks[i].allocated_proc);
-			p->k0 = ((appID_rand ^ kaux) << 16) | (turns ^ kaux) ; // Dividir em 2 HI e LO, pq tem 32
+			p->k0 = ((appID_rand ^ kaux) << 16) | (turns ^ kaux) ; // Divide em 2 HI e LO, pq tem 32
 			#endif
 
 			p->secure = app->secure;

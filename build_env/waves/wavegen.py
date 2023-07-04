@@ -213,11 +213,11 @@ for pe in range(0,max_pe):
 				access_point_sds = ["k1","k2","intAP", "apThreshold", "AP_status"]
 				for it in map(lambda sd: access_point_pfx + sd ,access_point_sds):
 					print (it)
-				access_point_sds = ["sz","ap_unreachable", "link_control_access", "link_control_message"]
+				access_point_sds = ["sz", "link_control_access", "link_control_message"]
 				for it in map(lambda sd: access_point_pfx + sd + f"({port:d})",access_point_sds):
 					print (it)
 				access_point_pfx = "add wave -noupdate -group {%s %dx%d - %d} -group %s -group {router %dx%d AP %s} -radix hexadecimal /test_bench/HeMPS/%s%dx%d/RouterCCwrapped/RouterCC_AP/AP_gen(%d)/AP_CH0/" % 	(pe_type_str, posX, posY, pe,location, posX, posY, portname[port], pe_type_str, posX, posY,ap)
-				access_point_sds = ["pass", "auth" ,"mask", "enable", "Cin", "Cout", "reg_auth", "renew_key", "sig_intAP"]
+				access_point_sds = ["pass", "auth" ,"mask", "enable", "Cin", "Cout", "reg_auth", "renew_key"]
 				for it in map(lambda sd: access_point_pfx + sd,access_point_sds):
 					print (it)
 				ap += 1

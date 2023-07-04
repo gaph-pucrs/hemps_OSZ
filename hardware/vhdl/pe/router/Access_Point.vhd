@@ -73,7 +73,6 @@ architecture Access_Point of Access_Point is
 	signal reg_K1	:	std_logic_vector(11 downto 0); 
 	signal reg_K2	:	std_logic_vector(11 downto 0);
 	signal reg_auth	:	std_logic_vector(2 downto 0);
-	signal sig_intAP:	std_logic;
 	signal renew_key:  	std_logic;
 
 	-- alias

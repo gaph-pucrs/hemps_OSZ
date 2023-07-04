@@ -71,7 +71,7 @@ begin
 					pe_source;
 	
 
-	seek_target  <= reg_source 	when ((sending = '1') AND (packetType /= x"6")) else
+	seek_target  <= (reg_source and x"0fff") 	when ((sending = '1') AND (packetType /= x"6")) else --Clean packet type from PE->IO
 					x"0003" 	when sending else 
 					pe_target;
 
