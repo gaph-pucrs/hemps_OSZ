@@ -41,7 +41,8 @@ port(
 	sz						: in regNport; 
 	ap						: in regNport; 
 	apThreshold				: in  std_logic_vector(7 downto 0); 
-	intAP					: out std_logic; 
+	intAP					: out std_logic;
+	AP_status				: out std_logic_vector(2 downto 0);
  
  
 	--Packet blocked by wrapper 
@@ -68,7 +69,13 @@ architecture RouterCC_AP of RouterCC_AP is
  
 	signal change_routing		:regNport; 
 	signal szCH1				:regNport; 
-	signal intAPs				: std_logic_vector(3 downto 0); 
+	signal link_control_access	:regNport;
+	signal intAPs				: std_logic_vector(3 downto 0);
+
+	type array_auth is array(3 downto 0) of std_logic_vector(2 downto 0); 
+	signal auths 				: array_auth;
+	signal APrx					: regNport;
+	signal APauthK				: regNport;
  
 begin 
  
@@ -97,7 +104,12 @@ begin
 		source                  =>	source 
 	); 
  
-	link_control_message <= (access_i OR (sz AND (NOT ap))) AND tx_router; 
+	-- APauthK <=  "000" & auths(3)(1) & '0' & auths(2)(1) & '0' & auths(1)(1) & '0' & auths(0)(1);
+	-- APrx <= (rx AND ap);
+	-- link_control_access <= (sz AND (NOT ap)); 
+	-- link_control_message <= ((access_i OR link_control_access) AND tx_router) OR (NOT APauthK AND APrx); 
+	link_control_message <= ((access_i OR link_control_access) AND (tx_router AND (NOT ap))); 
+	access_o <= link_control_access;
  
 	--Directly connecting local port: 
 	rx_router(LOCAL0) <= rx(LOCAL0); 
@@ -121,8 +133,13 @@ begin
 	eop_out(LOCAL1) <= eop_out_router(LOCAL1); 
 	credit_i_router(LOCAL1) <= credit_i(LOCAL1); 
  
-	access_o(LOCAL0) <= '0'; 
- 	access_o(LOCAL1) <= '0'; 
+	-- access_o(LOCAL0) <= '0'; 
+ 	-- access_o(LOCAL1) <= '0'; 
+	link_control_access(LOCAL0) <= '0'; 
+ 	link_control_access(LOCAL1) <= '0'; 
+
+	AP_status <= auths(0) OR auths(1) OR auths(2) OR auths(3); -- OR porque os inativos são 0
+	intAP <= or intAPs; 
  
 	AP_gen : for i in 0 to 3 generate 
 		-- (i*2) = Even 0,2,4,6 = CHANNEL 0 = with AP  
@@ -141,8 +158,7 @@ begin
 			credit_i                => credit_i(i*2), 
 			eop_out					=> eop_out(i*2), 
 			access_i                => access_i(i*2), 
-			access_o                => access_o(i*2), 
- 
+			access_o                => link_control_access(i*2),
 			--Core Router 
 			data_in_router          => data_in_router(i*2), 
 			credit_o_router         => credit_o_router(i*2), 
@@ -160,13 +176,16 @@ begin
 			k1						=> k1, 
 			k2						=> k2, 
 			apThreshold 			=> apThreshold, 
+			auth_status				=> auths(i),
 			intAP					=> intAPs(i) 
 		); 
  
+		-- Link Control Access out
+		-- access_o <= (sz AND (NOT ap));
  
 		-- -- (i*2+1) = Odd 1,3,5,7 = CHANNEL 1 = no AP trocar -- apenas wrapper 
 		--Directly connecting local port: 
-		szCH1 <= sz OR access_i; 
+		szCH1 <= sz OR access_i; -- different from IO PACKET
 		 
 		rx_router(i*2+1) <= rx(i*2+1); 
 		data_in_router(i*2+1) <= data_in(i*2+1); 
@@ -178,10 +197,7 @@ begin
 		eop_out(i*2+1) <= eop_out_router(i*2+1); 
 		credit_i_router(i*2+1) <= credit_i(i*2+1) OR (szCH1(i*2+1)); 
  
-		access_o(i*2+1)	<= sz(i*2+1); 
+		link_control_access(i*2+1)	<= sz(i*2+1); 
 		change_routing(i*2+1) <= '0'; -- Indicates that there is no AP in this port 
- 
-		intAP <= or intAPs; 
- 
 	end generate ; -- identifier 
 end RouterCC_AP; 

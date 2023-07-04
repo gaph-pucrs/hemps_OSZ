@@ -85,6 +85,8 @@ package seek_pkg is
     constant    RENEW_KEY                               : std_logic_vector(TAM_SERVICE_SEEK-1 downto 0) := "100100";
     constant    KEY_ACK                                 : std_logic_vector(TAM_SERVICE_SEEK-1 downto 0) := "100101";
     constant    REQUEST_SNIP_RENEWAL                    : std_logic_vector(TAM_SERVICE_SEEK-1 downto 0) := "100110";
+    constant    LC_NOTIFICATION                         : std_logic_vector(TAM_SERVICE_SEEK-1 downto 0) := "100111";
+
 
 
 	subtype		regNtarget								is std_logic_vector((TARGET_SIZE-1) downto 0);

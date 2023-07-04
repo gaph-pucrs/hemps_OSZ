@@ -168,6 +168,10 @@ package standards is
 --------------------------------------------------------- 
         constant SERVICE_F1     : std_logic_vector := "000101"; --5; 
         constant SERVICE_F2     : integer := 7; --4; 
+        constant KEY_AUTH       : integer := 0;
+        constant COUNT_AUTH     : integer := 1;
+        constant TYPE_AUTH      : integer := 2;
+
 
 ---------------------------------------------------------
 -- SUBTIPOS, TIPOS E FUNCOES

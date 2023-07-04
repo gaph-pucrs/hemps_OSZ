@@ -241,7 +241,7 @@ void send_task_release(Application * app){
 
 			#ifndef AUTH_PROTOCOL
 			kaux = get_k0(app->tasks[i].allocated_proc);
-			p->k0 = ((appID_rand ^ kaux) << 16) | (turns ^ kaux) ; // Dividir em 2 HI e LO, pq tem 32
+			p->k0 = ((appID_rand ^ kaux) << 16) | (turns ^ kaux) ; // Divide em 2 HI e LO, pq tem 32
 			#endif
 
 			p->secure = app->secure;
@@ -985,6 +985,35 @@ void handle_new_app(int app_ID, volatile unsigned int *ref_address, unsigned int
 }
 
 
+
+void changeAPlocation(Application *app){
+	int LL_x, LL_y, RH_x, RH_y, AP_x, AP_y, newAP;
+	LL_x = app->LL_Address >> 8;
+	LL_y = app->LL_Address & 0xff;
+	RH_x = app->RH_Address >> 8;
+	RH_y = app->RH_Address & 0xff;
+	AP_x = app->ap.address_go >> 8;
+	AP_y = app->ap.address_go & 0xff;
+
+	puts("Changing AP from: "); puts(itoh(app->ap.address_go)); 
+
+
+	if (app->ap.port_go == WEST){ // AP_X == LL_X
+		if (AP_y == LL_y)
+			AP_y++;
+		else
+			AP_y--;
+		app->ap.address_go   = ( AP_x << 8 ) | AP_y;
+      	app->ap.address_back = ( AP_x << 8 ) | AP_y;
+      	app->ap.port_go = WEST;
+      	app->ap.port_back = WEST;
+	}
+	puts("to NEW AP address: "); puts(itoh(app->ap.address_go)); puts("\n");
+    Seek(SET_AP_SERVICE, ((MemoryRead(TICK_COUNTER)) << 16) | get_net_address(), app->ap.address_go, app->ap.port_go);
+}
+
+
+
 int SeekInterruptHandler(){
 	
 	int LL_addr, RH_addr, master_address,selected_cluster,selected_cluster_proc;
@@ -992,6 +1021,7 @@ int SeekInterruptHandler(){
 	static unsigned int seek_unr_count = 0;
 	unsigned int backtrack, backtrack1, backtrack2;
 	int allocated_tasks, aux;
+	static int apChanged;
 	Application *app;
 	 // terminated_task_list[MAX_APP_SIZE];;
 	unsigned int target, source, service, payload;
@@ -1007,8 +1037,9 @@ int SeekInterruptHandler(){
 	source = MemoryRead(SEEK_SOURCE_REGISTER);
 	service = MemoryRead(SEEK_SERVICE_REGISTER);
 	// For Sessions
-	static unsigned int nTurns = 0;
-	unsigned int nTurns_aux;
+	static unsigned int appID_aux = 0;
+	static unsigned int prevPayload;
+	unsigned int nTurns;
 	switch(service){
 		case TARGET_UNREACHABLE_SERVICE:
 			puts(itoa(MemoryRead(TICK_COUNTER))); puts(" Received SeekUnreachable "); puts(itoh(source)); puts("\n");
@@ -1207,6 +1238,7 @@ int SeekInterruptHandler(){
 						//puts("RH_addr: "); puts(itoh(RH_addr)); puts("\n");
 						//puts("LL_addr: "); puts(itoh(LL_addr)); puts("\n");
 						set_RH_Address(app->app_ID, RH_addr);
+						set_LL_Address(app->app_ID, LL_addr);
 						#ifndef AUTH_PROTOCOL
 						set_AccessPoint(RH_addr, LL_addr, &app->ap);
 						config_snips(app);
@@ -1252,21 +1284,44 @@ int SeekInterruptHandler(){
 		case REQUEST_SNIP_RENEWAL:
 			
 			//MSB(source) contains nTurns+1 to avoid conflicting with other messages with same source
-			nTurns_aux = ((source >> 16)-1);
-
-			if(nTurns == nTurns_aux) {
-				puts("recebeu REQUEST_SNIP_RENEWAL repetido\n");
+			puts("recebeu REQUEST_SNIP_RENEWAL: ")puts(itoh(payload));
+			if (prevPayload == payload){
+				puts("---repetido\n");
 				break;
 			}
 
-			nTurns = nTurns_aux;
+			// puts("recebeu REQUEST_SNIP_RENEWAL válido")puts(itoh(payload));puts("\n");
 
-			//Enforce the maximum values for {n,p} values
-			nTurns_aux = nTurns_aux & 0x0f0f;
+			prevPayload = payload;
+
+			appID_aux = (source >> 16);
+			
+			nTurns = ((payload & 0xf0)<< 4) |  (payload & 0xf);
 
 			app = get_app_ptr_from_task_location(source & 0xffff);
 			app->nTurns = nTurns_aux;
 			renew_snips(app);
+
+			if(app->appID_random == appID_aux){
+				send_io_renew(app, app->appID_random, nTurns);
+			}else{
+				app->appID_random = appID_aux;
+				app->nTurns = nTurns;
+				send_io_config(app, app->appID_random, app->nTurns);
+			}
+			// if(nTurns == appID_aux) {
+			// 	puts("recebeu REQUEST_SNIP_RENEWAL repetido\n");
+			// 	break;
+			// }
+
+			// nTurns = nTurns_aux;
+
+			// //Enforce the maximum values for {n,p} values
+			// nTurns_aux = ((payload & 0xf0)<< 4) |  (payload & 0xf);
+
+			// app = get_app_ptr_from_task_location(source & 0xffff);
+
+			// send_io_renew(app, app->appID_random, nTurns_aux);
 
 		break;
 		
@@ -1293,6 +1348,16 @@ int SeekInterruptHandler(){
 				app_id_counter++;	
 			}
 		break;
+
+		case LC_NOTIFICATION: //enviado pelo Mastre WARD do cluster
+			puts("  ************ Attack Notification Service ************"); puts("\n");
+			apChanged ++;
+
+			if (apChanged == 100){
+				app = get_app_ptr_from_task_location(source & 0xffff);
+				changeAPlocation(app);
+			}			
+		break;	
 		//-----------------------------------------------------------------------
 		default:
 			puts("Received unknown seek service\n");
@@ -1303,7 +1368,6 @@ int SeekInterruptHandler(){
 	return 0;
 
 }
-
 
 int main() {
 	int auxKey = 0;

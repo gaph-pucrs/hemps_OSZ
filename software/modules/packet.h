@@ -149,6 +149,8 @@ int read_packet(ServiceHeader *);
 
 int pathToIO(int, int*);
 
+int oppositePort(unsigned int p);
+
 int pathFromIO(long unsigned int);
 
 int IOtoAPmaster(int peripheral_id, int ap_addr, int ap_port, int ioInGrayLine);

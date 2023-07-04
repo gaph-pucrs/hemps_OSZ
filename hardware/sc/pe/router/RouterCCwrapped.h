@@ -33,7 +33,7 @@ public:
     sc_out<regNport > link_control_message;
 	  sc_in < sc_uint <8 > >  	apThreshold;
     sc_out<bool>              intAP;
-
+   	sc_out < sc_uint <3 > >  	AP_status;  
     
     sc_out<regflit>                 source;
     sc_out<regflit>                 target;
@@ -62,6 +62,7 @@ public:
        ap("ap"),
        apThreshold("apThreshold"),
        intAP("intAP"),
+       AP_status("AP_status"),
        link_control_message("link_control_message"),
        target("target"),
        source("source")
