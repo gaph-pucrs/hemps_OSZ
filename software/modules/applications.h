@@ -34,6 +34,7 @@
 #define	 MIGRATING				5	//!< Signals that the task was set to be migrated on the slave kernel
 
 #define MAX_TASK_DEPENDENCES	10	//!< Stores maximum number of dependences task that a task can have
+#define MAX_APP_IO_DEPENDENCIES	10	//!< Stores maximum number of io dependencies that an application can have
 
 /**
  * \brief This structure stores the communication dependences of a given task
@@ -73,6 +74,11 @@ typedef struct
     unsigned int port_back;
 } AccessPoint;
 
+/** \brief This structure stores the IO dependencies of a given application
+ */
+typedef struct {
+	int peripheralID;
+} IODependency;
 
 /** \brief This structure store variables useful to the kernel master manage an application instance
  */
@@ -91,6 +97,9 @@ typedef struct {
 	AccessPoint ap;
 	int appID_random;
 	int nTurns;
+
+	int io_dependencies_number;
+	IODependency io_dependencies[MAX_APP_IO_DEPENDENCIES];
 
 } Application;
 

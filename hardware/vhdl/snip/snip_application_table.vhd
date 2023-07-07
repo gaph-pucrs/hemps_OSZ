@@ -171,8 +171,8 @@ begin
         end case;
     end process;
 
-    primaryOut.ready <= '1' when state = READY else '0';
-    primaryOut.fail <= '1' when state = FAILED else '0';
+    primaryOut.ready <= '1' when state=READY or state=SLOT_FREED else '0';
+    primaryOut.fail <= '1' when state=FAILED else '0';
 
     is_fetching <= '1' when state=FETCHING or state=FETCHING_CRYPTO or state=FETCHING_NEW else '0';
 

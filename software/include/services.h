@@ -59,6 +59,7 @@
 #define 	AUTHENTICATE_PE    				0x00000310
 #define 	ATTACK          				0x00000320
 #define     IO_RENEW_KEYS                   0x00000330
+#define     IO_CLEAR                        0x00000335
 
 
 
