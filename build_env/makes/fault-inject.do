@@ -23,3 +23,7 @@ if {[file exists "signals"] == 1} then {
 } else {
    puts "no fault injection"
 }
+
+#tx(1) 0 1 ms 2 ms
+
+#force -freeze  /test_bench/HeMPS/slave2x0/RouterCCwrapped/RouterCC/rx 2#000000000 @ 1 ms -cancel @2ms

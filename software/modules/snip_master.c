@@ -31,7 +31,7 @@ int is_peripheral_in_gray_line(int peripheral_id) {
 
 void config_snips_secure(Application *app) {
 
-	puts("[DEBUG SNIP] Entrando em config_snips_secure\n");
+	// puts("[DEBUG SNIP] Entrando em config_snips_secure\n");
     
     SourceRoutingTableSlot sr[IO_NUMBER];
 
@@ -51,7 +51,7 @@ void config_snips_secure(Application *app) {
 		int appID = app->appID_random;
 		int turns = app->nTurns;
 
-		puts("[DEBUG SNIP] Sending secure IO_CONFIG to peripheral "); puts(itoa(peripheralID)); puts("\n");
+		// puts("[DEBUG SNIP] Sending secure IO_CONFIG to peripheral "); puts(itoa(peripheralID)); puts("\n");
 
         ServiceHeader *p = get_service_header_slot();
         //p->header[MAX_SOURCE_ROUTING_PATH_SIZE-1] = app->tasks[i].allocated_proc;
@@ -64,7 +64,7 @@ void config_snips_secure(Application *app) {
 
 void config_snips_nonsecure(Application *app) {
 
-	puts("[DEBUG SNIP] Entrando em config_snips_nonsecure\n");
+	// puts("[DEBUG SNIP] Entrando em config_snips_nonsecure\n");
 
     for(int i = 0; i < app->io_dependencies_number; i++) {
 
@@ -83,7 +83,7 @@ void config_snips_nonsecure(Application *app) {
         int useXY = is_peripheral_in_gray_line(peripheralID);
         unsigned int routing_cfg = useXY ? 0x60007eee : 0x10007eee;
 
-		puts("[DEBUG SNIP] Sending non-secure IO_CONFIG to peripheral "); puts(itoa(peripheralID)); puts("\n");
+		// puts("[DEBUG SNIP] Sending non-secure IO_CONFIG to peripheral "); puts(itoa(peripheralID)); puts("\n");
 
 		/* assembles io_config packet */
 
@@ -105,14 +105,14 @@ void config_snips(Application *app) {
 
 void clear_snips_secure(Application *app) {
 
-	puts("[DEBUG SNIP] Entrando em clear_snips_secure\n");
+	// puts("[DEBUG SNIP] Entrando em clear_snips_secure\n");
 
 	for(int i = 0; i < app->io_dependencies_number; i++) {
 
 		int peripheralID = app->io_dependencies[i].peripheralID;
 		int k0 = get_NI_k0(peripheralID);
 
-		puts("[DEBUG SNIP] Sending secure IO_CLEAR to peripheral "); puts(itoa(peripheralID)); puts("\n");
+		// puts("[DEBUG SNIP] Sending secure IO_CLEAR to peripheral "); puts(itoa(peripheralID)); puts("\n");
 
 		ServiceHeader *p = get_service_header_slot();
 		//p->header[MAX_SOURCE_ROUTING_PATH_SIZE-1] = app->tasks[i].allocated_proc;
@@ -124,7 +124,7 @@ void clear_snips_secure(Application *app) {
 
 void clear_snips_nonsecure(Application *app) {
 
-	puts("[DEBUG SNIP] Entrando em clear_snips_nonsecure\n");
+	// puts("[DEBUG SNIP] Entrando em clear_snips_nonsecure\n");
 
 	for(int i = 0; i < app->io_dependencies_number; i++) {
 
@@ -138,7 +138,7 @@ void clear_snips_nonsecure(Application *app) {
 		if(nonsecure_io_dependents[io_idx] != 0)
 			break;
 
-		puts("[DEBUG SNIP] Sending non-secure IO_CLEAR to peripheral "); puts(itoa(peripheralID)); puts("\n");
+		// puts("[DEBUG SNIP] Sending non-secure IO_CLEAR to peripheral "); puts(itoa(peripheralID)); puts("\n");
 
 		ServiceHeader *p = get_service_header_slot();
 		//p->header[MAX_SOURCE_ROUTING_PATH_SIZE-1] = app->tasks[i].allocated_proc;
@@ -158,14 +158,14 @@ void clear_snips(Application *app) {
 
 void renew_snips(Application *app) {
 
-	puts("[DEBUG SNIP] Entrando em renew_snips\n");
+	// puts("[DEBUG SNIP] Entrando em renew_snips\n");
 
 	for(int i = 0; i < app->io_dependencies_number; i++) {
 	
 		int peripheralID = app->io_dependencies[i].peripheralID;
 		int k0 = get_NI_k0(peripheralID);
 
-		puts("[DEBUG SNIP] Sending IO_RENEW to peripheral "); puts(itoa(peripheralID)); puts("\n");
+		// puts("[DEBUG SNIP] Sending IO_RENEW to peripheral "); puts(itoa(peripheralID)); puts("\n");
 
 		ServiceHeader *p = get_service_header_slot();
 		//p->header[MAX_SOURCE_ROUTING_PATH_SIZE-1] = app->tasks[i].allocated_proc;

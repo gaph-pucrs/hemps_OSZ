@@ -1,0 +1,23 @@
+hw:
+  page_size_KB:  128
+  tasks_per_PE: 1     
+  repository_size_MB:  1
+  physical_channels: 2
+  model_description: hybrid    # sc (gcc) | scmod (questa) | vhdl | hybrid (top module sc, internal vhdl)
+  noc_buffer_size: 8       # must be power of 2 
+  mpsoc_dimension: [4,4]     # for while, must be a square shape
+  cluster_dimension: [4,4] # for while, must be a square shape
+  master_location: LT     # LB
+  session: yes
+  gray_area:
+    rows: [3]
+    cols: [0]
+  open_port:
+    - port: [Injector,90,0,3,N,0,2,W] 
+    - port: [io_peripheral,80,3,3,N]
+    - port: [io_peripheral2,70,2,3,N] 
+   # - port: [sabotage,70,3,3,E] 
+apps:                
+  - name: dtw_IO
+    start_time_ms: 0 #any unsigned integer number
+    secure: yes

@@ -1039,7 +1039,7 @@ int SeekInterruptHandler(){
 	// For Sessions
 	static unsigned int appID_aux = 0;
 	static unsigned int prevPayload;
-	unsigned int nTurns;
+	unsigned int nTurns, nTurns_aux =0;
 	switch(service){
 		case TARGET_UNREACHABLE_SERVICE:
 			puts(itoa(MemoryRead(TICK_COUNTER))); puts(" Received SeekUnreachable "); puts(itoh(source)); puts("\n");
@@ -1281,48 +1281,24 @@ int SeekInterruptHandler(){
 		
 		break;
 		
-		case REQUEST_SNIP_RENEWAL:
-			
-			//MSB(source) contains nTurns+1 to avoid conflicting with other messages with same source
-			puts("recebeu REQUEST_SNIP_RENEWAL: ")puts(itoh(payload));
-			if (prevPayload == payload){
-				puts("---repetido\n");
-				break;
-			}
-
-			// puts("recebeu REQUEST_SNIP_RENEWAL válido")puts(itoh(payload));puts("\n");
-
-			prevPayload = payload;
-
-			appID_aux = (source >> 16);
-			
-			nTurns = ((payload & 0xf0)<< 4) |  (payload & 0xf);
-
-			app = get_app_ptr_from_task_location(source & 0xffff);
-			app->nTurns = nTurns_aux;
-			renew_snips(app);
-
-			if(app->appID_random == appID_aux){
-				send_io_renew(app, app->appID_random, nTurns);
-			}else{
-				app->appID_random = appID_aux;
-				app->nTurns = nTurns;
-				send_io_config(app, app->appID_random, app->nTurns);
-			}
-			// if(nTurns == appID_aux) {
-			// 	puts("recebeu REQUEST_SNIP_RENEWAL repetido\n");
-			// 	break;
-			// }
-
-			// nTurns = nTurns_aux;
-
-			// //Enforce the maximum values for {n,p} values
-			// nTurns_aux = ((payload & 0xf0)<< 4) |  (payload & 0xf);
-
-			// app = get_app_ptr_from_task_location(source & 0xffff);
-
-			// send_io_renew(app, app->appID_random, nTurns_aux);
-
+		case REQUEST_SNIP_RENEWAL: 
+			 
+			//MSB(source) contains nTurns+1 to avoid conflicting with other messages with same source 
+			nTurns_aux = ((source >> 16)-1); 
+ 
+			if(nTurns == nTurns_aux) { 
+				puts("recebeu REQUEST_SNIP_RENEWAL repetido\n"); 
+				break; 
+			} 
+ 
+			nTurns = nTurns_aux; 
+ 
+			//Enforce the maximum values for {n,p} values 
+			nTurns_aux = nTurns_aux & 0x0f0f; 
+ 
+			app = get_app_ptr_from_task_location(source & 0xffff); 
+			app->nTurns = nTurns_aux; 
+			renew_snips(app); 
 		break;
 		
 		//----------------------------------------------------------------------

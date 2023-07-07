@@ -970,6 +970,68 @@ int handle_packet(ServiceHeader * p) {
 
 	case  IO_DELIVERY:
 		puts("<<----- IO DELIVERY "); puts(itoa(MemoryRead(TICK_COUNTER)));puts("\n");
+	#ifdef SESSION_MANAGER 
+		tcb_ptr = searchTCB(p->io_task_ID);
+		// puts("tcb_ptr:");puts(itoa(tcb_ptr->id)); puts("\n");
+
+		// tcb_ptr = searchTCB(p->consumer_task);
+		//puts("tcb_ptr:");puts(itoh(tcb_ptr)); puts("\n");
+
+		msg_ptr = (Message *)(tcb_ptr->offset | tcb_ptr->reg[3]);
+
+		msg_ptr->length = p->msg_lenght;
+
+		// puts("msg length:");puts(itoh(msg_ptr->length));puts("\n");
+
+		
+		if(DMNI_read_data((unsigned int)msg_ptr->msg, msg_ptr->length) == -1){
+			//received a packet with incomplete payload; discard it
+			need_scheduling = 0;
+			MemoryWrite(DMNI_TIMEOUT_SIGNAL,0);
+			puts("payload incompleto...\n");
+		}
+		else{
+			//puts("payload Completo...\n");
+			tcb_ptr->reg[0] = 1;
+
+			if(tcb_ptr->scheduling_ptr->status != BLOCKED)
+				tcb_ptr->scheduling_ptr->status = READY;
+
+
+			if(p->service != IO_DELIVERY){
+					remove_msg_request(p->source_PE, p->consumer_task, p->producer_task);
+			}else{
+				pendingIO --;
+				if (freezeIO){
+					if (currentAP.address == get_net_address()){
+						OS_InterruptMaskSet(IRQ_AP);
+					}else{
+						// puts("Recebeu IO ACK pendente, congelando Comunicação\n");
+						Seek(KEY_ACK, ((MemoryRead(TICK_COUNTER)<<16) | (get_net_address()&0xffff)), currentAP.address, 0); // Send Freeze IO	
+						// puts("Answered to "); puts(itoh(currentAP.address));puts("\n");
+					}	
+				}
+			}
+			
+
+			// session_puts("arrival= ");session_puts(itoa(arrivalTime));//session_puts("\n");
+			// session_puts(" depature= ");session_puts(itoa(p->timestamp));session_puts("\n");	
+
+			#if MIGRATION_ENABLED
+				if (tcb_ptr->proc_to_migrate != -1){
+					migrate_dynamic_memory(tcb_ptr);
+					need_scheduling = 1;
+
+				} else
+			#endif
+
+			if (current == &idle_tcb){
+				need_scheduling = 1;
+			}			
+		}
+		
+	break;
+	#endif
 	case  MESSAGE_DELIVERY: //MD_HANDLER
 		tInit = MemoryRead(TICK_COUNTER);
 	#ifdef SESSION_MANAGER 
@@ -1444,7 +1506,7 @@ int handle_packet(ServiceHeader * p) {
 	// 	MemoryWrite(DMNI_TIMEOUT_SIGNAL,0);
 	// 	puts("payload incompleto...\n");
 	// }else{
-	// 	puts("pacote descartado\n");
+	// 	puts("pacote descartado\n");MD_
 	// }
 
 	break;
@@ -1573,6 +1635,13 @@ int SeekInterruptHandler(){
 	source = MemoryRead(SEEK_SOURCE_REGISTER);
 	service = MemoryRead(SEEK_SERVICE_REGISTER);
 	// For Sessions
+	unsigned int auxProducer, auxConsumer, auxCode, auxNumber; 
+	Message * msg_ptr; 
+	TCB * tcb_ptr = 0; 
+	PipeSlot* tmpSlot; 
+	ServiceHeader* auxService = 0; 
+	int task_loc; 
+	// For AP
 	static int prevSetAP = -1;
 	static prevTUS = -1;
 	static int rcvdACK =0;
@@ -1747,7 +1816,7 @@ int SeekInterruptHandler(){
 		session_time_puts("CONTROL DEL= ");session_time_puts(itoa(tEnd-tInit));session_time_puts("\n");
 		break;
 
-		case MSG_REQUEST_CONTROL: //MRR_HANDLER
+		case MSG_REQUEST_CONTROL: //MRC_HANDLER
 			tInit = MemoryRead(TICK_COUNTER);
 
 			auxConsumer = (payload << 8) | (source & 0xFF);
@@ -1991,7 +2060,7 @@ int SeekInterruptHandler(){
 					break;
 				}
 				Seek(KEY_ACK, ((MemoryRead(TICK_COUNTER)<<16) | (get_net_address()&0xffff)), (source & 0xffff), 0); // Send Freeze IO	
-				puts("Answered to "); puts(itoh(source & 0xffff));puts("\n");
+				// puts("Answered to "); puts(itoh(source & 0xffff));puts("\n");
 				break;
 			case 02: //02 - KEY EVOLVE
 				puts("Received Key Evolve (BR_TO_APPID_SERVICE 2)\n");
@@ -2055,12 +2124,12 @@ int SeekInterruptHandler(){
 		break;
 
 		case KEY_ACK:
-				puts("Received KEY_ACK from: ");puts(itoa(rcvdACK));puts(itoh(source&0xffff));puts("*** Time: ");puts(itoa(MemoryRead(TICK_COUNTER))); puts ("\n");
+				// puts("Received KEY_ACK from: ");puts(itoa(rcvdACK));puts(itoh(source&0xffff));puts("*** Time: ");puts(itoa(MemoryRead(TICK_COUNTER))); puts ("\n");
 
 				//for(i=0; i <=rcvdACK; i++){
 				for(i=0; i <=appTasks; i++){
 					if (source == ackSources[i]){
-						puts("--repetido\n");
+						// puts("--repetido\n");
 						break;
 					}
 				}
@@ -2082,7 +2151,8 @@ int SeekInterruptHandler(){
 						KappID = MemoryRead(TICK_COUNTER) & 0xFFFF;
 						changeAP = 0;
 					}
-					Seek(REQUEST_SNIP_RENEWAL, (((KappID)<<16) | (get_net_address()&0xffff)), cluster_master_address, (n<<4) | p); // Request MPE to renew SNIP keys
+					Seek(REQUEST_SNIP_RENEWAL, (((nTurns+1)<<16) | (get_net_address()&0xffff)), cluster_master_address, 0); // Request MPE to renew SNIP keys
+					// Seek(REQUEST_SNIP_RENEWAL, (((KappID)<<16) | (get_net_address()&0xffff)), cluster_master_address, (n<<4) | p); // Request MPE to renew SNIP keys
 					// Seek(BR_TO_APPID_SERVICE, ((nTurns<<16) | (get_net_address()&0xffff)), (unsigned int)MemoryRead(APP_ID_REG), 02); // Send Freeze IO
 					Seek(BR_TO_APPID_SERVICE, ((nTurns<<16) | (KappID)), (unsigned int)MemoryRead(APP_ID_REG), 02); // Send Freeze IO
 
