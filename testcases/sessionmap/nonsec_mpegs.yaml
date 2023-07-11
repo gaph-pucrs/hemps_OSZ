@@ -1,0 +1,31 @@
+hw:
+  page_size_KB: 128
+  tasks_per_PE: 1
+  repository_size_MB: 1
+  physical_channels: 2
+  model_description: hybrid
+  noc_buffer_size: 8
+  mpsoc_dimension: [4,4]
+  cluster_dimension: [4,4]
+  master_location: LT
+  session: yes
+  gray_area:
+    rows: [3]
+    cols: [0]
+  open_port:
+    - port: [Injector,90,0,3,N,0,2,W]
+    - port: [io_peripheral,80,2,3,N]
+    - port: [io_peripheral2,70,0,1,W]
+apps:                
+  - name: mpeg_IO
+    start_time_ms: 0
+    secure: yes
+  - name: mpeg_IO
+    start_time_ms: 0
+    secure: no
+    static_mapping:
+      start: [0,2]
+      print: [1,3]
+      ivlc: [0,0]
+      iquant: [0,1]
+      idct: [2,3]

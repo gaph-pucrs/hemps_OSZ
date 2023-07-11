@@ -91,6 +91,7 @@ def main():
     copy_kernel( HEMPS_PATH,  TESTCASE_NAME, INPUT_TESTCASE_FILE_PATH)
     copy_apps( HEMPS_PATH,  TESTCASE_NAME,  apps_name_list)
     copy_hardware( HEMPS_PATH,  TESTCASE_NAME, model_description, gray_area)
+    # gen_force_file()
     copy_makefiles_and_waves( HEMPS_PATH,  TESTCASE_NAME, page_size_KB, memory_size_KB, model_description, apps_name_list, simul_time)
     copy_testcase_file( TESTCASE_NAME, INPUT_TESTCASE_FILE_PATH)
 
@@ -252,7 +253,8 @@ def copy_makefiles_and_waves(hemps_path, testcase_path, page_size_KB, memory_siz
         copyfile(makes_dir+"/make_hybrid", testcase_path+"/hardware/makefile")
 
         copyfile(makes_dir+"/sim.do", testcase_path+"/sim.do")
-
+        
+        # gerar os signals e enviar junto com o fault_inject
         # copyfile(makes_dir+"/fault-inject.do", testcase_path+"/fault-inject.do")
 
 

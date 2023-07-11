@@ -646,7 +646,7 @@ void send_message_request_control(Session* sessions, unsigned int prod, unsigned
   int index, code;
   index  = checkSession(sessions, prod, cons); 
   if(index < 0){ // Case not found, create a new Session
-    do{code = (MemoryRead(TICK_COUNTER)*get_net_address()) & 0xFFC0;}while(code == 0xFFC0); // Code cannot be 0xFFC0
+    do{code = (MemoryRead(TICK_COUNTER)*get_net_address()+0x0080) & 0xFFC0;}while(code == 0xFFC0 || code == 0); // Code cannot be 0xFFC0
     index = createSession(sessions, prod, cons, (code | 0x3F));
     sessions[index].requested += 1; // Increase the number of requested Messages
     // The first MSG_REQUEST_CTRL is the Start Session step, sendig the Producer, Consumer, Code and Index
