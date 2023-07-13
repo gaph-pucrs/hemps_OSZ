@@ -2153,16 +2153,24 @@ int SeekInterruptHandler(){
 					}
 					Seek(REQUEST_SNIP_RENEWAL, (((nTurns+1)<<16) | (get_net_address()&0xffff)), cluster_master_address, 0); // Request MPE to renew SNIP keys
 					// Seek(REQUEST_SNIP_RENEWAL, (((KappID)<<16) | (get_net_address()&0xffff)), cluster_master_address, (n<<4) | p); // Request MPE to renew SNIP keys
-					// Seek(BR_TO_APPID_SERVICE, ((nTurns<<16) | (get_net_address()&0xffff)), (unsigned int)MemoryRead(APP_ID_REG), 02); // Send Freeze IO
-					Seek(BR_TO_APPID_SERVICE, ((nTurns<<16) | (KappID)), (unsigned int)MemoryRead(APP_ID_REG), 02); // Send Freeze IO
-
-
+					
 					glfsr_app.data = k2;
 					while (n >= 0){
 						GLFSR_next(&glfsr_app);
 						n--;
 					}
 					k1 = glfsr_app.data;
+					
+					// Seek(BR_TO_APPID_SERVICE, ((nTurns<<16) | (get_net_address()&0xffff)), (unsigned int)MemoryRead(APP_ID_REG), 02); // Send Freeze IO
+					Seek(BR_TO_APPID_SERVICE, ((nTurns<<16) | (KappID)), (unsigned int)MemoryRead(APP_ID_REG), 02); // Send Freeze IO
+
+
+					// glfsr_app.data = k2;
+					// while (n >= 0){
+					// 	GLFSR_next(&glfsr_app);
+					// 	n--;
+					// }
+					// k1 = glfsr_app.data;
 					
 					while (p >= 0){
 						GLFSR_next(&glfsr_app);
