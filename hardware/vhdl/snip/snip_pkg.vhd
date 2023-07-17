@@ -29,6 +29,7 @@ package snip_pkg is
     type    regN_path       is array(MAX_PATH_FLITS-1 downto 0) of regflit;
     subtype intN_pathSize   is integer range 0 to MAX_PATH_FLITS;
     subtype intN_pathIndex  is integer range 0 to MAX_PATH_FLITS-1;
+    type    slot_status     is (FREE, PENDING, VALID, OPENED);
 
     -------------------
     -- LFSR SETTINGS --

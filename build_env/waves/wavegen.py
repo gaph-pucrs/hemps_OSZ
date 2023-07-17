@@ -278,7 +278,7 @@ for snip_idx in range(0, snip_number):
 	### Table Columns
 
 	snip_table_columns_pfx = "add wave -noupdate -group {%s} -group {Table Columns} %s/ApplicationTable/" % (snip_name, snip_top)
-	snip_table_columns_sds = ["table.used", "table.app_id", "table.key1", "table.key2", "table.path_size", "table.path"]
+	snip_table_columns_sds = ["table.status", "table.app_id", "table.key1", "table.key2", "table.path_size", "table.path"]
 	for it in map(lambda sd: snip_table_columns_pfx + sd, snip_table_columns_sds):
 		print (it)	
 

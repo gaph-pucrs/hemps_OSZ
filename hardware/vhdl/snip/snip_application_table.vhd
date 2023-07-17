@@ -28,6 +28,7 @@ architecture snip_application_table of snip_application_table is
     type column_keyPeriph   is array(TABLE_SIZE-1 downto 0) of regN_keyPeriph;
     type column_pathSize    is array(TABLE_SIZE-1 downto 0) of intN_pathSize;
     type column_path        is array(TABLE_SIZE-1 downto 0) of regN_path;
+    type column_status      is array(TABLE_SIZE-1 downto 0) of slot_status;
 
     type table_record is record
         app_id      : column_appId;
@@ -35,7 +36,7 @@ architecture snip_application_table of snip_application_table is
         key2        : column_keyPeriph;
         path_size   : column_pathSize;
         path        : column_path;
-        used        : std_logic_vector(TABLE_SIZE-1 downto 0);
+        status      : column_status;
     end record table_record;
 
     signal table    : table_record;
@@ -57,9 +58,12 @@ architecture snip_application_table of snip_application_table is
     signal match_new        : std_logic;
 
     signal slot             : integer range 0 to TABLE_SIZE-1;
-    signal reset_slot       : std_logic;
     signal enable_counter   : std_logic;
     signal slot_is_last     : std_logic;
+    signal try_pending      : std_logic;
+    signal start_trying_for_pending : std_logic;
+
+    signal line_full        : std_logic_vector(TABLE_SIZE-1 downto 0);
 
     -- rw signals
 
@@ -73,7 +77,11 @@ architecture snip_application_table of snip_application_table is
 
 begin
 
-    primaryOut.full <= and table.used;
+    GenFull: for i in 0 to TABLE_SIZE-1 generate
+        line_full(i) <= '1' when (table.status(i) = VALID) else '0';
+    end generate;
+
+    primaryOut.full <= and line_full;
 
     ---------------
     -- TABLE FSM --
@@ -136,7 +144,7 @@ begin
                     next_state <= WAITING;
                 elsif match='1' then
                     next_state <= READY;
-                elsif slot_is_last='1' then
+                elsif slot_is_last='1' and try_pending='1' then
                     next_state <= FAILED;
                 else
                     next_state <= FETCHING_NEW;
@@ -180,27 +188,56 @@ begin
     -- FETCH SLOT --
     ----------------
 
-    match_new       <= '1' when table.used(slot)='0'                                                                                        else '0';
-    match_regular   <= '1' when table.used(slot)='1' and (primaryIn.tag = table.app_id(slot))                                               else '0';
-    match_crypto    <= '1' when table.used(slot)='1' and ((primaryIn.tagAux xor table.key1(slot) xor primaryIn.tag) = table.app_id(slot))   else '0';
+    match_new       <= '1' when (table.status(slot)=FREE and try_pending='0') or (table.status(slot)=PENDING and try_pending='1')               else '0';
+    match_regular   <= '1' when table.status(slot)/=FREE and (primaryIn.tag = table.app_id(slot))                                               else '0';
+    match_crypto    <= '1' when table.status(slot)/=FREE and ((primaryIn.tagAux xor table.key1(slot) xor primaryIn.tag) = table.app_id(slot))   else '0';
 
     match <=    match_regular   when state = FETCHING else
                 match_crypto    when state = FETCHING_CRYPTO else
                 match_new       when state = FETCHING_NEW else
                 '0';
     
-    SlotCounter: process(clock, reset_slot, enable_counter)
+    SlotCounter: process(clock, reset)
     begin
-        if reset_slot='1' then
+        if reset='1' then
             slot <= 0;
-        elsif rising_edge(clock) and enable_counter='1' then
-            slot <= slot + 1;
+        elsif rising_edge(clock) then
+
+            if state=WAITING then
+                slot <= 0;
+            
+            elsif enable_counter='1' then
+                if slot=(TABLE_SIZE-1) then
+                    slot <= 0;
+                else
+                    slot <= slot+1;
+                end if;
+            end if;
+
         end if;
     end process;
 
-    reset_slot <= '1' when reset='1' or state=WAITING else '0';
-    enable_counter <= '1' when is_fetching='1' and match='0' and slot_is_last='0' else '0';
+    TryPendingRegister: process(clock, reset)
+    begin
+        if reset='1' then
+            try_pending <= '0';
+        elsif rising_edge(clock) then
+
+            if state=WAITING then
+                try_pending <= '0';
+            
+            elsif state=FETCHING_NEW and slot_is_last='1' and match='0' then
+                    try_pending <= '1';
+            end if;
+
+        end if;
+    end process;
+
+    enable_counter <= '1' when is_fetching='1' and match='0' and (slot_is_last='0' or start_trying_for_pending='1') else '0'; 
+    
     slot_is_last <= '1' when slot = TABLE_SIZE-1 else '0';
+    
+    start_trying_for_pending <= '1' when state=FETCHING_NEW and slot_is_last='1' and match='0' else '0';
 
     ----------
     -- READ --
@@ -267,15 +304,19 @@ begin
     ManageUsedSlots: process(clock, reset)
     begin
         if reset='1' then
-            table.used <= (others => '0');
+            table.status <= (others => FREE);
         elsif rising_edge(clock) then
             
             if state = FETCHING_NEW and match='1' then
-                table.used(slot) <= '1';
+                table.status(slot) <= PENDING;
+            end if;
+
+            if state = FETCHING_CRYPTO and match='1' then
+                table.status(slot) <= VALID;
             end if;
 
             if state = READY and primaryIn.clearSlot='1' then
-                table.used(slot) <= '0';
+                table.status(slot) <= FREE;
             end if;
 
         end if;
@@ -286,7 +327,7 @@ begin
     -------------------------------------
 
     GenSecondaryMatch: for i in 0 to TABLE_SIZE-1 generate
-        secondary_match(i) <= '1' when (table.app_id(i) = secondaryIn.tag) and (table.used(i) = '1') else '0';
+        secondary_match(i) <= '1' when (table.app_id(i) = secondaryIn.tag) and (table.status(i) /= FREE) else '0';
     end generate;
 
     GenSecondarySlot2: if TABLE_SIZE = 2 generate
