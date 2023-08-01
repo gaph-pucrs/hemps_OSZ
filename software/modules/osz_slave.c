@@ -455,6 +455,33 @@ void clearServiceSlot(ServiceHeader* slot){
   slot->service = BLANK;
 }
 
+unsigned int getInitLatencyThreshold(Session* session){
+
+  // tempo levado para o tratar a mensagem >> tempo levado para propagar a mensagem
+  
+  unsigned int inf = 0;
+  inf = inf - 1;
+  return inf;
+
+  // alternativamente: calcular em funcao do tamanho do caminho:
+  //
+  // int target;
+  // if(get_net_address() == get_task_location(session->producer))
+  //   target = get_task_location(session->consumer);
+  // else
+  //   target = get_task_location(session->producer);
+  //
+  // int myAddrX = get_net_address() >> 8;
+	// int myAddrY = get_net_address() & 0xff;
+  //
+  // int targetAddrX = target >> 8;
+  // int targetAddrY = target & 0xff;
+  //
+  // int diffX = (myAddrX > targetAddrX) ? (myAddrX - targetAddrX) : (targetAddrX - myAddrX);
+	// int diffY = (myAddrY > targetAddrY) ? (myAddrY - targetAddrY) : (targetAddrY - myAddrY);
+  //
+  // return kernelTime + (ONE_HOP_STD_LATENCY * (diffX + diffY));
+}
 
 /*--------------------------------------------------------------------
 * createSession
@@ -483,6 +510,9 @@ int createSession(Session* sessions, unsigned int prod, unsigned int cons, int c
   sessions[auxIndex].consumer = cons;
 	sessions[auxIndex].producer = prod;
   sessions[auxIndex].pairIndex = code & 0x3F; // Three last bits of the code are the Index
+
+  sessions[auxIndex].countedLatencies = 0;
+  sessions[auxIndex].timeoutThreshold = getInitLatencyThreshold(&sessions[auxIndex]);
 
   return auxIndex;
 }
@@ -680,7 +710,7 @@ void timeoutMonitor(Session* sessions, int time){
   for (int i = 0; i < MAX_SESSIONS; i++)
   {
     if (sessions[i].status == WAITING_DATA){
-      if (time - sessions[i].time > LAT_THRESHOLD){
+      if (time - sessions[i].time > sessions[i].timeoutThreshold){
         // puts("WARNING: THRESHOLD VIOLATION ON SESSION "); puts(itoa(i)); puts("\n");
         // puts("TIME NOW "); puts(itoa(time)); puts("\n");
         // puts("ARRIVAL TIME "); puts(itoa(sessions[i].time)); puts("\n");
@@ -693,6 +723,8 @@ void timeoutMonitor(Session* sessions, int time){
         else
           TUStarget = get_task_location(Sessions[i].producer);
         
+        requestRecoverySearchpath(TUStarget);
+        
         // puts("TARGET "); puts(itoh(TUStarget)); puts("\n");
         // Seek(TARGET_UNREACHABLE_SERVICE, (TUSsource<<16) | (TUStarget & 0xFFFF), TUStarget, 0);
         return;
@@ -700,6 +732,51 @@ void timeoutMonitor(Session* sessions, int time){
     }
   }
   return;
+}
+
+void updateTimeoutThreshold(Session* session, ServiceHeader* newPacket){
+  
+  session_puts("[THRESHOLD] Updating latency threshold\n");
+  session_puts("[THRESHOLD]   Producer: "); session_puts(itoa(session->producer)); session_puts("\n");
+  session_puts("[THRESHOLD]   Consumer: "); session_puts(itoa(session->consumer)); session_puts("\n");
+
+  /* Atualiza a latencia media */
+  
+  unsigned int newLatency = newPacket->arrival_time - newPacket->timestamp;
+  unsigned int totalSumOfCountedLatencies = auxSession->countedLatencies * auxSession->avgLatency;
+  unsigned int newAvgLatency = (newLatency + totalSumOfCountedLatencies) / ++auxSession->countedLatencies;
+
+  session->avgLatency = newAvgLatency;
+
+  /* Atualiza threshold com base na latencia media */
+
+  unsigned int newThreshold = newAvgLatency + (newAvgLatency / LAT_THRESHOLD_TOLERANCE);
+
+  if(auxSession->countedLatencies >= LAT_THRESHOLD_WARMUP)
+    session->timeoutThreshold = newThreshold;
+
+  session_puts("[THRESHOLD]   Avg latency: "); session_puts(itoa(newAvgLatency)); session_puts("\n");
+  session_puts("[THRESHOLD]   New latency: "); session_puts(itoa(newLatency)); session_puts("\n");
+  session_puts("[THRESHOLD]   New treshold: "); session_puts(itoa(session->timeoutThreshold)); session_puts("\n");
+
+  /* acumular n amostras, descartando mais as antigas (umas 20) */
+
+  // in Session:
+  //   unsigned int recordedLatencies[NUM_LANTENCIES_FOR_AVERAGE];
+  //   int numRecordedLatencies;
+  //   int nextLatencyIndex;
+
+  // recordedLatencies[nextLatencyIndex] = newLatency;
+  // nextLatencyIndex = (nextLatencyIndex + 1) % NUM_LANTENCIES_FOR_AVERAGE;
+  // if(numRecordedLatencies < NUM_LANTENCIES_FOR_AVERAGE)
+  //   numRecordedLatencies++;
+
+  // unsigned int accLatencies = 0;
+  // for(int i = 0; i < numRecordedLatencies; i++)
+  //   accLatencies += recordedLatencies[i];
+  // newAvgLatency = accLatencies / numRecordedLatencies;
+
+  /* ponderar: latencias novas tem maior peso que as antigas */
 }
 
 int find_SZ_position_and_direction_to_IO(int peripheral_id){

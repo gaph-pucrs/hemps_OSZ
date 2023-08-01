@@ -118,5 +118,8 @@ int ProcessTurnsPointer(unsigned int backtrack, unsigned int backtrack1, unsigne
 
 void Start_App_Secure_Zone(unsigned int appID);
 
+void fireRecoverySearchpath(int target);
+
+void requestRecoverySearchpath(int target);
 
 #endif

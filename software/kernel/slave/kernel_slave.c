@@ -803,6 +803,7 @@ int handle_packet(ServiceHeader * p) {
 			copyService(p, auxSlot);
 		}else{
 			auxSession = &Sessions[auxIndex];
+			updateTimeoutThreshold(auxSession, p);
 			if (auxSession->status == WAITING_ANY )
 			{
 				session_puts("DATA: -->> REQUEST esperando autorizar\n");			
@@ -1045,6 +1046,7 @@ int handle_packet(ServiceHeader * p) {
 		// puts("producer_task:");puts(itoh(p->producer_task));puts("\n");
 
 		auxSession = &Sessions[auxIndex];
+		updateTimeoutThreshold(auxSession, p);
 		// session_puts("DATA: status ="); session_puts(itoa(auxSession->status));
 		if (auxSession->status == WAITING_ANY){
 				
@@ -1657,13 +1659,21 @@ int SeekInterruptHandler(){
 			puts("source: "); puts(itoh(source)); puts("\n");
 			puts("target: "); puts(itoh(target)); puts("\n");
 			puts("payload: "); puts(itoh(payload)); puts("\n");
+
+			if(payload == 1)
+			{
+				fireRecoverySearchpath(source);
+				break;
+			}
+
 			//perform clear
 			//Seek(CLEAR_SERVICE, source, target, 0);
 			//global variable for finding seek
-			if ((payload == prevTUS)){ //TUS agora vem com o timestamp no payload para evitar reverberação
-				puts("----repetido\n");
-				break;
-			}
+			// if ((payload == prevTUS)){ //TUS agora vem com o timestamp no payload para evitar reverberação
+			// 	puts("----repetido\n");
+			// 	break;
+			// }
+			
 			puts("Source: "); puts(itoh(source)); puts("\n");
 			slot_seek = GetFreeSlotSourceRouting(source>>16);
 			

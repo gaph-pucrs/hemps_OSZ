@@ -1,6 +1,8 @@
 #include "seek.h"
 //#include "communication.h"
 
+#define portToDirection(port) ( (port) < 4 ? (port) : (port) - 4 )
+
 SourceRoutingTableSlot SR_Table[MAX_SOURCE_ROUTING_DESTINATIONS];
 
 int net_addr;
@@ -213,6 +215,7 @@ void Seek(unsigned int service, unsigned int source, unsigned int target, unsign
 int ProcessTurns(unsigned int backtrack, unsigned int backtrack1, unsigned int backtrack2){
 	int i,j;
 	int slot_seek;
+	int target;
 	// unsigned int backtrack, backtrack1, backtrack2;
 	unsigned int next_port;
 	unsigned int port[MAX_SOURCE_ROUTING_DESTINATIONS];//used for storing hops
@@ -250,13 +253,15 @@ int ProcessTurns(unsigned int backtrack, unsigned int backtrack1, unsigned int b
 		}
 	}
 	//gets target address
-	seek_puts("Target: ");seek_puts(itoh((((net_address>>8) + addrX)<<8) | ((net_address + addrY)&0xff)));seek_puts("\n");
+	target = (((net_address>>8) + addrX)<<8) | ((net_address + addrY)&0xff);
+	seek_puts("Target: ");seek_puts(itoh(target));seek_puts("\n");
 
 	//gets index in SR_Table
-	slot_seek = SearchSourceRoutingDestination( (((net_address>>8) + addrX)<<8) | ((net_address + addrY)&0xff) );
-	if (slot_seek == -1){
-		puts("Calculando pro IO\n");
-		slot_seek = SearchSourceRoutingDestination( (((net_address>>8))<<8) | ((net_address)&0xff) );
+	slot_seek = SearchSourceRoutingDestination(target);
+	if(slot_seek < 0){
+		slot_seek = GetFreeSlotSourceRouting(target);
+		SR_Table[slot_seek].target = target;
+		SR_Table[slot_seek].tableSlotStatus = SR_USADO;
 	}
 	// seek_puts("PATH to ");
 	// seek_puts(itoh(SR_Table[slot_seek].target));seek_puts(" = ");
@@ -319,6 +324,12 @@ int ProcessTurns(unsigned int backtrack, unsigned int backtrack1, unsigned int b
 		}
 		i++;
 	}
+
+	// puts("Caminho criado:");
+	// for (i = 0; i < SR_Table[slot_seek].path_size; i++){
+	// 	puts(itoh(SR_Table[slot_seek].path[i]));puts("\n");	
+	// }
+
 	// print_SR_Table(slot_seek);
 	return slot_seek;
 }
@@ -637,3 +648,236 @@ void printGray(){
 	return;
 }
 
+int getOppositeDirection(int direction){
+	
+	if(direction == EAST)
+		return WEST;
+	
+	if(direction == WEST)
+		return EAST;
+	
+	if(direction == NORTH)
+		return SOUTH;
+	
+	return NORTH;
+}
+
+int areOppositeDirections(int direction1, int direction2){
+	
+	if(direction1 == EAST && direction2 == WEST)
+		return 1;
+	
+	if(direction1 == WEST && direction2 == EAST)
+		return 1;
+	
+	if(direction1 == NORTH && direction2 == SOUTH)
+		return 1;
+	
+	if(direction1 == SOUTH && direction2 == NORTH)
+		return 1;
+	
+	return 0;
+}
+
+void findFirstAndLastDirectionsXY(unsigned int target, int *first_dir, int *last_dir){
+	
+	int my_addrX = net_address >> 8;
+	int my_addrY = net_address & 0xff;
+
+	int target_addrX = target >> 8;
+	int target_addrY = target & 0xff;
+
+	//first direction:
+	
+	if(my_addrX < target_addrX)
+		*first_dir = EAST;
+		
+	else if(my_addrX > target_addrX)
+		*first_dir = WEST;
+		
+	else if(my_addrY < target_addrY)
+		*first_dir = NORTH;
+		
+	else
+		*first_dir = SOUTH;
+		
+	//last direction:
+	
+	if(my_addrY < target_addrY)
+		*last_dir = NORTH;
+		
+	else if(my_addrY > target_addrY)
+		*last_dir = SOUTH;
+		
+	else if(my_addrX < target_addrX)
+		*last_dir = EAST;
+		
+	else
+		*last_dir = WEST;
+}
+
+void findFirstAndLastDirectionsSR(int sr_table_slot, int *first_dir, int *last_dir_result){
+
+	//first direction:
+	
+	*first_dir = portToDirection((SR_Table[slot_seek].path[0] >> 24) & 0xf);
+
+	//last direction:
+	
+	int path_ending = SR_Table[slot_seek].path_size - 1;
+
+	int dir, next_dir, shift, next_shift;
+	
+	shift = 24; //skips path[path_ending](31 downto 28)
+
+	do {
+		next_shift = shift - 4;
+		
+		//skips path[path_ending](15 downto 12)
+		if(next_shift == 12) 
+			next_shift -= 4;
+		
+		dir = portToDirection((SR_Table[slot_seek].path[path_ending] >> shift) & 0xf);
+		next_dir = portToDirection((SR_Table[slot_seek].path[path_ending] >> next_shift) & 0xf);
+
+		shift = next_shift;
+		
+	} while(areOppositeDirections(dir, next_dir));
+
+	*last_dir_result = dir;
+}
+
+void findFirstAndLastDirectionsInCurrentPath(unsigned int target, int *first_dir, int *last_dir){
+
+	int slot_seek = SearchSourceRoutingDestination(target);
+
+	if(slot_seek < 0) {
+		findFirstAndLastDirectionsXY(target, first_dir, last_dir);
+		return;
+	}
+	
+	findFirstAndLastDirectionsSR(slot_seek, first_dir, last_dir);
+}
+
+int getDistanceToTargetPort(int target, int port){
+	
+	//Obs: nao leva em consideracao se a porta encontrada eh valida
+
+	int myAddrX = net_address >> 8;
+	int myAddrY = net_address & 0xff;
+	
+	int targetAddrX = target >> 8;
+	int targetAddrY = target & 0xff;
+
+	int portAddrX = targetAddrX;
+	int portAddrY = targetAddrY;
+	
+	switch(port)
+	{
+		case EAST:
+			portAddrX++;
+			break;
+		case WEST:
+			portAddrX--;
+			break;
+		case NORTH:
+			portAddrY++;
+			break;
+		case SOUTH:
+			portAddrY--;
+			break;
+	}
+
+	int diffPortX = (myAddrX > portAddrX) ? (myAddrX - portAddrX) : (portAddrX - myAddrX);
+	int diffPortY = (myAddrY > portAddrY) ? (myAddrY - portAddrY) : (portAddrY - myAddrY);
+	
+	int diffTargetX = (myAddrX > targetAddrX) ? (myAddrX - targetAddrX) : (targetAddrX - myAddrX);
+	int diffTargetY = (myAddrY > targetAddrY) ? (myAddrY - targetAddrY) : (targetAddrY - myAddrY);
+
+	int targetIsBetweenMeAndPort = 0;
+
+	if(myAddrX == targetAddrX && myAddrX == portAddrX && diffPortY > diffTargetY)
+		targetIsBetweenMeAndPort = 1;
+	
+	else if(myAddrY == targetAddrY && myAddrY == portAddrY && diffPortX > diffTargetX)
+		targetIsBetweenMeAndPort = 1;
+	
+	if(targetIsBetweenMeAndPort)
+		return diffPortX + diffPortY + 3; //circumventing is necessary
+
+	return diffPortX + diffPortY;
+}
+
+int getTargetsNextClosestPort(int target, int prohibitedPort){
+	
+	int port, distance, closestPort, smallestDistance;
+
+	port = 3;
+	smallestDistance = 0x7fffffff; //biggest integer
+
+	for(port = 0; port < 4; port++)
+	{
+		if(port != prohibitedPort)
+		{
+			distance = getDistanceToTargetPort(target, port);
+			if(distance < smallestDistance)
+			{
+				closestPort = port;
+				smallestDistance = distance;
+			}
+		}
+	}
+
+	return closestPort;
+}
+
+void getRecoverySearchpathMasks(int target, int *sendMask, int *recvMask){
+	
+	//block send and receive ports used in the last path
+
+	int firstDir, lastDir;
+	findFirstAndLastDirectionsInCurrentPath(target, &firstDir, &lastDir);
+
+	*sendMask = 1 << firstDir;
+	*recvMask = 1 << getOppositeDirection(lastDir);
+}
+
+void getRecoverySearchpathMasksAlt(int target, int *sendMask, int *recvMask){
+
+	//block send port used in the last path
+	//set receive port to the closest one (ignoring the one used in the last path)
+
+	int firstDir, lastDir;
+	findFirstAndLastDirectionsInCurrentPath(target, &firstDir, &lastDir);
+
+	*sendMask = 1 << firstDir;
+
+	int recvPort = getOppositeDirection(lastDir);
+	int nextClosestPort = getTargetsNextClosestPort(target, recvPort);
+	*recvMask = 0xf - (1 << nextClosestPort);
+}
+
+void fireRecoverySearchpath(int target){
+
+	seek_puts("[SEARCHPATH DEBUG] Starting recovery searchpath\n");
+	seek_puts("[SEARCHPATH DEBUG] Target: "); seek_puts(itoh(target)); seek_puts("\n");
+
+	int sendMask, recvMask;
+	getRecoverySearchpathMasks(target, &sendMask, &recvMask);
+
+	seek_puts("[SEARCHPATH DEBUG] Recv Mask: "); seek_puts(itoh(recvMask)); seek_puts("\n");
+	seek_puts("[SEARCHPATH DEBUG] Send Mask: "); seek_puts(itoh(sendMask)); seek_puts("\n");
+
+	//Source Field (32 bits): [ 4 bits Send Mask | 4 bits Recv Mask | 8 bits Don't Care | 16 bits Source ]
+	unsigned int sourceField = (sendMask << 28) | (recvMask << 24) | (net_address & 0xffff);
+
+	Seek(SEARCHPATH_SERVICE, sourceField, target, 0);
+}
+
+void requestRecoverySearchpath(int target){
+
+	seek_puts("[SEARCHPATH DEBUG] Requesting recovery searchpath\n");
+	seek_puts("[SEARCHPATH DEBUG] Target: "); seek_puts(itoh(target)); seek_puts("\n");
+	
+	Seek(TARGET_UNREACHABLE_SERVICE, net_address & 0xffff, target, 1);
+}

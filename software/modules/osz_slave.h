@@ -55,6 +55,13 @@ void Unset_Secure_Zone(unsigned int left_low_corner, unsigned int right_high_cor
 #define TIMEOUT_SLEEP 2000
 #define KE_OSZ 0x021
 
+#define LAT_THRESHOLD_CONV 0.2
+#define ONE_HOP_STD_LATENCY 500
+
+#define LAT_THRESHOLD_MOD 1.2
+#define LAT_THRESHOLD_WARMUP 5
+#define LAT_THRESHOLD_TOLERANCE 5 // 1/5 = 20%
+
 // Array Sizes
 #define WAITING_MSG_QUEUE 10 
 #define MAX_SESSIONS 2*MAX_TASKS_APP
@@ -78,6 +85,9 @@ typedef struct
     int requested;          // Number of requested packets
     int code;               // Session code
     int pairIndex;          // The session Index on the pair side, so when the message arrives, it is directly indexed
+    unsigned int auxTimestamp;
+    unsigned int countedLatencies;
+    unsigned int timeoutThreshold;
 } Session;
 
 
