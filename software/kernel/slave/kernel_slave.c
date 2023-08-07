@@ -309,6 +309,9 @@ int Syscall(unsigned int service, unsigned int arg0, unsigned int arg1, unsigned
 				}
 			}
 
+			tInit = MemoryRead(TICK_COUNTER);
+			timeoutMonitor(Sessions, tInit);
+
 			j = checkRunningSession(Sessions, current->id);
 			if (j >= 0){
 				// puts("Session ");

@@ -100,6 +100,8 @@ signal	my_payload_table 											: payload_table_type;
 signal	backtrack_port_table										: backtrack_port_table_type; -- porta que chegou a requisição
 signal	source_router_port_table									: source_router_port_table_type;
 signal  backtrack_id 												: std_logic_vector(TARGET_SIZE-1 downto 0);
+signal	searchpath_send_mask, searchpath_recv_mask					: std_logic_vector(3 downto 0);
+signal	in_searchpath_send_mask, in_searchpath_recv_mask			: std_logic_vector(3 downto 0);
 
 alias reg_backtrack_0:std_logic_vector(31 downto 0)   is reg_backtrack(31 downto  0);
 alias reg_backtrack_1:std_logic_vector(31 downto 0)   is reg_backtrack(63 downto 32);
@@ -115,6 +117,14 @@ with in_sel_reg_backtrack_seek select
      out_reg_backtrack_seek <= 	reg_backtrack_0 when "00", 
 								reg_backtrack_1 when "01",
 								reg_backtrack_2 when others;
+
+	-- searchpath_send_mask(port) = '1' forbids source router to start the searchpath through that port
+	searchpath_send_mask	<= source_table(sel)(31 downto 28);
+	in_searchpath_send_mask	<= in_source_router_seek(sel_port)(31 downto 28);
+
+	-- searchpath_recv_mask(port) = '1' forbids target router to end the searchpath through that port
+	searchpath_recv_mask	<= source_table(sel)(27 downto 24);
+	in_searchpath_recv_mask	<= in_source_router_seek(sel_port)(27 downto 24);
 
 	OUTPUT_PORT_WRITE: for j in 0 to (NPORT_SEEK-1) generate  
 		 out_source_router_seek(j)	<=	source_table(sel);  
@@ -286,7 +296,9 @@ begin
 						--end;
 						if  ((vector_ack_ports or vector_nack_ports) = "1111" )  then
 							pending_table(sel)		<= nack_recv; -- veja como funciona acima
-						end if;	
+						elsif ((vector_ack_ports or vector_nack_ports or searchpath_send_mask) = "1111") and service_table(sel) = SEARCHPATH_SERVICE and backtrack_port_table(sel) = LOCAL then
+							pending_table(sel)		<= nack_recv;
+						end if;
 						
 				    when CLEAR_TABLE =>   
 						if(EA_manager_input = S_INIT_INPUT) then
@@ -404,7 +416,9 @@ begin
 				elsif in_service_router_seek(sel_port) = BACKTRACK_SERVICE  and backtrack_pending_in_table = '0'  then
 					PE_manager_input <= WRITE_BACKTRACK_INPUT;
 				elsif in_service_router_seek(sel_port) = CLEAR_SERVICE and in_the_table = '1' then 
-					PE_manager_input <= TEST_SEND_LOCAL; 
+					PE_manager_input <= TEST_SEND_LOCAL;
+				elsif in_service_router_seek(sel_port) = SEARCHPATH_SERVICE and in_target_router_seek(sel_port) = router_address and in_searchpath_recv_mask(sel_port) = '1' then
+					PE_manager_input <= WAIT_REQ_DOWN; 
 				elsif in_service_router_seek(sel_port) /= CLEAR_SERVICE  and in_the_table = '0' then -- não é um serviço de clear e ele não está na tabela // escreve ele na tabela
 					PE_manager_input <= TABLE_WRITE_INPUT;
 				else 
@@ -494,6 +508,11 @@ process(clock, reset)--processo que gerencia cada estado manager
 
 						
 					when PROPAGATE =>							
+					if (service_table(sel) = SEARCHPATH_SERVICE) and (backtrack_port_table(sel) = LOCAL) then
+						for j in 0 to 3 loop
+							int_out_req_router_seek(j) <= not searchpath_send_mask(j);
+						end loop;
+					else
 						for j in 0 to (NPORT_SEEK-2) loop  
 						--if (j /= to_integer(unsigned((backtrack_port_table(sel)))))  then       -- Backtrack local, CLEAR não passava                
 							-- if (j /= to_integer(unsigned((backtrack_port_table(sel)))) OR service_table(sel) = CLEAR_SERVICE)  then   
@@ -501,6 +520,7 @@ process(clock, reset)--processo que gerencia cada estado manager
 								int_out_req_router_seek(j)	<= '1';
 							end if;
 						end loop;	
+					end if;
 					
 					when WAIT_ACK_PORTS =>
 
@@ -745,6 +765,8 @@ process(EA_manager, req_task , source_table, service_table, target_table, payloa
 				elsif ((vector_ack_ports or vector_nack_ports) = "1111" )  and service_table(sel) = CLEAR_SERVICE then
 					PE_manager <= CLEAR_TABLE;				
 				elsif  ((vector_ack_ports or vector_nack_ports) = "1111" )   then  	
+					PE_manager <= S_INIT;
+				elsif ((vector_ack_ports or vector_nack_ports or searchpath_send_mask) = "1111") and service_table(sel) = SEARCHPATH_SERVICE and backtrack_port_table(sel) = LOCAL then
 					PE_manager <= S_INIT;
 				else
 					PE_manager <= WAIT_ACK_PORTS;
