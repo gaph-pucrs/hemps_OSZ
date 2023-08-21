@@ -85,6 +85,7 @@ def main():
     master_location = get_master_location(yaml_reader)
     master_addr = get_master_address(master_location, mpsocXsize, mpsocYsize)
     snip_number = get_snip_number(yaml_reader)
+    faults = get_faults(yaml_reader)
 
     #Testcase generation: updates source files...
     copy_scripts ( HEMPS_PATH,  TESTCASE_NAME)
@@ -92,7 +93,7 @@ def main():
     copy_apps( HEMPS_PATH,  TESTCASE_NAME,  apps_name_list)
     copy_hardware( HEMPS_PATH,  TESTCASE_NAME, model_description, gray_area)
     # gen_force_file()
-    copy_makefiles_and_waves( HEMPS_PATH,  TESTCASE_NAME, page_size_KB, memory_size_KB, model_description, apps_name_list, simul_time)
+    copy_makefiles_and_waves( HEMPS_PATH,  TESTCASE_NAME, page_size_KB, memory_size_KB, model_description, apps_name_list, simul_time, faults)
     copy_testcase_file( TESTCASE_NAME, INPUT_TESTCASE_FILE_PATH)
 
     if not (os.path.isfile(TESTCASE_NAME + "/wave.do")) : 
@@ -105,6 +106,7 @@ def main():
     #Calls the deloream_env.py to generate all necessary debugging dir and files
     generate_deloream_env(TESTCASE_NAME, yaml_reader)
     create_ifn_exists(TESTCASE_NAME+"/debug/router_seek")
+    copy_force_script(HEMPS_PATH,  TESTCASE_NAME)
 
 # ----------------------------------------- FUNCTIONS ---------------------------------------------
 
@@ -207,7 +209,7 @@ def copy_hardware(hemps_path, testcase_path, system_model_description, ga):
         command_string = "rsync -r "+source_hw_path+"/ "+testcase_hw_path+"/"
         status = os.system(command_string)
 
-def copy_makefiles_and_waves(hemps_path, testcase_path, page_size_KB, memory_size_KB, system_model_description, apps_list, simul_time):
+def copy_makefiles_and_waves(hemps_path, testcase_path, page_size_KB, memory_size_KB, system_model_description, apps_list, simul_time, faults):
      #--------------  COPIES THE MAKEFILE TO SOFTWARE DIR ----------------------------------
 
     makes_dir = hemps_path+"/build_env/makes"
@@ -255,7 +257,7 @@ def copy_makefiles_and_waves(hemps_path, testcase_path, page_size_KB, memory_siz
         copyfile(makes_dir+"/sim.do", testcase_path+"/sim.do")
         
         # gerar os signals e enviar junto com o fault_inject
-        # copyfile(makes_dir+"/fault-inject.do", testcase_path+"/fault-inject.do")
+        copyfile(makes_dir+"/fault-inject.do", testcase_path+"/fault-inject.do")
 
 
     #Changes the sim.do exit mode according the system model
@@ -264,10 +266,21 @@ def copy_makefiles_and_waves(hemps_path, testcase_path, page_size_KB, memory_siz
         sim_do_path = testcase_path+"/sim.do"
         sim_file = open(sim_do_path, "a")
         sim_file.write("\nwhen -label end_of_simulation { HeMPS/local0x0/end_sim_reg == x\"00000000\" } {echo \"End of simulation\" ; quit ;}")
-        # sim_file.write("\ndo fault-inject.do")
-        sim_file.write("\nrun "+str(simul_time)+"ms")
-        sim_file.write("\nexit")
-        sim_file.close()
+
+        if faults:
+            sim_file.write("\nset trun 0")
+            sim_file.write("\nset tend "+str(simul_time*1000))
+            sim_file.write("\nwhile {$trun < $tend} {")
+            sim_file.write("\n\tset trun [expr {$trun + "+str(faults['time_step'])+"}]")
+            sim_file.write("\n\tdo fault-inject.do")
+            sim_file.write("\n\trun "+str(faults['time_step'])+" us }")
+            sim_file.write("\nexit")
+            sim_file.close()
+        else:
+            sim_file.write("\nrun "+str(simul_time)+"ms")
+            sim_file.write("\nexit")
+            sim_file.close()
+            
 
     elif system_model_description == "vhdl":
 
@@ -323,6 +336,16 @@ def copy_testcase_file(testcase_name, input_testcase_file_path):
 
     copyfile(input_testcase_file_path, current_testcase_file_path)
     return False
+
+def copy_force_script(hemps_path, testcase_path):
+
+    source_script_path = hemps_path+"/build_env/scripts"
+    testcase_script_path = testcase_path+"/debug"
+
+    with open(testcase_script_path+"/traffic_router.txt", 'w'):
+        pass
+        
+    copyfile(source_script_path+"/forceFromLog.py", testcase_script_path+"/forceFromLog.py")
 
 def append_lines_at_end_of_file(file_path, lines):
 

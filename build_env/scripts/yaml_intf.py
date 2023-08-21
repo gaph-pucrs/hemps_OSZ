@@ -197,6 +197,22 @@ def get_gray_area_cols(yaml_reader):
         ga_cols = 0
     return ga_cols 
 
+def get_faults(yaml_reader):
+    # Check if 'faults' key exists in the loaded data
+    hw_faults = yaml_reader['hw']
+    if 'faults' not in hw_faults:
+        print("******** No 'faults' in the YAML file **********")
+        return None
+
+    faults = {
+        'infection_rate': hw_faults['faults'].get('infection_rate'),
+        'pes': hw_faults['faults'].get('pes'),
+        'time_step': hw_faults['faults'].get('time_step'),
+        'scan_time': hw_faults['faults'].get('scan_time')
+    }
+
+    return faults
+
 #------- Repository Generation Scope -------------------
 #ATTENTION: STATIC MAPPING ONLY WORKS IF THE APPS START TIME ARE ORDERED
 #This function serches for all task statically mapped and return a list of tuple={task_id, proc}
