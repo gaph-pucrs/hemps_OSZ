@@ -24,6 +24,8 @@ entity snip_packet_handler is
         response_param      : out   ResponseParametersType;
         tx_status           : in    TransmissionStatusType;
 
+        mpe_routing_header  : out   regword;
+
         buffer_wdata        : out   regflit;
         buffer_wen          : out   std_logic;
         buffer_full         : in    std_logic
@@ -121,6 +123,9 @@ architecture snip_packet_handler of snip_packet_handler is
 
     signal k0                   : regN_keyPeriph;
     signal k0_valid             : std_logic;
+
+    signal warning_routing          : regword;
+    signal warning_routing_valid    : std_logic;
 
     -- decoded from registers:
 
@@ -673,6 +678,21 @@ begin
             end if;
         end if;
     end process;
+
+    WarningRoutingHeaderRegister: process(clock, reset)
+    begin
+        if reset='1' then
+            warning_routing <= (others => '0');
+            warning_routing_valid <= '0';
+        elsif rising_edge(clock) then
+            if hermes_service_valid='1' and hermes_service=IO_INIT_SERVICE and warning_routing_valid='0' and task_id_valid='1' then
+                warning_routing <= task_id;
+                warning_routing_valid <= '1';
+            end if;
+        end if;
+    end process;
+
+    mpe_routing_header <= warning_routing;
 
     app_id <= x"0000" when f1=x"0000" else f1 xor k0;
     app_id_valid <= '1' when hermes_service_valid='1' and (hermes_service=IO_CONFIG_SERVICE or hermes_service=IO_RENEW_KEYS or hermes_service=IO_CLEAR) and f1_valid='1' else '0';

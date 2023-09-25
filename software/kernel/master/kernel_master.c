@@ -111,6 +111,12 @@ void send_authenticate_nip(int periphID, int k0){
 
 	p->io_service = IO_INIT;
 
+	unsigned int warning_routing = (0xffff & net_address);
+	if (is_peripheral_in_gray_line(periphID) == 0)
+		warning_routing = 0x10000000 | warning_routing; //change xy to yx
+
+	p->io_task_ID = warning_routing;
+
 	send_packet_io(p, 0, 0, periphID);
 
 	while (MemoryRead(DMNI_SEND_ACTIVE));

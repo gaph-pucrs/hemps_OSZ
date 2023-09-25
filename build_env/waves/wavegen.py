@@ -387,6 +387,10 @@ for snip_idx in range(0, snip_number):
 	print(snip_handler_regs_pfx + "k0")
 	print(snip_handler_regs_pfx + "k0_valid")
 
+	print(snip_handler_regs_divider_pfx + "WarningRouting")
+	print(snip_handler_regs_pfx + "warning_routing")
+	print(snip_handler_regs_pfx + "warning_routing_valid")
+
 	print(snip_handler_regs_divider_pfx + "Source")
 	print(snip_handler_regs_pfx + "packet_source")
 	print(snip_handler_regs_pfx + "packet_source_valid")
@@ -529,7 +533,20 @@ for snip_idx in range(0, snip_number):
 	snip_builder_ctrl_payload_pfx = "add wave -noupdate -group {%s} -group {Builder Control Signals} -group {Data Payload Control} %s/PacketBuilder/" % (snip_name, snip_top)
 	snip_builder_ctrl_payload_sds = ["send_data", "data_words_to_read", "data_flit_low", "data_flit_ready", "last_data_flit", "data_flit_blocked", "data_tx", "data_eop"]
 	for it in map(lambda sd: snip_builder_ctrl_payload_pfx + sd, snip_builder_ctrl_payload_sds):
-		print (it) 
+		print (it)	
+	
+	#-------------------------#
+	# Warning Manager Signals #
+	#-------------------------#
+
+	print(snip_divider_pfx + "WarningManager")
+
+	snip_warning_pfx = "add wave -noupdate -group {%s} %s/WarningManager/" % (snip_name, snip_top)
+	snip_warning_sds = ["clock", "unrequested_data_input", "line_overwritten_input", "full_table_write_input", "state", "warning_req", "warning_ack", "warning_param"]
+	for it in map(lambda sd: snip_warning_pfx + sd, snip_warning_sds):
+		print (it)
+
+	### States
 
 print ("TreeUpdate [SetDesecurityTree]\n\
 WaveRestoreCursors {{Cursor 1} {10 ps} 0}\n\

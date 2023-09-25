@@ -118,6 +118,20 @@ architecture snip of snip is
 
     signal buffer_i_status  : BufferStatusType;
 
+    ---------------------
+    -- Warning Signals --
+    ---------------------
+
+    signal mpe_routing_header       : regword;
+
+    signal warning_req              : std_logic;
+    signal warning_ack              : std_logic;
+    signal warning_param            : WarningParametersType;
+
+    signal warning_unrequested_data : std_logic;
+    signal warning_overwritten_line : std_logic;
+    signal warning_full_table_write : std_logic;
+
 begin
 
     -- Resetando as saídas inutilizadas até o momento para reduzir os warnings
@@ -164,7 +178,10 @@ begin
         primaryOut      => tableOut_handlerIn,
 
         secondaryIn     => tableIn_builderOut,
-        secondaryOut    => tableOut_builderIn
+        secondaryOut    => tableOut_builderIn,
+
+        warn_overwrite  => warning_overwritten_line,
+        warn_full_table => warning_full_table_write
     );
 
     ----------------------------------
@@ -188,6 +205,8 @@ begin
         response_req        => response_req,
         response_param      => response_param,
         tx_status           => tx_status,
+
+        mpe_routing_header  => mpe_routing_header,
 
         buffer_wdata        => buffer_o_datain,
         buffer_wen          => buffer_o_wen,
@@ -220,9 +239,17 @@ begin
         response_param_in   => response_param,
         status              => tx_status,
 
+        warning_req         => warning_req,
+        warning_ack         => warning_ack,
+        warning_param       => warning_param,
+
+        mpe_routing_header  => mpe_routing_header,
+
         buffer_rdata        => buffer_i_dataout,
         buffer_ren          => buffer_i_ren,
-        buffer_empty        => buffer_i_status.empty
+        buffer_empty        => buffer_i_status.empty,
+
+        warn_unreq_data     => warning_unrequested_data
     );
 
     ------------------------------
@@ -257,6 +284,25 @@ begin
         data_o  => buffer_i_dataout,
 
         status  => buffer_i_status
+    );
+
+    -----------------------------------
+    -- Warning Manager Instantiation --
+    -----------------------------------
+
+    WarningManager: entity work.snip_warning_manager
+    port map
+    (
+        clock                   => clock,
+        reset                   => reset,
+
+        unrequested_data_input  => warning_unrequested_data,
+        line_overwritten_input  => warning_overwritten_line,
+        full_table_write_input  => warning_full_table_write,
+
+        warning_req             => warning_req,
+        warning_ack             => warning_ack,
+        warning_param           => warning_param
     );
 
     --------------------------------------------------

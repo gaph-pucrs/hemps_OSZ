@@ -16,7 +16,10 @@ entity snip_application_table is
         primaryOut      : out   AppTablePrimaryOutput;
 
         secondaryIn     : in    AppTableSecondaryInput;
-        secondaryOut    : out   AppTableSecondaryOutput
+        secondaryOut    : out   AppTableSecondaryOutput;
+
+        warn_overwrite  : out   std_logic;
+        warn_full_table : out   std_logic
     );
 end entity;
 
@@ -50,6 +53,8 @@ architecture snip_application_table of snip_application_table is
 
     signal is_fetching      : std_logic;
 
+    signal full_table       : std_logic;
+
     -- fetch signals
 
     signal match            : std_logic;
@@ -81,7 +86,8 @@ begin
         line_full(i) <= '1' when (table.status(i) = VALID) else '0';
     end generate;
 
-    primaryOut.full <= and line_full;
+    full_table <= and line_full;
+    primaryOut.full <= full_table;
 
     ---------------
     -- TABLE FSM --
@@ -363,5 +369,13 @@ begin
     secondaryOut.key2       <= table.key2(secondary_slot);
     secondaryOut.pathSize   <= table.path_size(secondary_slot);
     secondaryOut.pathFlit   <= table.path(secondary_slot)(secondaryIn.pathFlit_idx);
+
+    -----------------------
+    -- GENERATE WARNINGS --
+    -----------------------
+    
+    warn_overwrite  <= '1' when state=FETCHING_NEW and match_new='1' and try_pending='1' else '0';
+    
+    warn_full_table <= '1' when state=FETCHING_NEW and full_table='1' else '0';
     
 end architecture;
