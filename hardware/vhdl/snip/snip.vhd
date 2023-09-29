@@ -138,6 +138,8 @@ architecture snip of snip is
     signal warning_overwritten_line : std_logic;
     signal warning_full_table_write : std_logic;
 
+    signal unlock_warnings          : std_logic;
+
 begin
 
     -- Resetando as saídas inutilizadas até o momento para reduzir os warnings
@@ -216,7 +218,9 @@ begin
 
         buffer_wdata        => buffer_o_datain,
         buffer_wen          => buffer_o_wen,
-        buffer_full         => buffer_o_status.full
+        buffer_full         => buffer_o_status.full,
+
+        unlock_warnings     => unlock_warnings
     );
 
     ----------------------------------
@@ -314,7 +318,9 @@ begin
 
         warning_req             => warning_req,
         warning_ack             => warning_ack,
-        warning_param           => warning_param
+        warning_param           => warning_param,
+
+        unlock_warnings         => unlock_warnings
     );
 
     warning_unexpected_data <= buffer_i_wen and not buffer_i_enable;

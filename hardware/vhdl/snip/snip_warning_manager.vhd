@@ -18,7 +18,9 @@ entity snip_warning_manager is
 
         warning_req             : out   std_logic;
         warning_ack             : in    std_logic;
-        warning_param           : out   WarningParametersType
+        warning_param           : out   WarningParametersType;
+
+        unlock_warnings         : in    std_logic
     );
 end entity;
 
@@ -69,8 +71,8 @@ begin
                 abnormal_periph <= '0';
             end if;
 
-            -- Abnormal Peripheral Reseted
-            if abnormal_periph_input='0' then
+            -- Abnormal Peripheral Reseted --- Only accepts another warning after UNLOCK_WARNINGS
+            if unlock_warnings='1' then
                 abnormal_periph_reseted <= '1';
             elsif abnormal_periph_input='1' then
                 abnormal_periph_reseted <= '0';

@@ -61,6 +61,7 @@
 #define     IO_RENEW_KEYS                   0x00000330
 #define     IO_CLEAR                        0x00000335
 #define     IO_WARNING                      0x00000340
+#define     IO_UNLOCK_WARNINGS              0x00000350
 
 
 

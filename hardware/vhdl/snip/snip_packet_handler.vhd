@@ -28,7 +28,9 @@ entity snip_packet_handler is
 
         buffer_wdata        : out   regflit;
         buffer_wen          : out   std_logic;
-        buffer_full         : in    std_logic
+        buffer_full         : in    std_logic;
+
+        unlock_warnings     : out   std_logic
     );
 end entity;
 
@@ -901,4 +903,10 @@ begin
     buffer_wdata <= hermes_data_in;
     buffer_wen <= '1' when stage=RECEIVE_DATA and data_state=CONSUME_DATA_FLIT and hermesControl.acceptingFlit='1' else '0';
     
+    ---------------------
+    -- UNLOCK WARNINGS --
+    ---------------------
+
+    unlock_warnings <= '1' when hermes_service_valid='1' and hermes_service=IO_UNLOCK_WARNINGS else '0';
+
 end architecture;

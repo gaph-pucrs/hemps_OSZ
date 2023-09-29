@@ -59,6 +59,7 @@ package snip_pkg is
     constant IO_DELIVERY_SERVICE                : regword := x"00000025";
     constant IO_ACK_SERVICE                     : regword := x"00000026";
     constant IO_WARNING_SERVICE                 : regword := x"00000340";
+    constant IO_UNLOCK_WARNINGS                 : regword := x"00000350";
 
     constant PACKET_SIZE_FLIT_HI                : integer := 0;
     constant F1_FLIT                            : integer := 2;
