@@ -80,7 +80,7 @@ package snip_pkg is
     -- IO WARNING CODES --
     ----------------------
 
-    constant UNEXPECTED_IO_DATA_CODE            : regflit := x"0001";
+    constant ABNORMAL_PERIPH_CODE               : regflit := x"0001";
     constant OVERWRITTEN_ROW_CODE               : regflit := x"0002";
     constant WRITE_ON_FULL_TABLE_CODE           : regflit := x"0004";
 
@@ -195,7 +195,7 @@ package snip_pkg is
     -- WARNING REQUEST INTERFACE --
     -------------------------------
 
-    type WarningType is (UNEXPECTED_IO_DATA, OVERWRITTEN_ROW, WRITE_ON_FULL_TABLE);
+    type WarningType is (ABNORMAL_PERIPHERAL, OVERWRITTEN_ROW, WRITE_ON_FULL_TABLE);
 
     type WarningParametersType is record
         warning_type    : WarningType;

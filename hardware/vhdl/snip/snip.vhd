@@ -106,6 +106,8 @@ architecture snip of snip is
     signal buffer_o_ren     : std_logic;
     signal buffer_o_dataout : regflit;
 
+    signal buffer_o_flush   : std_logic;
+    signal buffer_o_enable  : std_logic;
     signal buffer_o_status  : BufferStatusType;
 
     -- buffer in
@@ -116,6 +118,8 @@ architecture snip of snip is
     signal buffer_i_ren     : std_logic;
     signal buffer_i_dataout : regflit;
 
+    signal buffer_i_flush   : std_logic;
+    signal buffer_i_enable  : std_logic;
     signal buffer_i_status  : BufferStatusType;
 
     ---------------------
@@ -128,7 +132,9 @@ architecture snip of snip is
     signal warning_ack              : std_logic;
     signal warning_param            : WarningParametersType;
 
-    signal warning_unrequested_data : std_logic;
+    signal warning_excessive_data   : std_logic;
+    signal warning_unexpected_data  : std_logic;
+    signal warning_abnormal_periph  : std_logic;
     signal warning_overwritten_line : std_logic;
     signal warning_full_table_write : std_logic;
 
@@ -248,8 +254,10 @@ begin
         buffer_rdata        => buffer_i_dataout,
         buffer_ren          => buffer_i_ren,
         buffer_empty        => buffer_i_status.empty,
+        buffer_flush        => buffer_i_flush,
+        buffer_enable       => buffer_i_enable,
 
-        warn_unreq_data     => warning_unrequested_data
+        warn_excessive_data => warning_excessive_data
     );
 
     ------------------------------
@@ -268,8 +276,11 @@ begin
         r_en    => buffer_o_ren,
         data_o  => buffer_o_dataout,
 
+        flush   => buffer_o_flush,
         status  => buffer_o_status
     );
+
+    buffer_o_flush <= '0';
 
     InputBuffer: entity work.snip_io_buffer
     port map
@@ -283,6 +294,7 @@ begin
         r_en    => buffer_i_ren,
         data_o  => buffer_i_dataout,
 
+        flush   => buffer_i_flush,
         status  => buffer_i_status
     );
 
@@ -296,7 +308,7 @@ begin
         clock                   => clock,
         reset                   => reset,
 
-        unrequested_data_input  => warning_unrequested_data,
+        abnormal_periph_input   => warning_abnormal_periph,
         line_overwritten_input  => warning_overwritten_line,
         full_table_write_input  => warning_full_table_write,
 
@@ -304,6 +316,9 @@ begin
         warning_ack             => warning_ack,
         warning_param           => warning_param
     );
+
+    warning_unexpected_data <= buffer_i_wen and not buffer_i_enable;
+    warning_abnormal_periph <= warning_unexpected_data or warning_excessive_data;
 
     --------------------------------------------------
     -- Peripheral Instantiation -- Testing Purposes --
@@ -322,7 +337,12 @@ begin
         data_out            => buffer_i_datain,
 
         space_unavailable   => buffer_i_status.full,
-        data_unavailable    => buffer_o_status.empty
+        data_unavailable    => buffer_o_status.empty,
+
+        r_buffer_enable     => buffer_o_enable,
+        w_buffer_enable     => buffer_i_enable
     );
+
+    buffer_o_enable <= '1';
 
 end architecture;

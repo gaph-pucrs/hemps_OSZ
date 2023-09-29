@@ -37,8 +37,10 @@ entity snip_packet_builder is
         buffer_rdata        : in    regflit;
         buffer_ren          : out   std_logic;
         buffer_empty        : in    std_logic;
+        buffer_flush        : out   std_logic;
+        buffer_enable       : out   std_logic;
 
-        warn_unreq_data     : out   std_logic
+        warn_excessive_data : out   std_logic
     );
 end entity;
 
@@ -48,7 +50,7 @@ architecture snip_packet_builder of snip_packet_builder is
     -- FSM SIGNALS --
     -----------------
 
-    type PacketBuilderState is (WAIT_REQ, CHECK_TABLE, HERMES_FIXED_HEADER, HERMES_PATH, HERMES_HEADER, DATA_PAYLOAD, BUILD_WARNING, REJECT_REQUEST);
+    type PacketBuilderState is (WAIT_REQ, CHECK_TABLE, HERMES_FIXED_HEADER, HERMES_PATH, HERMES_HEADER, DATA_PAYLOAD, CHECK_BUFFER, BUILD_WARNING, REJECT_REQUEST);
 
     signal state                : PacketBuilderState;
     signal next_state           : PacketBuilderState;
@@ -94,6 +96,8 @@ architecture snip_packet_builder of snip_packet_builder is
     signal data_tx              : std_logic;
     signal data_eop             : std_logic;
     signal warning_eop          : std_logic;
+
+    signal buffer_enable_sig    : std_logic;
 
 begin
 
@@ -173,10 +177,14 @@ begin
             when DATA_PAYLOAD =>
 
                 if data_eop='1' and hermes_tx='1' then
-                    next_state <= WAIT_REQ;
+                    next_state <= CHECK_BUFFER;
                 else
                     next_state <= DATA_PAYLOAD;
                 end if;
+            
+            when CHECK_BUFFER =>
+
+                next_state <= WAIT_REQ;
 
             when REJECT_REQUEST =>
 
@@ -443,8 +451,8 @@ begin
                 hermes_data_out <= x"0000";
             elsif header_flit=9 then
 
-                if warning_param_reg.warning_type=UNEXPECTED_IO_DATA then
-                    hermes_data_out <= UNEXPECTED_IO_DATA_CODE;
+                if warning_param_reg.warning_type=ABNORMAL_PERIPHERAL then
+                    hermes_data_out <= ABNORMAL_PERIPH_CODE;
 
                 elsif warning_param_reg.warning_type=OVERWRITTEN_ROW then
                     hermes_data_out <= OVERWRITTEN_ROW_CODE;
@@ -530,6 +538,11 @@ begin
     -- GENERATE WARNINGS --
     -----------------------
 
-    warn_unreq_data <= '0'; -- implementing this warning will require further modifications to the SNIP
+    warn_excessive_data <= '1' when state=CHECK_BUFFER and buffer_empty='0' else '0';
+    
+    buffer_flush <= '1' when state=CHECK_BUFFER else '0';
+
+    buffer_enable_sig <= '1' when state=DATA_PAYLOAD else '0';
+    buffer_enable <= buffer_enable_sig;
 
 end architecture;

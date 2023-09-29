@@ -18,6 +18,7 @@ entity snip_io_buffer is
         r_en    : in    std_logic;
         data_o  : out   regflit;
 
+        flush   : in    std_logic;
         status  : out   BufferStatusType
     );
 end entity;
@@ -50,34 +51,45 @@ begin
 
         elsif rising_edge(clock) then
 
-            -- read
+            if flush='1' then
 
-            if r_en='1' then
-                
-                data_o <= fifo_buffer(r_ptr);
+                data_o      <= (others => '0');
+                fifo_buffer <= (others => (others => '0'));
 
-                if r_ptr = FIFO_SIZE-1 then
-                    r_ptr <= 0;
-                else
-                    r_ptr <= r_ptr + 1;
-                end if;
-
-            end if;
-
-            -- write
+                r_ptr       <= 0;
+                w_ptr       <= 0;
             
-            if w_en='1' then
+            else
 
-                fifo_buffer(w_ptr) <= data_i;
+                -- read
 
-                if w_ptr = FIFO_SIZE-1 then
-                    w_ptr <= 0;
-                else
-                    w_ptr <= w_ptr + 1;
+                if r_en='1' then
+
+                    data_o <= fifo_buffer(r_ptr);
+
+                    if r_ptr = FIFO_SIZE-1 then
+                        r_ptr <= 0;
+                    else
+                        r_ptr <= r_ptr + 1;
+                    end if;
+
                 end if;
 
-            end if;
+                -- write
+                    
+                if w_en='1' then
 
+                    fifo_buffer(w_ptr) <= data_i;
+
+                    if w_ptr = FIFO_SIZE-1 then
+                        w_ptr <= 0;
+                    else
+                        w_ptr <= w_ptr + 1;
+                    end if;
+
+                end if;
+                
+            end if;
         end if;
     end process;
 
@@ -89,9 +101,15 @@ begin
             overflow    <= '0';
         elsif rising_edge(clock) then
 
+            if flush='1' then
+
+                counter     <= 0;
+                underflow   <= '0';
+                overflow    <= '0';
+
             -- decrement
 
-            if r_en='1' and w_en='0' then
+            elsif r_en='1' and w_en='0' then
 
                 if counter = 0 then
                     underflow <= '1';

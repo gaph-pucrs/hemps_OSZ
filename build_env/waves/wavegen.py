@@ -542,8 +542,24 @@ for snip_idx in range(0, snip_number):
 	print(snip_divider_pfx + "WarningManager")
 
 	snip_warning_pfx = "add wave -noupdate -group {%s} %s/WarningManager/" % (snip_name, snip_top)
-	snip_warning_sds = ["clock", "unrequested_data_input", "line_overwritten_input", "full_table_write_input", "state", "warning_req", "warning_ack", "warning_param"]
+	snip_warning_sds = ["clock", "abnormal_periph_input", "line_overwritten_input", "full_table_write_input", "state", "warning_req", "warning_ack", "warning_param"]
 	for it in map(lambda sd: snip_warning_pfx + sd, snip_warning_sds):
+		print (it)
+
+	#---------#
+	# Buffers #
+	#---------#
+
+	print(snip_divider_pfx + "Buffers")
+	
+	snip_buffers_in_pfx = "add wave -noupdate -group {%s} -group {Input Buffer} %s/InputBuffer/" % (snip_name, snip_top)
+	snip_buffers_in_sds = ["clock", "w_en", "data_i", "r_en", "data_o", "flush", "status.empty", "status.full", "status.err", "counter", "r_ptr", "w_ptr", "fifo_buffer"]
+	for it in map(lambda sd: snip_buffers_in_pfx + sd, snip_buffers_in_sds):
+		print (it)
+	
+	snip_buffers_out_pfx = "add wave -noupdate -group {%s} -group {Output Buffer} %s/OutputBuffer/" % (snip_name, snip_top)
+	snip_buffers_out_sds = ["clock", "w_en", "data_i", "r_en", "data_o", "flush", "status.empty", "status.full", "status.err", "counter", "r_ptr", "w_ptr", "fifo_buffer"]
+	for it in map(lambda sd: snip_buffers_out_pfx + sd, snip_buffers_out_sds):
 		print (it)
 
 	### States
