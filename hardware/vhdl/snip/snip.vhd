@@ -139,6 +139,19 @@ architecture snip of snip is
     signal warning_full_table_write : std_logic;
 
     signal unlock_warnings          : std_logic;
+    
+    -- in param
+    signal incoming_source          : regflit;
+    signal incoming_f1              : regflit;
+    signal incoming_f2              : regflit;
+    signal line_index               : integer range 0 to TABLE_SIZE-1;
+
+    -- out param
+    signal warning_f1               : regflit;
+    signal warning_f2               : regflit;
+    signal warning_pkt_source       : regflit;
+    signal warning_slot_index       : integer range 0 to TABLE_SIZE-1;
+
 
 begin
 
@@ -189,7 +202,8 @@ begin
         secondaryOut    => tableOut_builderIn,
 
         warn_overwrite  => warning_overwritten_line,
-        warn_full_table => warning_full_table_write
+        warn_full_table => warning_full_table_write,
+        line_index      => line_index
     );
 
     ----------------------------------
@@ -220,7 +234,10 @@ begin
         buffer_wen          => buffer_o_wen,
         buffer_full         => buffer_o_status.full,
 
-        unlock_warnings     => unlock_warnings
+        unlock_warnings     => unlock_warnings,
+        incoming_source     => incoming_source,
+        incoming_f1         => incoming_f1,
+        incoming_f2         => incoming_f2
     );
 
     ----------------------------------
@@ -252,6 +269,10 @@ begin
         warning_req         => warning_req,
         warning_ack         => warning_ack,
         warning_param       => warning_param,
+        warning_f1          => warning_f1,
+        warning_f2          => warning_f2,
+        warning_pkt_source  => warning_pkt_source,
+        warning_slot_index  => warning_slot_index,
 
         mpe_routing_header  => mpe_routing_header,
 
@@ -320,7 +341,16 @@ begin
         warning_ack             => warning_ack,
         warning_param           => warning_param,
 
-        unlock_warnings         => unlock_warnings
+        unlock_warnings         => unlock_warnings,
+        incoming_source         => incoming_source,
+        incoming_f1             => incoming_f1,
+        incoming_f2             => incoming_f2,
+        line_index              => line_index,
+
+        warning_f1              => warning_f1,
+        warning_f2              => warning_f2,
+        warning_pkt_source      => warning_pkt_source,
+        warning_slot_index      => warning_slot_index
     );
 
     warning_unexpected_data <= buffer_i_wen and not buffer_i_enable;

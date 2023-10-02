@@ -20,7 +20,19 @@ entity snip_warning_manager is
         warning_ack             : in    std_logic;
         warning_param           : out   WarningParametersType;
 
-        unlock_warnings         : in    std_logic
+        unlock_warnings         : in    std_logic;
+
+        -- in param
+        incoming_source         : in    regflit;
+        incoming_f1             : in    regflit;
+        incoming_f2             : in    regflit;
+        line_index              : in    integer range 0 to TABLE_SIZE-1;
+
+        -- out param
+        warning_f1              : out   regflit;
+        warning_f2              : out   regflit;
+        warning_pkt_source      : out   regflit;
+        warning_slot_index      : out   integer range 0 to TABLE_SIZE-1
     );
 end entity;
 
@@ -132,6 +144,27 @@ begin
     abnormal_periph_ack  <= '1' when state=REQ_ABNORMAL_PERIPH  and next_state=WAITING else '0';
     line_overwritten_ack <= '1' when state=REQ_LINE_OVERWRITTEN and next_state=WAITING else '0';
     full_table_write_ack <= '1' when state=REQ_FULL_TABLE_WRITE and next_state=WAITING else '0';
+
+    ----------------------------------------
+    -- Register params for table warnings --
+    ----------------------------------------
+
+    ParamRegister: process(clock, reset)
+    begin
+        if reset='1' then
+            warning_f1 <= (others => '0');
+            warning_f2 <= (others => '0');
+            warning_pkt_source <= (others => '0');
+            warning_slot_index <= 0;
+        elsif rising_edge(clock) then
+            if (line_overwritten_input='1' and line_overwritten_reseted='1') or (full_table_write_input='1' and full_table_write_reseted='1') then
+                warning_f1 <= incoming_f1;
+                warning_f2 <= incoming_f2;
+                warning_pkt_source <= incoming_source;
+                warning_slot_index <= line_index;
+            end if;
+        end if;
+    end process;
 
     ---------
     -- FSM --

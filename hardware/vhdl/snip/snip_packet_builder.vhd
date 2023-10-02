@@ -31,6 +31,10 @@ entity snip_packet_builder is
         warning_req         : in    std_logic;
         warning_ack         : out   std_logic;
         warning_param       : in    WarningParametersType;
+        warning_f1          : in    regflit;
+        warning_f2          : in    regflit;
+        warning_pkt_source  : in    regflit;
+        warning_slot_index  : in    integer range 0 to TABLE_SIZE-1;
 
         mpe_routing_header  : in    regword;
 
@@ -433,8 +437,6 @@ begin
 
             -- packet size
 
-            elsif header_flit=4 then
-                hermes_data_out <= x"0000";
             elsif header_flit=5 then
                 hermes_data_out <= x"000B"; -- no payload: 11 words
 
@@ -447,8 +449,6 @@ begin
 
             -- warning code
 
-            elsif header_flit=8 then
-                hermes_data_out <= x"0000";
             elsif header_flit=9 then
 
                 if warning_param_reg.warning_type=ABNORMAL_PERIPHERAL then
@@ -461,6 +461,28 @@ begin
                     hermes_data_out <= WRITE_ON_FULL_TABLE_CODE;
                 end if;
             
+            -- snip id
+
+            elsif header_flit=11 then
+                hermes_data_out <= SNIP_ID;
+            
+            -- packet source
+
+            elsif header_flit=13 and (warning_param_reg.warning_type=OVERWRITTEN_ROW or warning_param_reg.warning_type=WRITE_ON_FULL_TABLE) then
+                hermes_data_out <= warning_pkt_source;
+            
+            -- f1/f2
+
+            elsif header_flit=14 and (warning_param_reg.warning_type=OVERWRITTEN_ROW or warning_param_reg.warning_type=WRITE_ON_FULL_TABLE) then
+                hermes_data_out <= warning_f1;
+            elsif header_flit=15 and (warning_param_reg.warning_type=OVERWRITTEN_ROW or warning_param_reg.warning_type=WRITE_ON_FULL_TABLE) then
+                hermes_data_out <= warning_f2; 
+            
+            -- overwritten line index
+
+            elsif header_flit=17 and (warning_param_reg.warning_type=OVERWRITTEN_ROW) then
+                hermes_data_out <= conv_std_logic_vector(warning_slot_index, hermes_data_out'length);
+
             else
                 hermes_data_out <= x"0000";
             end if;

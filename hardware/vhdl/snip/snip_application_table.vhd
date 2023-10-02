@@ -19,7 +19,8 @@ entity snip_application_table is
         secondaryOut    : out   AppTableSecondaryOutput;
 
         warn_overwrite  : out   std_logic;
-        warn_full_table : out   std_logic
+        warn_full_table : out   std_logic;
+        line_index      : out   integer range 0 to TABLE_SIZE-1
     );
 end entity;
 
@@ -377,5 +378,7 @@ begin
     warn_overwrite  <= '1' when state=FETCHING_NEW and match_new='1' and try_pending='1' else '0';
     
     warn_full_table <= '1' when state=FETCHING_NEW and full_table='1' else '0';
+
+    line_index <= slot;
     
 end architecture;
