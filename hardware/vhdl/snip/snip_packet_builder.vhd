@@ -457,7 +457,7 @@ begin
                 elsif warning_param_reg.warning_type=OVERWRITTEN_ROW then
                     hermes_data_out <= OVERWRITTEN_ROW_CODE;
 
-                elsif warning_param_reg.warning_type=OVERWRITTEN_ROW then
+                elsif warning_param_reg.warning_type=WRITE_ON_FULL_TABLE then
                     hermes_data_out <= WRITE_ON_FULL_TABLE_CODE;
                 end if;
             
