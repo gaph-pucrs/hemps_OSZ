@@ -459,6 +459,10 @@ begin
 
                 elsif warning_param_reg.warning_type=WRITE_ON_FULL_TABLE then
                     hermes_data_out <= WRITE_ON_FULL_TABLE_CODE;
+                
+                elsif warning_param_reg.warning_type=FAILED_AUTHENTICATION then
+                    hermes_data_out <= FAILED_AUTH_CODE;
+                
                 end if;
             
             -- snip id
@@ -468,14 +472,14 @@ begin
             
             -- packet source
 
-            elsif header_flit=13 and (warning_param_reg.warning_type=OVERWRITTEN_ROW or warning_param_reg.warning_type=WRITE_ON_FULL_TABLE) then
+            elsif header_flit=13 and (warning_param_reg.warning_type=OVERWRITTEN_ROW or warning_param_reg.warning_type=WRITE_ON_FULL_TABLE or warning_param_reg.warning_type=FAILED_AUTHENTICATION) then
                 hermes_data_out <= warning_pkt_source;
             
             -- f1/f2
 
-            elsif header_flit=14 and (warning_param_reg.warning_type=OVERWRITTEN_ROW or warning_param_reg.warning_type=WRITE_ON_FULL_TABLE) then
+            elsif header_flit=14 and (warning_param_reg.warning_type=OVERWRITTEN_ROW or warning_param_reg.warning_type=WRITE_ON_FULL_TABLE or warning_param_reg.warning_type=FAILED_AUTHENTICATION) then
                 hermes_data_out <= warning_f1;
-            elsif header_flit=15 and (warning_param_reg.warning_type=OVERWRITTEN_ROW or warning_param_reg.warning_type=WRITE_ON_FULL_TABLE) then
+            elsif header_flit=15 and (warning_param_reg.warning_type=OVERWRITTEN_ROW or warning_param_reg.warning_type=WRITE_ON_FULL_TABLE or warning_param_reg.warning_type=FAILED_AUTHENTICATION) then
                 hermes_data_out <= warning_f2; 
             
             -- overwritten line index

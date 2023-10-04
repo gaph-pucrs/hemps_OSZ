@@ -84,6 +84,7 @@ package snip_pkg is
     constant ABNORMAL_PERIPH_CODE               : regflit := x"0001";
     constant OVERWRITTEN_ROW_CODE               : regflit := x"0002";
     constant WRITE_ON_FULL_TABLE_CODE           : regflit := x"0004";
+    constant FAILED_AUTH_CODE                   : regflit := x"0008";
 
     ----------------------------------------------
     -- APPLICATION TABLE PRIMARY INTERFACE (RW) --
@@ -196,7 +197,7 @@ package snip_pkg is
     -- WARNING REQUEST INTERFACE --
     -------------------------------
 
-    type WarningType is (ABNORMAL_PERIPHERAL, OVERWRITTEN_ROW, WRITE_ON_FULL_TABLE);
+    type WarningType is (ABNORMAL_PERIPHERAL, OVERWRITTEN_ROW, WRITE_ON_FULL_TABLE, FAILED_AUTHENTICATION);
 
     type WarningParametersType is record
         warning_type    : WarningType;

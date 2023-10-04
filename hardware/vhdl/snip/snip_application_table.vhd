@@ -20,6 +20,7 @@ entity snip_application_table is
 
         warn_overwrite  : out   std_logic;
         warn_full_table : out   std_logic;
+        warn_fail_auth  : out   std_logic;
         line_index      : out   integer range 0 to TABLE_SIZE-1
     );
 end entity;
@@ -378,6 +379,8 @@ begin
     warn_overwrite  <= '1' when state=FETCHING_NEW and match_new='1' and try_pending='1' else '0';
     
     warn_full_table <= '1' when state=FETCHING_NEW and full_table='1' else '0';
+
+    warn_fail_auth <= '1' when state=FETCHING_CRYPTO and slot_is_last='1' and match='0' else '0';
 
     line_index <= slot;
     

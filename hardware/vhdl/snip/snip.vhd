@@ -137,6 +137,7 @@ architecture snip of snip is
     signal warning_abnormal_periph  : std_logic;
     signal warning_overwritten_line : std_logic;
     signal warning_full_table_write : std_logic;
+    signal warning_failed_auth      : std_logic;
 
     signal unlock_warnings          : std_logic;
     
@@ -203,6 +204,7 @@ begin
 
         warn_overwrite  => warning_overwritten_line,
         warn_full_table => warning_full_table_write,
+        warn_fail_auth  => warning_failed_auth,
         line_index      => line_index
     );
 
@@ -336,6 +338,7 @@ begin
         abnormal_periph_input   => warning_abnormal_periph,
         line_overwritten_input  => warning_overwritten_line,
         full_table_write_input  => warning_full_table_write,
+        failed_auth_input       => warning_failed_auth,
 
         warning_req             => warning_req,
         warning_ack             => warning_ack,

@@ -15,6 +15,7 @@ entity snip_warning_manager is
         abnormal_periph_input   : in    std_logic;
         line_overwritten_input  : in    std_logic;
         full_table_write_input  : in    std_logic;
+        failed_auth_input       : in    std_logic;
 
         warning_req             : out   std_logic;
         warning_ack             : in    std_logic;
@@ -54,11 +55,15 @@ architecture snip_warning_manager of snip_warning_manager is
     signal full_table_write_reseted : std_logic;
     signal full_table_write_ack     : std_logic;
 
+    signal failed_auth              : std_logic;
+    signal failed_auth_reseted      : std_logic;
+    signal failed_auth_ack          : std_logic;
+
     -----------------
     -- FSM signals --
     -----------------
 
-    type StateType is (WAITING, REQ_ABNORMAL_PERIPH, REQ_LINE_OVERWRITTEN, REQ_FULL_TABLE_WRITE);
+    type StateType is (WAITING, REQ_ABNORMAL_PERIPH, REQ_LINE_OVERWRITTEN, REQ_FULL_TABLE_WRITE, REQ_FAILED_AUTH);
     
     signal state        : StateType;
     signal next_state   : StateType;
@@ -141,9 +146,34 @@ begin
         end if;
     end process;
 
-    abnormal_periph_ack  <= '1' when state=REQ_ABNORMAL_PERIPH  and next_state=WAITING else '0';
-    line_overwritten_ack <= '1' when state=REQ_LINE_OVERWRITTEN and next_state=WAITING else '0';
-    full_table_write_ack <= '1' when state=REQ_FULL_TABLE_WRITE and next_state=WAITING else '0';
+    FailedAuthRegister: process(clock, reset)
+    begin
+        if reset='1' then
+            failed_auth <= '0';
+            failed_auth_reseted <= '1';
+        elsif rising_edge(clock) then
+            
+            -- Failed Auth Register
+            if failed_auth_input='1' and failed_auth_reseted='1' then
+                failed_auth <= '1';
+            elsif failed_auth_ack='1' then
+                failed_auth <= '0';
+            end if;
+
+            -- Failed Auth Reseted --- Only accepts another warning after UNLOCK_WARNINGS
+            if unlock_warnings='1' then
+                failed_auth_reseted <= '1';
+            elsif failed_auth_input='1' then
+                failed_auth_reseted <= '0';
+            end if;
+        
+        end if;
+    end process;
+
+    abnormal_periph_ack     <= '1' when state=REQ_ABNORMAL_PERIPH   and next_state=WAITING else '0';
+    line_overwritten_ack    <= '1' when state=REQ_LINE_OVERWRITTEN  and next_state=WAITING else '0';
+    full_table_write_ack    <= '1' when state=REQ_FULL_TABLE_WRITE  and next_state=WAITING else '0';
+    failed_auth_ack         <= '1' when state=REQ_FAILED_AUTH       and next_state=WAITING else '0';
 
     ----------------------------------------
     -- Register params for table warnings --
@@ -218,6 +248,14 @@ begin
                     else
                     next_state <= REQ_ABNORMAL_PERIPH;
                 end if;
+            
+            when REQ_FAILED_AUTH =>
+
+                if warning_ack='1' then
+                    next_state <= WAITING;
+                    else
+                    next_state <= REQ_FAILED_AUTH;
+                end if;
         
         end case;
     end process;
@@ -226,7 +264,7 @@ begin
     -- Interface with packet handler --
     -----------------------------------
 
-    warning_req <= '1' when state=REQ_FULL_TABLE_WRITE or state=REQ_LINE_OVERWRITTEN or state=REQ_ABNORMAL_PERIPH else '0';
+    warning_req <= '1' when state=REQ_FULL_TABLE_WRITE or state=REQ_LINE_OVERWRITTEN or state=REQ_ABNORMAL_PERIPH or state=REQ_FAILED_AUTH else '0';
 
     GenerateRequestParams: process(state)
     begin
@@ -241,8 +279,11 @@ begin
             when REQ_FULL_TABLE_WRITE =>
                 warning_param.warning_type <= WRITE_ON_FULL_TABLE;
             
+            when REQ_FAILED_AUTH =>
+                warning_param.warning_type <= FAILED_AUTHENTICATION;
+            
             when others =>
-                warning_param.warning_type <= WRITE_ON_FULL_TABLE;
+                warning_param.warning_type <= ABNORMAL_PERIPHERAL;
 
         end case;
     end process;
