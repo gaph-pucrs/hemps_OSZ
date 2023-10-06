@@ -39,6 +39,8 @@ end entity;
 
 architecture snip_warning_manager of snip_warning_manager is
 
+    constant MAX_FAILED_AUTH        : integer := 5;
+
     ------------------------------
     -- Warning register signals --
     ------------------------------
@@ -58,6 +60,7 @@ architecture snip_warning_manager of snip_warning_manager is
     signal failed_auth              : std_logic;
     signal failed_auth_reseted      : std_logic;
     signal failed_auth_ack          : std_logic;
+    signal failed_auth_counter      : integer range 0 to MAX_FAILED_AUTH;
 
     -----------------
     -- FSM signals --
@@ -160,8 +163,8 @@ begin
                 failed_auth <= '0';
             end if;
 
-            -- Failed Auth Reseted --- Only accepts another warning after UNLOCK_WARNINGS
-            if unlock_warnings='1' then
+            -- Failed Auth Reseted
+            if failed_auth_input='0' then
                 failed_auth_reseted <= '1';
             elsif failed_auth_input='1' then
                 failed_auth_reseted <= '0';
@@ -221,6 +224,8 @@ begin
                     next_state <= REQ_LINE_OVERWRITTEN;
                 elsif abnormal_periph='1' then
                     next_state <= REQ_ABNORMAL_PERIPH;
+                elsif failed_auth='1' and failed_auth_counter/=MAX_FAILED_AUTH then
+                    next_state <= REQ_FAILED_AUTH;
                 else
                     next_state <= WAITING;
                 end if;
@@ -288,4 +293,23 @@ begin
         end case;
     end process;
 
+    -------------------------------------------
+    -- Block counter for Failed Auth warning --
+    -------------------------------------------
+
+    CountFailedAuthWarnings: process(clock, reset)
+    begin
+        if reset='1' then
+            failed_auth_counter <= 0;
+        elsif rising_edge(clock) then
+
+            if unlock_warnings='1' then
+                failed_auth_counter <= 0;
+            elsif failed_auth_ack='1' then
+                failed_auth_counter <= failed_auth_counter + 1;
+            end if;
+        
+        end if;
+    end process;
+            
 end architecture;
