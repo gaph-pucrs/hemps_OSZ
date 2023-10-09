@@ -190,7 +190,7 @@ begin
             warning_pkt_source <= (others => '0');
             warning_slot_index <= 0;
         elsif rising_edge(clock) then
-            if (line_overwritten_input='1' and line_overwritten_reseted='1') or (full_table_write_input='1' and full_table_write_reseted='1') then
+            if (line_overwritten_input='1' and line_overwritten_reseted='1') or (full_table_write_input='1' and full_table_write_reseted='1') or (failed_auth_input='1' and failed_auth_reseted='1') then
                 warning_f1 <= incoming_f1;
                 warning_f2 <= incoming_f2;
                 warning_pkt_source <= incoming_source;
@@ -212,7 +212,7 @@ begin
         end if;
     end process;
     
-    NextStateLogic: process(full_table_write, line_overwritten, abnormal_periph, warning_ack)
+    NextStateLogic: process(full_table_write, line_overwritten, abnormal_periph, failed_auth, failed_auth_counter, warning_ack)
     begin
         case state is
         

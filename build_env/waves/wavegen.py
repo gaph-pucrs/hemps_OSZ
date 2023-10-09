@@ -542,7 +542,7 @@ for snip_idx in range(0, snip_number):
 	print(snip_divider_pfx + "WarningManager")
 
 	snip_warning_pfx = "add wave -noupdate -group {%s} %s/WarningManager/" % (snip_name, snip_top)
-	snip_warning_sds = ["clock", "abnormal_periph_input", "line_overwritten_input", "full_table_write_input", "state", "warning_req", "warning_ack", "warning_param"]
+	snip_warning_sds = ["clock", "abnormal_periph_input", "line_overwritten_input", "full_table_write_input", "failed_auth_input", "failed_auth_counter", "state", "warning_req", "warning_ack", "warning_param"]
 	for it in map(lambda sd: snip_warning_pfx + sd, snip_warning_sds):
 		print (it)
 
