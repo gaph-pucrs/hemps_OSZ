@@ -285,7 +285,7 @@ for snip_idx in range(0, snip_number):
 	### Primary Interface (Read-Write)
 
 	snip_table_primary_pfx = "add wave -noupdate -group {%s} -group {Primary Interface (RW)} %s/ApplicationTable/" % (snip_name, snip_top)
-	snip_table_primary_sds = ["state", "slot", "match", "reset_slot", "enable_counter", "slot_is_last", "try_pending", "start_trying_for_pending"]
+	snip_table_primary_sds = ["state", "slot", "match", "reset_slot", "enable_counter", "slot_is_last", "try_pending", "start_trying_for_pending", "pending_slots_counted"]
 	for it in map(lambda sd: snip_table_primary_pfx + sd, snip_table_primary_sds):
 		print (it)	
 
