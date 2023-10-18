@@ -100,7 +100,7 @@ SC_MODULE(RouterCCwrapped) {
 			generic_list[0] = strdup("address=x\"AAAA\"");
 			sprintf((char*) generic_list[0],"address=x\"%.4x\"",(int)address);
 
-			router = new RouterCC("RouterCC_AP", "RouterCC_AP", 1, generic_list);
+			router = new RouterCC("router_ht_wrapper", "router_ht_wrapper", 1, generic_list);
 
 			#ifdef DUPLICATED_CHANNEL
 				router->reset(reset);
