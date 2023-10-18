@@ -46,6 +46,18 @@ end entity;
 
 architecture router_ht_wrapper of router_ht_wrapper is
 
+    signal router_tx        : regNport;
+    signal router_clock_tx  : regNport;
+    signal router_data_out  : arrayNport_regflit;
+    signal router_eop_out   : regNport;
+    signal router_cred_in   : regNport;
+
+    signal ht_tx            : regNport;
+    signal ht_clock_tx      : regNport;
+    signal ht_data_out      : arrayNport_regflit;
+    signal ht_eop_out       : regNport;
+    signal ht_cred_in       : regNport;
+
 begin
 
     Router: entity work.RouterCC_AP
@@ -65,11 +77,11 @@ begin
         access_i    => access_i,
         access_o    => access_o,
 
-        clock_tx    => clock_tx,
-        tx          => tx,
-        data_out    => data_out,
-        credit_i    => credit_i,
-        eop_out     => eop_out,
+        clock_tx    => router_clock_tx,
+        tx          => router_tx,
+        data_out    => router_data_out,
+        credit_i    => router_cred_in,
+        eop_out     => router_eop_out,
 
         k1          => k1,
         k2          => k2,
@@ -83,5 +95,32 @@ begin
         target      => target,
         source      => source
     );
+
+    GenHTs: for i in 0 to NPORT-1 generate
+        HT: entity work.router_ht
+        port map
+        (
+            clock           => clock,
+            reset           => reset,
+
+            router_tx       => router_tx(i),
+            router_clock_tx => router_clock_tx(i),
+            router_data_out => router_data_out(i),
+            router_eop_out  => router_eop_out(i),
+            router_cred_in  => router_cred_in(i),
+
+            ht_tx           => ht_tx(i),
+            ht_clock_tx     => ht_clock_tx(i),
+            ht_data_out     => ht_data_out(i),
+            ht_eop_out      => ht_eop_out(i),
+            ht_cred_in      => ht_cred_in(i)
+        );
+    end generate;
+
+    tx          <= ht_tx;
+    clock_tx    <= ht_clock_tx;
+    data_out    <= ht_data_out;
+    eop_out     <= ht_eop_out;
+    ht_cred_in  <= credit_i;
 
 end architecture;
