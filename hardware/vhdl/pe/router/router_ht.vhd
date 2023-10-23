@@ -32,3 +32,12 @@ begin
     ht_eop_out      <= router_eop_out;
     router_cred_in  <= ht_cred_in;
 end architecture;
+
+architecture router_ht_blocked of router_ht is
+begin
+    ht_tx           <= '0';
+    ht_clock_tx     <= router_clock_tx;
+    ht_data_out     <= router_data_out;
+    ht_eop_out      <= '0';
+    router_cred_in  <= ht_cred_in;
+end architecture;
