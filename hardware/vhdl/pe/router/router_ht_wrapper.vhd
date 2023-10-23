@@ -7,7 +7,8 @@ use work.hemps_pkg.all;
 entity router_ht_wrapper is
     generic
     (
-        address                 : in    regmetadeflit_32
+        address                 : regmetadeflit_32;
+        hts_setup               : string(1 to NPORT) := "xxxxxxxxxx"
     );
     port
     (
@@ -97,24 +98,28 @@ begin
     );
 
     GenHTs: for i in 0 to NPORT-1 generate
-        HT: entity work.router_ht
-        port map
-        (
-            clock           => clock,
-            reset           => reset,
 
-            router_tx       => router_tx(i),
-            router_clock_tx => router_clock_tx(i),
-            router_data_out => router_data_out(i),
-            router_eop_out  => router_eop_out(i),
-            router_cred_in  => router_cred_in(i),
+        HarmlessHT: if hts_setup(i+1)='x' generate
+            HT: entity work.router_ht(router_ht_harmless)
+            port map
+            (
+                clock           => clock,
+                reset           => reset,
 
-            ht_tx           => ht_tx(i),
-            ht_clock_tx     => ht_clock_tx(i),
-            ht_data_out     => ht_data_out(i),
-            ht_eop_out      => ht_eop_out(i),
-            ht_cred_in      => ht_cred_in(i)
-        );
+                router_tx       => router_tx(i),
+                router_clock_tx => router_clock_tx(i),
+                router_data_out => router_data_out(i),
+                router_eop_out  => router_eop_out(i),
+                router_cred_in  => router_cred_in(i),
+
+                ht_tx           => ht_tx(i),
+                ht_clock_tx     => ht_clock_tx(i),
+                ht_data_out     => ht_data_out(i),
+                ht_eop_out      => ht_eop_out(i),
+                ht_cred_in      => ht_cred_in(i)
+            );
+        end generate;
+        
     end generate;
 
     tx          <= ht_tx;
