@@ -3,6 +3,7 @@
 #define _pe_h
 
 #include <systemc.h>
+#include <string>
 #include "../standards.h"
 #include "processor/plasma/mlite_cpu.h"
 #include "dmni/dmni.h"
@@ -303,7 +304,7 @@ SC_MODULE(pe) {///////////////////////// INPUT AND OUTPUT //////////////////////
 
 	
 	SC_HAS_PROCESS(pe);
-	pe(sc_module_name name_, regaddress address_ = 0x00) : sc_module(name_), router_address(address_) {
+	pe(sc_module_name name_, regaddress address_ = 0x00, std::string ht_param_ = "xxxxxxxxxx") : sc_module(name_), router_address(address_), ht_param(ht_param_) {
 
 		end_sim_reg.write(0x00000001);
 
@@ -396,7 +397,7 @@ SC_MODULE(pe) {///////////////////////// INPUT AND OUTPUT //////////////////////
 		ser->credit_in(credit_i_sender);
 		ser->eop_out(eop_out_sender);	
 		
-		router = new RouterCCwrapped("RouterCCwrapped",router_address);
+		router = new RouterCCwrapped("RouterCCwrapped",router_address,ht_param);
 		seek = new router_seek_wrapped("router_seek_wrapped", router_address);
 		slc = new seek_local_controller("seek_local_controller", "seek_local_controller");
 		fifo_pdn = new fifo_PDN("fifo_PDN");
@@ -664,6 +665,7 @@ SC_MODULE(pe) {///////////////////////// INPUT AND OUTPUT //////////////////////
 	
 	public:
 		regaddress router_address;
+		std::string ht_param;
 };
 
 

@@ -156,6 +156,16 @@ def get_open_ports(yaml_reader):
 
     return open_port_list
 
+def get_hts(yaml_reader):
+    ht_list = yaml_reader["hw"]["ht"]
+
+    router_list = []
+
+    for router in ht_list:
+        router_list.append(router["router"])
+
+    return router_list
+
 def get_io_number(yaml_reader):
     number = len(get_open_ports(yaml_reader))
     return number

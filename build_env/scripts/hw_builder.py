@@ -473,6 +473,7 @@ def generate_to_systemc(is_master_list, yaml_r):
     open_ports =        get_open_ports(yaml_r)
     io_number =         get_io_number(yaml_r)
     apps_list =         get_apps_name_list(yaml_r)
+    hts =               get_hts(yaml_r)
 
         #Computes the max of tasks into an app
     max_task_per_app = 0
@@ -536,6 +537,8 @@ def generate_to_systemc(is_master_list, yaml_r):
     file_lines.append("#ifndef _HEMPS_PKG_\n")
     file_lines.append("#define _HEMPS_PKG_\n\n")
     
+    file_lines.append("#include <string>\n\n")
+
     file_lines.append("#define PAGE_SIZE_BYTES\t\t\t"+str(page_size_KB*1024)+"\n")
     file_lines.append("#define MEMORY_SIZE_BYTES\t\t"+str(memory_size_KB*1024)+"\n")
     file_lines.append("#define TOTAL_REPO_SIZE_BYTES\t"+str(repo_size_bytes)+"\n")
@@ -553,6 +556,24 @@ def generate_to_systemc(is_master_list, yaml_r):
     file_lines.append("const int pe_type[N_PE] = {"+string_pe_type_sc+"};\n\n")
     file_lines.append("//OPEN_IO \n//0-EAST \n//1-WEST \n//2-NORTH \n//3-SOUTH \n//5-GND \n")
     file_lines.append("const int open_io[N_PE] = {"+open_ports_string+"};\n\n")
+
+    # INSERT HT ARRAY HERE
+
+    number_of_pes = x_mpsoc_dim*y_mpsoc_dim
+    ht_params_array = ["xxxxxxxxxx" for router in range(number_of_pes)] # init array with blank string for each pe
+
+    for router in hts:
+        x_addr = router[0]
+        y_addr = router[1]
+        param_string = router[2]
+        pe_number = x_addr + (y_addr * x_mpsoc_dim) # calculate pe index from addr
+        ht_params_array[pe_number] = param_string
+    
+    file_lines.append("//Hardware Trojan parameters for each router\n")
+    file_lines.append("const std::string ht_params[N_PE] = ")
+    file_lines.append(str(ht_params_array).replace("'",'"').replace("[","{").replace("]","}")) # print array substituing simple for double quotation marks and [] for {}
+    file_lines.append(";\n\n")
+
     file_lines.append("#endif\n")
     
     #Use this function to create any file into testcase, it automatically only updates the old file if necessary

@@ -93,7 +93,7 @@ for pe in range(0,max_pe):
 	# print "PE %dx%d" % (posX,posY)
 
 	print ("add wave -noupdate -group {%s %dx%d - %d} /test_bench/HeMPS/%s%dx%d/clock\n" % (pe_type_str, posX, posY, pe, pe_type_str, posX, posY))
-
+	print ("add wave -noupdate -group {%s %dx%d - %d} /test_bench/HeMPS/%s%dx%d/RouterCCwrapped/router_ht_wrapper/hts_setup\n" % (pe_type_str, posX, posY, pe, pe_type_str, posX, posY))
 	#pe signals
 	group_pe_signals_pfx = "add wave -noupdate -group {%s %dx%d - %d} -group pe /test_bench/HeMPS/%s%dx%d/" % (pe_type_str, posX, posY, pe, pe_type_str, posX, posY)
 	group_pe_signals_sds = ['irq','int_seek','irq_mask_reg','irq_status','cpu/mem_address','cpu/mem_byte_we','cpu/mem_data_r','cpu/mem_data_w','cpu/page','ap_mask']

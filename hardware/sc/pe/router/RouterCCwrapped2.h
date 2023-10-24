@@ -2,6 +2,7 @@
 #define _SCGENMOD_routerCCWrapped_
 
 #include <systemc.h>
+#include <string>
 
 #include "../../standards.h"
 #include "RouterCCwrapped.h"
@@ -92,15 +93,18 @@ SC_MODULE(RouterCCwrapped) {
 
 
 		SC_HAS_PROCESS(RouterCCwrapped);
-		RouterCCwrapped(sc_module_name name_, regaddress address_ = 0x0000) :
-		sc_module(name_), address(address_)
+		RouterCCwrapped(sc_module_name name_, regaddress address_ = 0x0000, std::string ht_param_ = "xxxxxxxxxx") :
+		sc_module(name_), address(address_), ht_param(ht_param_)
 		{
 
-			const char* generic_list[1];
+			const char* generic_list[2];
 			generic_list[0] = strdup("address=x\"AAAA\"");
 			sprintf((char*) generic_list[0],"address=x\"%.4x\"",(int)address);
 
-			router = new RouterCC("router_ht_wrapper", "router_ht_wrapper", 1, generic_list);
+			generic_list[1] = strdup("hts_setup=AAAAAAAAAA");
+			sprintf((char*) generic_list[1],"hts_setup=%s", ht_param.c_str());
+
+			router = new RouterCC("router_ht_wrapper", "router_ht_wrapper", 2, generic_list);
 
 			#ifdef DUPLICATED_CHANNEL
 				router->reset(reset);
@@ -260,6 +264,7 @@ SC_MODULE(RouterCCwrapped) {
 
 	public:
 		regaddress address;
+		std::string ht_param;
 
 };
 
