@@ -86,6 +86,9 @@ package seek_pkg is
     constant    KEY_ACK                                 : std_logic_vector(TAM_SERVICE_SEEK-1 downto 0) := "100101";
     constant    REQUEST_SNIP_RENEWAL                    : std_logic_vector(TAM_SERVICE_SEEK-1 downto 0) := "100110";
     constant    LC_NOTIFICATION                         : std_logic_vector(TAM_SERVICE_SEEK-1 downto 0) := "100111";
+    constant    AP_NOTIFICATION                         : std_logic_vector(TAM_SERVICE_SEEK-1 downto 0) := "101000";
+    constant    UNEXPECTED_DATA                         : std_logic_vector(TAM_SERVICE_SEEK-1 downto 0) := "101001";
+    constant    MISSING_PACKET                          : std_logic_vector(TAM_SERVICE_SEEK-1 downto 0) := "101010";
 
 
 

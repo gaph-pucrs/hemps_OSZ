@@ -157,6 +157,7 @@ SC_MODULE(pe) {///////////////////////// INPUT AND OUTPUT //////////////////////
 	sc_signal < sc_uint <8 > > 	irq_status;
 	sc_signal < bool > 			irq;
 	sc_signal < sc_uint <32 > > time_slice;
+	sc_signal < sc_uint <32 > > timeout_cont;
 	sc_signal < bool > 			write_enable;
 	sc_signal < sc_uint <32 > > tick_counter_local;
 	sc_signal < sc_uint <32 > > tick_counter;
@@ -229,6 +230,7 @@ SC_MODULE(pe) {///////////////////////// INPUT AND OUTPUT //////////////////////
 	//Access Point
 	sc_signal<regNport >		ap_mask; 
 	sc_signal<regNport >		link_control_message;
+	sc_signal<	bool> 			link_control_internal;
 	sc_signal< regflit> 		k1;
 	sc_signal< regflit> 		k2;
 	sc_signal< reg_seek_target> app_reg;
@@ -398,8 +400,13 @@ SC_MODULE(pe) {///////////////////////// INPUT AND OUTPUT //////////////////////
 		
 		router = new RouterCCwrapped("RouterCCwrapped",router_address);
 		seek = new router_seek_wrapped("router_seek_wrapped", router_address);
-		slc = new seek_local_controller("seek_local_controller", "seek_local_controller");
 		fifo_pdn = new fifo_PDN("fifo_PDN");
+
+		const char* generic_list[1];
+		generic_list[0] = strdup("router_address=x\"AAAA\"");
+		sprintf((char*) generic_list[0],"router_address=x\"%.4x\"",(int)router_address);
+		slc = new seek_local_controller("seek_local_controller", "seek_local_controller", 1 , generic_list);
+
 		// #ifdef SEEK_LOG
 		// fail_wrapper_module = new fail_WRAPPER_module("fail_WRAPPER_module", router_address);
 		// #else
@@ -456,6 +463,7 @@ SC_MODULE(pe) {///////////////////////// INPUT AND OUTPUT //////////////////////
 				router->sz[i]	(wrapper_reg[i]);
 			}
 			router->link_control_message(link_control_message);
+			router->link_control_internal(link_control_internal);
 
 			// -- Null signals, not utilized but part of structure
 			router->access_i	[LOCAL0](router_access_i[0]);
@@ -548,7 +556,8 @@ SC_MODULE(pe) {///////////////////////// INPUT AND OUTPUT //////////////////////
 			// Unreachable
 			slc->unr_target(target);
 			slc->unr_source(source);
-			slc->unr_service(link_control_message);
+			slc->unr_link_controls(link_control_message);
+			slc->unr_internal(link_control_internal);
 
 			// SLC to Seek Router
 			slc->seek_source(in_source_router_seek_local);

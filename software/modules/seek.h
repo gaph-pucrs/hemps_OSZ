@@ -24,56 +24,59 @@
 
 //seek service types
 
-#define START_APP_SERVICE				1
-#define	TARGET_UNREACHABLE_SERVICE		2
-#define	CLEAR_SERVICE					3
-#define	BACKTRACK_SERVICE				4
-#define	SEARCHPATH_SERVICE				5
-#define END_TASK_SERVICE				6
-#define SET_SECURE_ZONE_SERVICE 		7
-#define	PACKET_RESEND_SERVICE			8
-#define WARD_SERVICE                    9
-#define OPEN_SECURE_ZONE_SERVICE        10
-#define SECURE_ZONE_CLOSED_SERVICE      11
-#define	SECURE_ZONE_OPENED_SERVICE		12
-#define	FREEZE_TASK_SERVICE				13
-#define	UNFREEZE_TASK_SERVICE			14
-#define MASTER_CANDIDATE_SERVICE        15
-#define TASK_ALLOCATED_SERVICE          16
-#define INITIALIZE_SLAVE_SERVICE        17
-#define	INITIALIZE_CLUSTER_SERVICE	    18
-#define LOAN_PROCESSOR_REQUEST_SERVICE  19
-#define LOAN_PROCESSOR_RELEASE_SERVICE  20
-#define END_TASK_OTHER_CLUSTER_SERVICE  21
-#define	WAIT_KERNEL_SERVICE				22
-#define	SEND_KERNEL_SERVICE				23
-#define	WAIT_KERNEL_SERVICE_ACK			24
-#define	FAIL_KERNEL_SERVICE				25
-#define NEW_APP_SERVICE   		        26
-#define NEW_APP_ACK_SERVICE        		27
-#define GMV_READY_SERVICE		        28
-#define SET_SZ_RECEIVED_SERVICE         29
-#define SET_EXCESS_SZ_SERVICE           30
-#define	RCV_FREEZE_TASK_SERVICE			31
-#define	BR_TO_APPID_SERVICE				32
-#define	SET_AP_SERVICE					33
-#define	MSG_DELIVERY_CONTROL		    34
-#define	MSG_REQUEST_CONTROL				35
-#define	RENEW_KEY						36
-#define	KEY_ACK							37
-#define REQUEST_SNIP_RENEWAL			38
-#define LC_NOTIFICATION					39
+#define START_APP_SERVICE				1	//0x01
+#define	TARGET_UNREACHABLE_SERVICE		2	//0x02
+#define	CLEAR_SERVICE					3	//0x03
+#define	BACKTRACK_SERVICE				4	//0x04
+#define	SEARCHPATH_SERVICE				5	//0x05
+#define END_TASK_SERVICE				6	//0x06
+#define SET_SECURE_ZONE_SERVICE 		7	//0x07
+#define	PACKET_RESEND_SERVICE			8	//0x08
+#define WARD_SERVICE                    9	//0x09
+#define OPEN_SECURE_ZONE_SERVICE        10	//0x0A
+#define SECURE_ZONE_CLOSED_SERVICE      11	//0x0B
+#define	SECURE_ZONE_OPENED_SERVICE		12	//0x0C
+#define	FREEZE_TASK_SERVICE				13	//0x0D
+#define	UNFREEZE_TASK_SERVICE			14	//0x0E
+#define MASTER_CANDIDATE_SERVICE        15	//0x0F
+#define TASK_ALLOCATED_SERVICE          16	//0x10
+#define INITIALIZE_SLAVE_SERVICE        17	//0x11
+#define	INITIALIZE_CLUSTER_SERVICE	    18	//0x12
+#define LOAN_PROCESSOR_REQUEST_SERVICE  19	//0x13
+#define LOAN_PROCESSOR_RELEASE_SERVICE  20	//0x14
+#define END_TASK_OTHER_CLUSTER_SERVICE  21	//0x15
+#define	WAIT_KERNEL_SERVICE				22	//0x16
+#define	SEND_KERNEL_SERVICE				23	//0x17
+#define	WAIT_KERNEL_SERVICE_ACK			24	//0x18
+#define	FAIL_KERNEL_SERVICE				25	//0x19
+#define NEW_APP_SERVICE   		        26	//0x1A
+#define NEW_APP_ACK_SERVICE        		27	//0x1B
+#define GMV_READY_SERVICE		        28	//0x1C
+#define SET_SZ_RECEIVED_SERVICE         29	//0x1D
+#define SET_EXCESS_SZ_SERVICE           30	//0x1E
+#define	RCV_FREEZE_TASK_SERVICE			31	//0x1F
+#define	BR_TO_APPID_SERVICE				32	//0x20
+#define	SET_AP_SERVICE					33	//0x21
+#define	MSG_DELIVERY_CONTROL		    34	//0x22
+#define	MSG_REQUEST_CONTROL				35	//0x23
+#define	RENEW_KEY						36	//0x24
+#define	KEY_ACK							37	//0x25
+#define REQUEST_SNIP_RENEWAL			38	//0x26
+#define LC_NOTIFICATION					39	//0x27
+#define AP_NOTIFICATION					40	//0x28
+#define UNEXPECTED_DATA					41	//0x29
+#define MISSING_PACKET					42	//0x2A
 
 
 
 #define	IRQ_SEEK						0x80
 
- //#define seek_puts(argument) puts(argument)
+//  #define seek_puts(argument) puts(argument)
 #define seek_puts(argument) 
 #define MAX_TRIES 5
 
 //used for seek purposes
-int slot_seek;
+// int slot_seek;
 
 typedef struct {
 	unsigned int path[MAX_SOURCE_ROUTING_PATH_SIZE];
@@ -120,6 +123,6 @@ void Start_App_Secure_Zone(unsigned int appID);
 
 void fireRecoverySearchpath(int target);
 
-void requestRecoverySearchpath(int target);
+void requestRecoverySearchpath(int sessionCode, int target);
 
 #endif

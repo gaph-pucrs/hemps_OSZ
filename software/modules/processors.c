@@ -231,6 +231,11 @@ int get_proc_free_pages(int proc_address){
  */
 int get_task_location(int task_id){
 
+	if ((task_id & 0xFF) == 99){
+		// puts("\nSending packet to 00\n");
+		return 0;
+	}
+
 	for(int i=0; i<MAX_CLUSTER_PEs; i++){
 
 		if (processors[i].free_pages == MAX_LOCAL_TASKS || processors[i].address == -1){

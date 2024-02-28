@@ -372,7 +372,7 @@ begin
 
     -- access table
 
-    NextState_AccessTable: process(table_state, tableControl, hermesControl, data_to_write_on_table)
+    NextState_AccessTable: process(table_state, tableControl, hermesControl, data_to_write_on_table, hermes_data_in)
     begin
         case table_state is
 
@@ -404,14 +404,19 @@ begin
 
             when SAVE_PATH =>
 
-                if hermesControl.receivedEndOfPacket='1' or (hermesControl.endOfPacket='1' and hermesControl.acceptingFlit='1') then
-                    if hermes_data_in = x"7EEE" then
+                if hermesControl.receivedEndOfPacket='1' or (hermesControl.endOfPacket='1' and hermesControl.acceptingFlit='1') then  
+                    -- if hermes_data_in = x"7EEE" then
+                    if hermes_data_in(7 downto 0) = x"EE" then
                         next_table_state <= EXIT_STAGE;
                     else
                         next_table_state <= SAVE_EXTRA_PATH;
                     end if;
                 else
-                    next_table_state <= SAVE_PATH;
+                    if hermes_data_in(7 downto 0) = x"EE" then -- Caso flits 7XEE 7EEE chegar, cortar o 7EEE
+                        next_table_state <= EXIT_STAGE;
+                    else
+                        next_table_state <= SAVE_PATH;
+                    end if;
                 end if;
             
             when SAVE_EXTRA_PATH =>
@@ -802,11 +807,11 @@ begin
                 hermesControl.sourceRoutingPacket   <= '0';
             else
             
-                if hermesControl.endOfPacket='1' then
+                if hermesControl.endOfPacket='1' and hermesControl.acceptingFlit='1' then
                     hermesControl.receivedEndOfPacket <= '1';
                 end if;
 
-                if hermesControl.sourceRoutingFlit='1' then
+                if hermesControl.sourceRoutingFlit='1' and hermesControl.acceptingFlit='1' then
                     hermesControl.sourceRoutingPacket <= '1';
                 end if;
 

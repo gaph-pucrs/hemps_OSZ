@@ -1,0 +1,42 @@
+hw:
+  page_size_KB:  128
+  tasks_per_PE: 1     
+  repository_size_MB:  1
+  physical_channels: 2
+  model_description: hybrid    # sc (gcc) | scmod (questa) | vhdl | hybrid (top module sc, internal vhdl)
+  noc_buffer_size: 8       # must be power of 2 
+  mpsoc_dimension: [8,8]     # for while, must be a square shape
+  cluster_dimension: [8,8] # for while, must be a square shape
+  master_location: LT     # LB
+  # faults:
+  #   pes: random # which PEs to monitor [[],[]] or "random"
+  #   infection_rate: 30  # pes infected in case of "random" (in %)
+  #   time_step: 100      # simulation step to check (in us)
+  #   scan_time: 1        # time between scans of the traffic file (in seconds)
+  #   trigger_value: 10   # packets to block the PEs 
+  # session: yes
+  gray_area:
+    rows: [6,7]
+    cols: [3,4]
+  open_port:
+    - port: [Injector,90,0,3,N,0,2,W] 
+    - port: [io_peripheral,80,3,3,N]
+apps:                
+  - name: mpeg_IO
+    start_time_ms: 0 #any unsigned integer number
+    secure: yes
+  - name: mpeg_IO
+    start_time_ms: 0 #any unsigned integer number
+    secure: yes
+  - name: mpeg_IO
+    start_time_ms: 0 #any unsigned integer number
+    secure: yes
+  - name: mpeg_IO
+    start_time_ms: 0 #any unsigned integer number
+    secure: yes
+  - name: mpeg_IO
+    start_time_ms: 0 #any unsigned integer number
+    secure: yes
+  - name: mpeg_IO
+    start_time_ms: 0 #any unsigned integer number
+    secure: yes

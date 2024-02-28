@@ -76,6 +76,8 @@ SC_MODULE(sabotage) {
 	regflit buffer_in_flit[BUFFER_IN_PERIPHERAL]; 
 	regflit buffer_out_flit[BUFFER_OUT_PERIPHERAL]; 
  
+	regflit f1;
+	regflit f2;
 	regflit reg_header; 
 	regflit reg_msg_size; 
 	regflit reg_service; 

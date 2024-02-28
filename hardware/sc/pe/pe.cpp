@@ -36,6 +36,9 @@ void pe::mem_mapped_registers(){
 			case TIME_SLICE_ADDR:
 				cpu_mem_data_read.write(time_slice.read());
 			break;
+			case TIMEOUT_REG_ADDR:
+				cpu_mem_data_read.write(timeout_cont.read());
+			break;
 			case NET_ADDRESS:
 				cpu_mem_data_read.write(router_address);
 			break;
@@ -171,7 +174,8 @@ void pe::comb_assignments(){
 	l_irq_status[7] = int_seek.read();
 	l_irq_status[6] = intAP.read();
 	l_irq_status[5] = ni_intr.read();
-	l_irq_status[4] = 0;
+	// l_irq_status[4] = 0;
+	l_irq_status[4] = (timeout_cont.read() == 1) ? 1  : 0;
 	l_irq_status[3] = (time_slice.read() == 1) ? 1  : 0;
 	l_irq_status[2] = 0;
 	l_irq_status[1] = (!dmni_send_active_sig.read() && slack_update_timer.read() == SLACK_MONITOR_WINDOW) ? 1  : 0;
@@ -193,6 +197,7 @@ void pe::sequential_attr(){
 		cpu_mem_write_byte_enable_reg.write(0);
 		irq_mask_reg.write(0);
 		time_slice.write(0);
+		timeout_cont.write(0);
 		tick_counter.write(0);
 		pending_service.write(0);
 		slack_update_timer.write(0);
@@ -213,6 +218,10 @@ void pe::sequential_attr(){
 
 			if (time_slice.read() > 1) {
 				time_slice.write(time_slice.read() - 1);
+			}
+
+			if (timeout_cont.read() > 1) {
+				timeout_cont.write(timeout_cont.read() - 1);
 			}
 
 			//************** pending service implementation *******************
@@ -333,6 +342,10 @@ void pe::sequential_attr(){
 		if ((cpu_mem_address_reg.read() == TIME_SLICE_ADDR) and (write_enable.read()==1) ) {
 			time_slice.write(cpu_mem_data_write_reg.read());
   		}
+
+		if ((cpu_mem_address_reg.read() == TIMEOUT_REG_ADDR) and (write_enable.read()==1) ) {
+			timeout_cont.write(cpu_mem_data_write_reg.read());
+  		}
   		
   		tick_counter.write((tick_counter.read() + 1) );
 
@@ -341,6 +354,11 @@ void pe::sequential_attr(){
 
 void pe::end_of_simulation(){
     if (end_sim_reg.read() == 0x00000000){
+		// Breakpoint of END_SIMULATION on the traffic_router.txt
+		sprintf(aux, "debug/traffic_router.txt");
+		fp = fopen (aux, "a");
+		sprintf(aux, "END %d", tick_counter.read());
+		
         cout << "END OF ALL APPLICATIONS!!!" << endl;
         cout << "Simulation time: " << (float) ((tick_counter.read() * 10.0f) / 1000.0f / 1000.0f) << "ms" << endl;
         sc_stop();
@@ -504,7 +522,7 @@ void pe::seek_access(){
 	if ((cpu_mem_address_reg.read() == SEEK_OPMODE_REGISTER) and (write_enable.read()==1) ) {
 		MEM_opmode[10].write(cpu_mem_data_write_reg.read());
 	}		
- 		if ((cpu_mem_address_reg.read() == SEEK_TARGET_REGISTER) and (write_enable.read()==1) ) {
+ 	if ((cpu_mem_address_reg.read() == SEEK_TARGET_REGISTER) and (write_enable.read()==1) ) {
 		MEM_target[10].write(cpu_mem_data_write_reg.read());
 		//up the req
 		MEM_waiting[10].write(1);
@@ -528,9 +546,9 @@ void pe::seek_send(){
 			//triggers the seek from the local port - implicit priority on choosing local port
 			if(MEM_waiting[10].read() == 1){
 				if( out_req_router_seek_local.read() == 1 ){
-							cout << "WARNING: ";
-					   		cout << hex << router_address;
-					   		cout << " MUST wait req down to send to " << MEM_source[10].read() << endl;
+					cout << "WARNING: ";
+					cout << hex << router_address;
+					cout << " MUST wait req down to send to " << MEM_source[10].read() << endl;
 				}	
 				// in_service_router_seek_local.write(MEM_source[10].read());
 				in_target_seek_slc.write(MEM_target[10].read());
@@ -540,22 +558,22 @@ void pe::seek_send(){
 				in_req_seek_slc.write(1);
 				MEM_waiting[10].write(0);	
 			}
-			else{//checks all other ports
-				//seek unreachable
-				for (i=0;i<9; i++){
-					// 	if(w_addr.read() == i){
-						if(MEM_waiting[i].read() == 1){
-							in_service_seek_slc.write(2);//2 is the TARGET_UNREACHABLE_SERVICE
-							in_source_seek_slc.write((MEM_target[i].read() << 16) | MEM_source[i].read());
-							in_target_seek_slc.write(MEM_source[i].read());
-							MEM_index_forwarded.write(i);
-							in_payload_seek_slc.write((MEM_target[i].read()(11,8) << 4) | MEM_target[i].read()(3,0));
-							in_opmode_seek_slc.write(MEM_opmode[10].read());
-							in_req_seek_slc.write(1);
-							break;
-						}
-				}
-			}
+			// else{//checks all other ports
+			// 	//seek unreachable
+			// 	for (i=0;i<9; i++){
+			// 		// 	if(w_addr.read() == i){
+			// 			if(MEM_waiting[i].read() == 1){
+			// 				in_service_seek_slc.write(2);//2 is the TARGET_UNREACHABLE_SERVICE
+			// 				in_source_seek_slc.write((MEM_target[i].read() << 16) | MEM_source[i].read());
+			// 				in_target_seek_slc.write(MEM_source[i].read());
+			// 				MEM_index_forwarded.write(i);
+			// 				in_payload_seek_slc.write((MEM_target[i].read()(11,8) << 4) | MEM_target[i].read()(3,0));
+			// 				in_opmode_seek_slc.write(MEM_opmode[10].read());
+			// 				in_req_seek_slc.write(1);
+			// 				break;
+			// 			}
+			// 	}
+			// }
 		}
 	}
 }
@@ -741,6 +759,18 @@ void pe::seek_receive(){
 					break;
 					case 0x27:
 						cout << "LC_NOTIFICATION";
+						int_seek.write(1);
+					break;
+					case 0x28:
+						cout << "AP_NOTIFICATION";
+						int_seek.write(1);
+					break;
+					case 0x29:
+						cout << "UNEXPECTED_DATA";
+						int_seek.write(1);
+					break;
+					case 0x2A:
+						cout << "MISSING_PACKET";
 						int_seek.write(1);
 					break;
 					default:

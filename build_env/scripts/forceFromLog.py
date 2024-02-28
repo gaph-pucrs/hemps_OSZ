@@ -21,7 +21,7 @@ def clear_file(file_path):
 # excluded_x_values = [0]  # Replace this with a list of x values to exclude
 # excluded_y_values = [3]  # Replace this with a list of y values to exclude
 def get_unique_random_coordinates(x_limit, y_limit, num_coordinates, excluded_x_values, excluded_y_values):
-    random.seed(333)
+    # random.seed(123)
     all_coordinates = [(x, y) for x in range(x_limit) for y in range(y_limit)
                        if x not in excluded_x_values and y not in excluded_y_values]
     return random.sample(all_coordinates, min(num_coordinates, len(all_coordinates)))
@@ -63,7 +63,6 @@ def process_new_lines(file_path, values):
             current_size = os.path.getsize(file_path)
             if current_size > file_size :
                 with open(file_path, 'r') as file:
-                    sleepcont = 0
                     # Move the file pointer to the last position
                     file.seek(file_size)
                     # Read and process new lines
@@ -78,22 +77,21 @@ def process_new_lines(file_path, values):
                             d[k] = d[k] + 1
                         except KeyError:
                             pass
-                            # d[str(l[1])] = 1
-                    # print(d)
 
                 file_size = current_size  # Update the file size
+                sleepcont = 0
                 lastTime = round((int(l[0])*10)/1000) #last line time in ticks * 10 ns / 1000 = us
                 sigs = open("../signals" , "a")
                 # sigs.seek(0,2)
                 for key, value in d.items():
-                    if value > 30:
+                    if value > values["trigger_value"]:
                         # keyXY = intToXY(key)
                         print(f"Key: {key}, Value: {value}")
-                        sigs.write("/test_bench/HeMPS/slave"+str(key[0])+"x"+str(key[1])+"/RouterCCwrapped/RouterCC_AP/coreRouter/tx 0 "+ str(lastTime+100) +" us "+str(lastTime+600)+" us\n")              
+                        sigs.write("/test_bench/HeMPS/slave"+str(key[0])+"x"+str(key[1])+"/RouterCCwrapped/RouterCC_AP/coreRouter/tx 0 "+ str(lastTime+(2*values["time_step"])) +" us "+str(lastTime+(2*values["time_step"])+500)+" us\n")              
                         d[key] = value - values["trigger_value"]
                 sigs.close()
-            sleepcont = sleepcont+1
-            if sleepcont > 30:
+            sleepcont = sleepcont+values["scan_time"]
+            if sleepcont > 1000: #tava acabando mto cedo
                 print("No more inputs in traffic file, exiting\n")
                 return
             # Check if the file has been modified within the last 30 seconds
@@ -139,7 +137,8 @@ def read_values_from_yaml(file_path):
         if isinstance(pes, list):
             pes_dict = convert_to_dictionary(pes)
         elif pes == "random":
-            random_coordinates = get_unique_random_coordinates(mpsoc_dimension[0], mpsoc_dimension[1], infected_pes, gray_area_rows, gray_area_cols)
+            random_coordinates = get_unique_random_coordinates(mpsoc_dimension[0], mpsoc_dimension[1], infected_pes, gray_area_cols, gray_area_rows)
+            # random_coordinates = get_unique_random_coordinates(mpsoc_dimension[0], mpsoc_dimension[1], infected_pes, [], [])
             pes_dict = {coord: 0 for coord in random_coordinates}
         else:
             pes_dict = None

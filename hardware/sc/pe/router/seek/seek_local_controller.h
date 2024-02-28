@@ -22,7 +22,8 @@ public:
 		// LC signals
 		sc_in<reg_seek_target >		unr_target;
 		sc_in<reg_seek_target >		unr_source;
-		sc_in<regNport >			unr_service;
+		sc_in<regNport >			unr_link_controls;
+		sc_in<bool>					unr_internal;
 
 		//brNoC interface
 		sc_out<reg_seek_target >	seek_target;
@@ -34,7 +35,8 @@ public:
 		sc_in<bool>					seek_ack;
 		sc_in<bool>					seek_nack;
 
-		seek_local_controller(sc_module_name nm, const char* hdl_name)
+		seek_local_controller(sc_module_name nm, const char* hdl_name,
+			 int num_generics, const char** generic_list)
 		 : sc_foreign_module(nm, hdl_name),
 			clock("clock"),
 			reset("reset"),
@@ -48,7 +50,8 @@ public:
 			pe_nack("pe_nack"),
 			unr_target("unr_target"),
 			unr_source("unr_source"),
-			unr_service("unr_service"),
+			unr_link_controls("unr_link_controls"),
+			unr_internal("unr_internal"),
 			seek_target("seek_target"),
 			seek_source("seek_source"),
 			seek_service("seek_service"),
@@ -58,7 +61,7 @@ public:
 			seek_ack("seek_ack"),
 			seek_nack("seek_nack")
 		{
-			// elaborate_foreign_module(hdl_name);
+			// elaborate_foreign_module(hdl_name, num_generics, generic_list);
 		}
 		~seek_local_controller()
 		{}

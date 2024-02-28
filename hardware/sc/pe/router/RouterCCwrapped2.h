@@ -31,6 +31,7 @@ SC_MODULE(RouterCCwrapped) {
    		sc_out < sc_uint <3 > >  	AP_status;  
 
 		sc_out<regNport > 		link_control_message;
+    	sc_out<bool > 			link_control_internal;
 
 		sc_out<regflit> 			source;
 		sc_out<regflit> 			target;
@@ -47,7 +48,8 @@ SC_MODULE(RouterCCwrapped) {
 		sc_signal<regNport > credit_i_internal;
 		sc_signal<regNport > ap_internal;
 		sc_signal<regNport > sz_internal;
-		sc_signal<regNport > link_control_message_internal;
+		// sc_signal<regNport > link_control_message_internal;
+		// sc_signal<bool > 	 link_control_internal_internal;
 		sc_signal<regNport > access_i_internal;
 		sc_signal<regNport > access_o_internal;
 		sc_signal<bool > intAP_internal;
@@ -141,6 +143,8 @@ SC_MODULE(RouterCCwrapped) {
 				router->ap(ap);
 				router->sz(sz_internal);
 				router->link_control_message(link_control_message);
+				router->link_control_internal(link_control_internal);
+
 			#else
 				router->reset(reset);
 				router->clock(clock);
