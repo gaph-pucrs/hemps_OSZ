@@ -8,6 +8,8 @@
 
 void init_snip_structures();
 
+int is_peripheral_in_gray_line(int peripheral_id);
+
 void config_snips(Application *app);
 
 void clear_snips(Application *app);

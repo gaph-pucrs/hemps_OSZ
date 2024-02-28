@@ -285,7 +285,7 @@ for snip_idx in range(0, snip_number):
 	### Primary Interface (Read-Write)
 
 	snip_table_primary_pfx = "add wave -noupdate -group {%s} -group {Primary Interface (RW)} %s/ApplicationTable/" % (snip_name, snip_top)
-	snip_table_primary_sds = ["state", "slot", "match", "reset_slot", "enable_counter", "slot_is_last", "try_pending", "start_trying_for_pending"]
+	snip_table_primary_sds = ["state", "slot", "match", "reset_slot", "enable_counter", "slot_is_last", "try_pending", "start_trying_for_pending", "pending_slots_counted"]
 	for it in map(lambda sd: snip_table_primary_pfx + sd, snip_table_primary_sds):
 		print (it)	
 
@@ -386,6 +386,10 @@ for snip_idx in range(0, snip_number):
 	print(snip_handler_regs_divider_pfx + "k0")
 	print(snip_handler_regs_pfx + "k0")
 	print(snip_handler_regs_pfx + "k0_valid")
+
+	print(snip_handler_regs_divider_pfx + "WarningRouting")
+	print(snip_handler_regs_pfx + "warning_routing")
+	print(snip_handler_regs_pfx + "warning_routing_valid")
 
 	print(snip_handler_regs_divider_pfx + "Source")
 	print(snip_handler_regs_pfx + "packet_source")
@@ -529,7 +533,36 @@ for snip_idx in range(0, snip_number):
 	snip_builder_ctrl_payload_pfx = "add wave -noupdate -group {%s} -group {Builder Control Signals} -group {Data Payload Control} %s/PacketBuilder/" % (snip_name, snip_top)
 	snip_builder_ctrl_payload_sds = ["send_data", "data_words_to_read", "data_flit_low", "data_flit_ready", "last_data_flit", "data_flit_blocked", "data_tx", "data_eop"]
 	for it in map(lambda sd: snip_builder_ctrl_payload_pfx + sd, snip_builder_ctrl_payload_sds):
-		print (it) 
+		print (it)	
+	
+	#-------------------------#
+	# Warning Manager Signals #
+	#-------------------------#
+
+	print(snip_divider_pfx + "WarningManager")
+
+	snip_warning_pfx = "add wave -noupdate -group {%s} %s/WarningManager/" % (snip_name, snip_top)
+	snip_warning_sds = ["clock", "abnormal_periph_input", "line_overwritten_input", "full_table_write_input", "failed_auth_input", "failed_auth_counter", "state", "warning_req", "warning_ack", "warning_param"]
+	for it in map(lambda sd: snip_warning_pfx + sd, snip_warning_sds):
+		print (it)
+
+	#---------#
+	# Buffers #
+	#---------#
+
+	print(snip_divider_pfx + "Buffers")
+	
+	snip_buffers_in_pfx = "add wave -noupdate -group {%s} -group {Input Buffer} %s/InputBuffer/" % (snip_name, snip_top)
+	snip_buffers_in_sds = ["clock", "w_en", "data_i", "r_en", "data_o", "flush", "status.empty", "status.full", "status.err", "counter", "r_ptr", "w_ptr", "fifo_buffer"]
+	for it in map(lambda sd: snip_buffers_in_pfx + sd, snip_buffers_in_sds):
+		print (it)
+	
+	snip_buffers_out_pfx = "add wave -noupdate -group {%s} -group {Output Buffer} %s/OutputBuffer/" % (snip_name, snip_top)
+	snip_buffers_out_sds = ["clock", "w_en", "data_i", "r_en", "data_o", "flush", "status.empty", "status.full", "status.err", "counter", "r_ptr", "w_ptr", "fifo_buffer"]
+	for it in map(lambda sd: snip_buffers_out_pfx + sd, snip_buffers_out_sds):
+		print (it)
+
+	### States
 
 print ("TreeUpdate [SetDesecurityTree]\n\
 WaveRestoreCursors {{Cursor 1} {10 ps} 0}\n\

@@ -13,6 +13,7 @@ package snip_pkg is
     constant FIXED_HEADER_SIZE      : integer := 2;
     constant XY_HEADER_SIZE         : integer := 4;
     constant DYNAMIC_HEADER_SIZE    : integer := 22;
+    constant FULL_HEADER_SIZE       : integer := 26;
 
     constant TABLE_SIZE             : integer := 4;
     constant MAX_FLITS_PER_PKT      : integer := 255;
@@ -57,12 +58,14 @@ package snip_pkg is
     constant IO_REQUEST_SERVICE                 : regword := x"00000015";
     constant IO_DELIVERY_SERVICE                : regword := x"00000025";
     constant IO_ACK_SERVICE                     : regword := x"00000026";
+    constant IO_WARNING_SERVICE                 : regword := x"00000340";
+    constant IO_UNLOCK_WARNINGS                 : regword := x"00000350";
 
     constant PACKET_SIZE_FLIT_HI                : integer := 0;
     constant F1_FLIT                            : integer := 2;
     constant F2_FLIT                            : integer := 3;
     constant SERVICE_FLIT_HI                    : integer := 4;
-    constant TASK_ID_FLIT_HI                    : integer := 6;
+    constant TASK_ID_FLIT_HI                    : integer := 6; -- also used for warning routing in IO_INIT
     constant PACKET_SOURCE_FLIT                 : integer := 9;
     constant DELIVERY_SIZE_FLIT                 : integer := 15;
     constant END_OF_HEADER_FLIT                 : integer := 21;
@@ -73,6 +76,15 @@ package snip_pkg is
     --  IO_INIT                 zero        k0
     --  IO_CONFIG               zero        appId xor k0
     --  IO_REQ/DELIVERY/ACK     k1 xor k2   appId xor k2
+
+    ----------------------
+    -- IO WARNING CODES --
+    ----------------------
+
+    constant ABNORMAL_PERIPH_CODE               : regflit := x"0001";
+    constant OVERWRITTEN_ROW_CODE               : regflit := x"0002";
+    constant WRITE_ON_FULL_TABLE_CODE           : regflit := x"0004";
+    constant FAILED_AUTH_CODE                   : regflit := x"0008";
 
     ----------------------------------------------
     -- APPLICATION TABLE PRIMARY INTERFACE (RW) --
@@ -179,6 +191,16 @@ package snip_pkg is
         busy            : std_logic;
         accepted        : std_logic;
         rejected        : std_logic;
+    end record;
+
+    -------------------------------
+    -- WARNING REQUEST INTERFACE --
+    -------------------------------
+
+    type WarningType is (ABNORMAL_PERIPHERAL, OVERWRITTEN_ROW, WRITE_ON_FULL_TABLE, FAILED_AUTHENTICATION);
+
+    type WarningParametersType is record
+        warning_type    : WarningType;
     end record;
 
     ---------------------------

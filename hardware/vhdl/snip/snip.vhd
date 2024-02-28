@@ -106,6 +106,8 @@ architecture snip of snip is
     signal buffer_o_ren     : std_logic;
     signal buffer_o_dataout : regflit;
 
+    signal buffer_o_flush   : std_logic;
+    signal buffer_o_enable  : std_logic;
     signal buffer_o_status  : BufferStatusType;
 
     -- buffer in
@@ -116,7 +118,41 @@ architecture snip of snip is
     signal buffer_i_ren     : std_logic;
     signal buffer_i_dataout : regflit;
 
+    signal buffer_i_flush   : std_logic;
+    signal buffer_i_enable  : std_logic;
     signal buffer_i_status  : BufferStatusType;
+
+    ---------------------
+    -- Warning Signals --
+    ---------------------
+
+    signal mpe_routing_header       : regword;
+
+    signal warning_req              : std_logic;
+    signal warning_ack              : std_logic;
+    signal warning_param            : WarningParametersType;
+
+    signal warning_excessive_data   : std_logic;
+    signal warning_unexpected_data  : std_logic;
+    signal warning_abnormal_periph  : std_logic;
+    signal warning_overwritten_line : std_logic;
+    signal warning_full_table_write : std_logic;
+    signal warning_failed_auth      : std_logic;
+
+    signal unlock_warnings          : std_logic;
+    
+    -- in param
+    signal incoming_source          : regflit;
+    signal incoming_f1              : regflit;
+    signal incoming_f2              : regflit;
+    signal line_index               : integer range 0 to TABLE_SIZE-1;
+
+    -- out param
+    signal warning_f1               : regflit;
+    signal warning_f2               : regflit;
+    signal warning_pkt_source       : regflit;
+    signal warning_slot_index       : integer range 0 to TABLE_SIZE-1;
+
 
 begin
 
@@ -164,7 +200,12 @@ begin
         primaryOut      => tableOut_handlerIn,
 
         secondaryIn     => tableIn_builderOut,
-        secondaryOut    => tableOut_builderIn
+        secondaryOut    => tableOut_builderIn,
+
+        warn_overwrite  => warning_overwritten_line,
+        warn_full_table => warning_full_table_write,
+        warn_fail_auth  => warning_failed_auth,
+        line_index      => line_index
     );
 
     ----------------------------------
@@ -189,9 +230,16 @@ begin
         response_param      => response_param,
         tx_status           => tx_status,
 
+        mpe_routing_header  => mpe_routing_header,
+
         buffer_wdata        => buffer_o_datain,
         buffer_wen          => buffer_o_wen,
-        buffer_full         => buffer_o_status.full
+        buffer_full         => buffer_o_status.full,
+
+        unlock_warnings     => unlock_warnings,
+        incoming_source     => incoming_source,
+        incoming_f1         => incoming_f1,
+        incoming_f2         => incoming_f2
     );
 
     ----------------------------------
@@ -220,9 +268,23 @@ begin
         response_param_in   => response_param,
         status              => tx_status,
 
+        warning_req         => warning_req,
+        warning_ack         => warning_ack,
+        warning_param       => warning_param,
+        warning_f1          => warning_f1,
+        warning_f2          => warning_f2,
+        warning_pkt_source  => warning_pkt_source,
+        warning_slot_index  => warning_slot_index,
+
+        mpe_routing_header  => mpe_routing_header,
+
         buffer_rdata        => buffer_i_dataout,
         buffer_ren          => buffer_i_ren,
-        buffer_empty        => buffer_i_status.empty
+        buffer_empty        => buffer_i_status.empty,
+        buffer_flush        => buffer_i_flush,
+        buffer_enable       => buffer_i_enable,
+
+        warn_excessive_data => warning_excessive_data
     );
 
     ------------------------------
@@ -241,8 +303,11 @@ begin
         r_en    => buffer_o_ren,
         data_o  => buffer_o_dataout,
 
+        flush   => buffer_o_flush,
         status  => buffer_o_status
     );
+
+    buffer_o_flush <= '0';
 
     InputBuffer: entity work.snip_io_buffer
     port map
@@ -256,8 +321,43 @@ begin
         r_en    => buffer_i_ren,
         data_o  => buffer_i_dataout,
 
+        flush   => buffer_i_flush,
         status  => buffer_i_status
     );
+
+    -----------------------------------
+    -- Warning Manager Instantiation --
+    -----------------------------------
+
+    WarningManager: entity work.snip_warning_manager
+    port map
+    (
+        clock                   => clock,
+        reset                   => reset,
+
+        abnormal_periph_input   => warning_abnormal_periph,
+        line_overwritten_input  => warning_overwritten_line,
+        full_table_write_input  => warning_full_table_write,
+        failed_auth_input       => warning_failed_auth,
+
+        warning_req             => warning_req,
+        warning_ack             => warning_ack,
+        warning_param           => warning_param,
+
+        unlock_warnings         => unlock_warnings,
+        incoming_source         => incoming_source,
+        incoming_f1             => incoming_f1,
+        incoming_f2             => incoming_f2,
+        line_index              => line_index,
+
+        warning_f1              => warning_f1,
+        warning_f2              => warning_f2,
+        warning_pkt_source      => warning_pkt_source,
+        warning_slot_index      => warning_slot_index
+    );
+
+    warning_unexpected_data <= buffer_i_wen and not buffer_i_enable;
+    warning_abnormal_periph <= warning_unexpected_data or warning_excessive_data;
 
     --------------------------------------------------
     -- Peripheral Instantiation -- Testing Purposes --
@@ -276,7 +376,12 @@ begin
         data_out            => buffer_i_datain,
 
         space_unavailable   => buffer_i_status.full,
-        data_unavailable    => buffer_o_status.empty
+        data_unavailable    => buffer_o_status.empty,
+
+        r_buffer_enable     => buffer_o_enable,
+        w_buffer_enable     => buffer_i_enable
     );
+
+    buffer_o_enable <= '1';
 
 end architecture;

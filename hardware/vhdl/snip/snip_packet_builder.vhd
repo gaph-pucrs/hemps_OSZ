@@ -28,9 +28,23 @@ entity snip_packet_builder is
         response_param_in   : in    ResponseParametersType;
         status              : out   TransmissionStatusType;
 
+        warning_req         : in    std_logic;
+        warning_ack         : out   std_logic;
+        warning_param       : in    WarningParametersType;
+        warning_f1          : in    regflit;
+        warning_f2          : in    regflit;
+        warning_pkt_source  : in    regflit;
+        warning_slot_index  : in    integer range 0 to TABLE_SIZE-1;
+
+        mpe_routing_header  : in    regword;
+
         buffer_rdata        : in    regflit;
         buffer_ren          : out   std_logic;
-        buffer_empty        : in    std_logic
+        buffer_empty        : in    std_logic;
+        buffer_flush        : out   std_logic;
+        buffer_enable       : out   std_logic;
+
+        warn_excessive_data : out   std_logic
     );
 end entity;
 
@@ -40,7 +54,7 @@ architecture snip_packet_builder of snip_packet_builder is
     -- FSM SIGNALS --
     -----------------
 
-    type PacketBuilderState is (WAIT_REQ, CHECK_TABLE, HERMES_FIXED_HEADER, HERMES_PATH, HERMES_HEADER, DATA_PAYLOAD, REJECT_REQUEST);
+    type PacketBuilderState is (WAIT_REQ, CHECK_TABLE, HERMES_FIXED_HEADER, HERMES_PATH, HERMES_HEADER, DATA_PAYLOAD, CHECK_BUFFER, BUILD_WARNING, REJECT_REQUEST);
 
     signal state                : PacketBuilderState;
     signal next_state           : PacketBuilderState;
@@ -52,6 +66,7 @@ architecture snip_packet_builder of snip_packet_builder is
     ----------------------
 
     signal response_param_reg   : ResponseParametersType;
+    signal warning_param_reg    : WarningParametersType;
 
     ---------------------------
     -- HERMES HEADER SIGNALS --
@@ -59,7 +74,7 @@ architecture snip_packet_builder of snip_packet_builder is
     
     signal fixed_header_flit    : integer range 0 to FIXED_HEADER_SIZE;
     signal path_flit            : integer range 0 to MAX_PATH_FLITS;
-    signal header_flit          : integer range 0 to DYNAMIC_HEADER_SIZE;
+    signal header_flit          : integer range 0 to FULL_HEADER_SIZE;
 
     signal fixed_header_end     : std_logic;
     signal path_end             : std_logic;
@@ -67,6 +82,8 @@ architecture snip_packet_builder of snip_packet_builder is
 
     signal header_tx            : std_logic;
     signal header_eop           : std_logic;
+
+    signal warning_end          : std_logic;
 
     --------------------------
     -- DATA PAYLOAD SIGNALS --
@@ -82,6 +99,9 @@ architecture snip_packet_builder of snip_packet_builder is
     
     signal data_tx              : std_logic;
     signal data_eop             : std_logic;
+    signal warning_eop          : std_logic;
+
+    signal buffer_enable_sig    : std_logic;
 
 begin
 
@@ -98,16 +118,26 @@ begin
         end if;
     end process;
 
-    NextState: process(state, response_req, response_param_reg, tableIn, fixed_header_end, path_end, header_end, data_eop, hermes_tx)
+    NextState: process(state, response_req, warning_req, response_param_reg, tableIn, fixed_header_end, path_end, header_end, data_eop, hermes_tx, warning_end)
     begin
         case state is
 
             when WAIT_REQ =>
 
-                if response_req='1' then
+                if warning_req='1' then
+                    next_state <= BUILD_WARNING;
+                elsif response_req='1' then
                     next_state <= CHECK_TABLE;
                 else
                     next_state <= WAIT_REQ;
+                end if;
+            
+            when BUILD_WARNING =>
+                
+                if warning_end='1' and hermes_tx='1' then
+                    next_state <= WAIT_REQ;
+                else
+                    next_state <= BUILD_WARNING;
                 end if;
 
             when CHECK_TABLE =>
@@ -151,10 +181,14 @@ begin
             when DATA_PAYLOAD =>
 
                 if data_eop='1' and hermes_tx='1' then
-                    next_state <= WAIT_REQ;
+                    next_state <= CHECK_BUFFER;
                 else
                     next_state <= DATA_PAYLOAD;
                 end if;
+            
+            when CHECK_BUFFER =>
+
+                next_state <= WAIT_REQ;
 
             when REJECT_REQUEST =>
 
@@ -169,7 +203,7 @@ begin
 
     status.busy <= '1' when state/=WAIT_REQ else '0';
     status.rejected <= '1' when state=REJECT_REQUEST else '0';
-    status.accepted <= '1' when state/=WAIT_REQ and state/=CHECK_TABLE and state/=REJECT_REQUEST else '0';
+    status.accepted <= '1' when state=HERMES_FIXED_HEADER or state=HERMES_PATH or state=HERMES_HEADER or state=DATA_PAYLOAD else '0';
 
     nonsecure <= '1' when tableIn.appID=x"0000" and tableIn.key1=x"0000" and tableIn.key2=x"0000" else '0';
 
@@ -189,6 +223,32 @@ begin
     tableOut.tag <= response_param_reg.appId;
 
     send_data <= '1' when response_param_reg.txMode=THROUGH_HERMES and response_param_reg.hermesService=IO_DELIVERY_SERVICE else '0';
+
+    --------------------------------------------
+    -- WARNING PARAM REGISTER AND ACKNOWLEDGE --
+    --------------------------------------------
+
+    WarningParamRegister: process(clock)
+    begin
+        if rising_edge(clock) then
+            if state=WAIT_REQ and warning_req='1' then
+                warning_param_reg <= warning_param;
+            end if;
+        end if;
+    end process;
+
+    AknowledgeWarningRequest: process(clock, reset)
+    begin
+        if reset='1' then
+            warning_ack <= '0';
+        elsif rising_edge(clock) then
+            if state=WAIT_REQ and warning_req='1' then
+                warning_ack <= '1';
+            elsif state=BUILD_WARNING and warning_req='0' then
+                warning_ack <= '0';
+            end if;
+        end if;
+    end process;
 
     ----------------------------
     -- OUTPUT FLIT GENERATION --
@@ -233,13 +293,14 @@ begin
         elsif rising_edge(clock) then
             if state=WAIT_REQ then
                 header_flit <= 0;
-            elsif state=HERMES_HEADER and hermes_credit_in='1' then
+            elsif (state=HERMES_HEADER or state=BUILD_WARNING) and hermes_credit_in='1' then
                 header_flit <= header_flit + 1;
             end if;
         end if;
     end process;
 
     header_end <= '1' when header_flit=DYNAMIC_HEADER_SIZE-1 else '0';
+    warning_end <= '1' when header_flit=FULL_HEADER_SIZE-1 else '0';
 
     FlitGenerator: process(state, fixed_header_flit, path_flit, header_flit, tableIn, data_flit_ready, response_param_reg, buffer_rdata)
     begin
@@ -250,7 +311,7 @@ begin
 
             if fixed_header_flit=0 then
                 -- hermes_data_out <= x"6021";
-                hermes_data_out <= x"6" & (tableIn.key1(11 downto 0) xor tableIn.key2(11 downto 0));
+                hermes_data_out <= x"6" & (tableIn.key1(11 downto 0) xor tableIn.key2(11 downto 0)); -- src
             else
                 hermes_data_out <= response_param_reg.target;
             end if;
@@ -355,6 +416,80 @@ begin
             else
                 hermes_data_out <= x"0000";
             end if;
+        
+        elsif state=BUILD_WARNING then
+
+            -- flit positions are offsetted from HERMES_HEADER because packet headers are also considered here
+        
+            -- fixed header
+
+            if header_flit=0 then
+                hermes_data_out <= x"0" & mpe_routing_header(TAM_WORD-5 downto TAM_FLIT); -- Hardcode begining of flit to XY (not actually used for routing)
+            elsif header_flit=1 then
+                hermes_data_out <= mpe_routing_header(TAM_FLIT-1 downto 0);
+            
+            -- routing header
+
+            elsif header_flit=2 then
+                hermes_data_out <= mpe_routing_header(TAM_WORD-1 downto TAM_FLIT);
+            elsif header_flit=3 then
+                hermes_data_out <= mpe_routing_header(TAM_FLIT-1 downto 0);
+
+            -- packet size
+
+            elsif header_flit=5 then
+                hermes_data_out <= x"000B"; -- no payload: 11 words
+
+            -- service
+
+            elsif header_flit=6 then
+                hermes_data_out <= IO_WARNING_SERVICE(TAM_WORD-1 downto TAM_FLIT);
+            elsif header_flit=7 then
+                hermes_data_out <= IO_WARNING_SERVICE(TAM_FLIT-1 downto 0);
+
+            -- warning code
+
+            elsif header_flit=9 then
+
+                if warning_param_reg.warning_type=ABNORMAL_PERIPHERAL then
+                    hermes_data_out <= ABNORMAL_PERIPH_CODE;
+
+                elsif warning_param_reg.warning_type=OVERWRITTEN_ROW then
+                    hermes_data_out <= OVERWRITTEN_ROW_CODE;
+
+                elsif warning_param_reg.warning_type=WRITE_ON_FULL_TABLE then
+                    hermes_data_out <= WRITE_ON_FULL_TABLE_CODE;
+                
+                elsif warning_param_reg.warning_type=FAILED_AUTHENTICATION then
+                    hermes_data_out <= FAILED_AUTH_CODE;
+                
+                end if;
+            
+            -- snip id
+
+            elsif header_flit=11 then
+                hermes_data_out <= SNIP_ID;
+            
+            -- packet source
+
+            elsif header_flit=13 and (warning_param_reg.warning_type=OVERWRITTEN_ROW or warning_param_reg.warning_type=WRITE_ON_FULL_TABLE or warning_param_reg.warning_type=FAILED_AUTHENTICATION) then
+                hermes_data_out <= warning_pkt_source;
+            
+            -- f1/f2
+
+            elsif header_flit=14 and (warning_param_reg.warning_type=OVERWRITTEN_ROW or warning_param_reg.warning_type=WRITE_ON_FULL_TABLE or warning_param_reg.warning_type=FAILED_AUTHENTICATION) then
+                hermes_data_out <= warning_f1;
+            elsif header_flit=15 and (warning_param_reg.warning_type=OVERWRITTEN_ROW or warning_param_reg.warning_type=WRITE_ON_FULL_TABLE or warning_param_reg.warning_type=FAILED_AUTHENTICATION) then
+                hermes_data_out <= warning_f2; 
+            
+            -- overwritten line index
+
+            elsif header_flit=17 and (warning_param_reg.warning_type=OVERWRITTEN_ROW) then
+                hermes_data_out <= conv_std_logic_vector(warning_slot_index, hermes_data_out'length);
+
+            else
+                hermes_data_out <= x"0000";
+            end if;
 
         ---- DEFAULT OUTPUT ----
 
@@ -411,13 +546,29 @@ begin
     data_tx     <= data_flit_ready and hermes_credit_in;
 
     hermes_tx <=
-        header_tx   when (state=HERMES_FIXED_HEADER or state=HERMES_PATH or state=HERMES_HEADER)    else
-        data_tx     when (state=DATA_PAYLOAD)                                                       else
+        header_tx   when (state=HERMES_FIXED_HEADER or state=HERMES_PATH or state=HERMES_HEADER or state=BUILD_WARNING) else
+        data_tx     when (state=DATA_PAYLOAD)                                                                           else
         '0';
 
     header_eop      <= '1' when state=HERMES_HEADER and header_end='1' and send_data='0' else '0';
     data_eop        <= data_flit_ready and last_data_flit;
+    warning_eop     <= '1' when state=BUILD_WARNING and warning_end='1' else '0';
 
-    hermes_eop_out  <= header_eop when (state=HERMES_HEADER) else data_eop when (state=DATA_PAYLOAD) else '0';
+    hermes_eop_out <=
+        header_eop  when (state=HERMES_HEADER)  else
+        data_eop    when (state=DATA_PAYLOAD)   else
+        warning_eop when (state=BUILD_WARNING)  else
+        '0';
+
+    -----------------------
+    -- GENERATE WARNINGS --
+    -----------------------
+
+    warn_excessive_data <= '1' when state=CHECK_BUFFER and buffer_empty='0' else '0';
+    
+    buffer_flush <= '1' when state=CHECK_BUFFER else '0';
+
+    buffer_enable_sig <= '1' when state=DATA_PAYLOAD else '0';
+    buffer_enable <= buffer_enable_sig;
 
 end architecture;

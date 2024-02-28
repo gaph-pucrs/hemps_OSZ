@@ -17,14 +17,19 @@ entity dummy_peripheral is
         data_out            : out   regflit;
 
         space_unavailable   : in    std_logic;
-        data_unavailable    : in    std_logic
+        data_unavailable    : in    std_logic;
+
+        r_buffer_enable     : in    std_logic;
+        w_buffer_enable     : in    std_logic
     );
 end entity;
 
 architecture dummy_peripheral of dummy_peripheral is
 
-    constant RW_LATENCY : integer := 2;
-    constant BUFFER_SIZE : integer := 64;
+    constant RW_LATENCY         : integer := 2;     -- latency for the reception of each flit
+    constant SEND_DELAY         : integer := 16;    -- delay to wait after sending a burst of flits
+    constant OUTPUT_BURST_SIZE  : integer := 20;    -- number of flits sent in each output interaction
+    constant BUFFER_SIZE        : integer := 64;
 
     type FlitArray is array(0 to BUFFER_SIZE-1) of regflit;
 
@@ -37,7 +42,13 @@ architecture dummy_peripheral of dummy_peripheral is
     type ReceiveState is (WAIT_REQ, WAIT_LAT, WRITE_FLIT);
     signal r_state      : ReceiveState;
     signal r_next_state : ReceiveState;
-    signal lat_count_r  : integer range 0 to RW_LATENCY;
+    signal lat_count_r  : integer range 0 to RW_LATENCY; 
+
+    type SendState is (WAIT_CREDIT, SEND_FLITS, WAIT_DELAY);
+    signal s_state      : SendState;
+    signal s_next_state : SendState;
+    signal cnt_flits_s  : integer range 0 to OUTPUT_BURST_SIZE;
+    signal cnt_delay_s  : integer range 0 to SEND_DELAY;
 
 begin
 
@@ -125,7 +136,7 @@ begin
     -- Write --
     -----------
 
-    w_en <= not space_unavailable;
+    w_en <= '1' when s_state=SEND_FLITS and space_unavailable='0' and w_buffer_enable='1' else '0';
 
     data_out <= buffer_out(ptr_out);
 
@@ -155,4 +166,66 @@ begin
         end if;
     end process;
 
+    ChangeSendState: process(clock, reset)
+    begin
+        if reset='1' then
+            s_state <= WAIT_CREDIT;
+        elsif rising_edge(clock) then
+            s_state <= s_next_state;
+        end if;
+    end process;
+
+    NextSendStateLogic: process(s_state, w_buffer_enable, cnt_flits_s, cnt_delay_s)
+    begin
+        case s_state is
+
+            when WAIT_CREDIT =>
+
+                if w_buffer_enable='1' then
+                    s_next_state <= SEND_FLITS;
+                else
+                    s_next_state <= WAIT_CREDIT;
+                end if;
+
+            when SEND_FLITS =>
+
+                if cnt_flits_s=OUTPUT_BURST_SIZE-1 then
+                    s_next_state <= WAIT_DELAY;
+                else
+                    s_next_state <= SEND_FLITS;
+                end if;
+            
+            when WAIT_DELAY =>
+
+                if cnt_delay_s=SEND_DELAY-1 then
+                    s_next_state <= WAIT_CREDIT;
+                else
+                    s_next_state <= WAIT_DELAY;
+                end if;
+            
+        end case;
+    end process;
+
+    SendCounters: process(clock, reset)
+    begin
+        if reset='1' then
+            cnt_flits_s <= 0;
+            cnt_delay_s <= 0;
+
+        elsif rising_edge(clock) then
+
+            if s_state=WAIT_CREDIT then
+                cnt_flits_s <= 0;
+                cnt_delay_s <= 0;
+            
+            elsif s_state=SEND_FLITS and w_en='1' then
+                cnt_flits_s <= cnt_flits_s + 1;
+            
+            elsif s_state=WAIT_DELAY then
+                cnt_delay_s <= cnt_delay_s + 1;
+            end if;
+        
+        end if;
+    end process;
+    
 end architecture;
