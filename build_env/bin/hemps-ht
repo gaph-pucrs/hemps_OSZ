@@ -79,7 +79,7 @@ if system_model == "sc":
 elif system_model == "scmod" or system_model == "vhdl" or system_model == "hybrid":
      
     Popen("cd "+testacase_dir+"/debug; python3 forceFromLog.py", shell=True) 
-    subprocess.call("cd "+testacase_dir+"; vsim -do sim.do", shell=True)
+    subprocess.call("cd "+testacase_dir+"; vsim -c -do sim.do", shell=True)
     
 if ENABLE_GUI == 1:
         call_debugger(testacase_dir)
