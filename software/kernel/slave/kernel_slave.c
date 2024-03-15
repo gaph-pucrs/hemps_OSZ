@@ -1882,11 +1882,11 @@ int SeekInterruptHandler(){
 			}
 			#endif
 
-			if (aux == -1){
-				puts("Target not found -- ATTACK?\n");
-				Seek(LC_NOTIFICATION, ((seek_unr_count<<16) | (get_net_address()&0xffff)), cluster_master_address, 0);
-				break;
-			}
+			// if (aux == -1){ // W5 -SUSPICIOUS ROUTE - MELHORAR BUSCA PELO TARGET DO PACOTE - NÃO ENGLOBA MD/MR/IO
+			// 	puts("Target not found -- ATTACK?\n");
+			// 	Seek(LC_NOTIFICATION, ((seek_unr_count<<16) | (get_net_address()&0xffff)), cluster_master_address, 0); // PASSAR A PORTA DO TUS PRO MANAGER E ELE DECIDE
+			// 	break;
+			// }
 
 			Seek(SEARCHPATH_SERVICE, ((seek_unr_count<<16) | (get_net_address()&0xffff)), source>>16, 0);
 			seek_unr_count++;
@@ -1906,6 +1906,14 @@ int SeekInterruptHandler(){
 			Seek(CLEAR_SERVICE, ((SR_Table[slot_seek].target<<16) | (get_net_address()&0xffff)), 0,0);
 
 			auxProducer = get_task_from_PE(SR_Table[slot_seek].target);
+
+			if(current->secure == 0)
+			{
+				puts("Nonsecure application, resend pending packets.\n");
+				resend_msg_request(SR_Table[slot_seek].target);
+				resend_messages(SR_Table[slot_seek].target);
+				break;
+			}
 
 			aux  = checkSessionSuspicious(Sessions, auxProducer); // Quantas mensagens tem pra reenviar
 			puts("Tem que reenviar: "); puts(itoa(aux)); puts("\n");
