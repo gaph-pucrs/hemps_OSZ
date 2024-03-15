@@ -35,14 +35,24 @@ int main(int argc, char *argv[])
 	Message msgIO;
 	
 	//IO: get num nodes
-	msgIO.length = 1;
+	/* IO_READ */
+    msgIO.length = 3;      // Message size = 3 words (IO Header)
+    msgIO.msg[0] = 0x1010; // OpCode = 0x1010 (IO_READ)
+    msgIO.msg[1] = 0xc4ff; // Address = 0xc4ff (doesn't matter, is unused)
+    msgIO.msg[2] = 0x0014; // Request size = 20 flits (must be 20 flits)
 	IOReceive(&msgIO, IO_PERIPHERAL);
 
 	//IO: get graph
 	int num_weights = NUM_NODES * NUM_NODES;
 	for(int x = 0; x < num_weights; x += MSG_SIZE)
 	{
-		msgIO.length = (num_weights - x > MSG_SIZE) ? MSG_SIZE : num_weights - x;
+		//msgIO.length = (num_weights - x > MSG_SIZE) ? MSG_SIZE : num_weights - x;
+
+		/* IO_READ */
+        msgIO.length = 3;      // Message size = 3 words (IO Header)
+        msgIO.msg[0] = 0x1010; // OpCode = 0x1010 (IO_READ)
+        msgIO.msg[1] = 0xc4ff; // Address = 0xc4ff (doesn't matter, is unused)
+        msgIO.msg[2] = 0x0014; // Request size = 20 flits (must be 20 flits)
 		IOReceive(&msgIO, IO_PERIPHERAL);
 		Echo(".");
 	}

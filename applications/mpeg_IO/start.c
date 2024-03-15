@@ -39,9 +39,6 @@ int main(){
    Echo("MPEG Task A start:  ");
    //Echo(itoa(GetTick()));
 
-
-   msgIO.length = 128;
-
    for(i=0; i<128; i++){
         msg1.msg[i] = vlc_array[i];
    }
@@ -52,7 +49,14 @@ int main(){
 	   {
        Echo(" START FOR");
        time_a = GetTick();
+       
+       /* IO_READ */
+       msgIO.length = 3;      // Message size = 3 words (IO Header)
+       msgIO.msg[0] = 0x1010; // OpCode = 0x1010 (IO_READ)
+       msgIO.msg[1] = 0xc4ff; // Address = 0xc4ff (doesn't matter, is unused)
+       msgIO.msg[2] = 0x0014; // Request size = 20 flits (must be 20 flits)
        IOReceive(&msgIO, IO_PERIPHERAL);
+       
        Send(&msg1,ivlc);
        time_b = GetTick();
        Echo(itoa(time_b-time_a));
