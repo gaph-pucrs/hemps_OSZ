@@ -804,13 +804,13 @@ begin
     hermesControl.request       <= hermes_rx;
     hermesControl.acceptingFlit <= hermes_rx and hermes_credit_out;
 
-    hermesControl.payloadIsPath <= '1' when hermes_service_valid='1'    and (hermes_service=IO_CONFIG_SERVICE)                                  else '0';
-    hermesControl.payloadIsData <= '1' when hermes_service_valid='1'    and (hermes_service=IO_DELIVERY_SERVICE)                                else '0';
+    hermesControl.payloadIsPath <= '1' when hermes_service_valid='1'    and (hermes_service=IO_CONFIG_SERVICE)                                          else '0';
+    hermesControl.payloadIsData <= '1' when hermes_service_valid='1'    and (hermes_service=IO_DELIVERY_SERVICE or hermes_service=IO_REQUEST_SERVICE)   else '0';
 
-    hermesControl.receivingHeader   <= '1' when stage=START_RECEPTION   and (start_rx_state=WAIT_REQUEST or start_rx_state=PARSE_HERMES_HEADER) else '0';
-    hermesControl.receivingPath     <= '1' when stage=ACCESS_TABLE      and (table_state=SAVE_PATH or table_state=SAVE_EXTRA_PATH)              else '0';
-    hermesControl.receivingData     <= '1' when stage=RECEIVE_DATA      and (data_state=CONSUME_DATA_FLIT)                                      else '0';
-    hermesControl.droppingPackage   <= '1' when stage=FINISH_RECEPTION  and (finish_rx_state=DROP_FLIT)                                         else '0';
+    hermesControl.receivingHeader   <= '1' when stage=START_RECEPTION   and (start_rx_state=WAIT_REQUEST or start_rx_state=PARSE_HERMES_HEADER)         else '0';
+    hermesControl.receivingPath     <= '1' when stage=ACCESS_TABLE      and (table_state=SAVE_PATH or table_state=SAVE_EXTRA_PATH)                      else '0';
+    hermesControl.receivingData     <= '1' when stage=RECEIVE_DATA      and (data_state=CONSUME_DATA_FLIT)                                              else '0';
+    hermesControl.droppingPackage   <= '1' when stage=FINISH_RECEPTION  and (finish_rx_state=DROP_FLIT)                                                 else '0';
 
     hermesControl.endOfHeader <= '1' when header_flit=END_OF_HEADER_FLIT else '0';
     hermesControl.endOfPacket <= hermes_eop_in;

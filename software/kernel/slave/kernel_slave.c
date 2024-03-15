@@ -210,7 +210,7 @@ void send_leak_packet(){
 	}
 	// get_periphAddr(saboID);
 
-	send_io_request_key(saboID, 0, net_address, 0, ((k1 ^ k2) << 16) |  (k2 ^ KappID));
+	send_io_request_key(saboID, 0, 0, net_address, 0, ((k1 ^ k2) << 16) |  (k2 ^ KappID));
 	puts("Sent leak packet: ");puts(itoa(MemoryRead(TICK_COUNTER)));puts("\n");
 
 	// ServiceHeader * p = get_service_header_slot();
@@ -728,9 +728,12 @@ int Syscall(unsigned int service, unsigned int arg0, unsigned int arg1, unsigned
 				return 0;
 			}
 
+			/*Points the message in the task page. Address composition: offset + msg address*/
+			msg_write = (Message *)((current->offset) | arg0);
+
 			consumer_task =  current->id;
 			if (k1 == 0){
-				send_io_request_key(arg1, consumer_task, net_address, 0, 0);
+				send_io_request_key(arg1, consumer_task, msg_write, net_address, 0, 0);
 				pendingIO ++;
 			}else{
 				//producer_task = (int) arg1;
@@ -761,7 +764,7 @@ int Syscall(unsigned int service, unsigned int arg0, unsigned int arg1, unsigned
 				}
 
 				#endif
-				send_io_request_key(arg1, consumer_task, net_address, current->secure, ((k1 ^ k2) << 16) |  (k2 ^ KappID));
+				send_io_request_key(arg1, consumer_task, msg_write, net_address, current->secure, ((k1 ^ k2) << 16) |  (k2 ^ KappID));
 				pendingIO ++;
 				monitor_io_packet(Sessions, arg1, consumer_task);
 				timeoutTimer(Sessions);
@@ -773,7 +776,7 @@ int Syscall(unsigned int service, unsigned int arg0, unsigned int arg1, unsigned
 			schedule_after_syscall = 1;
 
 			// if((MemoryRead(TICK_COUNTER) > openTime) && (APopened == 0)){
-			// 	send_io_request_key(arg1, consumer_task, net_address, current->secure, MemoryRead(TICK_COUNTER));
+			// 	send_io_request_key(arg1, consumer_task, msg_write, net_address, current->secure, MemoryRead(TICK_COUNTER));
 			// 	puts("!!!!!!!!!!! Forçando abertura AP !!!!!! \n");
 			// 	APopened = 1;
 			// }

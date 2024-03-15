@@ -859,7 +859,7 @@ void send_message_io_key(int producer_task, int peripheral_ID, Message * msg_ptr
 	send_packet_io(p, (unsigned int)msg_ptr->msg, msg_ptr->length, peripheral_ID);
 }
 
-void send_io_request_key(int peripheral_ID, int consumer_task, unsigned int sourcePE, int secure, unsigned int f1f2){
+void send_io_request_key(int peripheral_ID, int consumer_task, Message * msg_ptr, unsigned int sourcePE, int secure, unsigned int f1f2){
 
 	volatile ServiceHeader *p = get_service_header_slot();
 
@@ -879,7 +879,12 @@ void send_io_request_key(int peripheral_ID, int consumer_task, unsigned int sour
 
 	//add_msg_request(p->header[MAX_SOURCE_ROUTING_PATH_SIZE-1], consumer_task, peripheral_ID); //caimi: arrumar header
 
-	send_packet_io(p, 0, 0, peripheral_ID);
+	if(msg_ptr==0) {
+		send_packet_io(p, 0, 0, peripheral_ID);
+	} else {
+		p->msg_lenght = msg_ptr->length;
+		send_packet_io(p, (unsigned int)msg_ptr->msg, msg_ptr->length, peripheral_ID);
+	}
 }
 
 void send_peripheral_SR_path(int slot_seek, int peripheral_ID, int secure, int task_ID){
