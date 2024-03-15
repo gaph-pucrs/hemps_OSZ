@@ -1845,7 +1845,7 @@ int SeekInterruptHandler(){
 			// puts("target: "); puts(itoh(target)); puts("\n");
 			// puts("payload: "); puts(itoh(payload)); puts("\n");
 
-			if(payload == 1)
+			if(payload == 0xFF)
 			{
 				auxCode = ((source >> 16) & 0xFFC0); // 10-bit Code
 				auxIndex = checkSessionCode(Sessions, auxCode);

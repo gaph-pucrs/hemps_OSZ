@@ -893,5 +893,5 @@ void requestRecoverySearchpath(int sessionCode, int target){
 	seek_puts("[SEARCHPATH DEBUG] Requesting recovery searchpath\n");
 	seek_puts("[SEARCHPATH DEBUG] Target: "); seek_puts(itoh(target)); seek_puts("\n");
 	
-	Seek(TARGET_UNREACHABLE_SERVICE, ((sessionCode << 16) | (net_address & 0xffff)), target, 1);
+	Seek(TARGET_UNREACHABLE_SERVICE, ((sessionCode << 16) | (net_address & 0xffff)), target, 0xFF);
 }
