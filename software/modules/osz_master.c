@@ -25,16 +25,89 @@
 unsigned int address_go, address_back;
 unsigned int port_go, port_back;  // 0-EAST; 1 - WEST ; 2 - NORTH; 3 - SOUTH
 
+
+// Adiciona um warning no array, se já houver, conta +1
+void addReport(Warning w){
+    int index;
+    index = searchReport(w.type, w.source);
+    if (index >= 0){
+        reportList[index].count++;
+    }
+    else{
+        index = getReportSlot();
+        if (index < 0){
+            puts("---------REPORT FULL---------\n");
+        }
+        reportList[index].type =  w.type;
+        reportList[index].source = w.source;
+        reportList[index].count = 1;
+        reportList[index].pcktSource = w.pcktSource; 
+        reportList[index].timestamp = w.timestamp; 
+    }
+    return;
+}
+
+// Procura por um report com o tipo e source
+int searchReport(int type, int source){
+    int i;
+    for (i = 0; i < REPORT_SIZE; i++){
+        if (reportList[i].type == EMPTY_REPORT_SLOT) {
+            return -1;
+        }else if ((reportList[i].type == type) && (reportList[i].source == source)){
+            return i;
+        }
+    }
+    return -1;
+}
+
+int getReportSlot(){
+    int i;
+    for (i = 0; i < REPORT_SIZE; i++){
+        if (reportList[i].type == EMPTY_REPORT_SLOT) {
+            return i;
+        }
+    }
+    return -1;
+}
+
+
+void printReport(){
+    int i,j;
+    for (i = 1; i <= W6_ACCESS_ATTEMPT; i++){
+        puts("****************************\n");
+        puts("Warnings of type W");puts(itoa(i));puts(":\n"); // Printar o nome do serviço
+        puts("****************************\n");
+        for (j = 0; j < REPORT_SIZE; j++){
+            if (reportList[j].type == EMPTY_REPORT_SLOT) {
+                break;
+            }else if (reportList[j].type == i) {
+                // puts("****************************\n ");
+                puts("source: ");puts(itoh(reportList[j].source));puts("\n");
+                puts("count: ");puts(itoa(reportList[j].count));puts("\n");
+                puts("pcktSource: ");puts(itoh(reportList[j].pcktSource));puts("\n");
+                puts("timestamp: ");puts(itoa(reportList[j].timestamp));puts("\n");
+                puts("------------\n");
+            }
+    
+
+        }
+    }
+}
+
 int get_k0(int proc_addr){
     return k0table[(proc_addr>>8)][(proc_addr & 0xff)];
 }
 
-int get_NI_k0(int periphID){
+unsigned int get_NI_k0(int periphID){
     int i;
-    for (i = 0; i < IO_NUMBER; i++)
-        if (io_info[i].peripheral_id == periphID)
+    // puts("Searching for k0 for: ");puts(itoa(periphID));puts("\n");
+    for (i = 0; i < IO_NUMBER; i++){
+        // puts("-- ID = "); puts(itoa(io_info[i].peripheral_id)); puts(" // k0= "); puts(itoh(k0NItable[i]));puts("\n");
+        if (io_info[i].peripheral_id == periphID){
+            // puts("-- Found: "); puts(itoh(k0NItable[i]));puts("\n");
             break;
-    
+        }
+    }
     return k0NItable[i];
 }
 
@@ -256,8 +329,10 @@ int search_shape_in_cluster(int X_size, int Y_size, Shapes shape[], int cont, in
     int x, y, used_in_SWS, result;
 
 #ifdef GRAY_AREA // Se for GA, mapear da Esquerda pra direita
-    for(y = YCLUSTER-Y_size; y >= 0; y--){
-        for(x = 0; x<=XCLUSTER-X_size; x++){
+    // for(y = YCLUSTER-Y_size; y >= 0; y--){
+    //     for(x = 0; x<=XCLUSTER-X_size; x++){
+    for(x = 0; x<=XCLUSTER-X_size; x++){
+        for(y = 0; y <= YCLUSTER-Y_size; y++){
 #else // SWS TOP-RIGHT left
     for(y = YCLUSTER-Y_size; y >= 0; y--){
       for(x = XCLUSTER-X_size; x >= 0; x--){
@@ -501,16 +576,17 @@ int PE_belong_SZ(int PE_x, int PE_y){
                 xf =  xi + Secure_Zone[i].X_size;
                 yf =  yi + Secure_Zone[i].Y_size;
 
-                if(Secure_Zone[i].cut != -1){
-                    xi_cut =  (Secure_Zone[i].cut >> 8) & 0XFF;
-                    yi_cut =   Secure_Zone[i].cut  & 0XFF;
+                // Comentando pq não tem mais CUT e tava pegando pe desocupado como fora da OSZ
+                // if(Secure_Zone[i].cut != -1){
+                //     xi_cut =  (Secure_Zone[i].cut >> 8) & 0XFF;
+                //     yi_cut =   Secure_Zone[i].cut  & 0XFF;
         
-                    xf_cut = (Secure_Zone[i].cut >> 24) & 0XFF;
-                    yf_cut = (Secure_Zone[i].cut >> 16) & 0XFF;
+                //     xf_cut = (Secure_Zone[i].cut >> 24) & 0XFF;
+                //     yf_cut = (Secure_Zone[i].cut >> 16) & 0XFF;
 
-                    if(((PE_x >= xi_cut) && (PE_x <= xf_cut)) && ((PE_y >= yi_cut) && (PE_y <= yf_cut))  )
-                        continue;
-                }
+                //     if(((PE_x >= xi_cut) && (PE_x <= xf_cut)) && ((PE_y >= yi_cut) && (PE_y <= yf_cut))  )
+                //         continue;
+                // }
                 //puts("\nBelong? X: ");  puts(itoa(PE_x));  puts(" Y: ");  puts(itoa(PE_y));
                 if(((PE_x >= xi) && (PE_x < xf)) && ((PE_y >= yi) && (PE_y < yf))  )
                     return 1;

@@ -34,9 +34,27 @@ void init_task_location(){
  */
 int get_task_location(int task_ID){
  
+ 	if ((task_ID & 0xFF) == 99){
+		// puts("\nSending packet to 00\n");
+		return 0;
+	}
+
 	for(int i=0; i<MAX_TASK_LOCATION; i++) {
 		if (task_location[i].id == task_ID){
 			return task_location[i].proc_address;
+		}
+	}
+	return -1;
+}
+
+/**Searches for the location of a given task
+ * \param task_ID The ID of the task
+ * \return The task location (processor address in XY)
+ */
+int get_task_from_PE(int addr){
+	for(int i=0; i<MAX_TASK_LOCATION; i++) {
+		if (task_location[i].proc_address == addr){
+			return task_location[i].id;
 		}
 	}
 	return -1;

@@ -31,7 +31,7 @@ STAND_SNIP	=snip_pkg
 SEEK_VHD 	=seek_pkg logging router_seek seek_local_controller
 
 ROUTER_VHD 	=Hermes_buffer Hermes_crossbar Hermes_switchcontrol_SR mux_control RouterCC_SR Access_Point RouterCC_AP 
-SNIP_VHDL	=snip_lfsr snip_key_generator snip_packet_handler snip_packet_builder snip_application_table snip_io_buffer dummy_peripheral snip
+SNIP_VHDL	=snip_lfsr snip_key_generator snip_packet_handler snip_packet_builder snip_application_table snip_io_buffer snip_warning_manager peripheral snip
 
 TOP_SRC	    			= $(addprefix sc/, 									$(TOP:=.cpp)  $(TOP:=.h) 			)
 PE_SRC					= $(addprefix sc/pe/, 								$(PE:=.cpp) $(PE:=.h)  				)

@@ -10,6 +10,7 @@
 #include "prod_cons_std.h"
 
 Message msg;
+Message msgIO;
 
 int main()
 {
@@ -69,10 +70,18 @@ int main()
 
 	msg.length = 10;
 
+	/* IO_WRITE */
+    msgIO.length = 13;     // Message size = 13 words (3 of IO Header + 10 of data)
+    msgIO.msg[0] = 0x2020; // OpCode = 0x2020 (IO_WRITE)
+    msgIO.msg[1] = 0xb3ff; // Address = 0xb3ff (doesn't matter, is unused)
+    msgIO.msg[2] = 0x0014; // Request size = 20 flits (must be 20 flits)
+    for(i=3; i<13; i++)
+      msgIO.msg[i] = i-3; // Fill the 10 words of data
+
 	for(i=0; i<PROD_CONS_ITERATIONS; i++){
 		Echo(itoa(i));
 		Receive(&msg, prod);
-		IOSend(&msg, IO_PERIPHERAL);
+		IOSend(&msgIO, IO_PERIPHERAL);
 		
 		Echo(itoa(msg.msg[0]));
 		Echo(itoa(msg.msg[msg.length]));

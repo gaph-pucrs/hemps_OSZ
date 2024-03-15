@@ -57,6 +57,7 @@ SC_MODULE(injector){
   sc_in   <reg_seek_service >         in_service_router_seek_primary;
   sc_in   <bool >                     in_req_router_seek_primary;
   sc_in   <bool >                     in_ack_router_seek_primary;
+  sc_in   <bool >                     in_nack_router_seek_primary;
   sc_in   <bool >                     in_opmode_router_seek_primary;
   
   sc_out  <reg_seek_service >         out_service_router_seek_primary;

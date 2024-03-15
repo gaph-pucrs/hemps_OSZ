@@ -111,6 +111,12 @@ void send_authenticate_nip(int periphID, int k0){
 
 	p->io_service = IO_INIT;
 
+	unsigned int warning_routing = (0xffff & net_address);
+	if (is_peripheral_in_gray_line(periphID) == 0)
+		warning_routing = 0x10000000 | warning_routing; //change xy to yx
+
+	p->io_task_ID = warning_routing;
+
 	send_packet_io(p, 0, 0, periphID);
 
 	while (MemoryRead(DMNI_SEND_ACTIVE));
@@ -436,6 +442,7 @@ void handle_app_terminated(int appID, unsigned int app_task_number, unsigned int
 
 	if (terminated_app_count == APP_NUMBER){
 		puts("FINISH ");puts(itoa(MemoryRead(TICK_COUNTER))); puts("\n");
+		printReport();
 		MemoryWrite(END_SIM,1);
 	}
 
@@ -843,6 +850,9 @@ void initialize_slaves(){
 	//puts("RH_addr:"); puts(itoh(RH_addr)); puts("\n");
 	//puts("LL_addr:"); puts(itoh(LL_addr)); puts("\n");            
 	Seek(INITIALIZE_SLAVE_SERVICE, (INITIALIZE_SLAVE_SERVICE <<16 | get_net_address()), LL_addr, RH_addr);
+	// Seek(LOAN_PROCESSOR_REQUEST_SERVICE, (LOAN_PROCESSOR_REQUEST_SERVICE <<16 | get_net_address()), LL_addr, RH_addr);
+	// Seek(LOAN_PROCESSOR_RELEASE_SERVICE, (LOAN_PROCESSOR_RELEASE_SERVICE <<16 | get_net_address()), LL_addr, RH_addr);
+	// Seek(LC_NOTIFICATION, (LC_NOTIFICATION <<16 | get_net_address()), LL_addr, RH_addr);
 
 	puts("Slaves inicializados:\n");
 
@@ -1022,7 +1032,9 @@ int SeekInterruptHandler(){
 	unsigned int backtrack, backtrack1, backtrack2;
 	int allocated_tasks, aux;
 	static int apChanged;
+	int slot_seek;
 	Application *app;
+	Warning w;
 	 // terminated_task_list[MAX_APP_SIZE];;
 	unsigned int target, source, service, payload;
 	//for backtrack
@@ -1039,7 +1051,7 @@ int SeekInterruptHandler(){
 	// For Sessions
 	static unsigned int appID_aux = 0;
 	static unsigned int prevPayload;
-	unsigned int nTurns, nTurns_aux =0;
+	static unsigned int nTurns, nTurns_aux =0;
 	switch(service){
 		case TARGET_UNREACHABLE_SERVICE:
 			puts(itoa(MemoryRead(TICK_COUNTER))); puts(" Received SeekUnreachable "); puts(itoh(source)); puts("\n");
@@ -1290,12 +1302,42 @@ int SeekInterruptHandler(){
 				puts("recebeu REQUEST_SNIP_RENEWAL repetido\n"); 
 				break; 
 			} 
- 
+			
+			// puts("renew payload: ");puts(itoh(payload));puts("\n");
+
+			// if (payload == 0x7){ // Type 
+			if ((payload == 0x7) || (payload == 0x2)){
+				puts("Correct AP authentication - Periodic Renew\n");
+			}else if (payload == 0x0){
+			// }else if ((payload == 0x0) || (payload == 0x2)){
+				puts("Reactive Key renewal from Move AP or Unexpected Data on OSZ\n");
+			}else{
+				PE_address = source & 0xFFFF;
+				w.source = PE_address;
+				w.pcktSource = source >> 16;
+				w.timestamp = MemoryRead(TICK_COUNTER);
+				
+				if ((payload & 0x4) == 0x0){ // Type 
+					puts("***** W3- Wrong Type *****\n");
+					w.type = W3_WRONG_PCKT_TYPE;
+				}
+				if ((payload & 0x2) == 0x0){ // Count 
+					puts("***** W2- Unex Data *****\n");
+					w.type = W2_UNEXPECTED_DATA;
+				}				
+				if ((payload & 0x1) == 0x0){ // Key 
+					puts("***** W4- Wrong Key *****\n");
+					w.type = W4_WRONG_PCKT_KEY;
+				}
+				addReport(w);
+			}
+
 			nTurns = nTurns_aux; 
  
 			//Enforce the maximum values for {n,p} values 
 			nTurns_aux = nTurns_aux & 0x0f0f; 
- 
+ 			// puts("renew payload: ");puts(itoh(payload));puts("\n");
+
 			app = get_app_ptr_from_task_location(source & 0xffff); 
 			app->nTurns = nTurns_aux; 
 			renew_snips(app); 
@@ -1326,15 +1368,122 @@ int SeekInterruptHandler(){
 		break;
 
 		case LC_NOTIFICATION: //enviado pelo Mastre WARD do cluster
-			puts("  ************ Attack Notification Service ************"); puts("\n");
-			apChanged ++;
+			// apChanged ++;
+			PE_address = source & 0xFFFF;
+			w.source = PE_address;
+			w.pcktSource = source >> 16;
+			w.timestamp = MemoryRead(TICK_COUNTER);
 
-			if (apChanged == 100){
-				app = get_app_ptr_from_task_location(source & 0xffff);
-				changeAPlocation(app);
-			}			
+			if (PE_belong_SZ(PE_address>>8, PE_address & 0xFF) == 0){ // Se for de fora da SZ (DoS Ext)
+				// puts("***** LC Attack Notification  ******"); puts("\n");
+				w.type = W6_ACCESS_ATTEMPT;
+			}else{ // Se for PE de SZ (Susp. Route)
+				// puts("***** Internal Attack Notification ******"); puts("\n");
+				w.type = W5_SUSP_ROUTE;
+			}
+
+			addReport(w);
+
+			// if (payload == 0xFF){
+			// 	// app = get_app_ptr_from_task_location(source & 0xffff);
+			// 	// changeAPlocation(app);
+			// }else{
+			// }
+			// // if (apChanged == 100){
+			// // 	app = get_app_ptr_from_task_location(source & 0xffff);
+			// // 	changeAPlocation(app);
+			// // }			
 		break;	
 		//-----------------------------------------------------------------------
+
+		case AP_NOTIFICATION: //enviado pelo Mastre WARD do cluster
+			// // apChanged ++;
+			// PE_address = source & 0xFFFF;
+			// w.source = PE_address;
+			// w.pcktSource = source >> 16;
+			// w.timestamp = MemoryRead(TICK_COUNTER);
+
+			// if (payload & 0x1 == 0){ // Key 
+			// 	puts("W4- Wrong Key\n");
+			// }
+			// if (payload & 0x2 == 0){ // Count 
+			// 	puts("W2- Unex Data\n");
+			// }
+			// if (payload & 0x4 == 0){ // Type 
+			// 	puts("W3- Wrong Type\n");
+			// }
+
+			// if (PE_belong_SZ(PE_address>>8, PE_address & 0xFF) == 0){ // Se for de fora da SZ (DoS Ext)
+			// 	// puts("***** LC Attack Notification  ******"); puts("\n");
+			// 	w.type = W6_ACCESS_ATTEMPT;
+			// }else{ // Se for PE de SZ (Susp. Route)
+			// 	// puts("***** Internal Attack Notification ******"); puts("\n");
+			// 	w.type = W5_SUSP_ROUTE;
+			// }
+
+			// addReport(w);			
+		break;
+
+		case UNEXPECTED_DATA: //Algum pacote chegando onde não deveria
+			PE_address = source & 0xFFFF;
+			w.source = PE_address;
+			// w.pcktSource = source >> 16;
+			w.timestamp = MemoryRead(TICK_COUNTER);
+			w.type = W2_UNEXPECTED_DATA;
+
+			addReport(w);			
+
+			// if (payload & 0x1 == 0){ // Key 
+			// 	puts("W4- Wrong Key\n");
+			// }
+			// if (payload & 0x2 == 0){ // Count 
+			// 	puts("W2- Unex Data\n");
+			// }
+			// if (payload & 0x4 == 0){ // Type 
+			// 	puts("W3- Wrong Type\n");
+			// }
+
+			// if (PE_belong_SZ(PE_address>>8, PE_address & 0xFF) == 0){ // Se for de fora da SZ (DoS Ext)
+			// 	// puts("***** LC Attack Notification  ******"); puts("\n");
+			// 	w.type = W6_ACCESS_ATTEMPT;
+			// }else{ // Se for PE de SZ (Susp. Route)
+			// 	// puts("***** Internal Attack Notification ******"); puts("\n");
+			// 	w.type = W5_SUSP_ROUTE;
+			// }
+
+			// addReport(w);			
+		break;
+
+		case MISSING_PACKET: //Algum pacote chegando onde não deveria
+			PE_address = source & 0xFFFF;
+			w.source = PE_address;
+			// w.pcktSource = source >> 16;
+			w.timestamp = MemoryRead(TICK_COUNTER);
+			w.type = W1_MISSING_PACKET;
+
+			addReport(w);			
+
+			// if (payload & 0x1 == 0){ // Key 
+			// 	puts("W4- Wrong Key\n");
+			// }
+			// if (payload & 0x2 == 0){ // Count 
+			// 	puts("W2- Unex Data\n");
+			// }
+			// if (payload & 0x4 == 0){ // Type 
+			// 	puts("W3- Wrong Type\n");
+			// }
+
+			// if (PE_belong_SZ(PE_address>>8, PE_address & 0xFF) == 0){ // Se for de fora da SZ (DoS Ext)
+			// 	// puts("***** LC Attack Notification  ******"); puts("\n");
+			// 	w.type = W6_ACCESS_ATTEMPT;
+			// }else{ // Se for PE de SZ (Susp. Route)
+			// 	// puts("***** Internal Attack Notification ******"); puts("\n");
+			// 	w.type = W5_SUSP_ROUTE;
+			// }
+
+			// addReport(w);			
+		break;
+
 		default:
 			puts("Received unknown seek service\n");
 			puts("Master receiving a slave service???\n");

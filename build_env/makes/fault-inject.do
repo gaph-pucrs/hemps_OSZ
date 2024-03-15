@@ -1,6 +1,11 @@
 # this script reads a list of signals where faults must be injected
 #
 
+onerror {set file_handle [open "signals" w];
+   puts -nonewline $file_handle "";
+   close $file_handle;
+   resume; }
+
 if {[file exists "signals"] == 1} then {
    #puts "injecting faults!"
    set fault [open "signals" r]
@@ -26,6 +31,8 @@ if {[file exists "signals"] == 1} then {
 } else {
    puts "no fault injection"
 }
+
+onerror ""
 
 #tx(1) 0 1 ms 2 ms
 

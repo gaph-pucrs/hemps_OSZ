@@ -512,8 +512,8 @@ int pathToIO(int peripheral_id, int * positionAP){
       puts("[packet]ERROR: peripheral_id not found!\n"); 
       return -1; 
   } 
-  if (ga.rows[MAX_GRAY_ROWS-1]-1 == RH_Y_addr){ 
-    //   puts("AP no topo\n"); 
+  if (ga.rows[0]-1 == RH_Y_addr){ 
+      puts("AP no topo\n"); 
       medium_X = LL_X_addr + ((RH_X_addr - LL_X_addr)/2); 
   } 
   // Calculate the Turns 
@@ -545,7 +545,7 @@ int pathToIO(int peripheral_id, int * positionAP){
     auxPosY ++; 
   } 
   else if(ga.cols[MAX_GRAY_COLS-1] < LL_X_addr){     
-    // puts("--Gray Area a esquerda\n"); 
+    puts("--Gray Area a esquerda\n"); 
     while (auxPosX >= LL_X_addr){ 
       bt = bt | (0x1 << shift); 
       shift += 2; 
@@ -553,7 +553,7 @@ int pathToIO(int peripheral_id, int * positionAP){
     };  // Mais um pra "sair" da OSZ 
   } 
   else if(ga.cols[0] > RH_X_addr){ 
-    // puts("--Gray Area a direita\n"); 
+    puts("--Gray Area a direita\n"); 
     while (auxPosX <= RH_X_addr){ 
       bt = bt | (0x0 << shift); 
       shift += 2; 

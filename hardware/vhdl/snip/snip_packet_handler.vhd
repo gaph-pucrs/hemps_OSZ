@@ -24,9 +24,16 @@ entity snip_packet_handler is
         response_param      : out   ResponseParametersType;
         tx_status           : in    TransmissionStatusType;
 
+        mpe_routing_header  : out   regword;
+
         buffer_wdata        : out   regflit;
         buffer_wen          : out   std_logic;
-        buffer_full         : in    std_logic
+        buffer_full         : in    std_logic;
+
+        unlock_warnings     : out   std_logic;
+        incoming_source     : out   regflit;
+        incoming_f1         : out   regflit;
+        incoming_f2         : out   regflit
     );
 end entity;
 
@@ -121,6 +128,9 @@ architecture snip_packet_handler of snip_packet_handler is
 
     signal k0                   : regN_keyPeriph;
     signal k0_valid             : std_logic;
+
+    signal warning_routing          : regword;
+    signal warning_routing_valid    : std_logic;
 
     -- decoded from registers:
 
@@ -372,7 +382,7 @@ begin
 
     -- access table
 
-    NextState_AccessTable: process(table_state, tableControl, hermesControl, data_to_write_on_table)
+    NextState_AccessTable: process(table_state, tableControl, hermesControl, data_to_write_on_table, hermes_data_in)
     begin
         case table_state is
 
@@ -404,14 +414,19 @@ begin
 
             when SAVE_PATH =>
 
-                if hermesControl.receivedEndOfPacket='1' or (hermesControl.endOfPacket='1' and hermesControl.acceptingFlit='1') then
-                    if hermes_data_in = x"7EEE" then
+                if hermesControl.receivedEndOfPacket='1' or (hermesControl.endOfPacket='1' and hermesControl.acceptingFlit='1') then  
+                    -- if hermes_data_in = x"7EEE" then
+                    if hermes_data_in(7 downto 0) = x"EE" then
                         next_table_state <= EXIT_STAGE;
                     else
                         next_table_state <= SAVE_EXTRA_PATH;
                     end if;
                 else
-                    next_table_state <= SAVE_PATH;
+                    if hermes_data_in(7 downto 0) = x"EE" then -- Caso flits 7XEE 7EEE chegar, cortar o 7EEE
+                        next_table_state <= EXIT_STAGE;
+                    else
+                        next_table_state <= SAVE_PATH;
+                    end if;
                 end if;
             
             when SAVE_EXTRA_PATH =>
@@ -674,6 +689,21 @@ begin
         end if;
     end process;
 
+    WarningRoutingHeaderRegister: process(clock, reset)
+    begin
+        if reset='1' then
+            warning_routing <= (others => '0');
+            warning_routing_valid <= '0';
+        elsif rising_edge(clock) then
+            if hermes_service_valid='1' and hermes_service=IO_INIT_SERVICE and warning_routing_valid='0' and task_id_valid='1' then
+                warning_routing <= task_id;
+                warning_routing_valid <= '1';
+            end if;
+        end if;
+    end process;
+
+    mpe_routing_header <= warning_routing;
+
     app_id <= x"0000" when f1=x"0000" else f1 xor k0;
     app_id_valid <= '1' when hermes_service_valid='1' and (hermes_service=IO_CONFIG_SERVICE or hermes_service=IO_RENEW_KEYS or hermes_service=IO_CLEAR) and f1_valid='1' else '0';
 
@@ -774,13 +804,13 @@ begin
     hermesControl.request       <= hermes_rx;
     hermesControl.acceptingFlit <= hermes_rx and hermes_credit_out;
 
-    hermesControl.payloadIsPath <= '1' when hermes_service_valid='1'    and (hermes_service=IO_CONFIG_SERVICE)                                  else '0';
-    hermesControl.payloadIsData <= '1' when hermes_service_valid='1'    and (hermes_service=IO_DELIVERY_SERVICE)                                else '0';
+    hermesControl.payloadIsPath <= '1' when hermes_service_valid='1'    and (hermes_service=IO_CONFIG_SERVICE)                                          else '0';
+    hermesControl.payloadIsData <= '1' when hermes_service_valid='1'    and (hermes_service=IO_DELIVERY_SERVICE or hermes_service=IO_REQUEST_SERVICE)   else '0';
 
-    hermesControl.receivingHeader   <= '1' when stage=START_RECEPTION   and (start_rx_state=WAIT_REQUEST or start_rx_state=PARSE_HERMES_HEADER) else '0';
-    hermesControl.receivingPath     <= '1' when stage=ACCESS_TABLE      and (table_state=SAVE_PATH or table_state=SAVE_EXTRA_PATH)              else '0';
-    hermesControl.receivingData     <= '1' when stage=RECEIVE_DATA      and (data_state=CONSUME_DATA_FLIT)                                      else '0';
-    hermesControl.droppingPackage   <= '1' when stage=FINISH_RECEPTION  and (finish_rx_state=DROP_FLIT)                                         else '0';
+    hermesControl.receivingHeader   <= '1' when stage=START_RECEPTION   and (start_rx_state=WAIT_REQUEST or start_rx_state=PARSE_HERMES_HEADER)         else '0';
+    hermesControl.receivingPath     <= '1' when stage=ACCESS_TABLE      and (table_state=SAVE_PATH or table_state=SAVE_EXTRA_PATH)                      else '0';
+    hermesControl.receivingData     <= '1' when stage=RECEIVE_DATA      and (data_state=CONSUME_DATA_FLIT)                                              else '0';
+    hermesControl.droppingPackage   <= '1' when stage=FINISH_RECEPTION  and (finish_rx_state=DROP_FLIT)                                                 else '0';
 
     hermesControl.endOfHeader <= '1' when header_flit=END_OF_HEADER_FLIT else '0';
     hermesControl.endOfPacket <= hermes_eop_in;
@@ -802,11 +832,11 @@ begin
                 hermesControl.sourceRoutingPacket   <= '0';
             else
             
-                if hermesControl.endOfPacket='1' then
+                if hermesControl.endOfPacket='1' and hermesControl.acceptingFlit='1' then
                     hermesControl.receivedEndOfPacket <= '1';
                 end if;
 
-                if hermesControl.sourceRoutingFlit='1' then
+                if hermesControl.sourceRoutingFlit='1' and hermesControl.acceptingFlit='1' then
                     hermesControl.sourceRoutingPacket <= '1';
                 end if;
 
@@ -881,4 +911,16 @@ begin
     buffer_wdata <= hermes_data_in;
     buffer_wen <= '1' when stage=RECEIVE_DATA and data_state=CONSUME_DATA_FLIT and hermesControl.acceptingFlit='1' else '0';
     
+    --------------
+    -- WARNINGS --
+    --------------
+
+    unlock_warnings <= '1' when hermes_service_valid='1' and hermes_service=IO_UNLOCK_WARNINGS else '0';
+
+    -- warning params
+
+    incoming_source <= packet_source;
+    incoming_f1 <= f1;
+    incoming_f2 <= f2;
+
 end architecture;

@@ -96,7 +96,7 @@ for pe in range(0,max_pe):
 
 	#pe signals
 	group_pe_signals_pfx = "add wave -noupdate -group {%s %dx%d - %d} -group pe /test_bench/HeMPS/%s%dx%d/" % (pe_type_str, posX, posY, pe, pe_type_str, posX, posY)
-	group_pe_signals_sds = ['irq','int_seek','irq_mask_reg','irq_status','cpu/mem_address','cpu/mem_byte_we','cpu/mem_data_r','cpu/mem_data_w','cpu/page','ap_mask']
+	group_pe_signals_sds = ['irq','int_seek','irq_mask_reg','irq_status','cpu/mem_address','cpu/mem_byte_we','cpu/mem_data_r','cpu/mem_data_w','cpu/page','ap_mask','timeout_cont']
 	for it in map(lambda sd: group_pe_signals_pfx + sd,group_pe_signals_sds):
 		print (it)
 	#security signals
@@ -125,7 +125,7 @@ for pe in range(0,max_pe):
 		print (it)
 	
 	slc_signals_pfx = "add wave -noupdate -group {%s %dx%d - %d} -group seek -group slc /test_bench/HeMPS/%s%dx%d/seek_local_controller/" % 			(pe_type_str, posX, posY, pe, pe_type_str, posX, posY)
-	slc_signals_sds = ["pe_target", "pe_source", "pe_service", "pe_payload", "pe_opmode", "pe_req", "pe_ack", "pe_nack", "unr_target", "unr_source", "unr_service", "seek_target", "seek_source", "seek_service", "seek_payload", "seek_opmode", "seek_req", "seek_ack", "seek_nack", "reg_target", "reg_source", "ask_unr", "sending"]
+	slc_signals_sds = ["pe_target", "pe_source", "pe_service", "pe_payload", "pe_opmode", "pe_req", "pe_ack", "pe_nack", "unr_target", "unr_source", "seek_target", "seek_source", "seek_service", "seek_payload", "seek_opmode", "seek_req", "seek_ack", "seek_nack", "reg_target", "reg_source", "ask_unr", "sending"]
 	for it in map(lambda sd: slc_signals_pfx + sd, slc_signals_sds):
 		print (it)
 		
@@ -278,14 +278,14 @@ for snip_idx in range(0, snip_number):
 	### Table Columns
 
 	snip_table_columns_pfx = "add wave -noupdate -group {%s} -group {Table Columns} %s/ApplicationTable/" % (snip_name, snip_top)
-	snip_table_columns_sds = ["table.used", "table.app_id", "table.key1", "table.key2", "table.path_size", "table.path"]
+	snip_table_columns_sds = ["table.status", "table.app_id", "table.key1", "table.key2", "table.path_size", "table.path"]
 	for it in map(lambda sd: snip_table_columns_pfx + sd, snip_table_columns_sds):
 		print (it)	
 
 	### Primary Interface (Read-Write)
 
 	snip_table_primary_pfx = "add wave -noupdate -group {%s} -group {Primary Interface (RW)} %s/ApplicationTable/" % (snip_name, snip_top)
-	snip_table_primary_sds = ["state", "slot", "match"]
+	snip_table_primary_sds = ["state", "slot", "match", "reset_slot", "enable_counter", "slot_is_last", "try_pending", "start_trying_for_pending", "pending_slots_counted"]
 	for it in map(lambda sd: snip_table_primary_pfx + sd, snip_table_primary_sds):
 		print (it)	
 
@@ -386,6 +386,10 @@ for snip_idx in range(0, snip_number):
 	print(snip_handler_regs_divider_pfx + "k0")
 	print(snip_handler_regs_pfx + "k0")
 	print(snip_handler_regs_pfx + "k0_valid")
+
+	print(snip_handler_regs_divider_pfx + "WarningRouting")
+	print(snip_handler_regs_pfx + "warning_routing")
+	print(snip_handler_regs_pfx + "warning_routing_valid")
 
 	print(snip_handler_regs_divider_pfx + "Source")
 	print(snip_handler_regs_pfx + "packet_source")
@@ -529,7 +533,47 @@ for snip_idx in range(0, snip_number):
 	snip_builder_ctrl_payload_pfx = "add wave -noupdate -group {%s} -group {Builder Control Signals} -group {Data Payload Control} %s/PacketBuilder/" % (snip_name, snip_top)
 	snip_builder_ctrl_payload_sds = ["send_data", "data_words_to_read", "data_flit_low", "data_flit_ready", "last_data_flit", "data_flit_blocked", "data_tx", "data_eop"]
 	for it in map(lambda sd: snip_builder_ctrl_payload_pfx + sd, snip_builder_ctrl_payload_sds):
-		print (it) 
+		print (it)	
+	
+	#-------------------------#
+	# Warning Manager Signals #
+	#-------------------------#
+
+	print(snip_divider_pfx + "WarningManager")
+
+	snip_warning_pfx = "add wave -noupdate -group {%s} %s/WarningManager/" % (snip_name, snip_top)
+	snip_warning_sds = ["clock", "abnormal_periph_input", "line_overwritten_input", "full_table_write_input", "failed_auth_input", "failed_auth_counter", "state", "warning_req", "warning_ack", "warning_param"]
+	for it in map(lambda sd: snip_warning_pfx + sd, snip_warning_sds):
+		print (it)
+
+	#---------#
+	# Buffers #
+	#---------#
+
+	print(snip_divider_pfx + "Buffers")
+	
+	snip_buffers_in_pfx = "add wave -noupdate -group {%s} -group {Input Buffer} %s/InputBuffer/" % (snip_name, snip_top)
+	snip_buffers_in_sds = ["clock", "w_en", "data_i", "r_en", "data_o", "flush", "status.empty", "status.full", "status.err", "counter", "r_ptr", "w_ptr", "fifo_buffer"]
+	for it in map(lambda sd: snip_buffers_in_pfx + sd, snip_buffers_in_sds):
+		print (it)
+	
+	snip_buffers_out_pfx = "add wave -noupdate -group {%s} -group {Output Buffer} %s/OutputBuffer/" % (snip_name, snip_top)
+	snip_buffers_out_sds = ["clock", "w_en", "data_i", "r_en", "data_o", "flush", "status.empty", "status.full", "status.err", "counter", "r_ptr", "w_ptr", "fifo_buffer"]
+	for it in map(lambda sd: snip_buffers_out_pfx + sd, snip_buffers_out_sds):
+		print (it)
+
+	#--------------------#
+	# Peripheral Signals #
+	#--------------------#
+
+	print(snip_divider_pfx + "Peripheral")
+
+	snip_peripheral_pfx = "add wave -noupdate -group {%s} %s/Peripheral/" % (snip_name, snip_top)
+	snip_peripheral_sds = ["clock", "r_en", "data_in", "w_en", "data_out", "r_buffer_empty", "w_buffer_full", "w_buffer_empty", "w_buffer_enable", "state", "req_operation", "req_addr", "req_size", "received_flits_counter", "sent_flits_counter", "req_size_int"]
+	for it in map(lambda sd: snip_peripheral_pfx + sd, snip_peripheral_sds):
+		print (it)
+
+	### States
 
 print ("TreeUpdate [SetDesecurityTree]\n\
 WaveRestoreCursors {{Cursor 1} {10 ps} 0}\n\

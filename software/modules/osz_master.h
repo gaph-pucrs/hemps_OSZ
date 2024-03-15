@@ -19,7 +19,40 @@
 
 #define MAX_SHAPES     13
 
+//Warning Types
+#define EMPTY_REPORT_SLOT   0
+#define W1_MISSING_PACKET   1
+#define W2_UNEXPECTED_DATA  2
+#define W3_WRONG_PCKT_TYPE  3
+#define W4_WRONG_PCKT_KEY   4
+#define W5_SUSP_ROUTE       5
+#define W6_ACCESS_ATTEMPT   6
+
+
+#define REPORT_SIZE         50
+
 //Estruturas
+// Warnings
+typedef struct 
+{
+  int type;
+  int source;
+  int count;
+  union {
+    int pcktSource;
+    int pcktType;
+  };
+
+  union {
+    int target;
+    int timestamp;
+  };
+} Warning;
+
+
+Warning reportList[REPORT_SIZE];
+
+// OSZ shapes
 typedef struct 
 {
   int processors;
@@ -43,7 +76,19 @@ Shapes Secure_Zone[MAX_SHAPES];
 unsigned int k0table[XDIMENSION][YDIMENSION];
 unsigned int k0NItable[IO_NUMBER];
 
-//Funções
+// Funções Warnings
+// Adiciona um warning no array, se já houver, conta +1
+void addReport();
+
+// Procura por um report com o tipo e source
+int searchReport(int type, int source);
+
+// Procura por um report com o tipo e source
+int getReportSlot();
+
+
+
+//Funções OSZ
 void init_Secure_Zone();
 /*  Origem: processors.c
     Variáveis Globais:
@@ -167,6 +212,6 @@ int PE_belong_SZ(int PE_x, int PE_y);
         Secure_Zone > processors.c
 */
 
-int get_NI_k0(int periphID);
+unsigned int get_NI_k0(int periphID);
 
 #endif

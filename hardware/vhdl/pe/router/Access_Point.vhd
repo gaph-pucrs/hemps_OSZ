@@ -116,6 +116,8 @@ begin
 	
 	auth(COUNT_AUTH) <= '1' when (Cin < Cout) else 
 						'0';
+	-- auth(COUNT_AUTH) <= '1' when (Cin <= Cout) else --breach to pass an attack packet
+	-- 					'0';
 
 	auth(TYPE_AUTH) <= 	'1' when (packetType = IO_PACKET) else 
 						'0';
