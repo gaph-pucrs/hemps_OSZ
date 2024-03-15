@@ -562,6 +562,17 @@ for snip_idx in range(0, snip_number):
 	for it in map(lambda sd: snip_buffers_out_pfx + sd, snip_buffers_out_sds):
 		print (it)
 
+	#--------------------#
+	# Peripheral Signals #
+	#--------------------#
+
+	print(snip_divider_pfx + "Peripheral")
+
+	snip_peripheral_pfx = "add wave -noupdate -group {%s} %s/Peripheral/" % (snip_name, snip_top)
+	snip_peripheral_sds = ["clock", "r_en", "data_in", "w_en", "data_out", "r_buffer_empty", "w_buffer_full", "w_buffer_empty", "w_buffer_enable", "state", "req_operation", "req_addr", "req_size", "received_flits_counter", "sent_flits_counter", "req_size_int"]
+	for it in map(lambda sd: snip_peripheral_pfx + sd, snip_peripheral_sds):
+		print (it)
+
 	### States
 
 print ("TreeUpdate [SetDesecurityTree]\n\
