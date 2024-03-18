@@ -363,23 +363,22 @@ begin
     -- Peripheral Instantiation -- Testing Purposes --
     --------------------------------------------------
 
-    DummyPeripheral: entity work.dummy_peripheral
+    Peripheral: entity work.peripheral(real_peripheral)
     port map
     (
         clock               =>  clock,
         reset               =>  reset,
 
         r_en                => buffer_o_ren,
-        w_en                => buffer_i_wen,
-
         data_in             => buffer_o_dataout,
+        r_buffer_empty      => buffer_o_status.empty,
+        
+        w_en                => buffer_i_wen,
         data_out            => buffer_i_datain,
-
-        space_unavailable   => buffer_i_status.full,
-        data_unavailable    => buffer_o_status.empty,
-
-        r_buffer_enable     => buffer_o_enable,
+        w_buffer_full       => buffer_i_status.full,
+        w_buffer_empty      => buffer_i_status.empty,
         w_buffer_enable     => buffer_i_enable
+
     );
 
     buffer_o_enable <= '1';

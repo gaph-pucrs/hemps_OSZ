@@ -31,6 +31,8 @@ public:
     sc_in<regNport > sz;
     sc_in<regNport > ap;
     sc_out<regNport > link_control_message;
+    sc_out<bool > link_control_internal;
+
 	  sc_in < sc_uint <8 > >  	apThreshold;
     sc_out<bool>              intAP;
    	sc_out < sc_uint <3 > >  	AP_status;  
@@ -64,6 +66,7 @@ public:
        intAP("intAP"),
        AP_status("AP_status"),
        link_control_message("link_control_message"),
+       link_control_internal("link_control_internal"),
        target("target"),
        source("source")
     { 

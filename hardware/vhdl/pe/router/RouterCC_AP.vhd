@@ -47,7 +47,8 @@ port(
  
 	--Packet blocked by wrapper 
 	link_control_message	: out regNport; 
- 
+	link_control_internal	: out std_logic;
+	
 	target                  : out regflit; 
 	source                  : out regflit
 ); 
@@ -109,6 +110,7 @@ begin
 	-- link_control_access <= (sz AND (NOT ap)); 
 	-- link_control_message <= ((access_i OR link_control_access) AND tx_router) OR (NOT APauthK AND APrx); 
 	link_control_message <= ((access_i OR link_control_access) AND (tx_router AND (NOT ap))); 
+	link_control_internal <= OR link_control_access; -- is an OSZ router
 	access_o <= link_control_access;
  
 	--Directly connecting local port: 

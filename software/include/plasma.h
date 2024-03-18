@@ -18,12 +18,13 @@
 #define UART_READ         		0x20000000 
 #define IRQ_MASK          		0x20000010 
 #define IRQ_STATUS        		0x20000020 
-#define TIME_SLICE       		0x20000060 
+#define TIME_SLICE       		0x20000060
+#define TIMEOUT_REG		        0x20000040
 #define SYS_CALL		   		0x20000070 
 #define END_SIM 		   		0x20000080 
 #define CLOCK_HOLD 		   		0x20000090 
 #define CLOCK_HOLD_WAIT_KERNEL	0x20000410 
- 
+
 /* Network Interface*/ 
 #define	NI_STATUS_RECV		0x20000100 
 #define	NI_STATUS_SEND		0x20000110 
@@ -110,7 +111,8 @@
 /*********** Interrupt bits **************/ 
 #define IRQ_PENDING_SERVICE			0x01 //bit 0 
 #define IRQ_SLACK_TIME				0x02 //bit 1 
-#define IRQ_SCHEDULER				0x08 //bit 3 
+#define IRQ_SCHEDULER				0x08 //bit 3
+#define IRQ_TIMEOUT				    0x10 //bit 4 
 #define IRQ_NOC					 	0x20 //bit 5 
 #define IRQ_AP				 	    0x40 //bit 6 
 #define IRQ_SEEK				 	0x80 //bit 7 

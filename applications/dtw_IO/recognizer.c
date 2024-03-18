@@ -26,7 +26,7 @@ int test[SIZE][SIZE] = {
 
 int main(){
 
-	int i, j, d_count = 0;
+	int i, j, k, d_count = 0;
 	int distances[NUM_PATTERNS];
 
 	Echo("Recognizer Start\n");
@@ -49,6 +49,14 @@ int main(){
 
 		for(i=0; i<TOTAL_TASKS; i++){
 			Receive(&msg, P[i]);
+
+			/* IO_WRITE */
+   			msgIO.length = 13;     // Message size = 13 words (3 of IO Header + 10 of data)
+   			msgIO.msg[0] = 0x2020; // OpCode = 0x2020 (IO_WRITE)
+   			msgIO.msg[1] = 0xb3ff; // Address = 0xb3ff (doesn't matter, is unused)
+   			msgIO.msg[2] = 0x0014; // Request size = 20 flits (must be 20 flits)
+   			for(k=3; k<13; k++)
+   			   msgIO.msg[k] = k-3; // Fill the 10 words of data
 			IOSend(&msgIO, IO_PERIPHERAL2);
 			distances[d_count] = msg.msg[0];
 			//sprintf(d, "DTW entre amostra de teste e o padrão %d = %d  TICK = %d", d_count, distances[d_count], GetTick());

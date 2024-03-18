@@ -284,15 +284,15 @@ int resend_io_message(unsigned int target, unsigned int ioID){
 
 	// print_CM_FIFO();
 	CMFifo_index = search_Target(target);
-	// puts("CMFifo_index: "); puts(itoh(CMFifo_index)); puts("\n");
+	puts("Resending IO due to timeout, target: "); puts(itoh(target)); puts(" IOid:"); puts(itoh(ioID)); puts("\n");
 	if(CMFifo_index != -1){
-		puts("\nResending IO message\n");
+		// puts("\nResending IO message\n");
 		send_packet_io(&CMFifo[CMFifo_index].service_header, CMFifo[CMFifo_index].ptr_payload , CMFifo[CMFifo_index].payload_length, ioID);
 		CMFifo[CMFifo_index].used = YES;
 		return 1;
 	}
 	else{
-		puts("\nERROR: control message NOT found!!!");
+		puts("\nERROR: IO message NOT found!!!");
 		return 0;
 	}
 

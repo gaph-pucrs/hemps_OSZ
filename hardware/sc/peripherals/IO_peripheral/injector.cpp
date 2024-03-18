@@ -91,6 +91,11 @@ void injector::brnoc_out_proc_FSM(){
 			case S_WAIT_ACK:
 				if(in_ack_router_seek_primary.read() == 1){
 	            	out_req_router_seek_primary.write(0);
+					app_status[app_index] = WAITING_ALLOCATION_ACK;
+	            	EA_out_brnoc.write(S_ACK_DOWN);
+	        	}
+				if(in_ack_router_seek_primary.read() == 1){
+	            	out_req_router_seek_primary.write(0);
 	            	EA_out_brnoc.write(S_ACK_DOWN);
 	        	}
 	        break;	
@@ -273,6 +278,7 @@ void injector::datanoc_out_proc_FSM(){
 							buffer_out_flit[0] = 0; //header
 							buffer_out_flit[1] = app_tasks[task_number].allocated_proc; 											//header
 							buffer_out_flit[2] = 0;
+							// buffer_out_flit[2] = 0x1000;
 							buffer_out_flit[3] = app_tasks[task_number].allocated_proc; 											//header
 							buffer_out_flit[4] = 0;  					//payload_size
 							buffer_out_flit[5] = 11+app_tasks[task_number].code_size;
@@ -525,7 +531,7 @@ void injector::new_app(){
 			break;
 
 			case S_WAIT_LMP_LOCATION: 
-					app_status[app_index] = WAITING_ALLOCATION_ACK;
+					// app_status[app_index] = WAITING_ALLOCATION_ACK;
 
 					if (EA_in_brnoc.read() == S_ACK_NEW_APP_RECEIVE){					
 						app_status[app_index] = INIT_ALLOCATION_ACK;	
@@ -552,6 +558,7 @@ void injector::new_app(){
 						for(i=tasks_map_received, y=0; i< aux_tasks_mapped + reg_mapped_tasks; i++, y=y+8){
 							app_tasks[i].id = (buf_task_info[y] << 16) | buf_task_info[y+1];                    
   							app_tasks[i].allocated_proc = (buf_task_info[y+2] << 16) | buf_task_info[y+3]; 
+							// app_tasks[i].allocated_proc = ((0x10 + buf_task_info[y+2]) << 16) | buf_task_info[y+3];// pra ir YX
   							app_tasks[i].initial_address= ((buf_task_info[y+4] << 16) | buf_task_info[y+5])/4;        
   							app_tasks[i].code_size = (buf_task_info[y+6] << 16) | buf_task_info[y+7];
   							app_tasks[i].status = 0;	

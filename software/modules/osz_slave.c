@@ -305,7 +305,7 @@ int findBlankSession(Session* sessions){
 int checkSession(Session* sessions, unsigned int prod, unsigned int cons){
   for (int i = 0; i < MAX_SESSIONS; i++)
   {
-    if ((sessions[i].producer == prod) && (sessions[i].consumer == cons)){     
+    if ((sessions[i].producer == prod) && (sessions[i].consumer == cons)){    
 	    return i;
     }
   }
@@ -337,6 +337,36 @@ int checkSessionCode(Session* sessions, unsigned int code){
   }
 
   return START_SESSION; // No session is found, so this is a new Session request
+}
+
+/*--------------------------------------------------------------------
+* checkSessionSuspicious
+*
+* DESCRIPTION:
+*    Searches suspicious sessions to resend messages
+*
+*    parameters:  *sessions - array of the system sessions
+*                  prod - producer task ID
+*                  cons - consumer task ID               
+*    
+*    return: the position or -1 if there is no free position
+*--------------------------------------------------------------------*/
+int checkSessionSuspicious(Session* sessions, unsigned int taskID){
+  int j = 0;
+  for (int i = 0; i < MAX_SESSIONS; i++)
+  {
+    if ((sessions[i].producer == taskID) && (sessions[i].status == RECOVERING)){    
+	    j++; // Se a tarefa do reenvio é produtora, devo reenviar um REQUEST (seta o bit 1) 
+      sessions[i].status = WAITING_ANY;
+      puts("[CHECK] prod SUPICIOUS: "); puts(itoa(i)); puts("\n");
+    }
+    if ((sessions[i].consumer == taskID) && (sessions[i].status == RECOVERING)){    
+	    j+= 2; // Se a tarefa do reenvio é consumidora, devo reenviar um DELIVERY (seta o bit 2)
+      sessions[i].status = WAITING_ANY;
+      puts("[CHECK] consumer SUPICIOUS: "); puts(itoa(i)); puts("\n");
+    }
+  }
+  return j;
 }
 
 /*--------------------------------------------------------------------
@@ -459,7 +489,7 @@ unsigned int getInitLatencyThreshold(Session* session){
 
   // tempo levado para o tratar a mensagem >> tempo levado para propagar a mensagem
   
-  unsigned int inf = 0;
+  unsigned int inf = 0xFFFF;
   inf = inf - 1;
   return inf;
 
@@ -513,6 +543,9 @@ int createSession(Session* sessions, unsigned int prod, unsigned int cons, int c
 
   sessions[auxIndex].countedLatencies = 0;
   sessions[auxIndex].timeoutThreshold = getInitLatencyThreshold(&sessions[auxIndex]);
+
+  puts("New Session: \n");
+  printSessionStatus(sessions, auxIndex);
 
   return auxIndex;
 }
@@ -576,7 +609,7 @@ void printSessionStatus(Session* sessions, unsigned int index){
 int checkRunningSession(Session* sessions, unsigned int task){
   for (int i = 0; i < MAX_SESSIONS; i++)
   {
-    if ((sessions[i].status != BLANK)){
+    if ((sessions[i].status != BLANK) && (sessions[i].status != IO_WAITING)){
       if ((sessions[i].producer == task) || (sessions[i].consumer == task)){
         return i;
       }
@@ -676,7 +709,7 @@ void send_message_request_control(Session* sessions, unsigned int prod, unsigned
   int index, code;
   index  = checkSession(sessions, prod, cons); 
   if(index < 0){ // Case not found, create a new Session
-    do{code = (MemoryRead(TICK_COUNTER)*get_net_address()+0x0080) & 0xFFC0;}while(code == 0xFFC0 || code == 0); // Code cannot be 0xFFC0
+    do{code = (MemoryRead(TICK_COUNTER)*(get_net_address()+0x0080)) & 0xFFC0;}while(code == 0xFFC0 || code == 0); // Code cannot be 0xFFC0
     index = createSession(sessions, prod, cons, (code | 0x3F));
     sessions[index].requested += 1; // Increase the number of requested Messages
     // The first MSG_REQUEST_CTRL is the Start Session step, sendig the Producer, Consumer, Code and Index
@@ -687,6 +720,63 @@ void send_message_request_control(Session* sessions, unsigned int prod, unsigned
     Seek(MSG_REQUEST_CONTROL, ((sessions[index].code <<16) | (sessions[index].pairIndex << 16) | sessions[index].requested), target, 0);
   }
 }
+
+
+/*--------------------------------------------------------------------
+* monitor_io_packet
+*
+* DESCRIPTION:
+*   Monitors IO packets using the session structure
+*
+*    parameters:  *sessions - array of the system sessions 
+*                  time - current time  
+*    
+*    return:  none
+*--------------------------------------------------------------------*/
+void monitor_io_packet(Session* sessions, unsigned int ioID, unsigned int taskID){
+  int index, code;
+  index  = checkSession(sessions, ioID, taskID); 
+  if(index < 0){ // Case not found, create a new Session
+    do{code = (MemoryRead(TICK_COUNTER)*get_net_address()+0x0080) & 0xFFC0;}while(code == 0xFFC0 || code == 0); // Code cannot be 0xFFC0
+    index = createSession(sessions, ioID, taskID, (code | 0x3F));
+    sessions[index].sent += 1; // Increase the number of requested Messages
+    sessions[index].time = MemoryRead(TICK_COUNTER);
+    sessions[index].status = IO_WAITING;
+    // puts("New IO Session Created: "); puts(itoa(index)); puts("\n");
+    // printSessionStatus(sessions, index);
+  }else{
+    sessions[index].sent += 1;
+    sessions[index].time = MemoryRead(TICK_COUNTER);
+    sessions[index].status = IO_WAITING;
+  }
+
+}
+
+/*--------------------------------------------------------------------
+* check_io_session
+*
+* DESCRIPTION:
+*   Monitors IO packets using the session structure
+*
+*    parameters:  *sessions - array of the system sessions 
+*                  time - current time  
+*    
+*    return:  none
+*--------------------------------------------------------------------*/
+unsigned int check_io_session(Session* sessions, unsigned int ioID, unsigned int taskID){
+  unsigned int index;
+  index = checkSession(sessions, ioID, taskID); 
+  if(index >= 0){ // Case not found, create a new Session
+    sessions[index].requested += 1; // Increase the number of requested Messages
+    // sessions[index].time = MemoryRead(TICK_COUNTER);
+    sessions[index].status = IO_IDLE;
+    return index;
+  }else{
+    puts("ERROR: IO session not found, IO: ");puts(itoa(ioID));puts(" task:");puts(itoa(taskID));puts("\n");
+  }
+}
+
+
 
 /*--------------------------------------------------------------------
 * timeoutMonitor
@@ -700,7 +790,7 @@ void send_message_request_control(Session* sessions, unsigned int prod, unsigned
 *    
 *    return:  none
 *--------------------------------------------------------------------*/
-void timeoutMonitor(Session* sessions, int time){
+unsigned int timeoutMonitor(Session* sessions, int time){
 	int TUStarget =0;
 	int TUSsource = get_net_address();
 
@@ -709,7 +799,7 @@ void timeoutMonitor(Session* sessions, int time){
 
   for (int i = 0; i < MAX_SESSIONS; i++)
   {
-    if (sessions[i].status == WAITING_DATA){
+    if ((sessions[i].status == WAITING_DATA) || (sessions[i].status == SUSPICIOUS)){
       if (time - sessions[i].time > sessions[i].timeoutThreshold){
         // puts("WARNING: THRESHOLD VIOLATION ON SESSION "); puts(itoa(i)); puts("\n");
         // puts("TIME NOW "); puts(itoa(time)); puts("\n");
@@ -717,21 +807,37 @@ void timeoutMonitor(Session* sessions, int time){
         // puts("PROD "); puts(itoh(sessions[i].producer)); puts("\n");
         // puts("CONS "); puts(itoh(sessions[i].consumer)); puts("\n");
         // puts("SOURCE "); puts(itoh(TUSsource)); puts("\n");
+        // puts("[TO]-- Waitig: "); puts(itoa(time - sessions[i].time)); puts("\n");
+        // puts("[TO]-- TShold: "); puts(itoa(5*sessions[i].timeoutThreshold)); puts("\n");
         sessions[i].status = SUSPICIOUS;
         if (TUSsource == get_task_location(Sessions[i].producer))
           TUStarget = get_task_location(Sessions[i].consumer);
         else
           TUStarget = get_task_location(Sessions[i].producer);
         
-        requestRecoverySearchpath(TUStarget);
-        
+        requestRecoverySearchpath(Sessions[i].code, TUStarget);
+        sessions[i].time = time; // Reseta o timer pq vai reenviar o pcote
+        // Seek(MISSING_PACKET, (MemoryRead(TICK_COUNTER) << 16) | get_net_address(), cluster_master_address, 0);
         // puts("TARGET "); puts(itoh(TUStarget)); puts("\n");
         // Seek(TARGET_UNREACHABLE_SERVICE, (TUSsource<<16) | (TUStarget & 0xFFFF), TUStarget, 0);
-        return;
+        return 1;
+      }
+    } else if (sessions[i].status == IO_WAITING){
+      // puts("[TO]-- Waitig: "); puts(itoa(time - sessions[i].time)); puts("\n");
+      // puts("[TO]-- TShold: "); puts(itoa(sessions[i].timeoutThreshold)); puts("\n");
+      if (time - sessions[i].time > sessions[i].timeoutThreshold){
+        puts("W1 Missing IO packet! \n");
+        // puts("---- Waited for: "); puts(itoa(time - sessions[i].time)); puts("\n");
+        // puts("---- Threshold: "); puts(itoa(sessions[i].timeoutThreshold)); puts("\n"); 
+        // Seek(MISSING_PACKET, (MemoryRead(TICK_COUNTER) << 16) | get_net_address(), cluster_master_address, 0);
+        sessions[i].status = IO_WAITING; // deixa em IO_WAITING ainda
+        sessions[i].time = time; // Reseta o timer pq vai reenviar o pcote
+        return 2 + i;
       }
     }
+
   }
-  return;
+  return 0;
 }
 
 void updateTimeoutThreshold(Session* session, ServiceHeader* newPacket){

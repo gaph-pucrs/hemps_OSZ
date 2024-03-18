@@ -210,6 +210,7 @@ unsigned int resend_msg_request(unsigned int processor){
 			//renews the time which i've sent the msg request
 			msg_request[i].last_msg_request_time = MemoryRead(TICK_COUNTER);
 			comm_puts("resent message request to: "); comm_puts(itoh(msg_request[i].processor)); comm_puts("\n");
+			puts("resent message request to: "); puts(itoh(msg_request[i].processor)); puts("\n");
 			value = 1;
 		}
 	}
@@ -242,6 +243,7 @@ unsigned int resend_messages(int remote_addr){
 		if (pipe[i].status == WAITING_ACK && consumer_proc == remote_addr) {
 			send_message_delivery(pipe[i].producer_task, pipe[i].consumer_task, remote_addr, &pipe[i].message);
 			comm_puts("resent mesage delivery to: "); comm_puts(itoh(consumer_proc)); comm_puts("\n");
+			puts("resent mesage delivery to: "); puts(itoh(consumer_proc)); puts("\n");
 			return 1;
 		}
 	}
@@ -306,6 +308,8 @@ PipeSlot * add_PIPE(int producer_task, int consumer_task, Message * msg){
 	for (int i=0; i<msg->length; i++){
 		pipe_ptr->message.msg[i] = msg->msg[i];
 	}
+
+	// puts("Message to :"); puts(itoh(consumer_task)); puts(" put in PIPE\n");
 
 	pipe_free_positions--;
 	// puts("WRITEPIPE adicionou do PIPE:\n");
@@ -406,6 +410,7 @@ PipeSlot * remove_PIPE(int producer_task,  int consumer_task){
 	// comm_puts("\n");
 
 	if (sel_pipe == 0){
+		// puts("Message to :"); puts(itoh(consumer_task)); puts(" not in pipe\n");
 		return 0;
 	}
 
@@ -512,7 +517,7 @@ int insert_message_request(int producer_task, int consumer_task, int requester_p
     		message_request[i].requested  = producer_task;
     		message_request[i].requester_proc = requester_proc;
 
-    		//puts("message_request[i].proc "); puts(itoa(message_request[i].requester_proc));puts("\n");
+    		// puts("Message request added from :"); puts(itoh(consumer_task));puts("\n");
     		//Only for debug purposes
     		MemoryWrite(ADD_REQUEST_DEBUG, (producer_task << 16) | (consumer_task & 0xFFFF));
 
@@ -552,7 +557,32 @@ int remove_message_request(int producer_task, int consumer_task) {
         	message_request[i].requested = -1;
 
 			// puts("WRITEPIPE removeu REQ:\n");
-		  	// puts("consumer_task:");puts(itoh( consumer_task));puts("\n");
+    		// puts("WRITEPIPE removeu REQ de: "); puts(itoh(consumer_task));puts("\n");
+
+        	//Only for debug purposes
+        	MemoryWrite(REM_REQUEST_DEBUG, (producer_task << 16) | (consumer_task & 0xFFFF));
+
+            return message_request[i].requester_proc;
+        }
+    }
+
+    return -1;
+}
+
+/** Checks if there is a message request
+ *  \param producer_task ID of the producer task of the message
+ *  \param consumer_task ID of the consumer task of the message
+ *  \return -1 if the message was not found or the requester processor address (processor of the consumer task)
+ */
+int get_message_request(int producer_task, int consumer_task) {
+
+    for(int i=0; i<REQUEST_SIZE; i++) {
+        if( message_request[i].requested == producer_task && message_request[i].requester == consumer_task){
+        	// message_request[i].requester = -1;
+        	// message_request[i].requested = -1;
+
+			// puts("WRITEPIPE removeu REQ:\n");
+    		// puts("Encontrou REQ de: "); puts(itoh(consumer_task));puts("\n");
 
         	//Only for debug purposes
         	MemoryWrite(REM_REQUEST_DEBUG, (producer_task << 16) | (consumer_task & 0xFFFF));
@@ -710,6 +740,7 @@ void send_message_delivery(int producer_task, int consumer_task, int consumer_PE
 //	puts("producer: "); puts(itoh(producer_task));
 //	puts("  length: "); puts(itoh(msg_ptr->length));
 //	puts("\n");
+	puts("------>> MESSAGE_DELIVERY to :");puts(itoh( p->consumer_task));puts("\n");
 
 
 	send_packet(p, (unsigned int)msg_ptr->msg, msg_ptr->length);
@@ -725,7 +756,7 @@ void send_message_request_(int producer_task, int consumer_task, unsigned int pr
 
 	volatile ServiceHeader *p = get_service_header_slot();
 
-	p->header[MAX_SOURCE_ROUTING_PATH_SIZE-1] = get_task_location_FAKE(producer_task);
+	p->header[MAX_SOURCE_ROUTING_PATH_SIZE-1] = get_task_location(producer_task);
 
 	p->service = MESSAGE_REQUEST;
 
@@ -735,9 +766,11 @@ void send_message_request_(int producer_task, int consumer_task, unsigned int pr
 
 	p->consumer_task = consumer_task;
 
-	if(flag_add_msg_request == 1){
+	if((flag_add_msg_request == 1) && ((producer_task & 0xFF) != 99)){
 		add_msg_request(p->header[MAX_SOURCE_ROUTING_PATH_SIZE-1], consumer_task, producer_task);
 	}
+
+	puts("------>> MESSAGE_REQUEST to :");puts(itoh(producer_task));puts("\n");
 
 	send_packet(p, 0, 0);
 }
@@ -826,7 +859,7 @@ void send_message_io_key(int producer_task, int peripheral_ID, Message * msg_ptr
 	send_packet_io(p, (unsigned int)msg_ptr->msg, msg_ptr->length, peripheral_ID);
 }
 
-void send_io_request_key(int peripheral_ID, int consumer_task, unsigned int sourcePE, int secure, unsigned int f1f2){
+void send_io_request_key(int peripheral_ID, int consumer_task, Message * msg_ptr, unsigned int sourcePE, int secure, unsigned int f1f2){
 
 	volatile ServiceHeader *p = get_service_header_slot();
 
@@ -846,7 +879,12 @@ void send_io_request_key(int peripheral_ID, int consumer_task, unsigned int sour
 
 	//add_msg_request(p->header[MAX_SOURCE_ROUTING_PATH_SIZE-1], consumer_task, peripheral_ID); //caimi: arrumar header
 
-	send_packet_io(p, 0, 0, peripheral_ID);
+	if(msg_ptr==0) {
+		send_packet_io(p, 0, 0, peripheral_ID);
+	} else {
+		p->msg_lenght = msg_ptr->length;
+		send_packet_io(p, (unsigned int)msg_ptr->msg, msg_ptr->length, peripheral_ID);
+	}
 }
 
 void send_peripheral_SR_path(int slot_seek, int peripheral_ID, int secure, int task_ID){

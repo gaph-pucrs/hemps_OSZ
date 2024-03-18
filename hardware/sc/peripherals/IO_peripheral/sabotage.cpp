@@ -52,7 +52,8 @@ void sabotage::in_proc_FSM(){
                     if(flit_in_counter == 14){ 
                         reg_header          = buffer_in_flit[3]; 
                         reg_msg_size        = buffer_in_flit[5]; 
-                        reg_service         = buffer_in_flit[7]; 
+                        f1                  = buffer_in_flit[6]; 
+                        f2                  = buffer_in_flit[7]; 
                         reg_task_ID         = buffer_in_flit[9]; 
                         reg_peripheral_ID   = buffer_in_flit[11]; 
                         reg_source_PE       = buffer_in_flit[13]; 
@@ -125,6 +126,7 @@ void sabotage::in_proc_FSM(){
  
 void sabotage::out_proc_FSM(){ 
     unsigned seed = time(0);
+    unsigned randAddr =0;
     // srand(123);
 
     if(reset.read()==true){ 
@@ -150,10 +152,12 @@ void sabotage::out_proc_FSM(){
 			case S_WAIT_REQ: 
                 if((aux_cont > T_START) && (aux_cont < T_END)){ 
                     if (aux_cont_p == 0){ 
-                        header_size = 26; 
+                        header_size = 26;
+                        randAddr = RAND_ADDR_EQ;
  
-                        buffer_out_flit[0] = (rand() % 0xfff) + 0x6000;  
-                        // buffer_out_flit[0] = HEADER_FIX_HI;  
+                        // buffer_out_flit[0] = (rand() % 0xf0) + 0x657F;  
+                        // buffer_out_flit[0] = 0x6000 + (f1 & 0xfff); 
+                        buffer_out_flit[0] = HEADER_FIX_HI;   
                         buffer_out_flit[1] = HEADER_FIX_LO;  
                         buffer_out_flit[2] = HEADER_ROUT_HI;  
                         buffer_out_flit[3] = HEADER_ROUT_LO;  
@@ -204,7 +208,7 @@ void sabotage::out_proc_FSM(){
 						// tx_primary.write(false); 
 					} 
  
-            break; 
+            break;             
             case S_SEND_PAYLOAD:                                 
                     if(credit_i_primary.read() == true){ 
                         data_out_primary.write(buffer_out_flit[flit_out_counter+26]); 

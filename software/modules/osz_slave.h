@@ -47,6 +47,10 @@ void Unset_Secure_Zone(unsigned int left_low_corner, unsigned int right_high_cor
 #define WAITING_CONTROL 2
 #define WAITING_ANY 3
 #define SUSPICIOUS 4
+#define IO_WAITING 5
+#define IO_IDLE 6
+#define RECOVERING 7
+
 
 #define END_SESSION -1
 #define START_SESSION -2
@@ -59,18 +63,18 @@ void Unset_Secure_Zone(unsigned int left_low_corner, unsigned int right_high_cor
 #define ONE_HOP_STD_LATENCY 500
 
 #define LAT_THRESHOLD_MOD 1.2
-#define LAT_THRESHOLD_WARMUP 5
-#define LAT_THRESHOLD_TOLERANCE 5 // 1/5 = 20%
+#define LAT_THRESHOLD_WARMUP 1 // 5
+#define LAT_THRESHOLD_TOLERANCE 1 //5 // 1/5 = 20%
 
 // Array Sizes
 #define WAITING_MSG_QUEUE 10 
-#define MAX_SESSIONS 2*MAX_TASKS_APP
+#define MAX_SESSIONS (2*MAX_TASKS_APP) + IO_NUMBER
 
 // #define session_time_puts(argument) puts(argument)
 #define session_time_puts(argument) 
 
-#define session_puts(argument) puts(argument)
-// #define session_puts(argument) 
+// #define session_puts(argument) puts(argument)
+#define session_puts(argument) 
 
 typedef struct 
 {

@@ -12,7 +12,7 @@ hw:
     rows: [4]
     cols: [0]
   open_port:
-    - port: [Injector,90,0,0,W,0,4,N]
+    - port: [Injector,90,0,4,N,0,3,W]
     - port: [io_peripheral,80,1,4,N]
     - port: [io_peripheral2,70,3,4,N]
 apps:                

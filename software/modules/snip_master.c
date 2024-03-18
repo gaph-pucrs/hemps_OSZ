@@ -158,15 +158,16 @@ void clear_snips(Application *app) {
 
 void renew_snips(Application *app) {
 
-	// puts("[DEBUG SNIP] Entrando em renew_snips\n");
+	// puts("[DEBUG SNIP] Entrando em renew_snips for ");puts(itoa(app->app_ID));puts("--");puts(itoh(app->appID_random));puts("\n");
+	int peripheralID, k0;
 
 	for(int i = 0; i < app->io_dependencies_number; i++) {
 	
-		int peripheralID = app->io_dependencies[i].peripheralID;
-		int k0 = get_NI_k0(peripheralID);
+		peripheralID = app->io_dependencies[i].peripheralID;
+		k0 = get_NI_k0(peripheralID);
 
 		// puts("[DEBUG SNIP] Sending IO_RENEW to peripheral "); puts(itoa(peripheralID)); puts("\n");
-
+		// puts("---k0 = "); puts(itoh(k0)); puts(" // nTurns= "); puts(itoh(app->nTurns));puts("\n");
 		ServiceHeader *p = get_service_header_slot();
 		//p->header[MAX_SOURCE_ROUTING_PATH_SIZE-1] = app->tasks[i].allocated_proc;
 		p->service = ((app->appID_random ^ k0) << 16) | (app->nTurns ^ k0);

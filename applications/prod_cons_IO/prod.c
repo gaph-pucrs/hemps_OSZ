@@ -10,6 +10,7 @@
 #include "prod_cons_std.h"
 
 Message msg;
+Message msgIO;
 
 int main()
 {
@@ -71,7 +72,14 @@ int main()
 
 	for(i=0; i<PROD_CONS_ITERATIONS; i++){
 		Echo(itoa(i));
-		IOReceive(&msg, IO_PERIPHERAL);
+
+		/* IO_READ */
+        msgIO.length = 3;      // Message size = 3 words (IO Header)
+        msgIO.msg[0] = 0x1010; // OpCode = 0x1010 (IO_READ)
+        msgIO.msg[1] = 0xc4ff; // Address = 0xc4ff (doesn't matter, is unused)
+        msgIO.msg[2] = 0x0014; // Request size = 20 flits (must be 20 flits)
+		IOReceive(&msgIO, IO_PERIPHERAL);
+		
 		Send(&msg, cons);
 
 		Echo(itoa(msg.msg[0]));

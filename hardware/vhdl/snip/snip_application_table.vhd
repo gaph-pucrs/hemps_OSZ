@@ -414,7 +414,7 @@ begin
     -- GENERATE WARNINGS --
     -----------------------
     
-    warn_overwrite  <= '1' when state=FETCHING_NEW and match_new='1' and try_pending='1' else '0';
+    warn_overwrite  <= '1' when state=FETCHING_NEW and match_pending='1' and try_pending='1' else '0';
     
     warn_full_table <= '1' when state=FETCHING_NEW and full_table='1' else '0';
 

@@ -382,7 +382,7 @@ begin
 
     -- access table
 
-    NextState_AccessTable: process(table_state, tableControl, hermesControl, data_to_write_on_table)
+    NextState_AccessTable: process(table_state, tableControl, hermesControl, data_to_write_on_table, hermes_data_in)
     begin
         case table_state is
 
@@ -414,14 +414,19 @@ begin
 
             when SAVE_PATH =>
 
-                if hermesControl.receivedEndOfPacket='1' or (hermesControl.endOfPacket='1' and hermesControl.acceptingFlit='1') then
-                    if hermes_data_in = x"7EEE" then
+                if hermesControl.receivedEndOfPacket='1' or (hermesControl.endOfPacket='1' and hermesControl.acceptingFlit='1') then  
+                    -- if hermes_data_in = x"7EEE" then
+                    if hermes_data_in(7 downto 0) = x"EE" then
                         next_table_state <= EXIT_STAGE;
                     else
                         next_table_state <= SAVE_EXTRA_PATH;
                     end if;
                 else
-                    next_table_state <= SAVE_PATH;
+                    if hermes_data_in(7 downto 0) = x"EE" then -- Caso flits 7XEE 7EEE chegar, cortar o 7EEE
+                        next_table_state <= EXIT_STAGE;
+                    else
+                        next_table_state <= SAVE_PATH;
+                    end if;
                 end if;
             
             when SAVE_EXTRA_PATH =>
@@ -799,13 +804,13 @@ begin
     hermesControl.request       <= hermes_rx;
     hermesControl.acceptingFlit <= hermes_rx and hermes_credit_out;
 
-    hermesControl.payloadIsPath <= '1' when hermes_service_valid='1'    and (hermes_service=IO_CONFIG_SERVICE)                                  else '0';
-    hermesControl.payloadIsData <= '1' when hermes_service_valid='1'    and (hermes_service=IO_DELIVERY_SERVICE)                                else '0';
+    hermesControl.payloadIsPath <= '1' when hermes_service_valid='1'    and (hermes_service=IO_CONFIG_SERVICE)                                          else '0';
+    hermesControl.payloadIsData <= '1' when hermes_service_valid='1'    and (hermes_service=IO_DELIVERY_SERVICE or hermes_service=IO_REQUEST_SERVICE)   else '0';
 
-    hermesControl.receivingHeader   <= '1' when stage=START_RECEPTION   and (start_rx_state=WAIT_REQUEST or start_rx_state=PARSE_HERMES_HEADER) else '0';
-    hermesControl.receivingPath     <= '1' when stage=ACCESS_TABLE      and (table_state=SAVE_PATH or table_state=SAVE_EXTRA_PATH)              else '0';
-    hermesControl.receivingData     <= '1' when stage=RECEIVE_DATA      and (data_state=CONSUME_DATA_FLIT)                                      else '0';
-    hermesControl.droppingPackage   <= '1' when stage=FINISH_RECEPTION  and (finish_rx_state=DROP_FLIT)                                         else '0';
+    hermesControl.receivingHeader   <= '1' when stage=START_RECEPTION   and (start_rx_state=WAIT_REQUEST or start_rx_state=PARSE_HERMES_HEADER)         else '0';
+    hermesControl.receivingPath     <= '1' when stage=ACCESS_TABLE      and (table_state=SAVE_PATH or table_state=SAVE_EXTRA_PATH)                      else '0';
+    hermesControl.receivingData     <= '1' when stage=RECEIVE_DATA      and (data_state=CONSUME_DATA_FLIT)                                              else '0';
+    hermesControl.droppingPackage   <= '1' when stage=FINISH_RECEPTION  and (finish_rx_state=DROP_FLIT)                                                 else '0';
 
     hermesControl.endOfHeader <= '1' when header_flit=END_OF_HEADER_FLIT else '0';
     hermesControl.endOfPacket <= hermes_eop_in;
@@ -827,11 +832,11 @@ begin
                 hermesControl.sourceRoutingPacket   <= '0';
             else
             
-                if hermesControl.endOfPacket='1' then
+                if hermesControl.endOfPacket='1' and hermesControl.acceptingFlit='1' then
                     hermesControl.receivedEndOfPacket <= '1';
                 end if;
 
-                if hermesControl.sourceRoutingFlit='1' then
+                if hermesControl.sourceRoutingFlit='1' and hermesControl.acceptingFlit='1' then
                     hermesControl.sourceRoutingPacket <= '1';
                 end if;
 

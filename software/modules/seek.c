@@ -81,11 +81,15 @@ int GetFreeSlotSourceRouting(int target){
 *--------------------------------------------------------------------*/
 int SearchSourceRoutingDestination(int target){
 	int i;
+	// puts("[SEARCHPATH DEBUG] searching SR for: ");puts(itoh(target));puts("\n");
+
 	for (i=0; i<MAX_TASK_COMMUNICATION; i++){
 		if(target == SR_Table[i].target && SR_Table[i].tableSlotStatus == SR_USADO){
+			// puts("[SEARCHPATH DEBUG] found : ");puts(itoa(i));puts("\n");
 			return i;
 		}
 	}
+	// puts("[SEARCHPATH DEBUG] Not found \n");
 	return -1;	
 }
 
@@ -130,10 +134,10 @@ void ClearAllSourceRouting(){
 	}
 }
 
-void print_SR_Table(slot_seek){
+void print_SR_Table(int slot_seek){
 	//SR_Table[i].path
 	int i;
-	puts("\nHeader: \n");
+	puts("Header: \n");
 	for (i = 0; i < SR_Table[slot_seek].path_size; i++){
 		puts("        "); puts(itoh(SR_Table[slot_seek].path[i])); puts("\n");
 	}
@@ -173,12 +177,17 @@ void Seek(unsigned int service, unsigned int source, unsigned int target, unsign
 			case FREEZE_TASK_SERVICE:
 			case RCV_FREEZE_TASK_SERVICE:
 			case OPEN_SECURE_ZONE_SERVICE:
-			// case LOAN_PROCESSOR_REQUEST_SERVICE:
-			// case LOAN_PROCESSOR_RELEASE_SERVICE:
+			case LOAN_PROCESSOR_REQUEST_SERVICE:
+			case LOAN_PROCESSOR_RELEASE_SERVICE:
 			case INITIALIZE_SLAVE_SERVICE:
 			case INITIALIZE_CLUSTER_SERVICE:
 			case GMV_READY_SERVICE:
 			case RENEW_KEY:
+			case LC_NOTIFICATION:
+			case AP_NOTIFICATION:
+			case UNEXPECTED_DATA:
+			case MISSING_PACKET:
+
 				 MemoryWrite(SEEK_OPMODE_REGISTER,GLOBAL_MODE);
 			break;
 
@@ -395,8 +404,8 @@ int ProcessTurnsPointer(unsigned int backtrack, unsigned int backtrack1, unsigne
 			port[j] = port[j]+4;
 		}
 	}
-	port[j-2] = port[j-2] & 0xF; // Coordenada de entrada no AP é a penúltima porta (mascarada para sempre ch0)
-	port[j-1] = port[j-1] & 0xF; // Última porta é o criterio de parada (também colocado em ch0)
+	port[j-2] = port[j-2] & 0x3; // Coordenada de entrada no AP é a penúltima porta (mascarada para sempre ch0)
+	port[j-1] = port[j-1] & 0x3; // Última porta é o criterio de parada (também colocado em ch0)
 	//for (j=0; j<=i; j++){
 	//	print_port(port[j]);
 	//}
@@ -720,11 +729,11 @@ void findFirstAndLastDirectionsSR(int sr_table_slot, int *first_dir, int *last_d
 
 	//first direction:
 	
-	*first_dir = portToDirection((SR_Table[slot_seek].path[0] >> 24) & 0xf);
+	*first_dir = portToDirection((SR_Table[sr_table_slot].path[0] >> 24) & 0xf);
 
 	//last direction:
 	
-	int path_ending = SR_Table[slot_seek].path_size - 1;
+	int path_ending = SR_Table[sr_table_slot].path_size - 1;
 
 	int dir, next_dir, shift, next_shift;
 	
@@ -737,26 +746,30 @@ void findFirstAndLastDirectionsSR(int sr_table_slot, int *first_dir, int *last_d
 		if(next_shift == 12) 
 			next_shift -= 4;
 		
-		dir = portToDirection((SR_Table[slot_seek].path[path_ending] >> shift) & 0xf);
-		next_dir = portToDirection((SR_Table[slot_seek].path[path_ending] >> next_shift) & 0xf);
+		dir = portToDirection((SR_Table[sr_table_slot].path[path_ending] >> shift) & 0x3);
+		next_dir = portToDirection((SR_Table[sr_table_slot].path[path_ending] >> next_shift) & 0x3);
 
 		shift = next_shift;
 		
-	} while(areOppositeDirections(dir, next_dir));
+	} while(!areOppositeDirections(dir, next_dir));
 
 	*last_dir_result = dir;
 }
 
-void findFirstAndLastDirectionsInCurrentPath(unsigned int target, int *first_dir, int *last_dir){
+void findFirstAndLastDirectionsInCurrentPath( int target, int *first_dir, int *last_dir){
 
 	int slot_seek = SearchSourceRoutingDestination(target);
 
-	if(slot_seek < 0) {
+	// puts("[SEARCHPATH DEBUG] slot: ");puts(itoa(slot_seek)); puts("\n");
+	if(slot_seek == -1) {
 		findFirstAndLastDirectionsXY(target, first_dir, last_dir);
+		// puts("[SEARCHPATH DEBUG] Foi por XY -- outMask:"); puts(itoa(*first_dir)); puts(" inMask: "); puts(itoa(*last_dir)); puts("\n");
 		return;
 	}
-	
+
+	print_SR_Table(slot_seek);
 	findFirstAndLastDirectionsSR(slot_seek, first_dir, last_dir);
+	// puts("[SEARCHPATH DEBUG] Foi por SR -- outMask:"); puts(itoh(*first_dir)); puts(" inMask: "); puts(itoh(*last_dir)); puts("\n");
 }
 
 int getDistanceToTargetPort(int target, int port){
@@ -860,7 +873,8 @@ void getRecoverySearchpathMasksAlt(int target, int *sendMask, int *recvMask){
 void fireRecoverySearchpath(int target){
 
 	seek_puts("[SEARCHPATH DEBUG] Starting recovery searchpath\n");
-	seek_puts("[SEARCHPATH DEBUG] Target: "); seek_puts(itoh(target)); seek_puts("\n");
+	// seek_puts("[SEARCHPATH DEBUG] Target: "); seek_puts(itoh(target)); seek_puts("\n");
+	// puts("[SEARCHPATH DEBUG] Target: "); puts(itoh(target)); puts("\n");
 
 	int sendMask, recvMask;
 	getRecoverySearchpathMasks(target, &sendMask, &recvMask);
@@ -874,10 +888,10 @@ void fireRecoverySearchpath(int target){
 	Seek(SEARCHPATH_SERVICE, sourceField, target, 0);
 }
 
-void requestRecoverySearchpath(int target){
+void requestRecoverySearchpath(int sessionCode, int target){
 
 	seek_puts("[SEARCHPATH DEBUG] Requesting recovery searchpath\n");
 	seek_puts("[SEARCHPATH DEBUG] Target: "); seek_puts(itoh(target)); seek_puts("\n");
 	
-	Seek(TARGET_UNREACHABLE_SERVICE, net_address & 0xffff, target, 1);
+	Seek(TARGET_UNREACHABLE_SERVICE, ((sessionCode << 16) | (net_address & 0xffff)), target, 0xFF);
 }

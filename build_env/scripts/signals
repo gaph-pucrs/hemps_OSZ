@@ -1,10 +1,13 @@
-/test_bench/HeMPS/slave3x0/RouterCCwrapped/RouterCC_AP/coreRouter/tx(7) 1 1 ms -cancel 3 ms
-/test_bench/HeMPS/slave1x3/RouterCCwrapped/RouterCC_AP/coreRouter/tx(7) 1 1 ms -cancel 3 ms
-/test_bench/HeMPS/slave3x0/RouterCCwrapped/RouterCC_AP/coreRouter/tx(7) 1 1 ms -cancel 3 ms
-/test_bench/HeMPS/slave1x1/RouterCCwrapped/RouterCC_AP/coreRouter/tx(7) 1 1 ms -cancel 3 ms
-/test_bench/HeMPS/slave1x1/RouterCCwrapped/RouterCC_AP/coreRouter/tx(7) 1 1 ms -cancel 3 ms
-/test_bench/HeMPS/slave0x0/RouterCCwrapped/RouterCC_AP/coreRouter/tx(7) 1 1 ms -cancel 3 ms
-/test_bench/HeMPS/slave3x0/RouterCCwrapped/RouterCC_AP/coreRouter/tx(7) 1 1 ms -cancel 3 ms
-/test_bench/HeMPS/slave2x3/RouterCCwrapped/RouterCC_AP/coreRouter/tx(7) 1 1 ms -cancel 3 ms
-/test_bench/HeMPS/slave0x1/RouterCCwrapped/RouterCC_AP/coreRouter/tx(7) 1 1 ms -cancel 3 ms
-/test_bench/HeMPS/slave1x0/RouterCCwrapped/RouterCC_AP/coreRouter/tx(7) 1 1 ms -cancel 3 ms
+/test_bench/HeMPS/slave1x1/RouterCCwrapped/RouterCC_AP/coreRouter/tx 0 2000us 2500us
+
+/test_bench/HeMPS/slave0x1/RouterCCwrapped/RouterCC_AP/coreRouter/tx 0 2500us 3000us
+/test_bench/HeMPS/slave1x1/RouterCCwrapped/RouterCC_AP/coreRouter/tx 0 2500us 3000us
+
+/test_bench/HeMPS/slave0x1/RouterCCwrapped/RouterCC_AP/coreRouter/tx 0 3000us 3500us
+/test_bench/HeMPS/slave1x1/RouterCCwrapped/RouterCC_AP/coreRouter/tx 0 3000us 3500us
+
+/test_bench/HeMPS/slave0x2/RouterCCwrapped/RouterCC_AP/coreRouter/tx 0 3500us 4000us
+
+/test_bench/HeMPS/slave0x1/RouterCCwrapped/RouterCC_AP/coreRouter/tx 0 4000us 4500us
+
+
