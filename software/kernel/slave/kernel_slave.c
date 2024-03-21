@@ -1907,11 +1907,34 @@ int SeekInterruptHandler(){
 
 			auxProducer = get_task_from_PE(SR_Table[slot_seek].target);
 
+            //if the app is nonsecure, execute the routine from before the Secure Framework
 			if(current->secure == 0)
 			{
 				puts("Nonsecure application, resend pending packets.\n");
-				resend_msg_request(SR_Table[slot_seek].target);
-				resend_messages(SR_Table[slot_seek].target);
+                aux = 0;
+				aux += resend_msg_request(SR_Table[slot_seek].target);
+				aux += resend_messages(SR_Table[slot_seek].target);
+
+                if(aux == 0)
+                {
+				    aux =  search_Target(source>>16);
+				    #ifndef GRAY_AREA
+				    if(((aux == search_Service(IO_REQUEST)) || (aux == search_Service(IO_DELIVERY))) && (aux != -1)){
+				    	send_wrapper_close_forward(aux);
+				    }	
+				    #endif
+            	    aux = resend_control_message(backtrack, backtrack1, backtrack2, SR_Table[slot_seek].target);
+        	    }
+
+			    if(aux == 0)
+                {
+				    int peripheral_id = find_io_peripheral(get_net_address());
+				    if(peripheral_id){
+				    	puts(" SR Peripheral\n"); 
+				    	send_peripheral_SR_path(slot_seek, peripheral_id, target, 0);
+				    }
+			    }
+				
 				break;
 			}
 
