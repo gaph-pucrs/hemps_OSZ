@@ -236,7 +236,7 @@ begin
 				elsif (EA_IN = INLC) and (no_space = '0') then
 					buffer_source(CONV_INTEGER(first))  	<= reg_source;
 					buffer_opmode(CONV_INTEGER(first))  	<= '0';    
-					if (unr_internal = '1') or (packetType = x"6") or (packetType = x"5") or (packetType = x"1") then
+					if (unr_internal = '1') or (packetType = x"6") or (packetType = x"1") then -- or (packetType = x"5")
 						buffer_service(CONV_INTEGER(first)) 	<= LC_NOTIFICATION;
 						buffer_target(CONV_INTEGER(first))  	<= x"0007";  -- Master addr 
 						buffer_payload(CONV_INTEGER(first))		<= unr_link_controls(7 downto 0);
