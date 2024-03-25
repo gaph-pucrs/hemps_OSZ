@@ -39,6 +39,7 @@ entity router_ht_wrapper is
         -- packet blocked by wrapper
 
         link_control_message    : out   regNport;
+        link_control_internal   : out   std_logic;
         
         target                  : out   regflit;
         source                  : out   regflit
@@ -93,6 +94,7 @@ begin
         AP_status   => AP_status,
 
         link_control_message => link_control_message,
+        link_control_internal => link_control_internal,
         target      => target,
         source      => source
     );
