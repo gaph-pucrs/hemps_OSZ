@@ -123,7 +123,7 @@ begin
         end generate;
 
         BlockedHT: if hts_setup(i+1)='b' generate
-            HT: entity work.router_ht(router_ht_blocked)
+            HT: entity work.router_ht(router_ht_blocked_counter)
             port map
             (
                 clock           => clock,

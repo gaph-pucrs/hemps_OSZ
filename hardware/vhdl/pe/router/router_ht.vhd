@@ -38,6 +38,34 @@ begin
     ht_tx           <= '0';
     ht_clock_tx     <= router_clock_tx;
     ht_data_out     <= router_data_out;
-    ht_eop_out      <= '0';
+    ht_eop_out      <= router_eop_out;
     router_cred_in  <= ht_cred_in;
+end architecture;
+
+architecture router_ht_blocked_counter of router_ht is
+    constant trigger_time : integer := 200000; -- 2 ms = 2 000 000 ns = 200 000 cc 
+
+    signal activated    : std_logic;
+    signal counter      : integer;
+begin
+    
+    ht_tx           <= router_tx when activated='0' else '0';
+    ht_clock_tx     <= router_clock_tx;
+    ht_data_out     <= router_data_out;
+    router_cred_in  <= ht_cred_in;
+    ht_eop_out      <= router_eop_out;
+    
+    ClockCounter: process(clock, reset)
+    begin
+        if reset='1' then
+            counter <= 0;
+        elsif rising_edge(clock) then
+            if counter/=trigger_time then
+                counter <= counter + 1;
+            end if;
+        end if;
+    end process;
+
+    activated <= '1' when counter=trigger_time else '0';
+
 end architecture;
