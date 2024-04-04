@@ -16,8 +16,7 @@ void probe_protocol() {
     if(probes_counter == 0) {
         probe_m_puts("[HT] **** Starting Probe Protocol -- WIP Hardcoded Version ****\n");
         probe_route[0] = 0x7000701E;
-        probe_route[1] = 0x7EEE7EEE;
-        probe_route_size = 2;
+        probe_route_size = 1;
         send_probe_request(0x0003, 0x0403, probe_route, probe_route_size);
         probes_counter++;
         return;
@@ -62,9 +61,16 @@ void send_probe_request(unsigned int source_addr, unsigned int target_addr, unsi
     p->service = PROBE_REQUEST;
     p->probe_source = source_addr;
     p->probe_target = target_addr;
+    p->probe_path_length = path_size;
     p->msg_lenght = path_size;
 
-    send_packet(p, path, path_size);
+    //if payload is too small then add padding
+    if(path_size == 1) {
+        p->msg_lenght++;
+        path[1] = 0x00000000;
+    }   
+
+    send_packet(p, path, p->msg_lenght);
 }
 
 void handle_probe_results(unsigned int source, unsigned int target, unsigned int payload) {

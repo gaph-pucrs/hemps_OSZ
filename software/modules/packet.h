@@ -87,6 +87,7 @@ typedef struct {
 	};
 
 	union {								//!<Generic union
+		unsigned int probe_path_length;
 		unsigned int pkt_size;
 		unsigned int data_size;
 	};
