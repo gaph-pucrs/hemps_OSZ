@@ -244,6 +244,40 @@ void send_packet(volatile ServiceHeader *p, unsigned int initial_address, unsign
 		insert_CM_FIFO(p, initial_address, dmni_msg_size); 
 } 
  
+void send_packet_through_path(volatile ServiceHeader *p, unsigned int initial_address, unsigned int dmni_msg_size, unsigned int *path, int path_size) { 
+ 
+	p->payload_size = (CONSTANT_PKT_SIZE - 2) + dmni_msg_size;
+
+	p->transaction = 0;
+
+	p->source_PE = get_net_address();
+	 
+	//move XY header to before SR header
+	p->header[MAX_SOURCE_ROUTING_PATH_SIZE-path_size-1] = ((((p->source_PE & 0x3F00) >> 2) | (p->source_PE & 0x003F)) << 16) | p->header[MAX_SOURCE_ROUTING_PATH_SIZE-1];
+ 
+	//if it is stored, must fulfill header with SR path
+	for(int i=0; i < path_size; i++)
+		p->header[MAX_SOURCE_ROUTING_PATH_SIZE-path_size+i] = path[i];
+ 
+	//Waits the DMNI send process be released
+	while (MemoryRead(DMNI_SEND_ACTIVE));
+ 
+	p->timestamp = MemoryRead(TICK_COUNTER);
+ 
+	MemoryWrite(DMNI_SIZE, CONSTANT_PKT_SIZE + path_size-1);
+	MemoryWrite(DMNI_ADDRESS, (unsigned int) &p->header[MAX_SOURCE_ROUTING_PATH_SIZE-path_size-1]);
+		 
+	if(dmni_msg_size > 0) {
+		MemoryWrite(DMNI_SIZE_2, dmni_msg_size);
+		MemoryWrite(DMNI_ADDRESS_2, initial_address);
+	}
+
+	MemoryWrite(DMNI_OP, READ);
+	MemoryWrite(DMNI_START, 1);
+ 
+	insert_CM_FIFO(p, initial_address, dmni_msg_size);
+}
+ 
 int get_last_hop(unsigned int addX, unsigned int addY){ 
 	int x; 
     //puts("X: "); puts(itoa(addX)); puts(" Y: "); puts(itoa(addY)); puts("\n"); 

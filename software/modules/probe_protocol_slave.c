@@ -34,7 +34,7 @@ void send_probe(unsigned int source, unsigned int target, unsigned int *path, in
     p->probe_source = source;
     p->probe_target = target;
 
-    send_packet(p, 0, 0);
+    send_packet_through_path(p, 0, 0, path, path_size);
 }
 
 void receive_probe(unsigned int source, unsigned int target) {
