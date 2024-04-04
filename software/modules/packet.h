@@ -45,6 +45,7 @@ typedef struct {
 		unsigned int app_ID;
 		unsigned int io_service;
 		unsigned int SR_target;
+		unsigned int probe_source;
 	};
 
 	union {								//!<Generic union
@@ -57,6 +58,7 @@ typedef struct {
 		unsigned int io_port;
 		unsigned int k0; 
 		unsigned int io_task_ID;
+		unsigned int probe_target;
 	};
 
 	unsigned int source_PE;				//!<Store the packet source PE address

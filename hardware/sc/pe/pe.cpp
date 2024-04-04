@@ -773,6 +773,14 @@ void pe::seek_receive(){
 						cout << "MISSING_PACKET";
 						int_seek.write(1);
 					break;
+					case 0x2B:
+						cout << "PROBE_RESULT";
+						int_seek.write(1);
+					break;
+					case 0x2C:
+						cout << "PROBE_CONTROL";
+						int_seek.write(1);
+					break;
 					default:
 						cout << out_service_fifopdn.read() << " unknown --- ERROR! " ;
 						in_ack_fifopdn.write(1);

@@ -35,6 +35,7 @@
 #include "../../modules/lfsr.h"
 
 #include "../../modules/osz_slave.h"
+#include "../../modules/probe_protocol_slave.h"
 
 #ifdef AES_MODULE
 #include "../../modules/aes.h"
@@ -1665,6 +1666,16 @@ int handle_packet(ServiceHeader * p) {
 		
 		break;
 
+	case PROBE_REQUEST:
+		probe_path_size = p->msg_lenght;
+		DMNI_read_data(probe_path, probe_path_size);
+		send_probe(p->probe_source, p->probe_target, probe_path, probe_path_size);
+		break;
+	
+	case PROBE_MESSAGE:
+		receive_probe(p->probe_source, p->probe_target);
+		break;
+		
 	case ATTACK:
 
 	puts("Attack packet recieved: ");
@@ -2538,6 +2549,10 @@ int SeekInterruptHandler(){
 		case NEW_APP_SERVICE:
 		case NEW_APP_ACK_SERVICE:
 		break;
+
+		case PROBE_CONTROL:
+			receive_probe_control(source, target, payload);
+			break;
 					
 		default:
 			//seek_puts("Received unknown seek service\n");

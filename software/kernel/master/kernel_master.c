@@ -35,6 +35,7 @@
 
 #include "../../modules/osz_master.h"
 #include "../../modules/snip_master.h"
+#include "../../modules/probe_protocol_master.h"
 
 
 NewTask * pending_new_task;
@@ -1158,6 +1159,8 @@ int SeekInterruptHandler(){
 			puts("\n\n*** END APP_DEPLOY"); puts(itoa((MemoryRead(TICK_COUNTER)))); putsv(" RUNNING AT: ", MemoryRead(TICK_COUNTER));
 			puts("\n\n***** APP "); puts(itoa(app_id)); putsv(" RUNNING AT: ", MemoryRead(TICK_COUNTER));
 
+			probe_protocol();
+
 		break;
 		case SET_SZ_RECEIVED_SERVICE:
 			aux = get_Secure_Zone_index(payload);
@@ -1343,6 +1346,10 @@ int SeekInterruptHandler(){
 			renew_snips(app); 
 		break;
 		
+		case PROBE_RESULT:
+			handle_probe_results(source, target, payload);
+			break;
+			
 		//----------------------------------------------------------------------
 		// the services bellow if received by master is of another cluster
 		case OPEN_SECURE_ZONE_SERVICE:

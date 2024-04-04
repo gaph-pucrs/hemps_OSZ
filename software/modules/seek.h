@@ -66,7 +66,8 @@
 #define AP_NOTIFICATION					40	//0x28
 #define UNEXPECTED_DATA					41	//0x29
 #define MISSING_PACKET					42	//0x2A
-
+#define PROBE_RESULT					43  //0x2B
+#define PROBE_CONTROL					44  //0x2C
 
 
 #define	IRQ_SEEK						0x80

@@ -62,6 +62,8 @@
 #define     IO_CLEAR                        0x00000335
 #define     IO_WARNING                      0x00000340
 #define     IO_UNLOCK_WARNINGS              0x00000350
+#define     PROBE_MESSAGE                   0x00000500
+#define     PROBE_REQUEST                   0x00000510
 
 
 
