@@ -2653,6 +2653,7 @@ void OS_InterruptServiceRoutine(unsigned int status) {
 		}	
 		#endif
 
+		monitor_probe_timeout();
 		timeoutTimer(Sessions);
 		OS_InterruptMaskSet(IRQ_TIMEOUT);
 		call_scheduler = 1;
@@ -2812,6 +2813,9 @@ int main(){
 	// init APP_REG -1
 
 	initSessions(); // iniciando passando o addr do mestre pra osz_slave.c (precisa pro warning)
+
+	init_probe_structures();
+	timeoutTimer(0);
 
 	init_service_header_slots();
 

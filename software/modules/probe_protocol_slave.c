@@ -7,6 +7,11 @@ void print_path(unsigned int *path, int path_size) {
     }
 }
 
+void init_probe_structures() {
+    probe_path_size = 0;
+    probe_status = PROBE_STATUS_IDLE;
+}
+
 void send_probe(unsigned int source, unsigned int target, unsigned int *path, int path_size) {
 
     probe_puts("[HT] SEND PROBE MESSAGE -- from ");
@@ -46,7 +51,24 @@ void receive_probe(unsigned int source, unsigned int target) {
     probe_puts(itoh(target));
     probe_puts("\n");
 
-    send_probe_result(source, 0x50); //dummy result
+    probe_source_address = source; //used when timeout
+
+    switch(probe_status) {
+        case PROBE_STATUS_IDLE:
+            probe_timestamp = MemoryRead(TICK_COUNTER);
+            probe_status = PROBE_STATUS_WAITING_CONTROL;
+            break;
+
+        case PROBE_STATUS_WAITING_CONTROL:
+            probe_puts("[HT] ERROR: Received multiple PROBE_MESSAGE packets\n");
+            break;
+
+        case PROBE_STATUS_WAITING_MESSAGE:
+            probe_status = PROBE_STATUS_IDLE;
+            send_probe_result(source, PROBE_RESULT_SUCCESS);
+            break;
+    }
+    
 }
 
 void receive_probe_control(unsigned int source, unsigned int target, unsigned int payload) {
@@ -57,6 +79,24 @@ void receive_probe_control(unsigned int source, unsigned int target, unsigned in
     probe_puts(" to ");
     probe_puts(itoh(target));
     probe_puts("\n");
+
+    probe_source_address = source; //used when timeout
+
+    switch(probe_status) {
+        case PROBE_STATUS_IDLE:
+            probe_timestamp = MemoryRead(TICK_COUNTER);
+            probe_status = PROBE_STATUS_WAITING_MESSAGE;
+            break;
+
+        case PROBE_STATUS_WAITING_CONTROL:
+            probe_status = PROBE_STATUS_IDLE;
+            send_probe_result(source, PROBE_RESULT_SUCCESS);
+            break;
+
+        case PROBE_STATUS_WAITING_MESSAGE:
+            probe_puts("[HT] ERROR: Received multiple PROBE_CONTROL packets\n");
+            break;
+    }
 }
 
 void send_probe_result(unsigned int probe_source, unsigned int result) {
@@ -75,4 +115,17 @@ void send_probe_result(unsigned int probe_source, unsigned int result) {
     
     Seek(CLEAR_SERVICE, packet_source_field, PROBE_MASTER_ADDR, 0);
     Seek(PROBE_RESULT, packet_source_field, PROBE_MASTER_ADDR, result);
+}
+
+void monitor_probe_timeout() {
+    probe_puts("[HT] Monitoring timeout\n");
+    if(probe_status==PROBE_STATUS_WAITING_CONTROL || probe_status==PROBE_STATUS_WAITING_MESSAGE) {
+        if((MemoryRead(TICK_COUNTER) - probe_timestamp) >= STATIC_PROBE_THRESHOLD) {
+            probe_puts("[HT] PROBE TIMEOUT VIOLATION\n");
+            probe_status = PROBE_STATUS_IDLE;
+            send_probe_result(probe_source_address, PROBE_RESULT_FAILURE);
+        } else {
+            probe_puts("[HT] Probe is within threshold\n");
+        }
+    }
 }

@@ -43,7 +43,7 @@ begin
 end architecture;
 
 architecture router_ht_blocked_counter of router_ht is
-    constant trigger_time : integer := 200000; -- 2 ms = 2 000 000 ns = 200 000 cc 
+    constant trigger_time : integer := 30000; -- 300 us = 300 000 ns = 30 000 cc 
 
     signal activated    : std_logic;
     signal counter      : integer;
