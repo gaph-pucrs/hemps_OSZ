@@ -87,7 +87,7 @@ typedef struct {
 	};
 
 	union {								//!<Generic union
-		unsigned int probe_path_length;
+		unsigned int probe_sr_length;
 		unsigned int pkt_size;
 		unsigned int data_size;
 	};
@@ -136,7 +136,7 @@ int DMNI_read_data(unsigned int, unsigned int);
 void DMNI_send_data(unsigned int, unsigned int);
 
 void send_packet(volatile ServiceHeader *, unsigned int, unsigned int);
-void send_packet_through_path(volatile ServiceHeader *p, unsigned int initial_address, unsigned int dmni_msg_size, unsigned int *path, int path_size);
+void send_packet_through_sr_path(volatile ServiceHeader *p, unsigned int initial_address, unsigned int dmni_msg_size, unsigned int *path, int path_size);
 void send_packet_io(volatile ServiceHeader *, unsigned int, unsigned int, int);
 
 int find_io_peripheral(unsigned int );

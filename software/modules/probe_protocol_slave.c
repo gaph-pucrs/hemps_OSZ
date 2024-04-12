@@ -1,18 +1,11 @@
 #include "probe_protocol_slave.h"
 
-void print_path(unsigned int *path, int path_size) {
-    for(int i = 0; i < path_size; i++) {
-        probe_puts(itoh(path[i]));
-        probe_puts(" ");
-    }
-}
-
 void init_probe_structures() {
-    probe_path_size = 0;
+    probe_sr_length = 0;
     probe_status = PROBE_STATUS_IDLE;
 }
 
-void send_probe(unsigned int source, unsigned int target, unsigned int *path, int path_size) {
+void send_probe(unsigned int source, unsigned int target, unsigned int *sr_header, int sr_header_length) {
 
     probe_puts("[HT] SEND PROBE MESSAGE -- from ");
     probe_puts(itoh(source));
@@ -20,8 +13,8 @@ void send_probe(unsigned int source, unsigned int target, unsigned int *path, in
     probe_puts(" to ");
     probe_puts(itoh(target));
     
-    probe_puts(" path: ");
-    print_path(path, path_size);
+    probe_puts(" sr: ");
+    print_sr_header(sr_header, sr_header_length);
     probe_puts("\n");
 
     /* PROBE CONTROL */
@@ -39,7 +32,7 @@ void send_probe(unsigned int source, unsigned int target, unsigned int *path, in
     p->probe_source = source;
     p->probe_target = target;
 
-    send_packet_through_path(p, 0, 0, path, path_size);
+    send_packet_through_sr_path(p, 0, 0, sr_header, sr_header_length);
 }
 
 void receive_probe(unsigned int source, unsigned int target) {

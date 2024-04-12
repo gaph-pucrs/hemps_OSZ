@@ -244,7 +244,7 @@ void send_packet(volatile ServiceHeader *p, unsigned int initial_address, unsign
 		insert_CM_FIFO(p, initial_address, dmni_msg_size); 
 } 
  
-void send_packet_through_path(volatile ServiceHeader *p, unsigned int initial_address, unsigned int dmni_msg_size, unsigned int *path, int path_size) { 
+void send_packet_through_sr_path(volatile ServiceHeader *p, unsigned int initial_address, unsigned int dmni_msg_size, unsigned int *path, int path_size) { 
  
 	p->payload_size = (CONSTANT_PKT_SIZE - 2) + dmni_msg_size;
 

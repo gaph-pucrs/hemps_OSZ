@@ -1667,8 +1667,8 @@ int handle_packet(ServiceHeader * p) {
 		break;
 
 	case PROBE_REQUEST:
-		DMNI_read_data(probe_path, p->msg_lenght);
-		send_probe(p->probe_source, p->probe_target, probe_path, p->probe_path_length);
+		DMNI_read_data(probe_sr_header, p->msg_lenght);
+		send_probe(p->probe_source, p->probe_target, probe_sr_header, p->probe_sr_length);
 		break;
 	
 	case PROBE_MESSAGE:
