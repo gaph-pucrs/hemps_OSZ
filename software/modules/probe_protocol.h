@@ -17,4 +17,6 @@ char get_opposite_direction(char direction);
 
 int path_to_sr_header(char *path, int path_size, unsigned int *header);
 
+unsigned int calculate_target(unsigned int source, char *path, int path_size);
+
 #endif

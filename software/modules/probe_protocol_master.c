@@ -54,6 +54,9 @@ void print_trust_score_matrix() {
 
 void init_probe_master_structures() {
     probe_path_size = 0;
+    broken_path_size = 0;
+    binary_search_state = BINARY_SEARCH_INIT;
+    enable_binary_search = 0;
     //init trust scores cube matrix
     for(int x = 0; x < PLATFORM_DIMENSION_X; x++) {
         for(int y = 0; y < PLATFORM_DIMENSION_Y; y++) {
@@ -108,6 +111,136 @@ void probe_protocol() {
         probes_counter++;
         return;
     }
+
+    if(probes_counter == 3) {
+        broken_path[0] = SOUTH;
+        broken_path[1] = EAST;
+        broken_path[2] = EAST;
+        broken_path[3] = EAST;
+        broken_path[4] = EAST;
+        broken_path[5] = NORTH;
+        broken_path_size = 6;
+        
+        search_source = 0x0003;
+        search_target = 0x0403;
+        searched_path = broken_path;
+        searched_path_size = broken_path_size;
+
+        binary_search_state = BINARY_SEARCH_INIT;
+        enable_binary_search = 1;
+        continue_binary_search(0);
+    }
+}
+
+void print_search_result() {
+    probe_puts("[HT] **** BINARY SEARCH FINALIZED -- HT LOCATION: ");
+    probe_puts(itoh(broken_router));
+    probe_puts(" ");
+    switch(broken_port) {
+        case EAST:
+            probe_puts("E");
+            break;
+        case WEST:
+            probe_puts("W");
+            break;
+        case NORTH:
+            probe_puts("N");
+            break;
+        case SOUTH:
+            probe_puts("S");
+            break;
+    }
+    probe_puts(" ****\n");
+}
+
+void continue_binary_search(int result) {
+
+    while(1) {
+
+        int left_size = searched_path_size / 2;
+        int left_head = 0;
+        int left_tail = left_size - 1;
+
+        int right_size = searched_path_size - left_size;
+        int right_head = left_size;
+        int right_tail = searched_path_size - 1;
+
+        unsigned int middle_router = calculate_target(search_source, searched_path, left_size);
+
+        /* PROBE NEW SUSPICIOUS PATH -- START WITH LEFT */
+        if(binary_search_state == BINARY_SEARCH_INIT) {
+            
+            send_probe_request(search_source, middle_router, searched_path, left_size);
+            binary_search_state = BINARY_SEARCH_LEFT;
+            
+            return;
+        }
+
+        /* RECEIVE RESULT FROM LEFT PROBE -- THEN PROBE RIGHT */
+        else if(binary_search_state == BINARY_SEARCH_LEFT) {
+            
+            result_left = result;
+            
+            send_probe_request(middle_router, search_target, searched_path + left_size, right_size);
+            binary_search_state = BINARY_SEARCH_RIGHT;
+            
+            return;
+        }
+
+        /* RECEIVE RESULT FROM RIGHT PROBE -- THEN UPDATE SEARCH SCOPE */
+        else if(binary_search_state == BINARY_SEARCH_RIGHT) {
+            
+            result_right = result;
+
+            /* Update binary search scope */
+
+            if(result_left==PROBE_RESULT_SUCCESS && result_right==PROBE_RESULT_SUCCESS) {
+                probe_puts("[HT] BINARY SEARCH ERROR - Both right and left probes were SUCCESSFUL\n");
+                while(1);
+            }
+            
+            if(result_left==PROBE_RESULT_FAILURE && result_right==PROBE_RESULT_FAILURE) {
+                probe_puts("[HT] BINARY SEARCH ERROR - Both right and left probes FAILED\n");
+                while(1);
+            }
+
+            // Zoom on left
+            if(result_left==PROBE_RESULT_FAILURE) {
+
+                if(left_size == 1) {
+                    //FINALIZE SEARCH
+                    broken_router = search_source;
+                    broken_port = searched_path[left_head];
+                    print_search_result();
+                    binary_search_state = BINARY_SEARCH_INIT;
+                    return;
+                }
+
+                search_target = middle_router;
+                searched_path_size = left_size;
+            }
+
+            // Zoom on right
+            else {
+
+                if(right_size == 1) {
+                    //FINALIZE SEARCH
+                    broken_router = middle_router;
+                    broken_port = searched_path[right_head];
+                    print_search_result();
+                    binary_search_state = BINARY_SEARCH_INIT;
+                    return;
+                }
+
+                search_source = middle_router;
+                searched_path_size = right_size;
+                searched_path = searched_path + left_size;
+            }
+
+            binary_search_state = BINARY_SEARCH_INIT;
+        }
+    }
+
 }
 
 void send_probe_request(unsigned int source_addr, unsigned int target_addr, char *path, int path_size) {
@@ -161,9 +294,13 @@ void handle_probe_results(unsigned int source, unsigned int target, unsigned int
     probe_puts(itoh(payload));
     probe_puts("\n");
 
-    update_trust_scores(source_probe, source_packet, probe_path, probe_path_size, payload);
+    if(enable_binary_search)
+        continue_binary_search(payload);
 
-    probe_protocol(); //call probe_protocol back to continue with the hardcoded algorithm
+    else {
+        update_trust_scores(source_probe, source_packet, probe_path, probe_path_size, payload);
+        probe_protocol(); //call probe_protocol back to continue with the hardcoded algorithm
+    }
 }
 
 void update_trust_scores(unsigned int source, unsigned int target, char *path, int path_size, int probe_result) {

@@ -90,3 +90,28 @@ int path_to_sr_header(char *path, int path_size, unsigned int *header) {
 
     return word_index + 1; //header size, in words
 }
+
+unsigned int calculate_target(unsigned int source, char *path, int path_size) {
+
+    int x = source >> 8;
+    int y = source & 0xff;
+
+    for(int i = 0; i < path_size; i++) {
+        switch(path[i]) {
+            case EAST:
+                x++;
+                break;
+            case WEST:
+                x--;
+                break;
+            case NORTH:
+                y++;
+                break;
+            case SOUTH:
+                y--;
+                break;
+        }
+    }
+
+    return (x << 8) | y;
+}
