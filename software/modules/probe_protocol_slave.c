@@ -19,7 +19,6 @@ void send_probe(unsigned int source, unsigned int target, unsigned int *sr_heade
 
     /* PROBE CONTROL */
 
-    Seek(CLEAR_SERVICE, get_net_address(), target, 0);
     Seek(PROBE_CONTROL, get_net_address(), target, 0);
 
     /* PROBE MESSAGE */
@@ -106,7 +105,6 @@ void send_probe_result(unsigned int probe_source, unsigned int result) {
 
     unsigned int packet_source_field = (probe_source << 16) | (get_net_address() & 0xffff);
     
-    Seek(CLEAR_SERVICE, packet_source_field, PROBE_MASTER_ADDR, 0);
     Seek(PROBE_RESULT, packet_source_field, PROBE_MASTER_ADDR, result);
 }
 
