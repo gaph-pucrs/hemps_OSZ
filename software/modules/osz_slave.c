@@ -541,6 +541,8 @@ int createSession(Session* sessions, unsigned int prod, unsigned int cons, int c
 	sessions[auxIndex].producer = prod;
   sessions[auxIndex].pairIndex = code & 0x3F; // Three last bits of the code are the Index
 
+  sessions[auxIndex].requested = 0;
+
   sessions[auxIndex].countedLatencies = 0;
   sessions[auxIndex].timeoutThreshold = getInitLatencyThreshold(&sessions[auxIndex]);
 

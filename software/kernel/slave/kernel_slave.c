@@ -2126,8 +2126,9 @@ int SeekInterruptHandler(){
 				auxService = auxSession->header;
 
 				// if ((auxSession->requested == auxNumber) && (auxNumber != 1) ){ // Repeated MRC
-				if ((auxSession->requested == auxNumber)){ // Repeated MRC 
-					// puts("ERRO(req): Recebendo MRC repetido\n");
+				// if ((auxSession->requested == auxNumber)){ // Repeated MRC 
+				if ((auxSession->requested + 1) != auxNumber){ // Repeated MRC 
+					puts("ERRO(req): Recebendo MRC repetido\n");
 				}else{
 					puts("CONTROL: MRC from :");puts(itoh(auxSession->consumer));puts("\n");
 					auxSession->requested += 1;  
