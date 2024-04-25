@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/env python2
 
 print ("""
   _   _          __  __   ____    ____                ___    ____    _____

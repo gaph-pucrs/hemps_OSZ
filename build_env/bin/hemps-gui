@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python2
 import os
 import sys
 import subprocess
@@ -52,7 +52,7 @@ try:
 except:
     sys.exit("ERROR: Invalid simulation time passed as 2nd argument, e.g: hemps-run <my_testcase>.yaml <time_in_ms>")
     
-subprocess.call("python "+ HEMPS_PATH+"/build_env/testcase_builder.py "+ testcase_file_path + " " + str(simul_time), shell=True)
+subprocess.call("python2 "+ HEMPS_PATH+"/build_env/testcase_builder.py "+ testcase_file_path + " " + str(simul_time), shell=True)
 
 
 

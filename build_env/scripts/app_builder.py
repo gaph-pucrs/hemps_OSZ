@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/env python2
 import sys
 import math
 import os
@@ -357,7 +357,7 @@ def get_task_IO_list(app_name, task_name, io_list):
         for port in io_list:
             if io[1] == port[0]:
                 task_io_list.append((io[0],port[1]))
-                print task_io_list[-1]
+                print (task_io_list[-1])
 
     f.close()
 
