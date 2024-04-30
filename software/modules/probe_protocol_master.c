@@ -213,6 +213,7 @@ void continue_binary_search(int result) {
                     broken_port = searched_path[left_head];
                     print_search_result();
                     binary_search_state = BINARY_SEARCH_INIT;
+                    enable_binary_search = 0;
                     return;
                 }
 
@@ -229,6 +230,7 @@ void continue_binary_search(int result) {
                     broken_port = searched_path[right_head];
                     print_search_result();
                     binary_search_state = BINARY_SEARCH_INIT;
+                    enable_binary_search = 0;
                     return;
                 }
 
