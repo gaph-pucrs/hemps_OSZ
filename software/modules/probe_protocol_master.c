@@ -297,10 +297,10 @@ void handle_probe_results(unsigned int source, unsigned int target, unsigned int
     if(enable_binary_search)
         continue_binary_search(payload);
 
-    else {
-        update_trust_scores(source_probe, source_packet, probe_path, probe_path_size, payload);
-        probe_protocol(); //call probe_protocol back to continue with the hardcoded algorithm
-    }
+    // else {
+    //     update_trust_scores(source_probe, source_packet, probe_path, probe_path_size, payload);
+    //     probe_protocol(); //call probe_protocol back to continue with the hardcoded algorithm
+    // }
 }
 
 void update_trust_scores(unsigned int source, unsigned int target, char *path, int path_size, int probe_result) {

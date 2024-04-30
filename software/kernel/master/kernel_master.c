@@ -1159,7 +1159,7 @@ int SeekInterruptHandler(){
 			puts("\n\n*** END APP_DEPLOY"); puts(itoa((MemoryRead(TICK_COUNTER)))); putsv(" RUNNING AT: ", MemoryRead(TICK_COUNTER));
 			puts("\n\n***** APP "); puts(itoa(app_id)); putsv(" RUNNING AT: ", MemoryRead(TICK_COUNTER));
 
-			probe_protocol();
+			//probe_protocol();
 
 		break;
 		case SET_SZ_RECEIVED_SERVICE:
