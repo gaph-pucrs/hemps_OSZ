@@ -929,7 +929,7 @@ int handle_packet(ServiceHeader * p) {
 	
 
 		// printSessions(Sessions);
-		session_puts("DATA: Chegou REQUEST de "); session_puts(itoh(p->producer_task)); session_puts("\n");
+		session_puts("DATA: Chegou REQUEST para "); session_puts(itoh(p->producer_task)); session_puts("\n");
 		auxIndex = checkSession(Sessions, p->producer_task, p->consumer_task);
 		if (auxIndex < 0){
 			// session_puts("DATA: REQUEST - Nao achou a Sessao, salvando Service \n");
@@ -1917,36 +1917,36 @@ int SeekInterruptHandler(){
 
 			auxProducer = get_task_from_PE(SR_Table[slot_seek].target);
 
-            //if the app is nonsecure, execute the routine from before the Secure Framework
-			if(current->secure == 0)
-			{
-				puts("Nonsecure application, resend pending packets.\n");
-                aux = 0;
-				aux += resend_msg_request(SR_Table[slot_seek].target);
-				aux += resend_messages(SR_Table[slot_seek].target);
-
-                if(aux == 0)
-                {
-				    aux =  search_Target(source>>16);
-				    #ifndef GRAY_AREA
-				    if(((aux == search_Service(IO_REQUEST)) || (aux == search_Service(IO_DELIVERY))) && (aux != -1)){
-				    	send_wrapper_close_forward(aux);
-				    }	
-				    #endif
-            	    aux = resend_control_message(backtrack, backtrack1, backtrack2, SR_Table[slot_seek].target);
-        	    }
-
-			    if(aux == 0)
-                {
-				    int peripheral_id = find_io_peripheral(get_net_address());
-				    if(peripheral_id){
-				    	puts(" SR Peripheral\n"); 
-				    	send_peripheral_SR_path(slot_seek, peripheral_id, target, 0);
-				    }
-			    }
-				
-				break;
-			}
+            // //if the app is nonsecure, execute the routine from before the Secure Framework
+			// if(current->secure == 0)
+			// {
+			// 	puts("Nonsecure application, resend pending packets.\n");
+            //     aux = 0;
+			// 	aux += resend_msg_request(SR_Table[slot_seek].target);
+			// 	aux += resend_messages(SR_Table[slot_seek].target);
+			//
+            //     if(aux == 0)
+            //     {
+			// 	    aux =  search_Target(source>>16);
+			// 	    #ifndef GRAY_AREA
+			// 	    if(((aux == search_Service(IO_REQUEST)) || (aux == search_Service(IO_DELIVERY))) && (aux != -1)){
+			// 	    	send_wrapper_close_forward(aux);
+			// 	    }	
+			// 	    #endif
+            // 	    aux = resend_control_message(backtrack, backtrack1, backtrack2, SR_Table[slot_seek].target);
+        	//     }
+			//
+			//     if(aux == 0)
+            //     {
+			// 	    int peripheral_id = find_io_peripheral(get_net_address());
+			// 	    if(peripheral_id){
+			// 	    	puts(" SR Peripheral\n"); 
+			// 	    	send_peripheral_SR_path(slot_seek, peripheral_id, target, 0);
+			// 	    }
+			//     }
+			//
+			// 	break;
+			// }
 
 			aux  = checkSessionSuspicious(Sessions, auxProducer); // Quantas mensagens tem pra reenviar
 			puts("Tem que reenviar: "); puts(itoa(aux)); puts("\n");

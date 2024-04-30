@@ -589,6 +589,7 @@ void printSessionStatus(Session* sessions, unsigned int index){
   puts("Session ------ Code: ");puts(itoh(Sessions[index].code));puts("\n");
   puts("  Consumer: ");puts(itoh(Sessions[index].consumer));puts("\n");
   puts("  Producer: ");puts(itoh(Sessions[index].producer));puts("\n");
+  puts("  Status: ");puts(itoh(Sessions[index].status));puts("\n");
   puts("  PairIndex: ");puts(itoh(Sessions[index].pairIndex));puts("\n");
   puts("  MyIndex: ");puts(itoh(index));puts("\n");
   // puts("  Recieved: ");puts(itoa(Sessions[index].requested));puts("\n");
