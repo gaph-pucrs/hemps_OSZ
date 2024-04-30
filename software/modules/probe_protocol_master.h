@@ -41,6 +41,8 @@ void probe_protocol();
 
 void print_search_result();
 
+void start_binary_search_xy(unsigned short source, unsigned short target);
+
 void continue_binary_search(int result);
 
 void send_probe_request(unsigned int source_addr, unsigned int target_addr, char *path, int path_size);

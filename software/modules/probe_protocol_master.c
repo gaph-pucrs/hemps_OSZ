@@ -153,6 +153,28 @@ void print_search_result() {
     probe_puts(" ****\n");
 }
 
+void start_binary_search_xy(unsigned short source, unsigned short target) {
+
+    search_source = source;
+    search_target = target;
+    broken_path_size = write_xy_path(broken_path, source, target);
+
+    searched_path = broken_path;
+    searched_path_size = broken_path_size;
+
+    probe_puts("[HT] **** Starting new binary search - Source:");
+    probe_puts(itoh(source));
+    probe_puts(" Target:");
+    probe_puts(itoh(target));
+    probe_puts(" Path:");
+    print_path(broken_path, broken_path_size);
+    probe_puts("\n");
+    
+    binary_search_state = BINARY_SEARCH_INIT;
+    enable_binary_search = 1;
+    continue_binary_search(0);
+}
+
 void continue_binary_search(int result) {
 
     while(1) {

@@ -2591,6 +2591,7 @@ void OS_InterruptServiceRoutine(unsigned int status) {
 	unsigned call_scheduler;
 	int timeAux;
 	unsigned int apStatus, aux;
+	int timed_out_session_index, timed_out_prod_addr, timed_out_cons_addr;
 
 	if (current == &idle_tcb){
 		total_slack_time += MemoryRead(TICK_COUNTER) - last_idle_time;
@@ -2645,12 +2646,22 @@ void OS_InterruptServiceRoutine(unsigned int status) {
 		// puts("Timeout Interruption: "); puts(itoa(MemoryRead(TICK_COUNTER))); puts("\n");
 		OS_InterruptMaskClear(IRQ_TIMEOUT);
 		#ifdef SESSION_MANAGER
-		ToutFlag = timeoutMonitor(Sessions, MemoryRead(TICK_COUNTER));
-		if (ToutFlag > 0){
+		ToutFlag = timeoutMonitor(Sessions, MemoryRead(TICK_COUNTER), (int *) &timed_out_session_index);
+		// payload 1 means its a non-IO packet and will trigger localization
+		if(ToutFlag == 1) {
+			timed_out_prod_addr = get_task_location(Sessions[timed_out_session_index].producer);
+			timed_out_cons_addr = get_task_location(Sessions[timed_out_session_index].consumer);
+
+			if(timed_out_prod_addr == get_net_address())
+				Seek(MISSING_PACKET, (timed_out_cons_addr  << 16) | timed_out_prod_addr, cluster_master_address, 1);
+			else if(timed_out_cons_addr == get_net_address())
+				Seek(MISSING_PACKET, (timed_out_prod_addr  << 16) | timed_out_cons_addr, cluster_master_address, 1);
+			else
+				puts("ERROR -- IRQ TIMEOUT -- COMPARACAO FAILED PACKET ADDRESSES FALHOU\n");
+		}
+		else if(ToutFlag >= 2) {
 			Seek(MISSING_PACKET, (MemoryRead(TICK_COUNTER) << 16) | get_net_address(), cluster_master_address, 0);
-			if (ToutFlag >= 2){
-				resend_io_message(get_periphAddr(Sessions[ToutFlag-2].producer), Sessions[ToutFlag-2].producer);
-			}
+			resend_io_message(get_periphAddr(Sessions[ToutFlag-2].producer), Sessions[ToutFlag-2].producer);
 		}	
 		#endif
 

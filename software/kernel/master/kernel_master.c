@@ -1470,6 +1470,11 @@ int SeekInterruptHandler(){
 
 			addReport(w);			
 
+			// payload 1 means its a non-IO packet and will trigger localization
+			if(payload == 1) {
+				start_binary_search_xy(source >> 16, source & 0xFFFF);
+			}
+
 			// if (payload & 0x1 == 0){ // Key 
 			// 	puts("W4- Wrong Key\n");
 			// }

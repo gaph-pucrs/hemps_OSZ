@@ -115,3 +115,40 @@ unsigned int calculate_target(unsigned int source, char *path, int path_size) {
 
     return (x << 8) | y;
 }
+
+int write_xy_path(char *path_buffer, unsigned short source, unsigned short target) {
+
+    int i = 0;
+
+    int current_x = source >> 8;
+    int current_y = source & 0xff;
+
+    int target_x = target >> 8;
+    int target_y = target & 0xff;
+
+    while(current_x < target_x) {
+        path_buffer[i] = EAST;
+        current_x++;
+        i++;
+    }
+
+    while(current_x > target_x) {
+        path_buffer[i] = WEST;
+        current_x--;
+        i++;
+    }
+
+    while(current_y < target_y) {
+        path_buffer[i] = NORTH;
+        current_y++;
+        i++;
+    }
+
+    while(current_y > target_y) {
+        path_buffer[i] = SOUTH;
+        current_y--;
+        i++;
+    }
+
+    return i; //path size
+}

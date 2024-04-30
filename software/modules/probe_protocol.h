@@ -19,4 +19,6 @@ int path_to_sr_header(char *path, int path_size, unsigned int *header);
 
 unsigned int calculate_target(unsigned int source, char *path, int path_size);
 
+int write_xy_path(char *path_buffer, unsigned short source, unsigned short target);
+
 #endif

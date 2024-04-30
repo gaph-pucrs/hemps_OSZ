@@ -793,7 +793,7 @@ unsigned int check_io_session(Session* sessions, unsigned int ioID, unsigned int
 *    
 *    return:  none
 *--------------------------------------------------------------------*/
-unsigned int timeoutMonitor(Session* sessions, int time){
+unsigned int timeoutMonitor(Session* sessions, int time, int *timed_out_session_index){
 	int TUStarget =0;
 	int TUSsource = get_net_address();
 
@@ -823,6 +823,7 @@ unsigned int timeoutMonitor(Session* sessions, int time){
         // Seek(MISSING_PACKET, (MemoryRead(TICK_COUNTER) << 16) | get_net_address(), cluster_master_address, 0);
         // puts("TARGET "); puts(itoh(TUStarget)); puts("\n");
         // Seek(TARGET_UNREACHABLE_SERVICE, (TUSsource<<16) | (TUStarget & 0xFFFF), TUStarget, 0);
+        timed_out_session_index[0] = i;
         return 1;
       }
     } else if (sessions[i].status == IO_WAITING){
@@ -835,6 +836,7 @@ unsigned int timeoutMonitor(Session* sessions, int time){
         // Seek(MISSING_PACKET, (MemoryRead(TICK_COUNTER) << 16) | get_net_address(), cluster_master_address, 0);
         sessions[i].status = IO_WAITING; // deixa em IO_WAITING ainda
         sessions[i].time = time; // Reseta o timer pq vai reenviar o pcote
+        timed_out_session_index[0] = i;
         return 2 + i;
       }
     }
