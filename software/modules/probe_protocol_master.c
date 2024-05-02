@@ -53,10 +53,15 @@ void print_trust_score_matrix() {
 }
 
 void init_probe_master_structures() {
-    probe_path_size = 0;
+    //init binary search
     broken_path_size = 0;
     binary_search_state = BINARY_SEARCH_INIT;
     enable_binary_search = 0;
+    //init probe entries
+    next_probe_id = 0;
+    for(int i = 0; i < MAX_PROBE_ENTRIES; i++) {
+        probes[i].status = PROBE_STATUS_FREE;
+    }
     //init trust scores cube matrix
     for(int x = 0; x < PLATFORM_DIMENSION_X; x++) {
         for(int y = 0; y < PLATFORM_DIMENSION_Y; y++) {
@@ -67,9 +72,26 @@ void init_probe_master_structures() {
     }
 }
 
-void probe_protocol() {
+int get_new_probe_slot() {
+
+    //skip next probe_ids if the respective position on the array is holding a pending probe -- (think about what to do when all slots are filled)
+    while(probes[PROBE_INDEX(next_probe_id)].status == PROBE_STATUS_PENDING)
+        next_probe_id++;
+    
+    int probe_index = PROBE_INDEX(next_probe_id);
+    probes[probe_index].id = next_probe_id;
+    probes[probe_index].status = PROBE_STATUS_ALLOCATED;
+
+    next_probe_id++;
+    return probe_index;
+}
+
+void probe_protocol(int last_result) {
 
     static int probes_counter = 0;
+
+    int probe_path_size;
+    char probe_path[MAX_PATH_SIZE];
 
     //straight route
     if(probes_counter == 0) {
@@ -129,6 +151,12 @@ void probe_protocol() {
         binary_search_state = BINARY_SEARCH_INIT;
         enable_binary_search = 1;
         continue_binary_search(0);
+        return;
+    }
+
+    if(enable_binary_search) {        
+        continue_binary_search(last_result);
+        return;
     }
 }
 
@@ -153,7 +181,7 @@ void print_search_result() {
     probe_puts(" ****\n");
 }
 
-void start_binary_search_xy(unsigned short source, unsigned short target) {
+void start_binary_search_xy(unsigned int source, unsigned int target) {
 
     search_source = source;
     search_target = target;
@@ -181,11 +209,9 @@ void continue_binary_search(int result) {
 
         int left_size = searched_path_size / 2;
         int left_head = 0;
-        int left_tail = left_size - 1;
 
         int right_size = searched_path_size - left_size;
         int right_head = left_size;
-        int right_tail = searched_path_size - 1;
 
         unsigned int middle_router = calculate_target(search_source, searched_path, left_size);
 
@@ -269,57 +295,80 @@ void continue_binary_search(int result) {
 
 void send_probe_request(unsigned int source_addr, unsigned int target_addr, char *path, int path_size) {
 
-    unsigned int source_routing_path[10];
-    int source_routing_length = path_to_sr_header(path, path_size, source_routing_path);
+    int probe_index = get_new_probe_slot();
+    probes[probe_index].source = source_addr;
+    probes[probe_index].target = target_addr;
+    probes[probe_index].path_size = path_size;
+    for(int i = 0; i < path_size; i++)
+        probes[probe_index].path[i] = path[i];
+    
+    unsigned int source_routing_header[10];
+    int source_routing_header_length = path_to_sr_header(path, path_size, source_routing_header);
 
-    probe_puts("[HT] PROBE REQUEST -- from ");
+    probe_puts("[HT] PROBE REQUEST -- probe #");
+    probe_puts(itoa(probes[probe_index].id));
+
+    probe_puts(" src: ");
     probe_puts(itoh(source_addr));
     
-    probe_puts(" to ");
+    probe_puts(" tgt: ");
     probe_puts(itoh(target_addr));
-    
+
     probe_puts(" path: ");
     print_path(path, path_size);
 
-    probe_puts(" -- header: ");
-    print_sr_header(source_routing_path, source_routing_length);
+    probe_puts(" header: ");
+    print_sr_header(source_routing_header, source_routing_header_length);
     probe_puts("\n");
 
     ServiceHeader *p = get_service_header_slot();
 
     p->header[MAX_SOURCE_ROUTING_PATH_SIZE-1] = source_addr;
     p->service = PROBE_REQUEST;
+    p->probe_id = probes[probe_index].id;
     p->probe_source = source_addr;
     p->probe_target = target_addr;
-    p->probe_sr_length = source_routing_length;
-    p->msg_lenght = source_routing_length;
+    p->probe_sr_length = source_routing_header_length;
+    p->msg_lenght = source_routing_header_length;
 
     //if payload is too small then add padding
-    if(source_routing_length == 1) {
+    if(source_routing_header_length == 1) {
         p->msg_lenght++;
-        source_routing_path[1] = 0x00000000;
+        source_routing_header[1] = 0x00000000;
     }
 
-    send_packet(p, (unsigned int) source_routing_path, p->msg_lenght);
+    send_packet(p, (unsigned int) source_routing_header, p->msg_lenght);
+    probes[probe_index].status = PROBE_STATUS_PENDING;
 }
 
-void handle_probe_results(unsigned int source, unsigned int target, unsigned int payload) {
+void handle_probe_results(unsigned int packet_source_field, unsigned int payload) {
 
-    unsigned int source_probe = source >> 16;
-    unsigned int source_packet = source & 0xffff;
+    unsigned int probe_id = packet_source_field >> 16;
+    unsigned int packet_src = packet_source_field & 0xffff;
+
+    int result = payload;
+
+    int i = PROBE_INDEX(probe_id);
+    probes[i].status = (result == PROBE_RESULT_SUCCESS) ? PROBE_STATUS_SUCCEEDED : PROBE_STATUS_FAILED;
     
-    probe_puts("[HT] PROBE RESULTS -- from ");
-    probe_puts(itoh(source_probe));
+    probe_puts("[HT] PROBE RESULTS -- probe #");
+    probe_puts(itoa(probe_id));
+
+    probe_puts(" src: ");
+    probe_puts(itoh(probes[i].source));
     
-    probe_puts(" to ");
-    probe_puts(itoh(source_packet));
+    probe_puts(" tgt: ");
+    probe_puts(itoh(probes[i].target));
 
     probe_puts(" result: ");
-    probe_puts(itoh(payload));
+    print_probe_result(result);
     probe_puts("\n");
 
+    if(packet_src != probes[i].target)
+        probe_puts("[HT]    ERROR: PROBE_RESULTS was sent by someone other than original probe_target\n");
+
     if(enable_binary_search)
-        continue_binary_search(payload);
+        continue_binary_search(result);
 
     // else {
     //     update_trust_scores(source_probe, source_packet, probe_path, probe_path_size, payload);

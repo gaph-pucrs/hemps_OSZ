@@ -5,12 +5,15 @@ void init_probe_structures() {
     probe_status = PROBE_STATUS_IDLE;
 }
 
-void send_probe(unsigned int source, unsigned int target, unsigned int *sr_header, int sr_header_length) {
+void send_probe(unsigned int probe_id, unsigned int source, unsigned int target, unsigned int *sr_header, int sr_header_length) {
 
-    probe_puts("[HT] SEND PROBE MESSAGE -- from ");
+    probe_puts("[HT] SEND PROBE MESSAGE -- probe #");
+    probe_puts(itoa(probe_id));
+
+    probe_puts(" src: ");
     probe_puts(itoh(source));
     
-    probe_puts(" to ");
+    probe_puts(" tgt: ");
     probe_puts(itoh(target));
     
     probe_puts(" sr: ");
@@ -19,7 +22,7 @@ void send_probe(unsigned int source, unsigned int target, unsigned int *sr_heade
 
     /* PROBE CONTROL */
 
-    Seek(PROBE_CONTROL, get_net_address(), target, 0);
+    Seek(PROBE_CONTROL, (probe_id << 16) | (get_net_address() & 0xffff), target, 0);
 
     /* PROBE MESSAGE */
 
@@ -28,22 +31,27 @@ void send_probe(unsigned int source, unsigned int target, unsigned int *sr_heade
     p->header[MAX_SOURCE_ROUTING_PATH_SIZE-1] = target;
     
     p->service = PROBE_MESSAGE;
+    p->probe_id = probe_id;
     p->probe_source = source;
     p->probe_target = target;
 
     send_packet_through_sr_path(p, 0, 0, sr_header, sr_header_length);
 }
 
-void receive_probe(unsigned int source, unsigned int target) {
+void receive_probe(unsigned int probe_id, unsigned int source, unsigned int target) {
 
-    probe_puts("[HT] RECV PROBE MESSAGE -- from ");
+    probe_puts("[HT] RECV PROBE MESSAGE -- probe #");
+    probe_puts(itoa(probe_id));
+
+    probe_puts(" src: ");
     probe_puts(itoh(source));
     
-    probe_puts(" to ");
+    probe_puts(" tgt: ");
     probe_puts(itoh(target));
     probe_puts("\n");
 
     probe_source_address = source; //used when timeout
+    probe_id_timeout = probe_id;
 
     switch(probe_status) {
         case PROBE_STATUS_IDLE:
@@ -57,22 +65,29 @@ void receive_probe(unsigned int source, unsigned int target) {
 
         case PROBE_STATUS_WAITING_MESSAGE:
             probe_status = PROBE_STATUS_IDLE;
-            send_probe_result(source, PROBE_RESULT_SUCCESS);
+            send_probe_result(probe_id, source, PROBE_RESULT_SUCCESS);
             break;
     }
     
 }
 
-void receive_probe_control(unsigned int source, unsigned int target, unsigned int payload) {
+void receive_probe_control(unsigned int pkt_source, unsigned int pkt_target, unsigned int pkt_payload) {
 
-    probe_puts("[HT] RECV PROBE CONTROL -- from ");
-    probe_puts(itoh(source));
+    unsigned int probe_id = pkt_source >> 16;
+    unsigned int source = pkt_source & 0xffff;
+
+    probe_puts("[HT] RECV PROBE CONTROL -- probe #");
+    probe_puts(itoa(probe_id));
     
-    probe_puts(" to ");
-    probe_puts(itoh(target));
+    probe_puts(" src: ");
+    probe_puts(itoh(source));
+
+    probe_puts(" tgt: ");
+    probe_puts(itoh(pkt_target));
     probe_puts("\n");
 
     probe_source_address = source; //used when timeout
+    probe_id_timeout = probe_id;
 
     switch(probe_status) {
         case PROBE_STATUS_IDLE:
@@ -82,7 +97,7 @@ void receive_probe_control(unsigned int source, unsigned int target, unsigned in
 
         case PROBE_STATUS_WAITING_CONTROL:
             probe_status = PROBE_STATUS_IDLE;
-            send_probe_result(source, PROBE_RESULT_SUCCESS);
+            send_probe_result(probe_id, source, PROBE_RESULT_SUCCESS);
             break;
 
         case PROBE_STATUS_WAITING_MESSAGE:
@@ -91,19 +106,22 @@ void receive_probe_control(unsigned int source, unsigned int target, unsigned in
     }
 }
 
-void send_probe_result(unsigned int probe_source, unsigned int result) {
+void send_probe_result(unsigned int probe_id, unsigned int probe_source, int result) {
 
-    probe_puts("[HT] SEND PROBE RESULTS -- from ");
+    probe_puts("[HT] SEND PROBE RESULTS -- probe #");
+    probe_puts(itoa(probe_id));
+    
+    probe_puts(" src: ");
     probe_puts(itoh(probe_source));
 
-    probe_puts(" to ");
+    probe_puts(" tgt: ");
     probe_puts(itoh(get_net_address()));
 
     probe_puts(" result: ");
     probe_puts(itoh(result));
     probe_puts("\n");
 
-    unsigned int packet_source_field = (probe_source << 16) | (get_net_address() & 0xffff);
+    unsigned int packet_source_field = (probe_id << 16) | (get_net_address() & 0xffff);
     
     Seek(PROBE_RESULT, packet_source_field, PROBE_MASTER_ADDR, result);
 }
@@ -114,7 +132,7 @@ void monitor_probe_timeout() {
         if((MemoryRead(TICK_COUNTER) - probe_timestamp) >= STATIC_PROBE_THRESHOLD) {
             probe_puts("[HT] PROBE TIMEOUT VIOLATION\n");
             probe_status = PROBE_STATUS_IDLE;
-            send_probe_result(probe_source_address, PROBE_RESULT_FAILURE);
+            send_probe_result(probe_id_timeout, probe_source_address, PROBE_RESULT_FAILURE);
         } else {
             probe_puts("[HT] Probe is within threshold\n");
         }

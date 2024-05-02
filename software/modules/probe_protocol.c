@@ -1,5 +1,18 @@
 #include "probe_protocol.h"
 
+void print_probe_result(int status) {
+    switch(status) {
+        case PROBE_RESULT_SUCCESS:
+            probe_puts("SUCCESS");
+            break;
+        case PROBE_RESULT_FAILURE:
+            probe_puts("FAILURE");
+            break;
+        default:
+            probe_puts("UNKNOWN RESULT");
+    }
+}
+
 void print_path(char *path, int path_size) {
     for(int i = 0; i < path_size; i++) {
         switch(path[i]) {
@@ -116,7 +129,7 @@ unsigned int calculate_target(unsigned int source, char *path, int path_size) {
     return (x << 8) | y;
 }
 
-int write_xy_path(char *path_buffer, unsigned short source, unsigned short target) {
+int write_xy_path(char *path_buffer, unsigned int source, unsigned int target) {
 
     int i = 0;
 

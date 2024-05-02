@@ -1347,7 +1347,7 @@ int SeekInterruptHandler(){
 		break;
 		
 		case PROBE_RESULT:
-			handle_probe_results(source, target, payload);
+			handle_probe_results(source, payload);
 			break;
 			
 		//----------------------------------------------------------------------

@@ -98,6 +98,7 @@ typedef struct {
 		unsigned int execution_time;
 		unsigned int secure;
 		unsigned int program_counter; //aux fochi
+		unsigned int probe_id;
 	};
 
 	union {								//!<Generic union

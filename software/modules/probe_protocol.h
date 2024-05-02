@@ -9,6 +9,8 @@
 #define PROBE_RESULT_SUCCESS 10
 #define PROBE_RESULT_FAILURE 20
 
+void print_probe_result(int status);
+
 void print_path(char *path, int path_size);
 
 void print_sr_header(unsigned int *header, int header_size);
@@ -19,6 +21,6 @@ int path_to_sr_header(char *path, int path_size, unsigned int *header);
 
 unsigned int calculate_target(unsigned int source, char *path, int path_size);
 
-int write_xy_path(char *path_buffer, unsigned short source, unsigned short target);
+int write_xy_path(char *path_buffer, unsigned int source, unsigned int target);
 
 #endif
