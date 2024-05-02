@@ -2,7 +2,39 @@
 
 void init_probe_structures() {
     probe_sr_length = 0;
-    probe_status = PROBE_STATUS_IDLE;
+    next_incoming_probe_slot = 0;
+    for(int i = 0; i < MAX_INCOMING_PROBES; i++) {
+        incoming_probes[i].status = INCOMING_PROBE_BLANK;
+    }
+}
+
+int get_new_incoming_probe_slot() {
+
+    int remaining_slots = MAX_INCOMING_PROBES;
+    while(remaining_slots > 0) {
+
+        int slot = next_incoming_probe_slot;
+        int slot_status = incoming_probes[slot].status;
+
+        next_incoming_probe_slot = (next_incoming_probe_slot + 1) % MAX_INCOMING_PROBES;
+
+        if(slot_status == INCOMING_PROBE_BLANK || slot_status == INCOMING_PROBE_SUCCEEDED || slot_status == INCOMING_PROBE_FAILED) {
+            incoming_probes[slot].status = INCOMING_PROBE_ALLOCATED;
+            return slot;
+        }
+
+        remaining_slots--;
+    }
+
+    probe_puts("[HT] ERROR: incoming_probes array has no slot available\n");
+    return -1;
+}
+
+int get_incoming_probe_by_id(unsigned int probe_id) {
+    for(int i = 0; i < MAX_INCOMING_PROBES; i++)
+        if(incoming_probes[i].id == probe_id && incoming_probes[i].status != INCOMING_PROBE_BLANK)
+            return i;
+    return -1;
 }
 
 void send_probe(unsigned int probe_id, unsigned int source, unsigned int target, unsigned int *sr_header, int sr_header_length) {
@@ -50,25 +82,31 @@ void receive_probe(unsigned int probe_id, unsigned int source, unsigned int targ
     probe_puts(itoh(target));
     probe_puts("\n");
 
-    probe_source_address = source; //used when timeout
-    probe_id_timeout = probe_id;
+    int slot = get_incoming_probe_by_id(probe_id);
 
-    switch(probe_status) {
-        case PROBE_STATUS_IDLE:
-            probe_timestamp = MemoryRead(TICK_COUNTER);
-            probe_status = PROBE_STATUS_WAITING_CONTROL;
-            break;
-
-        case PROBE_STATUS_WAITING_CONTROL:
-            probe_puts("[HT] ERROR: Received multiple PROBE_MESSAGE packets\n");
-            break;
-
-        case PROBE_STATUS_WAITING_MESSAGE:
-            probe_status = PROBE_STATUS_IDLE;
-            send_probe_result(probe_id, source, PROBE_RESULT_SUCCESS);
-            break;
+    if(slot == -1) {
+        slot = get_new_incoming_probe_slot();
+        incoming_probes[slot].id = probe_id;
+        incoming_probes[slot].source = source;
+        incoming_probes[slot].timestamp = MemoryRead(TICK_COUNTER);
+        incoming_probes[slot].status = INCOMING_PROBE_WAITING_CONTROL;
+        return;
     }
-    
+
+    if(incoming_probes[slot].status != INCOMING_PROBE_WAITING_MESSAGE) {
+        probe_puts("[HT] ERROR: receive_probe function expected slot to be WAITING_MESSAGE, but was: ");
+        probe_puts(itoa(incoming_probes[slot].status));
+        probe_puts("\n");
+        return;
+    }
+
+    if(incoming_probes[slot].source != source) {
+        probe_puts("[HT] ERROR: PROBE_MESSAGE and PROBE_CONTROL had different sources\n");
+        return;
+    }
+
+    incoming_probes[slot].status = INCOMING_PROBE_SUCCEEDED;
+    send_probe_result(probe_id, source, PROBE_RESULT_SUCCESS);
 }
 
 void receive_probe_control(unsigned int pkt_source, unsigned int pkt_target, unsigned int pkt_payload) {
@@ -86,24 +124,34 @@ void receive_probe_control(unsigned int pkt_source, unsigned int pkt_target, uns
     probe_puts(itoh(pkt_target));
     probe_puts("\n");
 
-    probe_source_address = source; //used when timeout
-    probe_id_timeout = probe_id;
+    int slot = get_incoming_probe_by_id(probe_id);
 
-    switch(probe_status) {
-        case PROBE_STATUS_IDLE:
-            probe_timestamp = MemoryRead(TICK_COUNTER);
-            probe_status = PROBE_STATUS_WAITING_MESSAGE;
-            break;
-
-        case PROBE_STATUS_WAITING_CONTROL:
-            probe_status = PROBE_STATUS_IDLE;
-            send_probe_result(probe_id, source, PROBE_RESULT_SUCCESS);
-            break;
-
-        case PROBE_STATUS_WAITING_MESSAGE:
-            probe_puts("[HT] ERROR: Received multiple PROBE_CONTROL packets\n");
-            break;
+    if(slot == -1) {
+        slot = get_new_incoming_probe_slot();
+        incoming_probes[slot].id = probe_id;
+        incoming_probes[slot].source = source;
+        incoming_probes[slot].timestamp = MemoryRead(TICK_COUNTER);
+        incoming_probes[slot].status = INCOMING_PROBE_WAITING_MESSAGE;
+        probe_puts("[HT] Debug: allocating new incoming_probe slot:");
+        probe_puts(itoa(slot));
+        probe_puts("\n");
+        return;
     }
+
+    if(incoming_probes[slot].status != INCOMING_PROBE_WAITING_CONTROL) {
+        probe_puts("[HT] ERROR: receive_probe function expected slot to be WAITING_CONTROL, but was: ");
+        probe_puts(itoa(incoming_probes[slot].status));
+        probe_puts("\n");
+        return;
+    }
+
+    if(incoming_probes[slot].source != source) {
+        probe_puts("[HT] ERROR: PROBE_MESSAGE and PROBE_CONTROL had different sources\n");
+        return;
+    }
+
+    incoming_probes[slot].status = INCOMING_PROBE_SUCCEEDED;
+    send_probe_result(probe_id, source, PROBE_RESULT_SUCCESS);
 }
 
 void send_probe_result(unsigned int probe_id, unsigned int probe_source, int result) {
@@ -127,14 +175,18 @@ void send_probe_result(unsigned int probe_id, unsigned int probe_source, int res
 }
 
 void monitor_probe_timeout() {
-    probe_puts("[HT] Monitoring timeout\n");
-    if(probe_status==PROBE_STATUS_WAITING_CONTROL || probe_status==PROBE_STATUS_WAITING_MESSAGE) {
-        if((MemoryRead(TICK_COUNTER) - probe_timestamp) >= STATIC_PROBE_THRESHOLD) {
-            probe_puts("[HT] PROBE TIMEOUT VIOLATION\n");
-            probe_status = PROBE_STATUS_IDLE;
-            send_probe_result(probe_id_timeout, probe_source_address, PROBE_RESULT_FAILURE);
-        } else {
-            probe_puts("[HT] Probe is within threshold\n");
+    for(int i = 0; i < MAX_INCOMING_PROBES; i++) {
+        if(incoming_probes[i].status == INCOMING_PROBE_WAITING_CONTROL || incoming_probes[i].status == INCOMING_PROBE_WAITING_MESSAGE) {
+            if((MemoryRead(TICK_COUNTER) - incoming_probes[i].timestamp) >= STATIC_PROBE_THRESHOLD) {
+                probe_puts("[HT] PROBE TIMEOUT VIOLATION -- Probe #");
+                probe_puts(itoa(incoming_probes[i].id));
+                probe_puts("\n");
+                incoming_probes[i].status = INCOMING_PROBE_FAILED;
+                send_probe_result(incoming_probes[i].id, incoming_probes[i].source, PROBE_RESULT_FAILURE);    
+            }
+            else {
+                probe_puts("[HT] Probe is within threshold\n");
+            }
         }
     }
 }
