@@ -171,6 +171,11 @@ void start_binary_search_xy(unsigned int source, unsigned int target) {
     print_path(broken_path, broken_path_size);
     probe_puts("\n");
 
+    if(enable_binary_search == 1) {
+        probe_puts("[HT] MPE already has ongoing binary search. Discarding...\n");        
+        return;
+    }
+
     binary_search_path = broken_path;
     binary_search_path_size = broken_path_size;
     binary_search_source = broken_path_source;
