@@ -11,9 +11,10 @@
 #define MAX_PATH_SIZE 32
 #define MAX_PROBE_ENTRIES 50
 
-#define BINARY_SEARCH_INIT 0
-#define BINARY_SEARCH_LEFT 1
-#define BINARY_SEARCH_RIGHT 2
+#define BINARY_SEARCH_SIDE_BLANK 0
+#define BINARY_SEARCH_SIDE_PENDING 1
+#define BINARY_SEARCH_SIDE_SUCCESS 2
+#define BINARY_SEARCH_SIDE_FAILED 3
 
 #define PROBE_STATUS_FREE 0
 #define PROBE_STATUS_ALLOCATED 1
@@ -37,18 +38,25 @@ struct probe probes[MAX_PROBE_ENTRIES];
 
 int link_trust_scores[PLATFORM_DIMENSION_X][PLATFORM_DIMENSION_Y][NUM_LINKS_PER_ROUTER];
 
-// Start binary search
+// Binary search parameters
 char broken_path[MAX_PATH_SIZE];
 int broken_path_size;
+unsigned int broken_path_source, broken_path_target;
 int enable_binary_search;
 
-// Binary search internal signals
-int binary_search_state;
-unsigned int search_source;
-unsigned int search_target;
-char *searched_path;
-int searched_path_size;
-int result_left, result_right;
+// Binary search scope (specifies path to seach)
+char *binary_search_path;
+int binary_search_path_size;
+unsigned int binary_search_source, binary_search_target;
+
+// Binary search division (handles division of the path into left and right halves)
+char *binary_search_left_path, *binary_search_right_path;
+int binary_search_left_size, binary_search_right_size;
+unsigned int binary_search_middle; //middle router address
+
+// Binary search status
+int binary_search_left_status, binary_search_right_status;
+int binary_search_left_probe_id, binary_search_right_probe_id;
 
 // Binary search result
 unsigned int broken_router;
@@ -66,9 +74,13 @@ void print_search_result();
 
 void start_binary_search_xy(unsigned int source, unsigned int target);
 
-void continue_binary_search(int result);
+void send_binary_search_probes();
 
-void send_probe_request(unsigned int source_addr, unsigned int target_addr, char *path, int path_size);
+void receive_binary_search_probe(int probe_id, int result);
+
+void finalize_binary_search();
+
+int send_probe_request(unsigned int source_addr, unsigned int target_addr, char *path, int path_size);
 
 void handle_probe_results(unsigned int packet_source_field, unsigned int payload);
 

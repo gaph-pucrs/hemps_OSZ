@@ -55,8 +55,9 @@ void print_trust_score_matrix() {
 void init_probe_master_structures() {
     //init binary search
     broken_path_size = 0;
-    binary_search_state = BINARY_SEARCH_INIT;
     enable_binary_search = 0;
+    binary_search_left_status = BINARY_SEARCH_SIDE_BLANK;
+    binary_search_right_status = BINARY_SEARCH_SIDE_BLANK;
     //init probe entries
     next_probe_id = 0;
     for(int i = 0; i < MAX_PROBE_ENTRIES; i++) {
@@ -133,31 +134,6 @@ void probe_protocol(int last_result) {
         probes_counter++;
         return;
     }
-
-    if(probes_counter == 3) {
-        broken_path[0] = SOUTH;
-        broken_path[1] = EAST;
-        broken_path[2] = EAST;
-        broken_path[3] = EAST;
-        broken_path[4] = EAST;
-        broken_path[5] = NORTH;
-        broken_path_size = 6;
-        
-        search_source = 0x0003;
-        search_target = 0x0403;
-        searched_path = broken_path;
-        searched_path_size = broken_path_size;
-
-        binary_search_state = BINARY_SEARCH_INIT;
-        enable_binary_search = 1;
-        continue_binary_search(0);
-        return;
-    }
-
-    if(enable_binary_search) {        
-        continue_binary_search(last_result);
-        return;
-    }
 }
 
 void print_search_result() {
@@ -183,12 +159,9 @@ void print_search_result() {
 
 void start_binary_search_xy(unsigned int source, unsigned int target) {
 
-    search_source = source;
-    search_target = target;
+    broken_path_source = source;
+    broken_path_target = target;
     broken_path_size = write_xy_path(broken_path, source, target);
-
-    searched_path = broken_path;
-    searched_path_size = broken_path_size;
 
     probe_puts("[HT] **** Starting new binary search - Source:");
     probe_puts(itoh(source));
@@ -197,103 +170,138 @@ void start_binary_search_xy(unsigned int source, unsigned int target) {
     probe_puts(" Path:");
     print_path(broken_path, broken_path_size);
     probe_puts("\n");
+
+    binary_search_path = broken_path;
+    binary_search_path_size = broken_path_size;
+    binary_search_source = broken_path_source;
+    binary_search_target = broken_path_target;
     
-    binary_search_state = BINARY_SEARCH_INIT;
     enable_binary_search = 1;
-    continue_binary_search(0);
+    send_binary_search_probes();
 }
 
-void continue_binary_search(int result) {
+void send_binary_search_probes() {
 
-    while(1) {
+    /* Divide path into two halves */
 
-        int left_size = searched_path_size / 2;
-        int left_head = 0;
+    binary_search_left_path = binary_search_path;
+    binary_search_left_size = binary_search_path_size / 2;
 
-        int right_size = searched_path_size - left_size;
-        int right_head = left_size;
+    binary_search_right_path = binary_search_path + binary_search_left_size;
+    binary_search_right_size = binary_search_path_size - binary_search_left_size;
 
-        unsigned int middle_router = calculate_target(search_source, searched_path, left_size);
+    binary_search_middle = calculate_target(binary_search_source, binary_search_path, binary_search_left_size);
 
-        /* PROBE NEW SUSPICIOUS PATH -- START WITH LEFT */
-        if(binary_search_state == BINARY_SEARCH_INIT) {
-            
-            send_probe_request(search_source, middle_router, searched_path, left_size);
-            binary_search_state = BINARY_SEARCH_LEFT;
-            
+    /* Send probes to both sides in parallel */
+
+    binary_search_left_status = BINARY_SEARCH_SIDE_PENDING;
+    binary_search_left_probe_id = send_probe_request(binary_search_source, binary_search_middle, binary_search_left_path, binary_search_left_size);
+    
+    binary_search_right_status = BINARY_SEARCH_SIDE_PENDING;
+    binary_search_right_probe_id = send_probe_request(binary_search_middle, binary_search_target, binary_search_right_path, binary_search_right_size);
+}
+
+void receive_binary_search_probe(int probe_id, int result) {
+
+    /* Receive probes from each side and update status */
+
+    if(probe_id == binary_search_left_probe_id) {
+
+        if(binary_search_left_status != BINARY_SEARCH_SIDE_PENDING) {
+            probe_puts("[HT] ERROR: Binary Search received multiple PROBE_RESULTS for the left side.\n");
             return;
         }
 
-        /* RECEIVE RESULT FROM LEFT PROBE -- THEN PROBE RIGHT */
-        else if(binary_search_state == BINARY_SEARCH_LEFT) {
-            
-            result_left = result;
-            
-            send_probe_request(middle_router, search_target, searched_path + left_size, right_size);
-            binary_search_state = BINARY_SEARCH_RIGHT;
-            
+        binary_search_left_status = (result == PROBE_RESULT_SUCCESS) ? BINARY_SEARCH_SIDE_SUCCESS : BINARY_SEARCH_SIDE_FAILED;
+    }
+    else if(probe_id == binary_search_right_probe_id) {
+
+        if(binary_search_right_status != BINARY_SEARCH_SIDE_PENDING) {
+            probe_puts("[HT] ERROR: Binary Search received multiple PROBE_RESULTS for the right side.\n");
             return;
         }
 
-        /* RECEIVE RESULT FROM RIGHT PROBE -- THEN UPDATE SEARCH SCOPE */
-        else if(binary_search_state == BINARY_SEARCH_RIGHT) {
-            
-            result_right = result;
-
-            /* Update binary search scope */
-
-            if(result_left==PROBE_RESULT_SUCCESS && result_right==PROBE_RESULT_SUCCESS) {
-                probe_puts("[HT] BINARY SEARCH ERROR - Both right and left probes were SUCCESSFUL\n");
-                while(1);
-            }
-            
-            if(result_left==PROBE_RESULT_FAILURE && result_right==PROBE_RESULT_FAILURE) {
-                probe_puts("[HT] BINARY SEARCH ERROR - Both right and left probes FAILED\n");
-                while(1);
-            }
-
-            // Zoom on left
-            if(result_left==PROBE_RESULT_FAILURE) {
-
-                if(left_size == 1) {
-                    //FINALIZE SEARCH
-                    broken_router = search_source;
-                    broken_port = searched_path[left_head];
-                    print_search_result();
-                    binary_search_state = BINARY_SEARCH_INIT;
-                    enable_binary_search = 0;
-                    return;
-                }
-
-                search_target = middle_router;
-                searched_path_size = left_size;
-            }
-
-            // Zoom on right
-            else {
-
-                if(right_size == 1) {
-                    //FINALIZE SEARCH
-                    broken_router = middle_router;
-                    broken_port = searched_path[right_head];
-                    print_search_result();
-                    binary_search_state = BINARY_SEARCH_INIT;
-                    enable_binary_search = 0;
-                    return;
-                }
-
-                search_source = middle_router;
-                searched_path_size = right_size;
-                searched_path = searched_path + left_size;
-            }
-
-            binary_search_state = BINARY_SEARCH_INIT;
-        }
+        binary_search_right_status = (result == PROBE_RESULT_SUCCESS) ? BINARY_SEARCH_SIDE_SUCCESS : BINARY_SEARCH_SIDE_FAILED;
     }
 
+    /* If both sides finished: read results and decide how to continue the search */
+
+    // didn't finish both sides
+    if(binary_search_left_status == BINARY_SEARCH_SIDE_PENDING || binary_search_right_status == BINARY_SEARCH_SIDE_PENDING) {
+        return;
+    }
+
+    // fail/success - zoom on left
+    if(binary_search_left_status == BINARY_SEARCH_SIDE_FAILED && binary_search_right_status == BINARY_SEARCH_SIDE_SUCCESS) {
+
+        if(binary_search_left_size == 1) {
+            broken_router = binary_search_source;
+            broken_port = binary_search_left_path[0];
+            print_search_result();
+            finalize_binary_search();
+            return;
+        }
+
+        binary_search_path = binary_search_left_path;
+        binary_search_path_size = binary_search_left_size;
+        binary_search_source = binary_search_source;
+        binary_search_target = binary_search_middle;
+
+        send_binary_search_probes();
+        return;
+    }
+
+    // success/fail - zoom on right
+    if(binary_search_left_status == BINARY_SEARCH_SIDE_SUCCESS && binary_search_right_status == BINARY_SEARCH_SIDE_FAILED) {
+
+        if(binary_search_right_size == 1) {
+            broken_router = binary_search_middle;
+            broken_port = binary_search_right_path[0];
+            print_search_result();
+            finalize_binary_search();
+            return;
+        }
+        
+        binary_search_path = binary_search_right_path;
+        binary_search_path_size = binary_search_right_size;
+        binary_search_source = binary_search_middle;
+        binary_search_target = binary_search_target;
+
+        send_binary_search_probes();
+        return;
+    }
+
+    // fail/fail - zoom on left & queue right for later
+    if(binary_search_left_status == BINARY_SEARCH_SIDE_FAILED && binary_search_right_status == BINARY_SEARCH_SIDE_FAILED) {
+        probe_puts("[HT] ERROR: Binary Search does not yet support paths with multiple HTs -- Abandoning search\n");
+
+        finalize_binary_search();
+        return;
+    }
+
+    // success/success - abandon search
+    if(binary_search_left_status == BINARY_SEARCH_SIDE_SUCCESS && binary_search_right_status == BINARY_SEARCH_SIDE_SUCCESS) {
+
+        probe_puts("[HT] Binary Search abandoned searching branches #");
+        probe_puts(itoa(binary_search_left_probe_id));
+        probe_puts(" and #");
+        probe_puts(itoa(binary_search_right_probe_id));
+        probe_puts("\n");
+
+        finalize_binary_search();
+        return;
+    }
+
+    probe_puts("[HT] ERROR: Binary Search is handling an unpredicted combination of results.\n");
 }
 
-void send_probe_request(unsigned int source_addr, unsigned int target_addr, char *path, int path_size) {
+void finalize_binary_search() {
+    enable_binary_search = 0;
+    binary_search_left_status = BINARY_SEARCH_SIDE_BLANK;
+    binary_search_right_status = BINARY_SEARCH_SIDE_BLANK;
+}
+
+int send_probe_request(unsigned int source_addr, unsigned int target_addr, char *path, int path_size) {
 
     int probe_index = get_new_probe_slot();
     probes[probe_index].source = source_addr;
@@ -339,6 +347,8 @@ void send_probe_request(unsigned int source_addr, unsigned int target_addr, char
 
     send_packet(p, (unsigned int) source_routing_header, p->msg_lenght);
     probes[probe_index].status = PROBE_STATUS_PENDING;
+
+    return probe_index;
 }
 
 void handle_probe_results(unsigned int packet_source_field, unsigned int payload) {
@@ -367,13 +377,13 @@ void handle_probe_results(unsigned int packet_source_field, unsigned int payload
     if(packet_src != probes[i].target)
         probe_puts("[HT]    ERROR: PROBE_RESULTS was sent by someone other than original probe_target\n");
 
-    if(enable_binary_search)
-        continue_binary_search(result);
+    update_trust_scores(probes[i].source, probes[i].target, probes[i].path, probes[i].path_size, result);
 
-    // else {
-    //     update_trust_scores(source_probe, source_packet, probe_path, probe_path_size, payload);
-    //     probe_protocol(); //call probe_protocol back to continue with the hardcoded algorithm
-    // }
+    if(enable_binary_search) {
+        if(probe_id == binary_search_left_probe_id || probe_id == binary_search_right_probe_id) {    
+            receive_binary_search_probe(probe_id, result);
+        }
+    }
 }
 
 void update_trust_scores(unsigned int source, unsigned int target, char *path, int path_size, int probe_result) {
@@ -421,5 +431,5 @@ void update_trust_scores(unsigned int source, unsigned int target, char *path, i
         probe_puts("[HT]     Calculated target:"); probe_puts(itoh(calculated_target)); probe_puts("\n");
     }
 
-    print_trust_score_matrix();
+    //print_trust_score_matrix();
 }
