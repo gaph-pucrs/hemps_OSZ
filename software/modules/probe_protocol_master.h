@@ -10,11 +10,16 @@
 
 #define MAX_PATH_SIZE 32
 #define MAX_PROBE_ENTRIES 50
+#define SIZE_MISSING_PACKETS_QUEUE 10
 
 #define BINARY_SEARCH_SIDE_BLANK 0
 #define BINARY_SEARCH_SIDE_PENDING 1
 #define BINARY_SEARCH_SIDE_SUCCESS 2
 #define BINARY_SEARCH_SIDE_FAILED 3
+
+#define MISSING_PACKET_FREE 0
+#define MISSING_PACKET_PENDING 1
+#define MISSING_PACKET_HANDLED 2
 
 #define PROBE_STATUS_FREE 0
 #define PROBE_STATUS_ALLOCATED 1
@@ -37,6 +42,15 @@ short next_probe_id;
 struct probe probes[MAX_PROBE_ENTRIES];
 
 int link_trust_scores[PLATFORM_DIMENSION_X][PLATFORM_DIMENSION_Y][NUM_LINKS_PER_ROUTER];
+
+struct missing_packet {
+    short source;
+    short target;
+    char status;
+};
+
+struct missing_packet missing_packets_queue[SIZE_MISSING_PACKETS_QUEUE];
+int next_missing_packet_pending, next_missing_packet_slot, missing_packets_pending;
 
 // Binary search parameters
 char broken_path[MAX_PATH_SIZE];

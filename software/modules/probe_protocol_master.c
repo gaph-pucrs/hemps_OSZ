@@ -71,6 +71,13 @@ void init_probe_master_structures() {
             }
         }
     }
+    //init missing packets queue
+    next_missing_packet_pending = 0;
+    next_missing_packet_slot = 0;
+    missing_packets_pending = 0;
+    for(int i = 0; i < SIZE_MISSING_PACKETS_QUEUE; i ++) {
+        missing_packets_queue[i].status = MISSING_PACKET_FREE;
+    }
 }
 
 int get_new_probe_slot() {
@@ -134,6 +141,49 @@ void probe_protocol(int last_result) {
         probes_counter++;
         return;
     }
+}
+
+void report_missing_packet(unsigned int source, unsigned int target) {
+
+    //mpe already busy with a binary search, queue for later
+    if(enable_binary_search == 1) {
+
+        //if queue is full, ignore missing packet
+        if(missing_packets_pending == SIZE_MISSING_PACKETS_QUEUE) {
+            probe_puts("[HT] Missing Packets Queue is completely full, ignoring Missing Packet Report. Source=");
+            probe_puts(itoh(source));
+            probe_puts(" Target=");
+            probe_puts(itoh(target));
+            probe_puts("\n");
+            return;
+        }
+
+        missing_packets_queue[next_missing_packet_slot].source = source; 
+        missing_packets_queue[next_missing_packet_slot].target = target;
+        missing_packets_queue[next_missing_packet_slot].status = MISSING_PACKET_PENDING;
+        next_missing_packet_slot = (next_missing_packet_slot + 1) % SIZE_MISSING_PACKETS_QUEUE;
+        missing_packets_pending++;
+        return;
+    }
+
+    //binary search is not busy, perform binary search on the missing packet
+    start_binary_search_xy(source, target);
+}
+
+void check_missing_packets_queue() {
+    
+    //no missing packets to handle
+    if(missing_packets_pending == 0)
+        return;
+    
+    //consume missing packet from queue
+    unsigned int source = missing_packets_queue[next_missing_packet_pending].source;
+    unsigned int target = missing_packets_queue[next_missing_packet_pending].target;
+    missing_packets_queue[next_missing_packet_pending].status = MISSING_PACKET_HANDLED;
+    next_missing_packet_pending = (next_missing_packet_pending + 1) % SIZE_MISSING_PACKETS_QUEUE;
+    missing_packets_pending--;
+
+    start_binary_search_xy(source, target);
 }
 
 void print_search_result() {
@@ -304,6 +354,7 @@ void finalize_binary_search() {
     enable_binary_search = 0;
     binary_search_left_status = BINARY_SEARCH_SIDE_BLANK;
     binary_search_right_status = BINARY_SEARCH_SIDE_BLANK;
+    check_missing_packets_queue();
 }
 
 int send_probe_request(unsigned int source_addr, unsigned int target_addr, char *path, int path_size) {
