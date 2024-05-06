@@ -366,8 +366,8 @@ int send_probe_request(unsigned int source_addr, unsigned int target_addr, char 
     for(int i = 0; i < path_size; i++)
         probes[probe_index].path[i] = path[i];
     
-    unsigned int source_routing_header[10];
-    int source_routing_header_length = path_to_sr_header(path, path_size, source_routing_header);
+    unsigned char compressed_path[3];
+    convert_path_to_compressed_path(path, path_size, compressed_path);
 
     probe_puts("[HT] PROBE REQUEST -- probe #");
     probe_puts(itoa(probes[probe_index].id));
@@ -381,27 +381,12 @@ int send_probe_request(unsigned int source_addr, unsigned int target_addr, char 
     probe_puts(" path: ");
     print_path(path, path_size);
 
-    probe_puts(" header: ");
-    print_sr_header(source_routing_header, source_routing_header_length);
+    probe_puts(" compressed_path: ");
+    print_compressed_path(compressed_path);
     probe_puts("\n");
 
-    ServiceHeader *p = get_service_header_slot();
-
-    p->header[MAX_SOURCE_ROUTING_PATH_SIZE-1] = source_addr;
-    p->service = PROBE_REQUEST;
-    p->probe_id = probes[probe_index].id;
-    p->probe_source = source_addr;
-    p->probe_target = target_addr;
-    p->probe_sr_length = source_routing_header_length;
-    p->msg_lenght = source_routing_header_length;
-
-    //if payload is too small then add padding
-    if(source_routing_header_length == 1) {
-        p->msg_lenght++;
-        source_routing_header[1] = 0x00000000;
-    }
-
-    send_packet(p, (unsigned int) source_routing_header, p->msg_lenght);
+    Seek(PROBE_REQUEST, (probes[probe_index].id << 16) | (target_addr & 0xffff), source_addr, 0);
+    Seek(PROBE_PATH, (probes[probe_index].id << 16) | (compressed_path[0] << 8) | compressed_path[1], source_addr, compressed_path[2]);
     probes[probe_index].status = PROBE_STATUS_PENDING;
 
     return probe_index;

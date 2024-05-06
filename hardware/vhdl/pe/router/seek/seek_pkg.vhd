@@ -89,8 +89,10 @@ package seek_pkg is
     constant    AP_NOTIFICATION                         : std_logic_vector(TAM_SERVICE_SEEK-1 downto 0) := "101000";
     constant    UNEXPECTED_DATA                         : std_logic_vector(TAM_SERVICE_SEEK-1 downto 0) := "101001";
     constant    MISSING_PACKET                          : std_logic_vector(TAM_SERVICE_SEEK-1 downto 0) := "101010";
-    constant    PROBE_RESULT                            : std_logic_vector(TAM_SERVICE_SEEK-1 downto 0) := "101011";
-    constant    PROBE_CONTROL                           : std_logic_vector(TAM_SERVICE_SEEK-1 downto 0) := "101100";
+    constant    PROBE_REQUEST                           : std_logic_vector(TAM_SERVICE_SEEK-1 downto 0) := "101011";
+    constant    PROBE_PATH                              : std_logic_vector(TAM_SERVICE_SEEK-1 downto 0) := "101100";
+    constant    PROBE_CONTROL                           : std_logic_vector(TAM_SERVICE_SEEK-1 downto 0) := "101101";
+    constant    PROBE_RESULT                            : std_logic_vector(TAM_SERVICE_SEEK-1 downto 0) := "101110";
 
 
 

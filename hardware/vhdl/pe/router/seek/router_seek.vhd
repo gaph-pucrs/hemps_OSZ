@@ -725,9 +725,13 @@ process(EA_manager, req_task , source_table, service_table, target_table, payloa
 					PE_manager <= INIT_CLEAR;
 				elsif (int_in_ack_router_seek(LOCAL) = '1'  and  service_table(sel) = MISSING_PACKET ) then
 					PE_manager <= INIT_CLEAR;
-				elsif (int_in_ack_router_seek(LOCAL) = '1'  and  service_table(sel) = PROBE_RESULT ) then
+				elsif (int_in_ack_router_seek(LOCAL) = '1'  and  service_table(sel) = PROBE_REQUEST ) then
+					PE_manager <= INIT_CLEAR;
+				elsif (int_in_ack_router_seek(LOCAL) = '1'  and  service_table(sel) = PROBE_PATH ) then
 					PE_manager <= INIT_CLEAR;
 				elsif (int_in_ack_router_seek(LOCAL) = '1'  and  service_table(sel) = PROBE_CONTROL ) then
+					PE_manager <= INIT_CLEAR;
+				elsif (int_in_ack_router_seek(LOCAL) = '1'  and  service_table(sel) = PROBE_RESULT ) then
 					PE_manager <= INIT_CLEAR;
 				elsif (int_in_ack_router_seek(LOCAL) = '1' ) then
 					PE_manager <= S_INIT;

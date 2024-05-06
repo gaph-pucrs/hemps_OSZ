@@ -1666,11 +1666,6 @@ int handle_packet(ServiceHeader * p) {
 		
 		break;
 
-	case PROBE_REQUEST:
-		DMNI_read_data(probe_sr_header, p->msg_lenght);
-		send_probe(p->probe_id, p->probe_source, p->probe_target, probe_sr_header, p->probe_sr_length);
-		break;
-	
 	case PROBE_MESSAGE:
 		receive_probe(p->probe_id, p->probe_source, p->probe_target);
 		break;
@@ -2549,6 +2544,14 @@ int SeekInterruptHandler(){
 		case NEW_APP_SERVICE:
 		case NEW_APP_ACK_SERVICE:
 		break;
+
+		case PROBE_REQUEST:
+			handle_probe_request(source, target, payload);
+			break;
+
+		case PROBE_PATH: 
+			handle_probe_path(source, target, payload);
+			break;
 
 		case PROBE_CONTROL:
 			receive_probe_control(source, target, payload);

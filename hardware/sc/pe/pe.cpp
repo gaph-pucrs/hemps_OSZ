@@ -774,11 +774,19 @@ void pe::seek_receive(){
 						int_seek.write(1);
 					break;
 					case 0x2B:
-						cout << "PROBE_RESULT";
+						cout << "PROBE_REQUEST";
 						int_seek.write(1);
 					break;
 					case 0x2C:
+						cout << "PROBE_PATH";
+						int_seek.write(1);
+					break;
+					case 0x2D:
 						cout << "PROBE_CONTROL";
+						int_seek.write(1);
+					break;
+					case 0x2E:
+						cout << "PROBE_RESULT";
 						int_seek.write(1);
 					break;
 					default:

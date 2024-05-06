@@ -1,10 +1,13 @@
 #include "probe_protocol_slave.h"
 
 void init_probe_structures() {
-    probe_sr_length = 0;
     next_incoming_probe_slot = 0;
     for(int i = 0; i < MAX_INCOMING_PROBES; i++) {
         incoming_probes[i].status = INCOMING_PROBE_BLANK;
+    }
+    next_outgoing_probe_slot = 0;
+    for(int i = 0; i < MAX_OUTGOING_PROBES; i++) {
+        outgoing_probes[i].status = OUTGOING_PROBE_BLANK;
     }
 }
 
@@ -30,9 +33,38 @@ int get_new_incoming_probe_slot() {
     return -1;
 }
 
+int get_new_outgoing_probe_slot() {
+
+    int remaining_slots = MAX_OUTGOING_PROBES;
+    while(remaining_slots > 0) {
+
+        int slot = next_outgoing_probe_slot;
+        int slot_status = outgoing_probes[slot].status;
+
+        next_outgoing_probe_slot = (next_outgoing_probe_slot + 1) % MAX_OUTGOING_PROBES;
+        
+        if(slot_status == OUTGOING_PROBE_BLANK || slot_status == OUTGOING_PROBE_SENT) {
+            outgoing_probes[slot].status = OUTGOING_PROBE_ALLOCATED;
+            return slot;
+        }
+
+        remaining_slots--;
+    }
+
+    probe_puts("[HT] ERROR: outgoing_probes array has no slot available\n");
+    return -1;
+}
+
 int get_incoming_probe_by_id(unsigned int probe_id) {
     for(int i = 0; i < MAX_INCOMING_PROBES; i++)
         if(incoming_probes[i].id == probe_id && incoming_probes[i].status != INCOMING_PROBE_BLANK)
+            return i;
+    return -1;
+}
+
+int get_outgoing_probe_by_id(unsigned int probe_id) {
+    for(int i = 0; i < MAX_OUTGOING_PROBES; i++)
+        if(outgoing_probes[i].id == probe_id && outgoing_probes[i].status != OUTGOING_PROBE_BLANK)
             return i;
     return -1;
 }
@@ -68,6 +100,90 @@ void send_probe(unsigned int probe_id, unsigned int source, unsigned int target,
     p->probe_target = target;
 
     send_packet_through_sr_path(p, 0, 0, sr_header, sr_header_length);
+}
+
+void handle_probe_request(unsigned int pkt_source, unsigned int pkt_target, unsigned int pkt_payload) {
+
+    unsigned int probe_id = pkt_source >> 16;
+    unsigned int probe_target = pkt_source & 0xffff;
+
+    probe_puts("[HT] Received PROBE_REQUEST -- probe #");
+    probe_puts(itoa(probe_id));
+    probe_puts(" tgt: ");
+    probe_puts(itoh(probe_target));
+    probe_puts("\n");
+
+    int slot = get_outgoing_probe_by_id(probe_id);
+
+    if(slot == -1) {
+        slot = get_new_outgoing_probe_slot();
+        outgoing_probes[slot].id = probe_id;
+        outgoing_probes[slot].target = probe_target;
+        outgoing_probes[slot].status = OUTGOING_PROBE_WAITING_PATH;
+        probe_puts("[HT]    Waiting PROBE_PATH...\n");
+        return;
+    }
+
+    if(outgoing_probes[slot].status != OUTGOING_PROBE_WAITING_REQUEST) {
+        probe_puts("[HT] ERROR: handle_probe_request function expected slot to be WAITING_REQUEST, but was: ");
+        probe_puts(itoa(outgoing_probes[slot].status));
+        probe_puts("\n");
+        return;
+    }
+
+    outgoing_probes[slot].target = probe_target;
+
+    unsigned int sr_header[MAX_PROBE_SR_LENGTH];
+    int sr_header_length = convert_compressed_path_to_sr_header(outgoing_probes[slot].compressed_path, sr_header);
+
+    outgoing_probes[slot].status = OUTGOING_PROBE_SENT;
+    send_probe(probe_id, get_net_address(), probe_target, sr_header, sr_header_length);
+}
+
+void handle_probe_path(unsigned int pkt_source, unsigned int pkt_target, unsigned int pkt_payload) {
+    
+    unsigned int probe_id = pkt_source >> 16;
+    
+    unsigned char probe_path[3];
+    probe_path[0] = (pkt_source & 0xff00) >> 8;
+    probe_path[1] = pkt_source & 0xff;
+    probe_path[2] = pkt_payload;
+
+    probe_puts("[HT] Received PROBE_PATH -- probe #");
+    probe_puts(itoa(probe_id));
+    probe_puts(" compressed path: ");
+    print_compressed_path(probe_path);
+    probe_puts("\n");
+
+    int slot = get_outgoing_probe_by_id(probe_id);
+
+    if(slot == -1) {
+        slot = get_new_outgoing_probe_slot();
+        outgoing_probes[slot].id = probe_id;
+        outgoing_probes[slot].compressed_path[0] = probe_path[0];
+        outgoing_probes[slot].compressed_path[1] = probe_path[1];
+        outgoing_probes[slot].compressed_path[2] = probe_path[2];
+        outgoing_probes[slot].status = OUTGOING_PROBE_WAITING_REQUEST;
+        probe_puts("[HT]    Waiting PROBE_REQUEST...\n");
+        return;
+    }
+
+    if(outgoing_probes[slot].status != OUTGOING_PROBE_WAITING_PATH) {
+        probe_puts("[HT] ERROR: handle_probe_request function expected slot to be WAITING_PATH, but was: ");
+        probe_puts(itoa(outgoing_probes[slot].status));
+        probe_puts("\n");
+        return;
+    }
+
+    outgoing_probes[slot].compressed_path[0] = probe_path[0];
+    outgoing_probes[slot].compressed_path[1] = probe_path[1];
+    outgoing_probes[slot].compressed_path[2] = probe_path[2];
+
+    unsigned int sr_header[MAX_PROBE_SR_LENGTH];
+    int sr_header_length = convert_compressed_path_to_sr_header(probe_path, sr_header);
+
+    outgoing_probes[slot].status = OUTGOING_PROBE_SENT;
+    send_probe(probe_id, get_net_address(), outgoing_probes[slot].target, sr_header, sr_header_length);
 }
 
 void receive_probe(unsigned int probe_id, unsigned int source, unsigned int target) {
