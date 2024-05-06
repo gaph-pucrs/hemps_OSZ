@@ -591,7 +591,7 @@ void pe::seek_receive(){
 		in_cpu_opmode_seek.write(0);
 	}
 	else{
-		if (out_req_fifopdn.read() == 1 && out_service_fifopdn.read() != 0x3){
+		if (out_req_fifopdn.read() == 1){
 			if (in_ack_fifopdn.read() == 0 && int_seek.read()==0 && int_dmni_seek.read() == 0){
 				cout << "router ";
 				cout << hex << router_address;
@@ -612,7 +612,7 @@ void pe::seek_receive(){
 					break;
 					case 0x3:
 						cout << "CLEAR SERVICE";
-						//int_seek.write(1); // Provisório: Caso um Clear entre na memória
+						int_seek.write(1); // Provisório: Caso um Clear entre na memória
 					break;
 					case 0x4:
 						cout << "BACKTRACK";

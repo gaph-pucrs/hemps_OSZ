@@ -2556,6 +2556,10 @@ int SeekInterruptHandler(){
 		case PROBE_CONTROL:
 			receive_probe_control(source, target, payload);
 			break;
+
+		case CLEAR_SERVICE:
+			puts("[SEEK] WARNING -- Received a CLEAR_SERVICE packet, this should not have happened\n");
+			break;
 					
 		default:
 			//seek_puts("Received unknown seek service\n");
