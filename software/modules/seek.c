@@ -1,8 +1,6 @@
 #include "seek.h"
 //#include "communication.h"
 
-#define portToDirection(port) ( (port) < 4 ? (port) : (port) - 4 )
-
 SourceRoutingTableSlot SR_Table[MAX_SOURCE_ROUTING_DESTINATIONS];
 
 int net_addr;

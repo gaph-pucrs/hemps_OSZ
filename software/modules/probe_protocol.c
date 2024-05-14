@@ -265,6 +265,50 @@ int convert_path_to_sr_header(char *path, int path_size, unsigned int *header) {
     return word_index + 1; //header size, in words
 }
 
+int convert_sr_header_to_path(unsigned int *header, int header_size, char *path) {
+
+    int path_index = 0;
+
+    int header_word = 0;
+    int header_turn = 1; //skips position 0 (sr flit flag)
+
+    int current_hop;
+    int next_hop = portToDirection((header[0] >> 24) & 0xf); //use only E W N S turns
+
+    while(header_word < header_size) {
+
+        /* Write current hop into path */
+
+        current_hop = next_hop;
+
+        path[path_index] = current_hop;
+        path_index++;
+
+        /* Increment header turn */
+
+        header_turn++;
+
+        if(header_turn == 4)
+            header_turn = 5; //skips position 4 (sr flit flag)
+
+        else if(header_turn == 8) {
+            header_word++;
+            header_turn = 1; //skips position 0 (sr flit flag)
+        }
+
+        /* Get next hop and check if path is finished */
+
+        int shift = 32 - ((header_turn + 1) * 4);
+        next_hop = portToDirection((header[header_word] >> shift) & 0xf); //use only E W N S turns
+
+        if(are_opposite_directions(current_hop, next_hop))
+            return path_index;
+    }
+
+    probe_puts("[HT] Error: convert_sr_header_to_path received wrong header_size_value\n");
+    return path_index;
+}
+
 int convert_compressed_path_to_sr_header(unsigned char *compressed_path, unsigned int *header) {
 
     probe_puts("[HT] [DEBUG] input compressed path: ");
@@ -285,4 +329,24 @@ int convert_compressed_path_to_sr_header(unsigned char *compressed_path, unsigne
     probe_puts("\n");
 
     return header_size;
+}
+
+void convert_sr_header_to_compressed_path(unsigned int *header, int header_size, unsigned char *compressed_path) {
+
+    probe_puts("[HT] [DEBUG] input sr header: ");
+    print_sr_header(header, header_size);
+    probe_puts("\n");
+
+    char path[MAX_PROBE_PATH_SIZE];
+    int path_size = convert_sr_header_to_path(header, header_size, path);
+
+    probe_puts("[HT] [DEBUG] intermediate path: ");
+    print_path(path, path_size);
+    probe_puts("\n");
+
+    convert_path_to_compressed_path(path, path_size, compressed_path);
+
+    probe_puts("[HT] [DEBUG] output compressed path: ");
+    print_compressed_path(compressed_path);
+    probe_puts("\n");
 }

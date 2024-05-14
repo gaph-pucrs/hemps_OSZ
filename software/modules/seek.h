@@ -78,6 +78,8 @@
 #define seek_puts(argument) 
 #define MAX_TRIES 5
 
+#define portToDirection(port) ( (port) < 4 ? (port) : (port) - 4 )
+
 //used for seek purposes
 // int slot_seek;
 

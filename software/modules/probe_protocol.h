@@ -2,6 +2,7 @@
 #define PROBE_PROTOCOL_H_
 
 #include "packet.h"
+#include "seek.h"
 
 #define probe_puts(argument) puts(argument)
 // #define probe_puts(argument)
@@ -41,6 +42,10 @@ int convert_compressed_path_to_path(unsigned char *compressed_path, char *path);
 
 int convert_path_to_sr_header(char *path, int path_size, unsigned int *header);
 
+int convert_sr_header_to_path(unsigned int *header, int header_size, char *path);
+
 int convert_compressed_path_to_sr_header(unsigned char *compressed_path, unsigned int *header);
+
+void convert_sr_header_to_compressed_path(unsigned int *header, int header_size, unsigned char *compressed_path);
 
 #endif
