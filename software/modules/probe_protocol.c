@@ -250,7 +250,11 @@ int convert_path_to_sr_header(char *path, int path_size, unsigned int *header) {
         }
     }
 
-    //fill the remaining turns with 0xe to indicate "empty"
+    //last word was filled completly, return as is:
+    if(turn_index == 0)
+        return word_index;
+
+    //last word was not filled: complete the remaining turns with 0xe to indicate "empty"
     while(turn_index < 8) {
         int shift = 32 - ((turn_index + 1) * 4);
         int turn = (turn_index == 0 || turn_index == 4) ? 0x7 : 0xe;
