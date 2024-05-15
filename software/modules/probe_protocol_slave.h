@@ -5,8 +5,6 @@
 #include "packet.h"
 #include "seek.h"
 
-#define PROBE_MASTER_ADDR 0x0004
-
 #define MAX_INCOMING_PROBES 10
 #define MAX_OUTGOING_PROBES 10
 #define MAX_SUSPICIOUS_PATHS 10
@@ -19,6 +17,8 @@
 #define INCOMING_PROBE_FAILED 5
 
 #define STATIC_PROBE_THRESHOLD 15000 //150us
+
+unsigned int *probe_mpe_addr_ptr; //points to the cluster_master_address in the kernel_slave
 
 struct incoming_probe {
     short id;
@@ -74,7 +74,7 @@ unsigned int probe_id_timeout;
 unsigned int probe_source_address;
 unsigned int probe_timestamp;
 
-void init_probe_structures();
+void init_probe_structures(unsigned int *mpe_addr_ptr);
 
 int get_new_incoming_probe_slot();
 

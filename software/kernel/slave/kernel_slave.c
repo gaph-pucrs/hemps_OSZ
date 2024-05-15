@@ -2847,7 +2847,7 @@ int main(){
 
 	initSessions(); // iniciando passando o addr do mestre pra osz_slave.c (precisa pro warning)
 
-	init_probe_structures();
+	init_probe_structures(&cluster_master_address);
 	timeoutTimer(0);
 
 	init_service_header_slots();

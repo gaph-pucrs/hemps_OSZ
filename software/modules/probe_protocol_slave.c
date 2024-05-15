@@ -1,6 +1,7 @@
 #include "probe_protocol_slave.h"
 
-void init_probe_structures() {
+void init_probe_structures(unsigned int *mpe_addr_ptr) {
+    probe_mpe_addr_ptr = mpe_addr_ptr;
     next_incoming_probe_slot = 0;
     for(int i = 0; i < MAX_INCOMING_PROBES; i++) {
         incoming_probes[i].status = INCOMING_PROBE_BLANK;
@@ -323,7 +324,7 @@ void send_probe_result(unsigned int probe_id, unsigned int probe_source, int res
 
     unsigned int packet_source_field = (probe_id << 16) | (get_net_address() & 0xffff);
     
-    Seek(PROBE_RESULT, packet_source_field, PROBE_MASTER_ADDR, result);
+    Seek(PROBE_RESULT, packet_source_field, *probe_mpe_addr_ptr, result);
 }
 
 void monitor_probe_timeout() {
@@ -389,7 +390,7 @@ void handle_broken_path_request(unsigned int pkt_source, unsigned int pkt_target
 
     if(suspicious_paths[sus_path_slot].status == SUS_PATH_XY_PENDING) {
         probe_puts("[HT]        Path is XY\n");
-        Seek(PROBE_PATH_XY, get_net_address() << 16, PROBE_MASTER_ADDR, 0);
+        Seek(PROBE_PATH_XY, get_net_address() << 16, *probe_mpe_addr_ptr, 0);
         suspicious_paths[sus_path_slot].status = SUS_PATH_XY_SENT;
         return;
     }
@@ -397,7 +398,7 @@ void handle_broken_path_request(unsigned int pkt_source, unsigned int pkt_target
     if(suspicious_paths[sus_path_slot].status == SUS_PATH_SR_PENDING) {
         unsigned char *compressed_sr_path = suspicious_paths[sus_path_slot].compressed_sr_path;
         probe_puts("[HT]        Compressed path (SR): "); print_compressed_path(compressed_sr_path); probe_puts("\n");
-        Seek(PROBE_PATH, (get_net_address() << 16) | (compressed_sr_path[0] << 8) | compressed_sr_path[1], PROBE_MASTER_ADDR, compressed_sr_path[2]);
+        Seek(PROBE_PATH, (get_net_address() << 16) | (compressed_sr_path[0] << 8) | compressed_sr_path[1], *probe_mpe_addr_ptr, compressed_sr_path[2]);
         suspicious_paths[sus_path_slot].status = SUS_PATH_SR_SENT;
         return;
     }

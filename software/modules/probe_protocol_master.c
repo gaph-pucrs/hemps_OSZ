@@ -19,8 +19,8 @@ void print_trust_score_matrix() {
                 break;
         }
 
-        for(int y = PLATFORM_DIMENSION_Y-1; y >= 0; y--) {
-            for(int x = 0; x < PLATFORM_DIMENSION_X; x++) {
+        for(int y = YDIMENSION-1; y >= 0; y--) {
+            for(int x = 0; x < XDIMENSION; x++) {
 
                 int score = link_trust_scores[x][y][link];
 
@@ -64,8 +64,8 @@ void init_probe_master_structures() {
         probes[i].status = PROBE_STATUS_FREE;
     }
     //init trust scores cube matrix
-    for(int x = 0; x < PLATFORM_DIMENSION_X; x++) {
-        for(int y = 0; y < PLATFORM_DIMENSION_Y; y++) {
+    for(int x = 0; x < XDIMENSION; x++) {
+        for(int y = 0; y < YDIMENSION; y++) {
             for(int z = 0; z < NUM_LINKS_PER_ROUTER; z++) {
                 link_trust_scores[x][y][z] = 0;
             }
@@ -478,7 +478,7 @@ void update_trust_scores(unsigned int source, unsigned int target, char *path, i
 
     for(int i = 0; i < path_size; i++) {
 
-        if(x < 0 || x >= PLATFORM_DIMENSION_X || y < 0 || y >= PLATFORM_DIMENSION_Y) {
+        if(x < 0 || x >= XDIMENSION || y < 0 || y >= YDIMENSION) {
             probe_puts("[HT] Update scores error: router address is not within platform dimensions\n");
         }
         

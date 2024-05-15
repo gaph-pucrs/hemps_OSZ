@@ -4,9 +4,8 @@
 #include "probe_protocol.h"
 #include "packet.h"
 #include "seek.h"
+#include "../../include/kernel_pkg.h"
 
-#define PLATFORM_DIMENSION_X 5
-#define PLATFORM_DIMENSION_Y 5
 #define NUM_LINKS_PER_ROUTER 4
 
 #define MAX_PATH_SIZE 32
@@ -42,7 +41,7 @@ struct probe {
 short next_probe_id;
 struct probe probes[MAX_PROBE_ENTRIES];
 
-int link_trust_scores[PLATFORM_DIMENSION_X][PLATFORM_DIMENSION_Y][NUM_LINKS_PER_ROUTER];
+int link_trust_scores[XDIMENSION][YDIMENSION][NUM_LINKS_PER_ROUTER];
 
 struct missing_packet {
     short source;
