@@ -1532,6 +1532,7 @@ int main() {
 
 		initialize_IO();
 
+		init_probe_master_structures();
 	} else {
 
 		puts("This kernel is local master\n");
