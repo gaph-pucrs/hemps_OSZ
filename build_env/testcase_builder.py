@@ -47,7 +47,7 @@ def main():
     TESTCASE_NAME = input_yaml_name.split(".")[0]
 
     #Copies the simulation time in ms if exists
-    simul_time = 1
+    simul_time = 10
     try:
         simul_time = int(sys.argv[2])
     except:

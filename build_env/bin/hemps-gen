@@ -16,7 +16,7 @@ try:
 except:
     sys.exit("ERROR: Invalid testcase file path passed as 1st argument, e.g: hemps-gen <my_testcase_file>.yaml [time_in_ms]")
 
-simul_time = 1
+simul_time = 10
 try:
     simul_time = int(sys.argv[2])
 except:
