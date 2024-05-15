@@ -48,4 +48,6 @@ int convert_compressed_path_to_sr_header(unsigned char *compressed_path, unsigne
 
 void convert_sr_header_to_compressed_path(unsigned int *header, int header_size, unsigned char *compressed_path);
 
+int convert_single_channel_path_to_dual_channel_path(char *path, int path_size, char *dual_channel_path);
+
 #endif

@@ -58,6 +58,10 @@ void print_compressed_path(unsigned char *compressed_path) {
 }
 
 char get_opposite_direction(char direction) {
+
+    if(direction >= 4) //uses the second channel
+        direction = direction;
+
     switch(direction) {
         case EAST:
             return WEST;
@@ -214,11 +218,15 @@ int convert_compressed_path_to_path(unsigned char *compressed_path, char *path) 
 
 int convert_path_to_sr_header(char *path, int path_size, unsigned int *header) {
 
+    //The dual channel path respects the turn model used in Hermes
+    char dual_channel_path[MAX_PROBE_PATH_SIZE];
+    int dual_channel_path_size = convert_single_channel_path_to_dual_channel_path(path, path_size, dual_channel_path);
+
     int word_index = 0;
     int turn_index = 0;
 
     int hop = 0;
-    int total_hops = path_size + 1; //additional last hop is used to indicate end of path
+    int total_hops = dual_channel_path_size + 1; //additional last hop is used to indicate end of path
 
     while(hop < total_hops) {
 
@@ -237,7 +245,7 @@ int convert_path_to_sr_header(char *path, int path_size, unsigned int *header) {
 
         //the other 4-bit slices contain the actual path hops
         else {
-            int turn = is_last_hop ? get_opposite_direction(path[hop-1]) : path[hop];
+            int turn = is_last_hop ? get_opposite_direction(dual_channel_path[hop-1]) : dual_channel_path[hop];
             header[word_index] = header[word_index] | (turn << shift);
             hop++;
         }
@@ -349,4 +357,35 @@ void convert_sr_header_to_compressed_path(unsigned int *header, int header_size,
     probe_puts("[HT] [DEBUG] output compressed path: ");
     print_compressed_path(compressed_path);
     probe_puts("\n");
+}
+
+int convert_single_channel_path_to_dual_channel_path(char *path, int path_size, char *dual_channel_path) {
+
+    const int west_first = 0;
+    const int east_first = 1;
+
+    int i;
+    int algorithm = west_first;
+	
+    for(i = 0; i < path_size-1; i++) {
+		if(algorithm == west_first) {
+            //turns prohibited by WEST FIRST: SW and NW
+			if((path[i] == SOUTH || path[i] == NORTH) && path[i+1] == WEST) {
+				algorithm = east_first;
+			}
+            dual_channel_path[i] = path[i]; //channel 0
+		}
+		else {
+            //turns prohibited by EAST FIRST: SE and NE
+			if((path[i] == SOUTH || path[i] == NORTH) && path[i+1] == EAST) {
+				algorithm = west_first;
+			}
+            dual_channel_path[i] = path[i] + 4; //channel 1
+		}
+	}
+
+    //last hop is assigned separately as it does not have to calculate the algorithm for the next hop
+    dual_channel_path[i] = (algorithm == west_first) ? path[i] : path[i] + 4;
+
+    return path_size;
 }
