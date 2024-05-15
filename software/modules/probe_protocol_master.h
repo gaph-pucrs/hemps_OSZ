@@ -17,17 +17,15 @@
 #define BINARY_SEARCH_SIDE_SUCCESS 2
 #define BINARY_SEARCH_SIDE_FAILED 3
 
-#define MISSING_PACKET_FREE 0
-#define MISSING_PACKET_PENDING 1
-#define MISSING_PACKET_HANDLED 2
-
-#define PROBE_STATUS_FREE 0
-#define PROBE_STATUS_ALLOCATED 1
-#define PROBE_STATUS_PENDING 2
-#define PROBE_STATUS_SUCCEEDED 3
-#define PROBE_STATUS_FAILED 4
-
 #define PROBE_INDEX(probe_id) (probe_id % MAX_PROBE_ENTRIES)
+
+enum probe_status {
+    PROBE_STATUS_FREE,
+    PROBE_STATUS_ALLOCATED,
+    PROBE_STATUS_PENDING,
+    PROBE_STATUS_SUCCEEDED,
+    PROBE_STATUS_FAILED
+};
 
 struct probe {
     short id;
@@ -35,7 +33,7 @@ struct probe {
     unsigned short target;
     char path[MAX_PATH_SIZE];
     char path_size;
-    char status;
+    enum probe_status status;
 };
 
 short next_probe_id;
@@ -43,10 +41,16 @@ struct probe probes[MAX_PROBE_ENTRIES];
 
 int link_trust_scores[XDIMENSION][YDIMENSION][NUM_LINKS_PER_ROUTER];
 
+enum missing_packet_status {
+    MISSING_PACKET_FREE,
+    MISSING_PACKET_PENDING,
+    MISSING_PACKET_HANDLED
+};
+
 struct missing_packet {
     short source;
     short target;
-    char status;
+    enum missing_packet_status status;
 };
 
 struct missing_packet missing_packets_queue[SIZE_MISSING_PACKETS_QUEUE];

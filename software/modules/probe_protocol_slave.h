@@ -9,22 +9,24 @@
 #define MAX_OUTGOING_PROBES 10
 #define MAX_SUSPICIOUS_PATHS 10
 
-#define INCOMING_PROBE_BLANK 0
-#define INCOMING_PROBE_ALLOCATED 1
-#define INCOMING_PROBE_WAITING_CONTROL 2
-#define INCOMING_PROBE_WAITING_MESSAGE 3
-#define INCOMING_PROBE_SUCCEEDED 4
-#define INCOMING_PROBE_FAILED 5
-
 #define STATIC_PROBE_THRESHOLD 15000 //150us
 
 unsigned int *probe_mpe_addr_ptr; //points to the cluster_master_address in the kernel_slave
+
+enum incoming_probe_status {
+    INCOMING_PROBE_BLANK,
+    INCOMING_PROBE_ALLOCATED,
+    INCOMING_PROBE_WAITING_CONTROL,
+    INCOMING_PROBE_WAITING_MESSAGE,
+    INCOMING_PROBE_SUCCEEDED,
+    INCOMING_PROBE_FAILED
+};
 
 struct incoming_probe {
     short id;
     unsigned short source;
     unsigned int timestamp;
-    char status;
+    enum incoming_probe_status status;
 };
 
 int next_incoming_probe_slot;

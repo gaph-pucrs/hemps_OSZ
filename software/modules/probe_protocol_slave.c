@@ -22,7 +22,7 @@ int get_new_incoming_probe_slot() {
     while(remaining_slots > 0) {
 
         int slot = next_incoming_probe_slot;
-        int slot_status = incoming_probes[slot].status;
+        enum incoming_probe_status slot_status = incoming_probes[slot].status;
 
         next_incoming_probe_slot = (next_incoming_probe_slot + 1) % MAX_INCOMING_PROBES;
 
@@ -44,7 +44,7 @@ int get_new_outgoing_probe_slot() {
     while(remaining_slots > 0) {
 
         int slot = next_outgoing_probe_slot;
-        int slot_status = outgoing_probes[slot].status;
+        enum outgoing_probe_status slot_status = outgoing_probes[slot].status;
 
         next_outgoing_probe_slot = (next_outgoing_probe_slot + 1) % MAX_OUTGOING_PROBES;
         
