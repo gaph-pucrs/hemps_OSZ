@@ -789,6 +789,14 @@ void pe::seek_receive(){
 						cout << "PROBE_RESULT";
 						int_seek.write(1);
 					break;
+					case 0x2F:
+						cout << "PROBE_REQUEST_PATH";
+						int_seek.write(1);
+					break;
+					case 0x30:
+						cout << "PROBE_PATH_XY";
+						int_seek.write(1);
+					break;
 					default:
 						cout << out_service_fifopdn.read() << " unknown --- ERROR! " ;
 						in_ack_fifopdn.write(1);

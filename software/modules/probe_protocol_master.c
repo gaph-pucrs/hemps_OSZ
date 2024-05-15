@@ -167,7 +167,7 @@ void report_missing_packet(unsigned int source, unsigned int target) {
     }
 
     //binary search is not busy, perform binary search on the missing packet
-    start_binary_search_xy(source, target);
+    start_binary_search(source, target);
 }
 
 void check_missing_packets_queue() {
@@ -183,7 +183,7 @@ void check_missing_packets_queue() {
     next_missing_packet_pending = (next_missing_packet_pending + 1) % SIZE_MISSING_PACKETS_QUEUE;
     missing_packets_pending--;
 
-    start_binary_search_xy(source, target);
+    start_binary_search(source, target);
 }
 
 void print_search_result() {
@@ -207,31 +207,75 @@ void print_search_result() {
     probe_puts(" ****\n");
 }
 
-void start_binary_search_xy(unsigned int source, unsigned int target) {
-
-    broken_path_source = source;
-    broken_path_target = target;
-    broken_path_size = write_xy_path(broken_path, source, target);
-
-    probe_puts("[HT] **** Starting new binary search - Source:");
-    probe_puts(itoh(source));
-    probe_puts(" Target:");
-    probe_puts(itoh(target));
-    probe_puts(" Path:");
-    print_path(broken_path, broken_path_size);
-    probe_puts("\n");
-
+void start_binary_search(unsigned int source, unsigned int target) {
+    
     if(enable_binary_search == 1) {
         probe_puts("[HT] MPE already has ongoing binary search. Discarding...\n");        
         return;
     }
+    
+    enable_binary_search = 1;
+
+    broken_path_source = source;
+    broken_path_target = target;
+
+    probe_puts("[HT] New binary search from ");
+    probe_puts(itoh(source));
+    probe_puts(" to ");
+    probe_puts(itoh(target));
+    probe_puts(" requires asking path to SourcePE, requesting...\n");
+
+    //request path taken by the missing_packet
+    Seek(PROBE_REQUEST_PATH, (target << 16) | get_net_address(), broken_path_source, 0);
+
+    //wait receiving the PROBE_PATH packet from source pe
+}
+
+void receive_binary_search_path(unsigned int pkt_source, unsigned int pkt_payload, unsigned int pkt_service) {
+
+    if(enable_binary_search == 0) {
+        probe_puts("[HT] Warning: MPE received binary search path while binary search is disabled. Ignoring...\n");
+        return;
+    }
+
+    unsigned int packet_source_address = pkt_source >> 16;
+    unsigned char compressed_path[3];
+    compressed_path[0] = (pkt_source & 0xff00) >> 8;
+    compressed_path[1] = pkt_source & 0xff;
+    compressed_path[2] = pkt_payload;
+
+    if(packet_source_address != broken_path_source) {
+        probe_puts("[HT] Error: MPE was expecting binary search path from ");
+        probe_puts(itoh(broken_path_source));
+        probe_puts(" but received from ");
+        probe_puts(itoh(packet_source_address));
+        probe_puts("\n");
+        return;
+    }
+
+    /* PATH IS XY */
+    if(pkt_service == PROBE_PATH_XY) {
+        broken_path_size = write_xy_path(broken_path, broken_path_source, broken_path_target);
+    }
+
+    /* PATH IS SOURCE ROUTING */
+    else {
+        broken_path_size = convert_compressed_path_to_path(compressed_path, broken_path);
+    }
+
+    probe_puts("[HT] **** Starting new Binary Search - Source:");
+    probe_puts(itoh(broken_path_source));
+    probe_puts(" Target:");
+    probe_puts(itoh(broken_path_target));
+    probe_puts(" Path:");
+    print_path(broken_path, broken_path_size);
+    probe_puts("\n");
 
     binary_search_path = broken_path;
     binary_search_path_size = broken_path_size;
     binary_search_source = broken_path_source;
     binary_search_target = broken_path_target;
-    
-    enable_binary_search = 1;
+
     send_binary_search_probes();
 }
 

@@ -1856,6 +1856,7 @@ int SeekInterruptHandler(){
 				auxIndex = checkSessionCode(Sessions, auxCode);
 				puts("[TUS] Session SUPICIOUS: "); puts(itoa(auxIndex)); puts("\n");
 				Sessions[auxIndex].status = RECOVERING;
+				register_suspicious_path(source & 0xFFFF);
 				fireRecoverySearchpath((source & 0xFFFF));
 				break;
 			}
@@ -2557,6 +2558,10 @@ int SeekInterruptHandler(){
 			receive_probe_control(source, target, payload);
 			break;
 
+		case PROBE_REQUEST_PATH:
+			handle_broken_path_request(source, target, payload);
+			break;
+
 		case CLEAR_SERVICE:
 			puts("[SEEK] WARNING -- Received a CLEAR_SERVICE packet, this should not have happened\n");
 			break;
@@ -2598,7 +2603,7 @@ void OS_InterruptServiceRoutine(unsigned int status) {
 	unsigned call_scheduler;
 	int timeAux;
 	unsigned int apStatus, aux;
-	int timed_out_session_index, timed_out_prod_addr, timed_out_cons_addr;
+	int timed_out_session_index, timed_out_prod_addr, timed_out_cons_addr, timed_out_src_addr, timed_out_tgt_addr;
 
 	if (current == &idle_tcb){
 		total_slack_time += MemoryRead(TICK_COUNTER) - last_idle_time;
@@ -2653,19 +2658,28 @@ void OS_InterruptServiceRoutine(unsigned int status) {
 		// puts("Timeout Interruption: "); puts(itoa(MemoryRead(TICK_COUNTER))); puts("\n");
 		OS_InterruptMaskClear(IRQ_TIMEOUT);
 		#ifdef SESSION_MANAGER
+		
 		ToutFlag = timeoutMonitor(Sessions, MemoryRead(TICK_COUNTER), (int *) &timed_out_session_index);
-		// payload 1 means its a non-IO packet and will trigger localization
+
+		// TimeoutFlag == 1: Message was lost between TASKS
 		if(ToutFlag == 1) {
+			
 			timed_out_prod_addr = get_task_location(Sessions[timed_out_session_index].producer);
 			timed_out_cons_addr = get_task_location(Sessions[timed_out_session_index].consumer);
-
-			if(timed_out_prod_addr == get_net_address())
-				Seek(MISSING_PACKET, (timed_out_cons_addr  << 16) | timed_out_prod_addr, cluster_master_address, 1);
-			else if(timed_out_cons_addr == get_net_address())
-				Seek(MISSING_PACKET, (timed_out_prod_addr  << 16) | timed_out_cons_addr, cluster_master_address, 1);
-			else
-				puts("ERROR -- IRQ TIMEOUT -- COMPARACAO FAILED PACKET ADDRESSES FALHOU\n");
+			
+			if(timed_out_prod_addr == get_net_address()) {
+				timed_out_src_addr = timed_out_cons_addr;
+				timed_out_tgt_addr = timed_out_prod_addr;
+			} else {
+				timed_out_src_addr = timed_out_prod_addr;
+				timed_out_tgt_addr = timed_out_cons_addr;
+			}
+			
+			// payload 1 means its a non-IO packet and will trigger localization
+			Seek(MISSING_PACKET, (timed_out_src_addr  << 16) | timed_out_tgt_addr, cluster_master_address, 1);
 		}
+
+		// TimeoutFlag >= 2: Message was lost when communicating with PERIPHERAL
 		else if(ToutFlag >= 2) {
 			Seek(MISSING_PACKET, (MemoryRead(TICK_COUNTER) << 16) | get_net_address(), cluster_master_address, 0);
 			resend_io_message(get_periphAddr(Sessions[ToutFlag-2].producer), Sessions[ToutFlag-2].producer);

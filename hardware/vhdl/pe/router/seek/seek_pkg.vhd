@@ -93,6 +93,8 @@ package seek_pkg is
     constant    PROBE_PATH                              : std_logic_vector(TAM_SERVICE_SEEK-1 downto 0) := "101100";
     constant    PROBE_CONTROL                           : std_logic_vector(TAM_SERVICE_SEEK-1 downto 0) := "101101";
     constant    PROBE_RESULT                            : std_logic_vector(TAM_SERVICE_SEEK-1 downto 0) := "101110";
+    constant    PROBE_REQUEST_PATH                      : std_logic_vector(TAM_SERVICE_SEEK-1 downto 0) := "101111";
+    constant    PROBE_PATH_XY                           : std_logic_vector(TAM_SERVICE_SEEK-1 downto 0) := "110000";
 
 
 

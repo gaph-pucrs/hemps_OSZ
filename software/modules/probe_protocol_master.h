@@ -3,6 +3,7 @@
 
 #include "probe_protocol.h"
 #include "packet.h"
+#include "seek.h"
 
 #define PLATFORM_DIMENSION_X 5
 #define PLATFORM_DIMENSION_Y 5
@@ -84,9 +85,15 @@ int get_new_probe_slot();
 
 void probe_protocol(int last_result);
 
+void report_missing_packet(unsigned int source, unsigned int target);
+
+void check_missing_packets_queue();
+
 void print_search_result();
 
-void start_binary_search_xy(unsigned int source, unsigned int target);
+void start_binary_search(unsigned int source, unsigned int target);
+
+void receive_binary_search_path(unsigned int pkt_source, unsigned int pkt_payload, unsigned int pkt_service);
 
 void send_binary_search_probes();
 

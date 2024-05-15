@@ -1350,6 +1350,11 @@ int SeekInterruptHandler(){
 			handle_probe_results(source, payload);
 			break;
 			
+		case PROBE_PATH:
+		case PROBE_PATH_XY:
+			receive_binary_search_path(source, payload, service);
+			break;
+			
 		//----------------------------------------------------------------------
 		// the services bellow if received by master is of another cluster
 		case OPEN_SECURE_ZONE_SERVICE:

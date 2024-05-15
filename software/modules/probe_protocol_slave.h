@@ -3,11 +3,13 @@
 
 #include "probe_protocol.h"
 #include "packet.h"
+#include "seek.h"
 
 #define PROBE_MASTER_ADDR 0x0004
 
 #define MAX_INCOMING_PROBES 10
 #define MAX_OUTGOING_PROBES 10
+#define MAX_SUSPICIOUS_PATHS 10
 
 #define INCOMING_PROBE_BLANK 0
 #define INCOMING_PROBE_ALLOCATED 1
@@ -46,6 +48,24 @@ struct outgoing_probe {
 int next_outgoing_probe_slot;
 struct outgoing_probe outgoing_probes[MAX_OUTGOING_PROBES];
 
+enum suspicious_path_status {
+    SUS_PATH_BLANK,
+    SUS_PATH_ALLOCATED,
+    SUS_PATH_XY_PENDING,
+    SUS_PATH_XY_SENT,
+    SUS_PATH_SR_PENDING,
+    SUS_PATH_SR_SENT
+};
+
+struct suspicious_path {
+    unsigned short target;
+    enum suspicious_path_status status;
+    unsigned char compressed_sr_path[3];
+};
+
+int next_suspicious_path_slot;
+struct suspicious_path suspicious_paths[MAX_SUSPICIOUS_PATHS];
+
 int probe_sr_length;
 unsigned int probe_sr_header[MAX_PROBE_SR_LENGTH];
 
@@ -60,9 +80,13 @@ int get_new_incoming_probe_slot();
 
 int get_new_outgoing_probe_slot();
 
+int get_new_suspicious_path_slot();
+
 int get_incoming_probe_by_id(unsigned int probe_id);
 
 int get_outgoing_probe_by_id(unsigned int probe_id);
+
+int get_suspicious_path_by_target(unsigned int target);
 
 void send_probe(unsigned int probe_id, unsigned int source, unsigned int target, unsigned int *sr_header, int sr_header_length);
 
@@ -77,5 +101,9 @@ void receive_probe_control(unsigned int pkt_source, unsigned int pkt_target, uns
 void send_probe_result(unsigned int probe_id, unsigned int probe_source, int result);
 
 void monitor_probe_timeout();
+
+void register_suspicious_path(unsigned int target);
+
+void handle_broken_path_request(unsigned int pkt_source, unsigned int pkt_target, unsigned int pkt_payload);
 
 #endif
