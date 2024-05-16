@@ -8,12 +8,9 @@
 
 #define NUM_LINKS_PER_ROUTER 4
 #define MAX_PROBE_ENTRIES 50
+#define MAX_BINARY_SEARCH_PROBES MAX_PROBE_PATH_SIZE+1 //maximum possible number of parallel path segments + 1 slot used during configuration
+#define MAX_BINARY_SEARCH_HTS MAX_PROBE_PATH_SIZE //maximum possible number of hts in a searched path
 #define SIZE_MISSING_PACKETS_QUEUE 10
-
-#define BINARY_SEARCH_SIDE_BLANK 0
-#define BINARY_SEARCH_SIDE_PENDING 1
-#define BINARY_SEARCH_SIDE_SUCCESS 2
-#define BINARY_SEARCH_SIDE_FAILED 3
 
 #define PROBE_INDEX(probe_id) (probe_id % MAX_PROBE_ENTRIES)
 
@@ -54,29 +51,41 @@ struct missing_packet {
 struct missing_packet missing_packets_queue[SIZE_MISSING_PACKETS_QUEUE];
 int next_missing_packet_pending, next_missing_packet_slot, missing_packets_pending;
 
-// Binary search parameters
-char broken_path[MAX_PROBE_PATH_SIZE];
-int broken_path_size;
-unsigned int broken_path_source, broken_path_target;
-int enable_binary_search;
+enum binary_search_probe_status {
+    BS_PROBE_USED,
+    BS_PROBE_UNUSED
+};
 
-// Binary search scope (specifies path to seach)
-char *binary_search_path;
-int binary_search_path_size;
-unsigned int binary_search_source, binary_search_target;
+struct binary_search_probe {
+    short id;
+    enum binary_search_probe_status status;
+};
 
-// Binary search division (handles division of the path into left and right halves)
-char *binary_search_left_path, *binary_search_right_path;
-int binary_search_left_size, binary_search_right_size;
-unsigned int binary_search_middle; //middle router address
+enum binary_search_status {
+    BS_IDLE,
+    BS_BUSY
+};
 
-// Binary search status
-int binary_search_left_status, binary_search_right_status;
-int binary_search_left_probe_id, binary_search_right_probe_id;
+struct binary_search_ht {
+    unsigned short router;
+    char port;
+};
 
-// Binary search result
-unsigned int broken_router;
-char broken_port;
+struct binary_search {
+
+    unsigned short suspicious_source;
+    unsigned short suspicious_target;
+    char suspicious_path[MAX_PROBE_PATH_SIZE];
+    int suspicious_path_size;
+
+    enum binary_search_status status;
+    struct binary_search_probe bs_probes[MAX_BINARY_SEARCH_PROBES];
+
+    struct binary_search_ht hts[MAX_BINARY_SEARCH_HTS];
+    int ht_counter;
+};
+
+struct binary_search bs_data;
 
 void print_trust_score_matrix();
 
@@ -84,21 +93,27 @@ void init_probe_master_structures();
 
 int get_new_probe_slot();
 
-void probe_protocol(int last_result);
+int get_new_binary_search_probe_slot();
+
+int get_binary_search_probe_by_id(int id);
+
+int is_binary_search_probes_empty();
 
 void report_missing_packet(unsigned int source, unsigned int target);
 
 void check_missing_packets_queue();
 
-void print_search_result();
-
 void start_binary_search(unsigned int source, unsigned int target);
 
 void receive_binary_search_path(unsigned int pkt_source, unsigned int pkt_payload, unsigned int pkt_service);
 
-void send_binary_search_probes();
+void binary_search_divide(unsigned int source, unsigned int target, char *path, int path_size);
 
 void receive_binary_search_probe(int probe_id, int result);
+
+void register_binary_search_ht(unsigned int router, char port);
+
+void print_binary_search_result();
 
 void finalize_binary_search();
 
