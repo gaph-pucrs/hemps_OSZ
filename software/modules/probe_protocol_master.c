@@ -99,7 +99,7 @@ void probe_protocol(int last_result) {
     static int probes_counter = 0;
 
     int probe_path_size;
-    char probe_path[MAX_PATH_SIZE];
+    char probe_path[MAX_PROBE_PATH_SIZE];
 
     //straight route
     if(probes_counter == 0) {

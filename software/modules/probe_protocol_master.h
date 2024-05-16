@@ -7,8 +7,6 @@
 #include "../../include/kernel_pkg.h"
 
 #define NUM_LINKS_PER_ROUTER 4
-
-#define MAX_PATH_SIZE 32
 #define MAX_PROBE_ENTRIES 50
 #define SIZE_MISSING_PACKETS_QUEUE 10
 
@@ -31,7 +29,7 @@ struct probe {
     short id;
     unsigned short source;
     unsigned short target;
-    char path[MAX_PATH_SIZE];
+    char path[MAX_PROBE_PATH_SIZE];
     char path_size;
     enum probe_status status;
 };
@@ -57,7 +55,7 @@ struct missing_packet missing_packets_queue[SIZE_MISSING_PACKETS_QUEUE];
 int next_missing_packet_pending, next_missing_packet_slot, missing_packets_pending;
 
 // Binary search parameters
-char broken_path[MAX_PATH_SIZE];
+char broken_path[MAX_PROBE_PATH_SIZE];
 int broken_path_size;
 unsigned int broken_path_source, broken_path_target;
 int enable_binary_search;
