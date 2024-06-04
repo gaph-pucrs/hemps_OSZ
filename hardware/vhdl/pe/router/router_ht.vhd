@@ -175,7 +175,7 @@ begin
         end if;
     end process;
 
-    NextStateLogic: process(state)
+    NextStateLogic: process(state, counter)
     begin
         case state is
 
