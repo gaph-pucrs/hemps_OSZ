@@ -122,8 +122,8 @@ begin
             );
         end generate;
 
-        BlockedHT: if hts_setup(i+1)='b' generate
-            HT: entity work.router_ht(router_ht_blocked_counter)
+        BlackholeHT_300us: if hts_setup(i+1)='b' generate
+            HT: entity work.router_ht(router_ht_blackhole_300us)
             port map
             (
                 clock           => clock,
@@ -143,8 +143,8 @@ begin
             );
         end generate;
 
-        BlockedHT2ms: if hts_setup(i+1)='m' generate
-            HT: entity work.router_ht(router_ht_blocked_counter_2ms)
+        BlackholeHT_2ms: if hts_setup(i+1)='m' generate
+            HT: entity work.router_ht(router_ht_blackhole_2ms)
             port map
             (
                 clock           => clock,
@@ -164,8 +164,8 @@ begin
             );
         end generate;
 
-        BlockedHT300usTo1950ms: if hts_setup(i+1)='w' generate
-            HT: entity work.router_ht(router_ht_blocked_counter_300us_to_1950us)
+        BlackholeHT_300usTo1950ms: if hts_setup(i+1)='w' generate
+            HT: entity work.router_ht(router_ht_blackhole_300us_to_1950us)
             port map
             (
                 clock           => clock,

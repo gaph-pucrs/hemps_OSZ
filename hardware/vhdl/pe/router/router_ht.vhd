@@ -34,7 +34,7 @@ begin
     router_cred_in  <= ht_cred_in;
 end architecture;
 
-architecture router_ht_blocked of router_ht is
+architecture router_ht_blackhole of router_ht is
 begin
     ht_tx           <= '0';
     ht_clock_tx     <= router_clock_tx;
@@ -43,7 +43,7 @@ begin
     router_cred_in  <= ht_cred_in;
 end architecture;
 
-architecture router_ht_blocked_counter of router_ht is
+architecture router_ht_blackhole_300us of router_ht is
     constant trigger_time : integer := 30000; -- 300 us = 300 000 ns = 30 000 cc 
 
     signal activated    : std_logic;
@@ -71,7 +71,7 @@ begin
 
 end architecture;
 
-architecture router_ht_blocked_counter_2ms of router_ht is
+architecture router_ht_blackhole_2ms of router_ht is
     constant trigger_time : integer := 200000; -- 2 000 us = 2 000 000 ns = 200 000 cc 
 
     signal activated    : std_logic;
@@ -99,7 +99,7 @@ begin
 
 end architecture;
 
-architecture router_ht_blocked_counter_300us_to_1950us of router_ht is
+architecture router_ht_blackhole_300us_to_1950us of router_ht is
     constant activate_time      : integer := 30000;     --   300 us =   300 000 ns =  30 000 cc
     constant deactivate_time    : integer := 195000;    -- 1 950 us = 1 950 000 ns = 195 000 cc 
 
