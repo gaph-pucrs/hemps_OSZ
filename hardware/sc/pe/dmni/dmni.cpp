@@ -121,7 +121,7 @@ void dmni::mem_address_update(){
 }
 
 void dmni::credit_o_update() {
-	credit_o.write(slot_available.read() || reg_interrupt_received.read() );
+	credit_o.write((slot_available.read() || reg_interrupt_received.read()) && (receive_flit_timeout.read() == 0));
 }
 
 void dmni::buffer_control(){
@@ -186,8 +186,14 @@ void dmni::receive(){
 			}
 	
 			if (cont.read() == 0) {//32 bits high flit
+			
+			//incoming flit timeout
+			if(receive_flit_timeout.read() == 1 && DMNI_Receive.read() == FAILED_RECEPTION) {
+				cont.write(0);
+				SR.write(HEADER);
+			
 			//Read from NoC
-			if (rx.read() == 1 && slot_available.read() == 1){
+			} else if (rx.read() == 1 && slot_available.read() == 1){
 				buffer_high.write(data_in.read());
 				cont.write(1);
 
@@ -214,9 +220,15 @@ void dmni::receive(){
 		}
 		
 		if (cont.read() == 1) {//32 bits low flit
+
+			//incoming flit timeout
+			if(receive_flit_timeout.read()==1 && DMNI_Receive.read()==FAILED_RECEPTION) {
+				cont.write(0);
+				SR.write(HEADER);
+
 			//in this state, there is always a write in buffer and buffer_eop
 			//Read from NoC low
-			if (rx.read() == 1 && slot_available.read() == 1){
+			} else if (rx.read() == 1 && slot_available.read() == 1){
 				
 				buffer[last.read()].write((buffer_high.read(),data_in.read()));
 				buffer_eop[last.read()].write(eop_in.read());
@@ -309,7 +321,11 @@ void dmni::receive(){
 			
 				case COPY_TO_MEM:
 			
-					if (write_enable.read() == 1 && read_av.read() == 1){
+					if(receive_flit_timeout.read()==1 && read_av.read()==0) {
+						dmni_timeout.write(1);
+						DMNI_Receive.write(FAILED_RECEPTION);
+					
+					} else if (write_enable.read() == 1 && read_av.read() == 1){
 						mem_byte_we.write(0xF);
 						flit_location.write((flit_location.read() + 1));
 
@@ -364,6 +380,7 @@ void dmni::receive(){
 					recv_address.write(0);
 					recv_size.write(0);
 					DMNI_Receive.write(WAIT);
+					flit_location.write(0);
 				break;
 				case FAILED_RECEPTION:
 					// cout << "ROUTER:" << hex << address_router << ": failed reception in middle of a packet";
@@ -807,4 +824,29 @@ void dmni::receive_master_kernel(){
 	
 		} //end if  if (reg_interrupt_received_wait.read() == 0){	
 	} //////////////// 
+}
+
+void dmni::receive_timeout() {
+
+	const unsigned int timeout_threshold = 30;
+
+	if(reset.read()==1) {
+		counter_receive_timeout.write(0);
+		receive_flit_timeout.write(0);
+		return;
+	}
+
+	if(SR.read()==HEADER && cont.read()==0) {
+		counter_receive_timeout.write(0);
+	} else {
+
+		if(rx.read()==1 && slot_available.read()==1)
+			counter_receive_timeout.write(0);
+		else if(rx.read()==0 && slot_available.read()==1)
+			if(counter_receive_timeout.read() < timeout_threshold)
+				counter_receive_timeout.write(counter_receive_timeout.read() + 1);
+
+	}
+
+	receive_flit_timeout.write(counter_receive_timeout.read() == timeout_threshold);
 }

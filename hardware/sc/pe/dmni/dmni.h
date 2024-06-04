@@ -140,6 +140,10 @@ SC_MODULE(dmni){
 	sc_signal<bool>				reg_interrupt_received;
 	sc_signal<bool>				reg_interrupt_received_wait;
 	sc_signal<sc_uint<4 > >		pig_signal;
+
+	sc_signal<bool>				receive_flit_timeout;
+	sc_signal<sc_uint<8>>		counter_receive_timeout;
+
 	void config();
 	void receive();
 	void send();
@@ -149,6 +153,7 @@ SC_MODULE(dmni){
 	void arbiter();
 	void credit_o_update();
 	void mem_address_update();
+	void receive_timeout();
 	
 	SC_HAS_PROCESS(dmni);
 	dmni(sc_module_name name_, regaddress address_router_ = 0) :
@@ -185,12 +190,18 @@ SC_MODULE(dmni){
 
 		SC_METHOD(credit_o_update);
 		sensitive << slot_available;
+		sensitive << reg_interrupt_received;
+		sensitive << receive_flit_timeout;
 
 		SC_METHOD(mem_address_update);
 		sensitive << write_enable;
 		sensitive << read_enable;
 		sensitive << recv_address;
 		sensitive << send_address;
+
+		SC_METHOD(receive_timeout);
+		sensitive << clock.pos();
+		sensitive << reset;
 
 	}
 		private:
