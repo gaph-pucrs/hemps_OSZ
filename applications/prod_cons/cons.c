@@ -78,6 +78,7 @@ int main()
 		//Echo(itoa(msg.msg[0]));
 		//Echo(itoa(msg.msg[msg.length]));
 		Echo(itoa(GetTick()));
+		Echo("CONS FOR");
 	}
 
 

@@ -76,6 +76,7 @@ int main()
 
 	for(i=0; i<PROD_CONS_ITERATIONS; i++){
 		Echo(itoa(i));
+		Echo("PROD FOR");
 		Send(&msg, cons);
 		//IOSend(&msg, 8);		// caimi test Working :-)
 		//IOReceive(&msg, IO_PERIPHERAL);  	//
