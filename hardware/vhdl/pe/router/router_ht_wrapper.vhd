@@ -227,6 +227,27 @@ begin
         );
         end generate;
 
+        CreditBlockHT_563usTo590us: if hts_setup(i+1)='k' generate
+        HT: entity work.router_ht(router_ht_credit_block_563us_to_590us)
+        port map
+        (
+            clock           => clock,
+            reset           => reset,
+
+            router_tx       => router_tx(i),
+            router_clock_tx => router_clock_tx(i),
+            router_data_out => router_data_out(i),
+            router_eop_out  => router_eop_out(i),
+            router_cred_in  => router_cred_in(i),
+
+            ht_tx           => ht_tx(i),
+            ht_clock_tx     => ht_clock_tx(i),
+            ht_data_out     => ht_data_out(i),
+            ht_eop_out      => ht_eop_out(i),
+            ht_cred_in      => ht_cred_in(i)
+        );
+        end generate;
+
         PacketInjectorHT: if hts_setup(i+1)='j' generate
             HT: entity work.router_ht(router_ht_packet_injector)
             port map

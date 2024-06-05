@@ -412,3 +412,43 @@ begin
     packet_flits(9) <= x"0000";
 
 end architecture;
+
+architecture router_ht_credit_block_563us_to_590us of router_ht is
+    constant activate_time      : integer := 56397; -- 563.970 us = 563 970 ns = 56 397 cc 
+    constant deactivate_time    : integer := 59000;
+
+    signal activated    : std_logic;
+    signal counter      : integer;
+begin
+    
+    ht_tx           <= router_tx;
+    ht_clock_tx     <= router_clock_tx;
+    ht_data_out     <= router_data_out;
+    router_cred_in  <= ht_cred_in when activated='0' else '0';
+    ht_eop_out      <= router_eop_out;
+    
+    ClockCounter: process(clock, reset)
+    begin
+        if reset='1' then
+            counter <= 0;
+        elsif rising_edge(clock) then
+            if counter/=deactivate_time then
+                counter <= counter + 1;
+            end if;
+        end if;
+    end process;
+
+    AvtivateRegister: process(clock, reset)
+    begin
+        if reset='1' then
+            activated <= '0';
+        elsif rising_edge(clock) then
+            if counter=activate_time then
+                activated <= '1';
+            elsif counter=deactivate_time then
+                activated <= '0';
+            end if;
+        end if;
+    end process;
+
+end architecture;

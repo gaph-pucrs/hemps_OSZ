@@ -187,15 +187,24 @@ void dmni::receive(){
 	
 			if (cont.read() == 0) {//32 bits high flit
 			
-			//incoming flit timeout
-			if(receive_flit_timeout.read() == 1 && DMNI_Receive.read() == FAILED_RECEPTION) {
+			//incoming flit timeout (special case: timeout before interrupting the kernel)
+			if(receive_flit_timeout.read() == 1 && (SR.read() == HEADER || SR.read() == DROP_PACKET)) {
+				cont.write(0);
+				SR.write(HEADER);
+
+			//incoming flit timeout (general case: after interrupting the kernel)
+			} else if(receive_flit_timeout.read() == 1 && DMNI_Receive.read() == FAILED_RECEPTION) {
 				cont.write(0);
 				SR.write(HEADER);
 			
 			//Read from NoC
 			} else if (rx.read() == 1 && slot_available.read() == 1){
-				buffer_high.write(data_in.read());
-				cont.write(1);
+				
+				//doesnt actually write the flit during DROP_PACKET
+				if(SR.read() != DROP_PACKET) {
+					buffer_high.write(data_in.read());
+					cont.write(1);
+				}
 
 				//verifying if first flit it is source_routing
 				if(data_in.read()(15,12) == SOURCE_ROUTING_TYPE && SR.read() == HEADER2){
@@ -206,15 +215,22 @@ void dmni::receive(){
 				//if received, indicates that there was a fault in middle of a transmittion
 				//and the whole packet shall be discarded, then we mark it with a eop
 				if(eop_in.read() == 1){
-				// 	cout << "ROUTER:" << hex << address_router << ": EOP 2";
-				// 	cout << " time:" << sc_time_stamp() << endl;
-					buffer[last.read()].write((buffer_high.read(),data_in.read()));
-					buffer_eop[last.read()].write(eop_in.read());
-					add_buffer.write(0);
-					// last.write(last.read() - 2);
-					cont.write(0);
-					SR.write(HEADER);
-					flag_middle_eop.write(1);
+
+					if(SR.read() == DROP_PACKET) {
+						cont.write(0);
+						SR.write(HEADER);
+					}
+					else {
+					// 	cout << "ROUTER:" << hex << address_router << ": EOP 2";
+					// 	cout << " time:" << sc_time_stamp() << endl;
+						buffer[last.read()].write((buffer_high.read(),data_in.read()));
+						buffer_eop[last.read()].write(eop_in.read());
+						add_buffer.write(0);
+						// last.write(last.read() - 2);
+						cont.write(0);
+						SR.write(HEADER);
+						flag_middle_eop.write(1);
+					}
 				}
 			}
 		}
@@ -230,10 +246,15 @@ void dmni::receive(){
 			//Read from NoC low
 			} else if (rx.read() == 1 && slot_available.read() == 1){
 				
-				buffer[last.read()].write((buffer_high.read(),data_in.read()));
-				buffer_eop[last.read()].write(eop_in.read());
-				add_buffer.write(1);
-				last.write(last.read() + 1);
+				bool is_beginning_of_packet = (SR.read() == HEADER) && (data_in.read() == address_router);
+				
+				//DO NOT write on buffer is the packet header fails verification (is not the beginning of a packet)
+				if((SR.read() != HEADER) || is_beginning_of_packet) {
+					buffer[last.read()].write((buffer_high.read(),data_in.read()));
+					buffer_eop[last.read()].write(eop_in.read());
+					add_buffer.write(1);
+					last.write(last.read() + 1);
+				}
 			
 				switch (SR.read()) {
 					case SOURCE_ROUTING_HEADER:
@@ -252,13 +273,18 @@ void dmni::receive(){
 						SR.write(PAYLOAD_SIZE);
 					break;
 					case HEADER:
-						cont.write(0);
-
-						// intr_counter_temp = intr_counter_temp + 1; // original
-						// if(address_router == 0){
-						// 	cout<<"Master receiving msg "<<endl;}
-						is_header[last.read()] = 1;
-						SR.write(HEADER2);
+						if(is_beginning_of_packet) {
+							cont.write(0);
+							intr_counter_temp = intr_counter_temp + 1; // original
+							// if(address_router == 0){
+							// 	cout<<"Master receiving msg "<<endl;}
+							is_header[last.read()] = 1;
+							SR.write(HEADER2);
+						}
+						else {
+							cont.write(0);
+							SR.write(DROP_PACKET);
+						}
 					break;
 				
 					case HEADER2://payload size
@@ -271,7 +297,7 @@ void dmni::receive(){
 				
 					case PAYLOAD_SIZE://payload size
 						cont.write(0);
-						intr_counter_temp = intr_counter_temp + 1; // atraso na DMNI
+						// intr_counter_temp = intr_counter_temp + 1; // atraso na DMNI
 
 						is_header[last.read()] = 0;					
 						payload_size.write(data_in.read() - 1);
@@ -295,6 +321,10 @@ void dmni::receive(){
 						else{
 							payload_size.write(payload_size.read() - 1);
 						}
+					break;
+
+					case DROP_PACKET:
+						//DROP_PACKET state is handled entirely in the HI-flit reading, this 'case' should never happen
 					break;
 				}		
 			}

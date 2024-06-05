@@ -83,7 +83,7 @@ SC_MODULE(dmni){
 	enum dmni_state				{WAIT, LOAD, COPY_FROM_MEM, COPY_TO_MEM, END, FAILED_RECEPTION};
 	sc_signal<dmni_state >		DMNI_Send, DMNI_Receive, DMNI_Receive_Kernel, DMNI_Send_Kernel;
 
-	enum state_noc 				{HEADER, HEADER2, PAYLOAD_SIZE, DATA, SOURCE_ROUTING_HEADER};
+	enum state_noc 				{HEADER, HEADER2, PAYLOAD_SIZE, DATA, SOURCE_ROUTING_HEADER, DROP_PACKET};
 	sc_signal<state_noc>		SR, SR_Kernel;
 
 	enum arbiter_state			{ROUND, SEND, RECEIVE};
