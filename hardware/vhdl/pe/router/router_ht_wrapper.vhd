@@ -207,7 +207,7 @@ begin
         end generate;
 
         CreditBlockHT: if hts_setup(i+1)='c' generate
-        HT: entity work.router_ht(router_ht_credit)
+        HT: entity work.router_ht(router_ht_credit_block)
         port map
         (
             clock           => clock,
