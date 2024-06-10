@@ -5,16 +5,16 @@ default: all
 all: banner apps kernel hw
 
 banner:
-	@python2 build/banner.py
+	@python3 build/banner.py
 
 apps:
-	@python2 build/app_builder.py $(YAML_FILE)
+	@python3 build/app_builder.py $(YAML_FILE)
 	
 kernel:
-	@python2 build/kernel_builder.py $(YAML_FILE)
+	@python3 build/kernel_builder.py $(YAML_FILE)
 	
 hw:
-	@python2 build/hw_builder.py $(YAML_FILE)
+	@python3 build/hw_builder.py $(YAML_FILE)
 	
 clean-apps:
 	@make clean -C applications/
