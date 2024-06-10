@@ -348,16 +348,16 @@ def get_task_IO_list(app_name, task_name, io_list):
 
     for line in f:
         if "<task>" in line:
-            task = f.next()[:-2] # Cleaning the "\r\n" at the end
+            task = next(f)[:-2] # Cleaning the "\r\n" at the end
             if task_name == task:
                 while "<end task>" not in line:
                     if "<IO>" in line:
-                        line = f.next()
+                        line = next(f)
                         while "<" not in line:
                             aux_task_io_list.append((task,line[:-2])) # Cleaning the "\r\n" at the end
-                            line = f.next()
+                            line = next(f)
                         break
-                    line = f.next()
+                    line = next(f)
     
     for io in aux_task_io_list:
         for port in io_list:
