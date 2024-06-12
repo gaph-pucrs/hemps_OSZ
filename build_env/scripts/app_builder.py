@@ -348,13 +348,13 @@ def get_task_IO_list(app_name, task_name, io_list):
 
     for line in f:
         if "<task>" in line:
-            task = next(f)[:-2] # Cleaning the "\r\n" at the end
+            task = next(f).strip() # Cleaning the "\r\n" at the end
             if task_name == task:
                 while "<end task>" not in line:
                     if "<IO>" in line:
                         line = next(f)
                         while "<" not in line:
-                            aux_task_io_list.append((task,line[:-2])) # Cleaning the "\r\n" at the end
+                            aux_task_io_list.append((task, line.strip())) # Cleaning the "\r\n" at the end
                             line = next(f)
                         break
                     line = next(f)
