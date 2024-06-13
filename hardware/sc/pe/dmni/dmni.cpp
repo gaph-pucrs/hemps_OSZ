@@ -187,8 +187,8 @@ void dmni::receive(){
 	
 			if (cont.read() == 0) {//32 bits high flit
 			
-			//incoming flit timeout (special case: timeout before interrupting the kernel)
-			if(receive_flit_timeout.read() == 1 && (SR.read() == HEADER || SR.read() == DROP_PACKET)) {
+			//incoming flit timeout (special case: during packet dropping)
+			if(receive_flit_timeout.read() == 1 && SR.read() == DROP_PACKET) {
 				cont.write(0);
 				SR.write(HEADER);
 
@@ -216,7 +216,8 @@ void dmni::receive(){
 				//and the whole packet shall be discarded, then we mark it with a eop
 				if(eop_in.read() == 1){
 
-					if(SR.read() == DROP_PACKET) {
+					// DROP_PACKET or EOP in first flit (did not interrupt kernel, just ignore)
+					if(SR.read() == DROP_PACKET || SR.read() == HEADER) {
 						cont.write(0);
 						SR.write(HEADER);
 					}
@@ -237,8 +238,14 @@ void dmni::receive(){
 		
 		if (cont.read() == 1) {//32 bits low flit
 
-			//incoming flit timeout
-			if(receive_flit_timeout.read()==1 && DMNI_Receive.read()==FAILED_RECEPTION) {
+			//incoming flit timeout (special case: timeout before interrupting the kernel)
+			if(receive_flit_timeout.read()==1 && SR.read()==HEADER) {
+				cont.write(0);
+				SR.write(HEADER);
+			}
+
+			//incoming flit timeout (general case: after interrupting the kernel)
+			else if(receive_flit_timeout.read()==1 && DMNI_Receive.read()==FAILED_RECEPTION) {
 				cont.write(0);
 				SR.write(HEADER);
 
