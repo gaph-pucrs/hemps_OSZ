@@ -410,13 +410,13 @@ void dmni::receive(){
 					recv_address.write(0);
 					recv_size.write(0);
 					DMNI_Receive.write(WAIT);
-					flit_location.write(0);
 				break;
 				case FAILED_RECEPTION:
 					// cout << "ROUTER:" << hex << address_router << ": failed reception in middle of a packet";
 					// cout << " time:" << sc_time_stamp() << endl;
 					if(dmni_timeout.read() == 0){
 						DMNI_Receive.write(END);
+						flit_location.write(0);
 					}
 					else{
 						DMNI_Receive.write(FAILED_RECEPTION);
