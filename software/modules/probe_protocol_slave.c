@@ -407,3 +407,23 @@ void handle_broken_path_request(unsigned int pkt_source, unsigned int pkt_target
     probe_puts(itoa(suspicious_paths[sus_path_slot].status));
     probe_puts("\n");
 }
+
+void clear_residual_switching() {
+
+    unsigned int reset_mask;
+
+    reset_mask = (1 << PORT_LOCAL0) | (1 << PORT_LOCAL1);
+    Seek(RESET_HERMES_PORT_SERVICE, (reset_mask << 16) | get_net_address(), 0x0000, 0);
+
+    reset_mask = (1 << PORT_WEST0) | (1 << PORT_WEST1);
+    Seek(RESET_HERMES_PORT_SERVICE, (reset_mask << 16) | get_net_address(), 0x0100, 0);
+
+    reset_mask = (1 << 15) | (1 << PORT_WEST0) | (1 << PORT_WEST1);
+    Seek(RESET_HERMES_PORT_SERVICE, (reset_mask << 16) | get_net_address(), 0x0200, 0);
+
+    reset_mask = (1 << PORT_SOUTH0) | (1 << PORT_SOUTH1);
+    Seek(RESET_HERMES_PORT_SERVICE, (reset_mask << 16) | get_net_address(), 0x0201, 0);
+
+    reset_mask = (1 << 15) | (1 << PORT_SOUTH0) | (1 << PORT_SOUTH1);
+    Seek(RESET_HERMES_PORT_SERVICE, (reset_mask << 16) | get_net_address(), 0x0202, 0);
+}

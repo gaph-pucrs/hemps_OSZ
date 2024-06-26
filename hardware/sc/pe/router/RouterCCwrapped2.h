@@ -37,6 +37,7 @@ SC_MODULE(RouterCCwrapped) {
 		sc_out<regflit> 			source;
 		sc_out<regflit> 			target;
 
+		sc_in<regNport> reset_port;
 
 		//signals to bind in wrapped module
 		sc_signal<regNport > clock_rx_internal;
@@ -180,6 +181,7 @@ SC_MODULE(RouterCCwrapped) {
 
 				router->target(target);
 				router->source(source);
+				router->reset_port(reset_port);
 
 			// Cleanup the memory allocated for the generic list
 			for (i = 0; i < 1; i++)

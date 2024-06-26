@@ -40,6 +40,8 @@ public:
     sc_out<regflit>                 source;
     sc_out<regflit>                 target;
 
+    sc_in<regNport> reset_port;
+
     // RouterCC(sc_module_name nm)
     // : sc_foreign_module(nm,"RouterCC", num_generics, generic_list),
     RouterCC(sc_module_name nm, const char* hdl_name,int num_generics, const char** generic_list)
@@ -68,7 +70,8 @@ public:
        link_control_message("link_control_message"),
        link_control_internal("link_control_internal"),
        target("target"),
-       source("source")
+       source("source"),
+       reset_port("reset_port")
     { 
         elaborate_foreign_module(hdl_name, num_generics, generic_list);
     }

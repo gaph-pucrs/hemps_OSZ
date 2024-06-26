@@ -77,7 +77,9 @@ port(
 	change_routing			: in regNport;
 
 	target                  : out regflit;
-	source                  : out regflit
+	source                  : out regflit;
+
+	reset_port				: in  regNport
 );
 end RouterCC;
 
@@ -101,13 +103,15 @@ signal enable_shift         : regNport;
 signal bufferAP				: regNport;
 
 signal tx_internal         	: regNport;
+
+signal reset_buffer			: regNport;
 begin
 	
 	fifo_generation : for i in 0 to NPORT-1 generate
 		Fifo : Entity work.Hermes_buffer
 		port map(
 			clock 			=> clock,
-			reset 			=> reset,
+			reset 			=> reset_buffer(i),
 			data_in 		=> data_in(i),
 			rx 				=> rx(i),
 			eop_in 			=> eop_in(i),
@@ -125,6 +129,7 @@ begin
 			credit_out 		=> credit_o(i),
 			change_routing	=> change_routing(i)
 			);
+		reset_buffer(i) <= reset or reset_port(i);
 	end generate ; -- fifo_generation
 
 	SwitchControl_SR_write : Entity work.SwitchControl_SR_write

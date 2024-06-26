@@ -37,6 +37,8 @@ public:
 		sc_out<bool >					out_req_send_kernel_seek;
 		sc_in<bool >					in_ack_send_kernel_seek;
 
+		sc_out<regNport>				reset_hermes_port;
+
 		router_seek(sc_module_name nm, const char* hdl_name,
 			 int num_generics, const char** generic_list)
 		 : sc_foreign_module(nm),
@@ -56,7 +58,8 @@ public:
 			out_reg_backtrack_seek("out_reg_backtrack_seek"),
 			out_req_send_kernel_seek("out_req_send_kernel_seek"),
 			in_ack_send_kernel_seek("in_ack_send_kernel_seek"),
-			in_AppID_reg("in_AppID_reg")
+			in_AppID_reg("in_AppID_reg"),
+			reset_hermes_port("reset_hermes_port")
 		{
 			elaborate_foreign_module(hdl_name, num_generics, generic_list);
 		}

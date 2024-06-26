@@ -40,6 +40,8 @@ SC_MODULE(router_seek_wrapped) {
 		sc_out<bool >						out_req_send_kernel_seek;
 		sc_in <bool >						in_ack_send_kernel_seek;
 
+		sc_out<regNport>					reset_hermes_port;
+
 		//signals to bind in wrapped module
 		sc_signal<sc_uint<NPORT_SEEK> >  in_req_router_seek_internal;
 		sc_signal<sc_uint<NPORT_SEEK> >  in_ack_router_seek_internal;
@@ -150,6 +152,8 @@ SC_MODULE(router_seek_wrapped) {
 				seek->out_nack_router_seek(out_nack_router_seek_internal);
 				seek->out_opmode_router_seek(out_opmode_router_seek_internal);
 				seek->in_AppID_reg(in_AppID_reg);
+
+				seek->reset_hermes_port(reset_hermes_port);
 			//end coment
 
 		

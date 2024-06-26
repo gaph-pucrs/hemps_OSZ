@@ -121,6 +121,9 @@ SC_MODULE(pe) {///////////////////////// INPUT AND OUTPUT //////////////////////
 	sc_signal <bool > 						in_cpu_opmode_seek;
 	sc_signal <bool >						wrapper_reg[NPORT];
 
+	// -- br Local - reset hermes port
+	sc_signal <regNport>					reset_hermes_port;
+
 
 	// fifoPDN signals
 	// -- fifoPDN OUT
@@ -539,6 +542,8 @@ SC_MODULE(pe) {///////////////////////// INPUT AND OUTPUT //////////////////////
 			// AppReg - BR_TO_APPID service
 			seek->in_AppID_reg(app_reg);
 
+			seek->reset_hermes_port(reset_hermes_port);
+
 
 			//Seek Local Controller  connections
 			slc->clock(clock);
@@ -624,6 +629,7 @@ SC_MODULE(pe) {///////////////////////// INPUT AND OUTPUT //////////////////////
 			router->data_in[LOCAL](data_out_sender);//se for canal unico liga aqui.
 		#endif
 		router->tick_counter(tick_counter);
+		router->reset_port(reset_hermes_port);
 		#ifdef SEEK_LOG
 			seek->in_tick_counter(tick_counter);
 		#endif

@@ -54,7 +54,9 @@ entity router_seek is
 				out_reg_backtrack_seek			: out std_logic_vector(31 downto 0);	-- 32 bits do registrador do backtrack	
 				out_req_send_kernel_seek		: out std_logic;	
 				in_ack_send_kernel_seek			: in  std_logic	;
-				in_AppID_reg                    : in  regNtarget	
+				in_AppID_reg                    : in  regNtarget;
+
+				reset_hermes_port				: out regNport
 		    );
 end entity;  
 
@@ -609,6 +611,8 @@ process(EA_manager, req_task , source_table, service_table, target_table, payloa
 					PE_manager <= PROPAGATE;
 				elsif service_table(sel) = SEARCHPATH_SERVICE and target_table(sel) = router_address  then -- é o target e tem que disparar o backtrack
 					PE_manager <= INIT_BACKTRACK;
+				elsif service_table(sel) = RESET_HERMES_PORT_SERVICE then
+					PE_manager <= HERMES_RESET;
 				else
 					PE_manager <= SEND_LOCAL;
 				end if;	
@@ -790,6 +794,10 @@ process(EA_manager, req_task , source_table, service_table, target_table, payloa
 					PE_manager <= WAIT_ACK_PORTS;
 				end if;
 				
+			when HERMES_RESET =>
+			
+				PE_manager <= INIT_CLEAR;
+			
 			when others => 
 				PE_manager <= S_INIT;
 		end case;
@@ -1112,5 +1120,7 @@ end generate;
 -- 	);
 -- end generate gen_test_count;
 -- -- systhensis translate_on
+
+reset_hermes_port <= source_table(sel)(16+NPORT-1 downto 16) when PE_manager=HERMES_RESET else (others => '0');
 
 end router_seek;

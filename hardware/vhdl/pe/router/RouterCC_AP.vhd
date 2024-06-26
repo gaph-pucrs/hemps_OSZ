@@ -50,7 +50,9 @@ port(
 	link_control_internal	: out std_logic;
 	
 	target                  : out regflit; 
-	source                  : out regflit
+	source                  : out regflit;
+
+	reset_port				: in  regNport
 ); 
 end RouterCC_AP; 
  
@@ -102,7 +104,9 @@ begin
 		change_routing			=>	change_routing, 
  
 		target                  =>	target, 
-		source                  =>	source 
+		source                  =>	source,
+
+		reset_port				=> reset_port
 	); 
  
 	-- APauthK <=  "000" & auths(3)(1) & '0' & auths(2)(1) & '0' & auths(1)(1) & '0' & auths(0)(1);

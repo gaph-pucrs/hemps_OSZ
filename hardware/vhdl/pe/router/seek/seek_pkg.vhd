@@ -95,6 +95,7 @@ package seek_pkg is
     constant    PROBE_RESULT                            : std_logic_vector(TAM_SERVICE_SEEK-1 downto 0) := "101110";
     constant    PROBE_REQUEST_PATH                      : std_logic_vector(TAM_SERVICE_SEEK-1 downto 0) := "101111";
     constant    PROBE_PATH_XY                           : std_logic_vector(TAM_SERVICE_SEEK-1 downto 0) := "110000";
+    constant    RESET_HERMES_PORT_SERVICE               : std_logic_vector(TAM_SERVICE_SEEK-1 downto 0) := "110001";
 
 
 
@@ -122,7 +123,7 @@ package seek_pkg is
 	-- output FSM States
 
 	type T_ea_manager is (S_INIT, ARBITRATION, TEST_SERVICE, SERVICE_BACKTRACK, BACKTRACK_PROPAGATE, INIT_BACKTRACK, PREPARE_NEXT,
-		BACKTRACK_MOUNT, CLEAR_TABLE, COMPARE_TARGET, SEND_LOCAL, PROPAGATE, WAIT_ACK_PORTS, INIT_CLEAR, END_BACKTRACK, COUNT);
+		BACKTRACK_MOUNT, CLEAR_TABLE, COMPARE_TARGET, SEND_LOCAL, PROPAGATE, WAIT_ACK_PORTS, INIT_CLEAR, END_BACKTRACK, COUNT, HERMES_RESET);
 	
 	-- input FSM States
 

@@ -72,6 +72,7 @@
 #define PROBE_RESULT					46  //0x2E
 #define PROBE_REQUEST_PATH				47  //0x2F
 #define PROBE_PATH_XY					48  //0x30
+#define RESET_HERMES_PORT_SERVICE		49  //0x31
 
 
 #define	IRQ_SEEK						0x80

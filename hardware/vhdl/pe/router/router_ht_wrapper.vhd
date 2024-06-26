@@ -42,7 +42,9 @@ entity router_ht_wrapper is
         link_control_internal   : out   std_logic;
         
         target                  : out   regflit;
-        source                  : out   regflit
+        source                  : out   regflit;
+
+        reset_port              : in    regNport
     );
 end entity;
 
@@ -96,7 +98,9 @@ begin
         link_control_message => link_control_message,
         link_control_internal => link_control_internal,
         target      => target,
-        source      => source
+        source      => source,
+
+        reset_port  => reset_port
     );
 
     GenHTs: for i in 0 to NPORT-1 generate
