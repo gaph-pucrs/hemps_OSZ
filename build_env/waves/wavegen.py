@@ -178,7 +178,7 @@ for pe in range(0,max_pe):
 				location = "ports"
 
 			router_input_pfx = "add wave -noupdate -group {%s %dx%d - %d} -group %s -group {router %dx%d input %s} -radix hexadecimal /test_bench/HeMPS/%s%dx%d/RouterCCwrapped/" % 	(pe_type_str, posX, posY, pe,location, posX, posY, portname[port], pe_type_str, posX, posY)
-			router_input_sds = ["credit_o", "rx","data_in", "eop_in"]
+			router_input_sds = ["credit_o", "rx","data_in", "bop_in", "eop_in"]
 			for it in map(lambda sd: router_input_pfx + sd + f"({port:d})",router_input_sds):
 				print (it)
 
@@ -188,13 +188,13 @@ for pe in range(0,max_pe):
 				print (ap_dividers_pfx +"AP")
 				#Printa os singals AP ~> Router
 				access_point_pfx = "add wave -noupdate -group {%s %dx%d - %d} -group %s -group {router %dx%d input %s} -radix hexadecimal /test_bench/HeMPS/%s%dx%d/RouterCCwrapped/RouterCC_AP/" % 	(pe_type_str, posX, posY, pe,location, posX, posY, portname[port], pe_type_str, posX, posY)
-				access_point_sds = ["credit_o_router", "rx_router","data_in_router", "eop_in_router"]
+				access_point_sds = ["credit_o_router", "rx_router","data_in_router", "bop_in_router", "eop_in_router"]
 			    # Incrementa pq a contagem do Ap é diferente das portas
 				for it in map(lambda sd: access_point_pfx + sd + f"({port:d})",access_point_sds):
 					print (it)
 
 			router_output_pfx = "add wave -noupdate -group {%s %dx%d - %d} -group %s -group {router %dx%d output %s} -radix hexadecimal /test_bench/HeMPS/%s%dx%d/RouterCCwrapped/" % 	(pe_type_str, posX, posY, pe, location, posX, posY, portname[port], pe_type_str, posX, posY)
-			router_output_sds = ["credit_i","tx","data_out","eop_out"]
+			router_output_sds = ["credit_i","tx","data_out","bop_out","eop_out"]
 			for it in map(lambda sd: router_output_pfx + sd + f"({port:d})",router_output_sds):
 				print (it)
 			
@@ -204,7 +204,7 @@ for pe in range(0,max_pe):
 				print (ap_dividers_pfx +"AP")
 				#Printa os singals AP ~> Router
 				access_point_pfx = "add wave -noupdate -group {%s %dx%d - %d} -group %s -group {router %dx%d output %s} -radix hexadecimal /test_bench/HeMPS/%s%dx%d/RouterCCwrapped/RouterCC_AP/" % 	(pe_type_str, posX, posY, pe,location, posX, posY, portname[port], pe_type_str, posX, posY)
-				access_point_sds = ["credit_i_router","tx_router","data_out_router","eop_out_router"]
+				access_point_sds = ["credit_i_router","tx_router","data_out_router","bop_out_router","eop_out_router"]
 				for it in map(lambda sd: access_point_pfx + sd + f"({port:d})",access_point_sds):
 					print (it)
 
@@ -231,7 +231,7 @@ for pe in range(0,max_pe):
 
 #INJECTOR SIGNALS
 injectors_pfx = "add wave -noupdate -group INJECTOR /test_bench/INJECTOR/"
-injectors_sds = ["clock", "reset", "in_source_router_seek_primary", "in_target_router_seek_primary", "in_payload_router_seek_primary", "in_service_router_seek_primary", "in_req_router_seek_primary", "in_ack_router_seek_primary", "in_opmode_router_seek_primary", "out_service_router_seek_primary", "out_source_router_seek_primary", "out_target_router_seek_primary", "out_payload_router_seek_primary", "out_ack_router_seek_primary", "out_req_router_seek_primary", "out_nack_router_seek_primary", "out_opmode_router_seek_primary", "clock_tx_primary", "tx_primary", "data_out_primary", "credit_i_primary", "eop_in_primary", "clock_rx_primary", "rx_primary", "data_in_primary", "credit_o_primary", "eop_out_primary", "in_source_router_seek_secondary", "in_target_router_seek_secondary", "in_payload_router_seek_secondary", "in_service_router_seek_secondary", "in_req_router_seek_secondary", "in_ack_router_seek_secondary", "in_opmode_router_seek_secondary", "out_service_router_seek_secondary", "out_source_router_seek_secondary", "out_target_router_seek_secondary", "out_payload_router_seek_secondary", "out_ack_router_seek_secondary", "out_req_router_seek_secondary", "out_nack_router_seek_secondary", "out_opmode_router_seek_secondary", "clock_tx_secondary", "tx_secondary", "data_out_secondary", "credit_i_secondary", "eop_in_secondary", "clock_rx_secondary", "rx_secondary", "data_in_secondary", "credit_o_secondary", "eop_out_secondary", "EA_in_datanoc", "EA_out_datanoc", "EA_in_brnoc", "EA_out_brnoc", "EA_manager"]
+injectors_sds = ["clock", "reset", "in_source_router_seek_primary", "in_target_router_seek_primary", "in_payload_router_seek_primary", "in_service_router_seek_primary", "in_req_router_seek_primary", "in_ack_router_seek_primary", "in_opmode_router_seek_primary", "out_service_router_seek_primary", "out_source_router_seek_primary", "out_target_router_seek_primary", "out_payload_router_seek_primary", "out_ack_router_seek_primary", "out_req_router_seek_primary", "out_nack_router_seek_primary", "out_opmode_router_seek_primary", "clock_tx_primary", "tx_primary", "data_out_primary", "credit_i_primary", "bop_in_primary", "eop_in_primary", "clock_rx_primary", "rx_primary", "data_in_primary", "credit_o_primary", "bop_out_primary", "eop_out_primary", "in_source_router_seek_secondary", "in_target_router_seek_secondary", "in_payload_router_seek_secondary", "in_service_router_seek_secondary", "in_req_router_seek_secondary", "in_ack_router_seek_secondary", "in_opmode_router_seek_secondary", "out_service_router_seek_secondary", "out_source_router_seek_secondary", "out_target_router_seek_secondary", "out_payload_router_seek_secondary", "out_ack_router_seek_secondary", "out_req_router_seek_secondary", "out_nack_router_seek_secondary", "out_opmode_router_seek_secondary", "clock_tx_secondary", "tx_secondary", "data_out_secondary", "credit_i_secondary", "bop_in_secondary", "eop_in_secondary", "clock_rx_secondary", "rx_secondary", "data_in_secondary", "credit_o_secondary", "bop_out_secondary", "eop_out_secondary", "EA_in_datanoc", "EA_out_datanoc", "EA_in_brnoc", "EA_out_brnoc", "EA_manager"]
 for it in map(lambda sd: injectors_pfx + sd, injectors_sds):
 	print (it)
 
@@ -355,7 +355,7 @@ for snip_idx in range(0, snip_number):
 	print(snip_divider_pfx + "Handler")
 
 	snip_handler_pfx = "add wave -noupdate -group {%s} %s/PacketHandler/" % (snip_name, snip_top)
-	snip_handler_sds = ["clock", "hermes_rx", "hermes_data_in", "hermes_eop_in", "hermes_credit_out"]
+	snip_handler_sds = ["clock", "hermes_rx", "hermes_data_in", "hermes_bop_in", "hermes_eop_in", "hermes_credit_out"]
 	for it in map(lambda sd: snip_handler_pfx + sd, snip_handler_sds):
 		print (it)
 
@@ -491,7 +491,7 @@ for snip_idx in range(0, snip_number):
 	print(snip_divider_pfx + "Packet_Builder")
 
 	snip_builder_pfx = "add wave -noupdate -group {%s} %s/PacketBuilder/" % (snip_name, snip_top)
-	snip_builder_sds = ["clock", "hermes_tx", "hermes_data_out", "hermes_eop_out", "hermes_credit_in", "state"]
+	snip_builder_sds = ["clock", "hermes_tx", "hermes_data_out", "hermes_bop_out", "hermes_eop_out", "hermes_credit_in", "state"]
 	for it in map(lambda sd: snip_builder_pfx + sd, snip_builder_sds):
 		print (it)
 

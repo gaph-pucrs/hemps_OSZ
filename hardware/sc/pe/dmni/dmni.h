@@ -69,12 +69,14 @@ SC_MODULE(dmni){
 	sc_in<bool > 				credit_i;
 	sc_out<bool > 				clock_tx;
 	sc_in<bool > 				eop_in;
+	sc_in<bool > 				bop_in;
 	sc_in<bool > 				rx;
 	//sc_in<reg32 >				data_in;//22/01
 	sc_in<regflit >				data_in;//22/01
 	sc_out<bool > 				credit_o;
 	sc_in<bool > 				clock_rx;
 	sc_out<bool > 				eop_out;
+	sc_out<bool > 				bop_out;
 	sc_out<bool > 				reset_plasma_from_dmni;
 	
 	sc_out<bool > 				dmni_timeout;
@@ -143,6 +145,8 @@ SC_MODULE(dmni){
 
 	sc_signal<bool>				receive_flit_timeout;
 	sc_signal<sc_uint<8>>		counter_receive_timeout;
+
+	sc_signal<bool>				bop_out_was_written;
 
 	void config();
 	void receive();

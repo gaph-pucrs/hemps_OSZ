@@ -28,12 +28,14 @@ entity snip is
         hermes_primary_tx_clk       : out   std_logic;
         hermes_primary_data_out     : out   regflit;
         hermes_primary_eop_out      : out   std_logic;
+        hermes_primary_bop_out      : out   std_logic;
         hermes_primary_credit_in    : in    std_logic;
 
         hermes_primary_rx           : in    std_logic;
         hermes_primary_rx_clk       : in    std_logic;
         hermes_primary_data_in      : in    regflit;
         hermes_primary_eop_in       : in    std_logic;
+        hermes_primary_bop_in       : in    std_logic;
         hermes_primary_credit_out   : out   std_logic;
 
         ---------------------
@@ -68,12 +70,14 @@ architecture snip of snip is
     signal hermes_rx_ck             : std_logic;
     signal hermes_data_in           : regflit;
     signal hermes_eop_in            : std_logic;
+    signal hermes_bop_in            : std_logic;
     signal hermes_credit_out        : std_logic;
 
     signal hermes_tx                : std_logic;
     signal hermes_tx_ck             : std_logic;
     signal hermes_data_out          : regflit;
     signal hermes_eop_out           : std_logic;
+    signal hermes_bop_out           : std_logic;
     signal hermes_credit_in         : std_logic;
 
     -------------------------------
@@ -178,12 +182,14 @@ begin
     hermes_rx_ck                <= hermes_primary_rx_clk;
     hermes_data_in              <= hermes_primary_data_in;
     hermes_eop_in               <= hermes_primary_eop_in;
+    hermes_bop_in               <= hermes_primary_bop_in;
     hermes_primary_credit_out   <= hermes_credit_out;
 
     hermes_primary_tx           <= hermes_tx;
     hermes_primary_tx_clk       <= '1';
     hermes_primary_data_out     <= hermes_data_out;
     hermes_primary_eop_out      <= hermes_eop_out;
+    hermes_primary_bop_out      <= hermes_bop_out;
     hermes_credit_in            <= hermes_primary_credit_in;
 
     -------------------------------------
@@ -221,6 +227,7 @@ begin
         hermes_rx           => hermes_rx,
         hermes_data_in      => hermes_data_in,
         hermes_eop_in       => hermes_eop_in,
+        hermes_bop_in       => hermes_bop_in,
         hermes_credit_out   => hermes_credit_out,
 
         tableIn             => tableOut_handlerIn,
@@ -259,6 +266,7 @@ begin
         hermes_tx           => hermes_tx,
         hermes_data_out     => hermes_data_out,
         hermes_eop_out      => hermes_eop_out,
+        hermes_bop_out      => hermes_bop_out,
         hermes_credit_in    => hermes_credit_in,
 
         tableIn             => tableOut_builderIn,

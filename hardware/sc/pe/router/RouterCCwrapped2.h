@@ -13,11 +13,13 @@ SC_MODULE(RouterCCwrapped) {
 		sc_in<bool > clock_rx[NPORT];
 		sc_in<bool > rx[NPORT];
 		sc_in<bool > eop_in[NPORT];
+		sc_in<bool > bop_in[NPORT];
 		sc_in<regflit > data_in[NPORT];
 		sc_out<bool > credit_o[NPORT];
 		sc_out<bool > clock_tx[NPORT];
 		sc_out<bool > tx[NPORT];
 		sc_out<bool > eop_out[NPORT];
+		sc_out<bool > bop_out[NPORT];
 		sc_out<regflit > data_out[NPORT];
 		sc_in<bool > credit_i[NPORT];
 		sc_in<bool >  access_i[NPORT];
@@ -43,10 +45,12 @@ SC_MODULE(RouterCCwrapped) {
 		sc_signal<regNport > clock_rx_internal;
 		sc_signal<regNport > rx_internal;
 		sc_signal<regNport > eop_in_internal;
+		sc_signal<regNport > bop_in_internal;
 		sc_signal<regNport > credit_o_internal;
 		sc_signal<regNport > clock_tx_internal;
 		sc_signal<regNport > tx_internal;
 		sc_signal<regNport > eop_out_internal;
+		sc_signal<regNport > bop_out_internal;
 		sc_signal<regNport > credit_i_internal;
 		sc_signal<regNport > ap_internal;
 		sc_signal<regNport > sz_internal;
@@ -63,10 +67,12 @@ SC_MODULE(RouterCCwrapped) {
 		void upd_clock_rx();
 		void upd_rx();
 		void upd_eop_in();
+		void upd_bop_in();
 		void upd_credit_o();
 		void upd_clock_tx();
 		void upd_tx();
 		void upd_eop_out();
+		void upd_bop_out();
 		void upd_credit_i();
 		// void upd_ap();
 		void upd_sz();
@@ -115,6 +121,7 @@ SC_MODULE(RouterCCwrapped) {
 				router->clock_rx(clock_rx_internal);
 				router->rx(rx_internal);
 				router->eop_in(eop_in_internal);
+				router->bop_in(bop_in_internal);
 				router->access_i(access_i_internal);
 				router->access_o(access_o_internal);
 				//ports interconnection are mixed due to an issue in SystemC - VHDL integration
@@ -132,6 +139,7 @@ SC_MODULE(RouterCCwrapped) {
 				router->clock_tx(clock_tx_internal);
 				router->tx(tx_internal);
 				router->eop_out(eop_out_internal);
+				router->bop_out(bop_out_internal);
 				//ports interconnection are mixed due to an issue in SystemC - VHDL integration
 				router->data_out[LOCAL1](data_out[EAST0]);
 				router->data_out[LOCAL0](data_out[EAST1]);
@@ -208,6 +216,11 @@ SC_MODULE(RouterCCwrapped) {
 				sensitive << eop_in[i];
 			}
 
+			SC_METHOD(upd_bop_in);
+			for (i = 0; i < NPORT; i++){
+				sensitive << bop_in[i];
+			}
+
 			SC_METHOD(upd_credit_i);
 			for (i = 0; i < NPORT; i++){
 				sensitive << credit_i[i];
@@ -259,6 +272,9 @@ SC_MODULE(RouterCCwrapped) {
 // 
 			SC_METHOD(upd_eop_out);
 			sensitive << eop_out_internal;
+
+			SC_METHOD(upd_bop_out);
+			sensitive << bop_out_internal;
 
 			SC_METHOD(upd_intAP);
 			sensitive << intAP_internal;

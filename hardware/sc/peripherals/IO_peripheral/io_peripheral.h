@@ -19,12 +19,14 @@ SC_MODULE(io_peripheral)
     sc_out<bool>                clock_tx_primary;
     sc_out<regflit>             data_out_primary;
     sc_out<bool>                eop_out_primary;
+    sc_out<bool>                bop_out_primary;
     sc_in<bool>                 credit_i_primary;
 
     sc_in<bool>                 rx_primary;
     sc_in<bool>                 clock_rx_primary;
     sc_in<regflit>              data_in_primary;
     sc_in<bool>                 eop_in_primary;
+    sc_in<bool>                 bop_in_primary;
     sc_out<bool>                credit_o_primary;
 
     /* BrNoC Interface */
@@ -65,12 +67,14 @@ SC_MODULE(io_peripheral)
         snip->hermes_primary_tx_clk(clock_tx_primary);
         snip->hermes_primary_data_out(data_out_primary);
         snip->hermes_primary_eop_out(eop_out_primary);
+        snip->hermes_primary_bop_out(bop_out_primary);
         snip->hermes_primary_credit_in(credit_i_primary);
 
         snip->hermes_primary_rx(rx_primary);
         snip->hermes_primary_rx_clk(clock_rx_primary);
         snip->hermes_primary_data_in(data_in_primary);
         snip->hermes_primary_eop_in(eop_in_primary);
+        snip->hermes_primary_bop_in(bop_in_primary);
         snip->hermes_primary_credit_out(credit_o_primary);
 
         snip->brnoc_primary_source_in(in_source_router_seek_primary);

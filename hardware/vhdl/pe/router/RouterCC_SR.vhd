@@ -67,12 +67,14 @@ port(
 	data_in                 : in  arrayNport_regflit;
 	credit_o                : out regNport;
 	eop_in					: in  regNport;
+	bop_in					: in  regNport;
 
 	clock_tx                : out regNport;
 	tx                      : out regNport;
 	data_out                : out arrayNport_regflit;
 	credit_i                :  in regNport;
 	eop_out					: out regNport;
+	bop_out					: out regNport;
 
 	change_routing			: in regNport;
 
@@ -85,8 +87,8 @@ end RouterCC;
 
 architecture RouterCC of RouterCC is
 
-signal h, ack_h, data_av, sender, data_ack,eop_buffer 	: regNport := (others=>'0');
-signal data 											: arrayNport_regflit := (others=>(others=>'0'));
+signal h, ack_h, data_av, sender, data_ack, eop_buffer, bop_buffer	: regNport := (others=>'0');
+signal data 														: arrayNport_regflit := (others=>(others=>'0'));
 
 signal buffer_wire_SC									: arrayNport_regflit_32 := (others=>(others=>'0'));
 signal header_routing									: arrayNport_regflit_32 := (others=>(others=>'0'));
@@ -115,10 +117,12 @@ begin
 			data_in 		=> data_in(i),
 			rx 				=> rx(i),
 			eop_in 			=> eop_in(i),
+			bop_in 			=> bop_in(i),
 			req_routing 	=> h(i),
 			ack_routing 	=> ack_h(i),
 			tx 				=> data_av(i),
 			eop_out 		=> eop_buffer(i),
+			bop_out 		=> bop_buffer(i),
 			data_out		=> data(i),
 			--data_header
 			header_routing 	=> header_routing(i),
@@ -141,6 +145,7 @@ begin
 		reset           => reset,
 		req_routing     => h,
 		eop_in			=> eop_in,
+		bop_in			=> bop_in,
 		ack_routing     => ack_h,
 		data_in_header_fixed  => buffer_wire_SC,
 		data_in_header  => header_routing,
@@ -175,7 +180,9 @@ begin
 		tx              => tx_internal,
 		credit_i        => credit_i,
 		eop_buffer		=> eop_buffer,
-		eop_out			=> eop_out
+		bop_buffer		=> bop_buffer,
+		eop_out			=> eop_out,
+		bop_out			=> bop_out
 	);
 
 	tx <= tx_internal;

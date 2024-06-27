@@ -191,6 +191,14 @@ void sabotage::out_proc_FSM(){
 			case S_SEND_HEADER: 
 					if(credit_i_primary.read() == true){ 
 						data_out_primary.write(buffer_out_flit[flit_out_counter]); 
+
+                        // BOP generation
+                        if(flit_out_counter == 0) {
+                            bop_out_primary.write(1);
+                        } else {
+                            bop_out_primary.write(0);
+                        }
+
 						flit_out_counter = flit_out_counter + 1;  
                         if(flit_out_counter == header_size){ 
 							if(packet_size == 0){   

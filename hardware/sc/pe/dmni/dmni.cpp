@@ -15,12 +15,14 @@
 //			 -------------------------
 //			|						  |<--- data_in / 16
 //			|						  |<--- eop_in
+//			|						  |<--- bop_in
 //			|		    			  |<--- rx
 //			|			DMNI		  |---> credit_out
 //			|	   		   -----------
 //			|			  |	  --------
 //			|			  |32|		  |---> data_out /16
 //			|			  |--| Sender |---> eop_out
+//			|			  |--|		  |---> bop_out
 //			|			  |--|		  |---> tx
 //			|			  |--|		  |<--- credit_in
 //			 -------------    --------
@@ -200,6 +202,10 @@ void dmni::receive(){
 			//Read from NoC
 			} else if (rx.read() == 1 && slot_available.read() == 1){
 				
+				if(SR.read() == HEADER && bop_in.read() == 0) {
+					SR.write(DROP_PACKET);
+				}
+
 				//doesnt actually write the flit during DROP_PACKET
 				if(SR.read() != DROP_PACKET) {
 					buffer_high.write(data_in.read());
@@ -456,6 +462,8 @@ void dmni::send(){
 		send_active.write(0);
 		tx.write(0);
 		eop_out.write(0);
+		bop_out.write(0);
+		bop_out_was_written.write(0);
 	} else {
 
 		switch (DMNI_Send.read()) {
@@ -491,6 +499,14 @@ void dmni::send(){
 						data_out.write(mem_data_read.read());
 						send_address.write(send_address.read() + WORD_SIZE);
 						send_size.write(send_size.read() - 1);
+
+						// BOP Generation
+						if(bop_out_was_written.read() == 0) {
+							bop_out.write(1);
+							bop_out_was_written.write(1);
+						} else {
+							bop_out.write(0);
+						}
 
 						if(send_size_2.read() == 0 && send_size.read() == 1){
 							eop_out.write(1);
@@ -537,6 +553,7 @@ void dmni::send(){
 				send_size.write(0);
 				send_size_2.write(0);
 				DMNI_Send.write(WAIT);
+				bop_out_was_written.write(0);
 			break;
 
 			default:
@@ -553,6 +570,8 @@ void dmni::send_master_kernel(){
 		send_active.write(0);
 		tx.write(0);
 		eop_out.write(0);
+		bop_out.write(0);
+		bop_out_was_written.write(0);
 		reg_interrupt_received.write(0);
 	} else {
 
@@ -623,6 +642,14 @@ void dmni::send_master_kernel(){
 					DMNI_Send_Kernel.write(LOAD);
 				}
 
+				// BOP Generation
+				if(tx.read() == 1 && bop_out_was_written.read() == 0) {
+					bop_out.write(1);
+					bop_out_was_written.write(1);
+				} else {
+					bop_out.write(0);
+				}
+
 			break;
 
 			case END:
@@ -631,6 +658,7 @@ void dmni::send_master_kernel(){
 				send_address_2.write(0);
 				send_size.write(0);
 				send_size_2.write(0);
+				bop_out_was_written.write(0);
 			break;
 
 			default:

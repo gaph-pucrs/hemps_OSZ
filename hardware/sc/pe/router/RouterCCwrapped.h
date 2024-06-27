@@ -14,6 +14,7 @@ public:
     sc_in<regNport > clock_rx;
     sc_in<regNport > rx;
     sc_in<regNport > eop_in;
+    sc_in<regNport > bop_in;
     sc_in<regflit > data_in[NPORT];
     
     sc_in<regNport >  access_i;
@@ -23,6 +24,7 @@ public:
     sc_out<regNport > clock_tx;
     sc_out<regNport > tx;
     sc_out<regNport > eop_out;
+    sc_out<regNport > bop_out;
     sc_out<regflit > data_out[NPORT];
     sc_in<regNport > credit_i;
 
@@ -53,6 +55,7 @@ public:
        //data_in
        credit_o("credit_o"),
        eop_in("eop_in"),
+       bop_in("bop_in"),
        access_i("access_i"),
        access_o("access_o"),
        clock_tx("clock_tx"),
@@ -60,6 +63,7 @@ public:
        //data_out
        credit_i("credit_i"),
        eop_out("eop_out"),
+       bop_out("bop_out"),
        k1("k1"),
        k2("k2"),
        sz("sz"),

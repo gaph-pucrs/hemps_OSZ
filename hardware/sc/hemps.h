@@ -39,12 +39,14 @@ SC_MODULE(hemps) {
 	sc_out<regflit >	data_out_io[IO_NUMBER];
 	sc_in<bool >		credit_i_io[IO_NUMBER];
 	sc_in<bool >		eop_in_io[IO_NUMBER];
+	sc_in<bool >		bop_in_io[IO_NUMBER];
 	
 	sc_in<bool >		clock_rx_io[IO_NUMBER];
 	sc_in<bool > 		rx_io[IO_NUMBER];
 	sc_in<regflit >		data_in_io[IO_NUMBER];
 	sc_out<bool >		credit_o_io[IO_NUMBER];
 	sc_out<bool >		eop_out_io[IO_NUMBER];
+	sc_out<bool >		bop_out_io[IO_NUMBER];
 
 	//SEEK Interface (IO)
 	sc_in<reg_seek_source >							in_source_router_seek_io[IO_NUMBER];
@@ -72,12 +74,14 @@ SC_MODULE(hemps) {
 	sc_signal<regflit >		sig_data_out_io[IO_NUMBER];
 	sc_signal<bool >		sig_credit_i_io[IO_NUMBER];
 	sc_signal<bool >		sig_eop_in_io[IO_NUMBER];
+	sc_signal<bool >		sig_bop_in_io[IO_NUMBER];
 	
 	sc_signal<bool >		sig_clock_rx_io[IO_NUMBER];
 	sc_signal<bool > 		sig_rx_io[IO_NUMBER];
 	sc_signal<regflit >		sig_data_in_io[IO_NUMBER];
 	sc_signal<bool >		sig_credit_o_io[IO_NUMBER];
 	sc_signal<bool >		sig_eop_out_io[IO_NUMBER];
+	sc_signal<bool >		sig_bop_out_io[IO_NUMBER];
 
 	//SEEK Interface (IO)
 	sc_signal<reg_seek_source >							sig_in_source_router_seek_io[IO_NUMBER];
@@ -105,12 +109,14 @@ SC_MODULE(hemps) {
 	sc_signal<regflit >		data_out[N_PE][NPORT-1];
 	sc_signal<bool >		credit_i[N_PE][NPORT-1];
 	sc_signal<bool >		eop_in[N_PE][NPORT-1];
+	sc_signal<bool >		bop_in[N_PE][NPORT-1];
 	
 	sc_signal<bool >		clock_rx[N_PE][NPORT-1];
 	sc_signal<bool > 		rx[N_PE][NPORT-1];
 	sc_signal<regflit >		data_in[N_PE][NPORT-1];
 	sc_signal<bool >		credit_o[N_PE][NPORT-1];
 	sc_signal<bool >		eop_out[N_PE][NPORT-1];
+	sc_signal<bool >		bop_out[N_PE][NPORT-1];
 	
 	sc_signal<reg_seek_source >							in_source_router_seek[N_PE][NPORT_SEEK-1];
 	sc_signal<reg_seek_target >							in_target_router_seek[N_PE][NPORT_SEEK-1];
@@ -199,11 +205,13 @@ SC_MODULE(hemps) {
 				PE[j]->data_out					[i]	(data_out		[j][i]);
 				PE[j]->credit_i					[i]	(credit_i		[j][i]);
 				PE[j]->eop_out					[i]	(eop_out		[j][i]);
+				PE[j]->bop_out					[i]	(bop_out		[j][i]);
 				PE[j]->clock_rx					[i]	(clock_rx		[j][i]);
 				PE[j]->data_in					[i]	(data_in		[j][i]);
 				PE[j]->rx						[i]	(rx				[j][i]);
 				PE[j]->credit_o					[i]	(credit_o		[j][i]);
 				PE[j]->eop_in					[i]	(eop_in			[j][i]);
+				PE[j]->bop_in					[i]	(bop_in			[j][i]);
 				PE[j]->access_i					[i]	(access_i			[j][i]);
 				PE[j]->access_o					[i]	(access_o			[j][i]);
 			}
@@ -240,6 +248,8 @@ SC_MODULE(hemps) {
 				sensitive << clock_rx[j][i];
 				sensitive << eop_in[i][j];
 				sensitive << eop_out[i][j];
+				sensitive << bop_in[i][j];
+				sensitive << bop_out[i][j];
 				sensitive << data_in[j][i];
 				sensitive << rx[j][i];
 				sensitive << credit_o[j][i];
@@ -251,6 +261,7 @@ SC_MODULE(hemps) {
 			sensitive << sig_data_in_io[i];
 			sensitive << sig_credit_i_io[i];
 			sensitive << sig_eop_in_io[i];
+			sensitive << sig_bop_in_io[i];
 		}
 
 		SC_METHOD(io_interconnection);
@@ -265,6 +276,8 @@ SC_MODULE(hemps) {
 			sensitive << credit_i_io[i];
 			sensitive << sig_eop_out_io[i];
 			sensitive << eop_in_io[i];
+			sensitive << sig_bop_out_io[i];
+			sensitive << bop_in_io[i];
 			sensitive << data_in_io[i];
 			sensitive << clock_rx_io[i];
 			sensitive << rx_io[i];

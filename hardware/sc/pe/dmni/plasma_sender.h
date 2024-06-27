@@ -9,12 +9,14 @@
 //			 -------------------------
 //			|						  |<--- data_in / 16
 //			|						  |<--- eop_in
+//			|						  |<--- bop_in
 //			|		    			  |<--- rx
 //			|			DMNI		  |---> credit_out
 //			|	   		   -----------
 //			|			  |	  --------
 //			|			  |32|		  |---> data_out /16
 //			|			  |--| Sender |---> eop_out
+//			|			  |--|		  |---> bop_out
 //			|			  |--|		  |---> tx
 //			|			  |--|		  |<--- credit_in
 //			 -------------    --------
@@ -37,15 +39,18 @@ SC_MODULE(plasma_sender){
 	sc_in<bool >			rx;				 // é o TX da DMNI informando que o dado está valido
 	sc_out<bool >		 credit_o;	 // não tenho mais espaço para receber da dmni
 	sc_in<bool >			eop_in;		 // End of packet que vem da dmni
+	sc_in<bool >			bop_in;		 // Beginning of packet que vem da dmni
 
 	sc_out<regflit >	data_out;	 // data_out para a NoC /16 bits
 	sc_out <bool >		tx;				 // TX para a NoC
 	sc_in<bool >			credit_in;	// credit_in da NoC
 	sc_out<bool >		 eop_out;		// End of packet que vai para a NoC
+	sc_out<bool >		 bop_out;		// Beginning of packet que vai para a NoC
 	
 
 	reg32 buffer_in[BUFFER_TAM_SENDER];
 	sc_signal<bool >	eop_buffer[BUFFER_TAM_SENDER];
+	sc_signal<bool >	bop_buffer[BUFFER_TAM_SENDER];
 
 
 	enum fila_out{S_INIT, SEND_HIGH, SEND_LOW, SEND_LAST_FLIT};

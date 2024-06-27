@@ -28,11 +28,13 @@ port(
 	credit_o                : out std_logic; 
 	rx                      : in  std_logic; 
 	eop_in					: in  std_logic; 
+	bop_in					: in  std_logic; 
 	--Output 
 	tx                      : out std_logic; 
 	data_out                : out regflit; 
 	credit_i                : in std_logic; 
 	eop_out					: out std_logic; 
+	bop_out					: out std_logic; 
 	-- Access 
 	access_i                : in std_logic; 
 	access_o                : out std_logic; 
@@ -43,11 +45,13 @@ port(
 	credit_o_router         : in std_logic; 
 	rx_router               : out std_logic; 
 	eop_in_router			: out std_logic; 
+	bop_in_router			: out std_logic; 
 	-- Input from Router 
 	data_out_router			: in  regflit; 
 	credit_i_router			: out std_logic; 
 	tx_router				: in  std_logic; 
 	eop_out_router			: in  std_logic; 
+	bop_out_router			: in  std_logic; 
  
 	change_routing			: out std_logic;  
  
@@ -87,6 +91,7 @@ begin
 	tx 				<= tx_router AND mask; 
 	credit_i_router <= credit_i OR (NOT mask);
 	eop_out			<=	eop_out_router AND mask; 
+	bop_out			<=	bop_out_router AND mask; 
 
 
 	-- Wrapper filters (from local) 
@@ -102,10 +107,12 @@ begin
 	data_in_router		<=	data_in; 
 	credit_o			<=	credit_o_router;
 	eop_in_router		<=	eop_in; 
+	bop_in_router		<=	bop_in; 
 	rx_router			<=	rx;
 
 	-- rx_router			<=	rx and pass;
 	-- eop_in_router		<=	eop_in and pass;
+	-- bop_in_router		<=	bop_in and pass;
 
 	-- constant KEY_AUTH       : integer := 0;
 	-- constant COUNT_AUTH     : integer := 1;

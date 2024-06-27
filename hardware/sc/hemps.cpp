@@ -216,12 +216,14 @@ int i;
 		data_out_io[i].write(sig_data_out_io[i].read());
 		sig_credit_i_io[i].write(credit_i_io[i].read());
 		sig_eop_in_io[i].write(eop_in_io[i].read());
+		sig_bop_in_io[i].write(bop_in_io[i].read());
 	
 		sig_data_in_io[i].write(data_in_io[i].read());
 		sig_clock_rx_io[i].write(clock_rx_io[i].read());
 		sig_rx_io[i].write(rx_io[i].read());
 		credit_o_io[i].write(sig_credit_o_io[i].read());
 		eop_out_io[i].write(sig_eop_out_io[i].read());
+		bop_out_io[i].write(sig_bop_out_io[i].read());
 
 		out_req_router_seek_io[i].write(sig_out_req_router_seek_io[i].read());
 		out_ack_router_seek_io[i].write(sig_out_ack_router_seek_io[i].read());
@@ -255,12 +257,14 @@ void hemps::ni_interconnection(){
 		data_out_io[i].write(sig_data_out_io[i].read());
 		sig_credit_i_io[i].write(credit_i_io[i].read());
 		sig_eop_in_io[i].write(eop_in_io[i].read());
+		sig_bop_in_io[i].write(bop_in_io[i].read());
 	
 		sig_data_in_io[i].write(data_in_io[i].read());
 		sig_clock_rx_io[i].write(clock_rx_io[i].read());
 		sig_rx_io[i].write(rx_io[i].read());
 		credit_o_io[i].write(sig_credit_o_io[i].read());
 		eop_out_io[i].write(sig_eop_out_io[i].read());
+		bop_out_io[i].write(sig_bop_out_io[i].read());
 
 		out_req_router_seek_io[i].write(sig_out_req_router_seek_io[i].read());
 		out_ack_router_seek_io[i].write(sig_out_ack_router_seek_io[i].read());
@@ -304,12 +308,15 @@ void hemps::pes_interconnection(){
 				rx      				[i][EAST1].write(0);
 				eop_in     				[i][EAST0].write(sig_eop_in_io[io_count].read());
 				eop_in  				[i][EAST1].write(0);
+				bop_in     				[i][EAST0].write(sig_bop_in_io[io_count].read());
+				bop_in  				[i][EAST1].write(0);
 
 				sig_clock_tx_io[io_count].write(clock_tx[i][EAST0].read());
 				sig_tx_io[io_count].write(tx[i][EAST0].read());
 				sig_data_out_io[io_count].write(data_out[i][EAST0].read());
 				sig_credit_o_io[io_count].write(credit_o[i][EAST0].read());
 				sig_eop_out_io[io_count].write(eop_out[i][EAST0].read());
+				sig_bop_out_io[io_count].write(bop_out[i][EAST0].read());
 
 				// cout << "grounding EAST in seek: " << i << endl;
 				in_source_router_seek	[i][EAST].write(sig_in_source_router_seek_io[io_count].read());
@@ -347,6 +354,8 @@ void hemps::pes_interconnection(){
 				rx      				[i][EAST1].write(0);
 				eop_in     				[i][EAST0].write(0);
 				eop_in  				[i][EAST1].write(0);
+				bop_in     				[i][EAST0].write(0);
+				bop_in  				[i][EAST1].write(0);
 				// cout << "grounding EAST in seek: " << i << endl;
 				in_source_router_seek	[i][EAST].write(0);
 				in_target_router_seek	[i][EAST].write(0);
@@ -377,6 +386,8 @@ void hemps::pes_interconnection(){
 				rx      [i][EAST1].write(tx      [i+1][WEST1].read());
 				eop_in  [i][EAST0].write(eop_out [i+1][WEST0].read());
 				eop_in  [i][EAST1].write(eop_out [i+1][WEST1].read());
+				bop_in  [i][EAST0].write(bop_out [i+1][WEST0].read());
+				bop_in  [i][EAST1].write(bop_out [i+1][WEST1].read());
 				in_source_router_seek	[i][EAST].write(out_source_router_seek	[i+1][WEST].read());
 				in_target_router_seek	[i][EAST].write(out_target_router_seek	[i+1][WEST].read());
 				in_payload_router_seek	[i][EAST].write(out_payload_router_seek		[i+1][WEST].read());
@@ -410,12 +421,15 @@ void hemps::pes_interconnection(){
 				rx      				[i][WEST1].write(0);
 				eop_in     				[i][WEST0].write(sig_eop_in_io[io_count].read());
 				eop_in  				[i][WEST1].write(0);
+				bop_in     				[i][WEST0].write(sig_bop_in_io[io_count].read());
+				bop_in  				[i][WEST1].write(0);
 
 				sig_clock_tx_io[io_count].write(clock_tx[i][WEST0].read());
 				sig_tx_io[io_count].write(tx[i][WEST0].read());
 				sig_data_out_io[io_count].write(data_out[i][WEST0].read());
 				sig_credit_o_io[io_count].write(credit_o[i][WEST0].read());
 				sig_eop_out_io[io_count].write(eop_out[i][WEST0].read());
+				sig_bop_out_io[io_count].write(bop_out[i][WEST0].read());
 				// cout << "grounding WEST in seek: " << i << endl;
 				in_source_router_seek	[i][WEST].write(sig_in_source_router_seek_io[io_count].read());
 				in_target_router_seek	[i][WEST].write(sig_in_target_router_seek_io[io_count].read());
@@ -452,6 +466,8 @@ void hemps::pes_interconnection(){
 				rx      				[i][WEST1].write(0);
 				eop_in     				[i][WEST0].write(0);
 				eop_in  				[i][WEST1].write(0);
+				bop_in     				[i][WEST0].write(0);
+				bop_in  				[i][WEST1].write(0);
 				// cout << "grounding WEST in seek: " << i << endl;
 				in_source_router_seek	[i][WEST].write(0);
 				in_target_router_seek	[i][WEST].write(0);
@@ -482,6 +498,8 @@ void hemps::pes_interconnection(){
 				rx      [i][WEST1].write(tx      [i-1][EAST1].read());
 				eop_in  [i][WEST0].write(eop_out [i-1][EAST0].read());
 				eop_in  [i][WEST1].write(eop_out [i-1][EAST1].read());
+				bop_in  [i][WEST0].write(bop_out [i-1][EAST0].read());
+				bop_in  [i][WEST1].write(bop_out [i-1][EAST1].read());
 				in_source_router_seek	[i][WEST].write(out_source_router_seek	[i-1][EAST]);
 				in_target_router_seek	[i][WEST].write(out_target_router_seek	[i-1][EAST]);
 				in_payload_router_seek	[i][WEST].write(out_payload_router_seek	[i-1][EAST]);
@@ -515,12 +533,15 @@ void hemps::pes_interconnection(){
 				rx      				[i][NORTH1].write(0);
 				eop_in     				[i][NORTH0].write(sig_eop_in_io[io_count].read());
 				eop_in  				[i][NORTH1].write(0);
+				bop_in     				[i][NORTH0].write(sig_bop_in_io[io_count].read());
+				bop_in  				[i][NORTH1].write(0);
 
 				sig_clock_tx_io[io_count].write(clock_tx[i][NORTH0].read());
 				sig_tx_io[io_count].write(tx[i][NORTH0].read());
 				sig_data_out_io[io_count].write(data_out[i][NORTH0].read());
 				sig_credit_o_io[io_count].write(credit_o[i][NORTH0].read());
 				sig_eop_out_io[io_count].write(eop_out[i][NORTH0].read());
+				sig_bop_out_io[io_count].write(bop_out[i][NORTH0].read());
 				// cout << "grounding NORTH in seek: " << i << endl;
 				in_source_router_seek	[i][NORTH].write(sig_in_source_router_seek_io[io_count].read());
 				in_target_router_seek	[i][NORTH].write(sig_in_target_router_seek_io[io_count].read());
@@ -557,6 +578,8 @@ void hemps::pes_interconnection(){
 				rx      [i][NORTH1].write(0);
 	 			eop_in  [i][NORTH0].write(0);
 	 			eop_in  [i][NORTH1].write(0);
+				bop_in  [i][NORTH0].write(0);
+	 			bop_in  [i][NORTH1].write(0);
 				in_source_router_seek	[i][NORTH].write(0);
 				in_target_router_seek	[i][NORTH].write(0);
 				in_payload_router_seek	[i][NORTH].write(0);
@@ -586,6 +609,8 @@ void hemps::pes_interconnection(){
 				rx      [i][NORTH1].write(tx      [i+N_PE_X][SOUTH1].read());
 				eop_in  [i][NORTH0].write(eop_out [i+N_PE_X][SOUTH0].read());
 				eop_in  [i][NORTH1].write(eop_out [i+N_PE_X][SOUTH1].read());
+				bop_in  [i][NORTH0].write(bop_out [i+N_PE_X][SOUTH0].read());
+				bop_in  [i][NORTH1].write(bop_out [i+N_PE_X][SOUTH1].read());
 				in_source_router_seek	[i][NORTH].write(out_source_router_seek		[i+N_PE_X][SOUTH].read());
 				in_target_router_seek	[i][NORTH].write(out_target_router_seek		[i+N_PE_X][SOUTH].read());
 				in_payload_router_seek	[i][NORTH].write(out_payload_router_seek	[i+N_PE_X][SOUTH].read());
@@ -619,11 +644,14 @@ void hemps::pes_interconnection(){
 				rx      				[i][SOUTH1].write(0);
 				eop_in     				[i][SOUTH0].write(sig_eop_in_io[io_count].read());
 				eop_in  				[i][SOUTH1].write(0);
+				bop_in     				[i][SOUTH0].write(sig_bop_in_io[io_count].read());
+				bop_in  				[i][SOUTH1].write(0);
 				sig_clock_tx_io[io_count].write(clock_tx[i][SOUTH0].read());
 				sig_tx_io[io_count].write(tx[i][SOUTH0].read());
 				sig_data_out_io[io_count].write(data_out[i][SOUTH0].read());
 				sig_credit_o_io[io_count].write(credit_o[i][SOUTH0].read());
 				sig_eop_out_io[io_count].write(eop_out[i][SOUTH0].read());
+				sig_bop_out_io[io_count].write(bop_out[i][SOUTH0].read());
 				// cout << "grounding SOUTH in seek: " << i << endl;
 				in_source_router_seek	[i][SOUTH].write(sig_in_source_router_seek_io[io_count].read());
 				in_target_router_seek	[i][SOUTH].write(sig_in_target_router_seek_io[io_count].read());
@@ -660,6 +688,8 @@ void hemps::pes_interconnection(){
 				rx      [i][SOUTH1].write(0);
 	 			eop_in  [i][SOUTH0].write(0);
 	 			eop_in  [i][SOUTH1].write(0);
+				bop_in  [i][SOUTH0].write(0);
+	 			bop_in  [i][SOUTH1].write(0);
 				in_source_router_seek	[i][SOUTH].write(0);
 				in_target_router_seek	[i][SOUTH].write(0);
 				in_payload_router_seek		[i][SOUTH].write(0);
@@ -689,6 +719,8 @@ void hemps::pes_interconnection(){
 				rx      [i][SOUTH1].write(tx      [i-N_PE_X][NORTH1].read());
 				eop_in  [i][SOUTH0].write(eop_out [i-N_PE_X][NORTH0].read());
 				eop_in  [i][SOUTH1].write(eop_out [i-N_PE_X][NORTH1].read());
+				bop_in  [i][SOUTH0].write(bop_out [i-N_PE_X][NORTH0].read());
+				bop_in  [i][SOUTH1].write(bop_out [i-N_PE_X][NORTH1].read());
 				in_source_router_seek	[i][SOUTH].write(out_source_router_seek		[i-N_PE_X][NORTH].read());
 				in_target_router_seek	[i][SOUTH].write(out_target_router_seek		[i-N_PE_X][NORTH].read());
 				in_payload_router_seek	[i][SOUTH].write(out_payload_router_seek		[i-N_PE_X][NORTH].read());

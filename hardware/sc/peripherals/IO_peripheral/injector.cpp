@@ -323,6 +323,7 @@ void injector::datanoc_out_proc_FSM(){
 
 			case S_SEND_DESCRIPTOR:
 					data_out_primary.write(buffer_out_flit[0]);
+					bop_out_primary.write(1);
 					if(credit_i_primary.read() == true){
 						tasks_sent = -1;
 						EA_out_datanoc.write(S_SEND_HEADER);
@@ -333,6 +334,7 @@ void injector::datanoc_out_proc_FSM(){
 
 			case S_SEND_TASK:
 					data_out_primary.write(buffer_out_flit[0]);
+					bop_out_primary.write(1);
 					if(credit_i_primary.read() == true){
 						EA_out_datanoc.write(S_SEND_HEADER);
 						flit_out_counter = flit_out_counter + 1; 
@@ -341,6 +343,7 @@ void injector::datanoc_out_proc_FSM(){
 			break;
 			
 			case S_SEND_HEADER:
+					bop_out_primary.write(0);
 					if(credit_i_primary.read() == true){
 						data_out_primary.write(buffer_out_flit[flit_out_counter]);
 						flit_out_counter = flit_out_counter + 1; 

@@ -18,12 +18,14 @@ class SNIP_Foreign : public sc_foreign_module
         sc_out<bool>                hermes_primary_tx_clk;
         sc_out<regflit>             hermes_primary_data_out;
         sc_out<bool>                hermes_primary_eop_out;
+        sc_out<bool>                hermes_primary_bop_out;
         sc_in<bool>                 hermes_primary_credit_in;
 
         sc_in<bool>                 hermes_primary_rx;
         sc_in<bool>                 hermes_primary_rx_clk;
         sc_in<regflit>              hermes_primary_data_in;
         sc_in<bool>                 hermes_primary_eop_in;
+        sc_in<bool>                 hermes_primary_bop_in;
         sc_out<bool>                hermes_primary_credit_out;
 
         /* BrNoC Interface */
@@ -54,12 +56,14 @@ class SNIP_Foreign : public sc_foreign_module
             hermes_primary_tx_clk("hermes_primary_tx_clk"),
             hermes_primary_data_out("hermes_primary_data_out"),
             hermes_primary_eop_out("hermes_primary_eop_out"),
+            hermes_primary_bop_out("hermes_primary_bop_out"),
             hermes_primary_credit_in("hermes_primary_credit_in"),
 
             hermes_primary_rx("hermes_primary_rx"),
             hermes_primary_rx_clk("hermes_primary_rx_clk"),
             hermes_primary_data_in("hermes_primary_data_in"),
             hermes_primary_eop_in("hermes_primary_eop_in"),
+            hermes_primary_bop_in("hermes_primary_bop_in"),
             hermes_primary_credit_out("hermes_primary_credit_out"),
 
             brnoc_primary_source_in("brnoc_primary_source_in"),

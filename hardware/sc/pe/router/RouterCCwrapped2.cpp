@@ -50,6 +50,17 @@ void RouterCCwrapped::upd_eop_in(){
 	 eop_in_internal.write(l_eop_in_internal);
 }
 
+void RouterCCwrapped::upd_bop_in(){
+	int i;
+	sc_uint<NPORT > l_bop_in_internal;
+
+		for(i=0;i<NPORT;i++){
+				//modified to add faults
+				l_bop_in_internal[i] = bop_in[i].read();// & ~access_i[i].read();
+	 }
+	 bop_in_internal.write(l_bop_in_internal);
+}
+
 void RouterCCwrapped::upd_rx(){
 	int i;
 	sc_uint<NPORT > l_rx_internal;
@@ -187,6 +198,17 @@ void RouterCCwrapped::upd_eop_out(){
 	}
 }
 
+void RouterCCwrapped::upd_bop_out(){
+	int i;
+	sc_uint<NPORT > l_bop_out_internal;
+
+	l_bop_out_internal = bop_out_internal.read();
+
+	for(i=0;i<NPORT;i++){
+		//modified to add faults
+		bop_out[i].write(l_bop_out_internal[i]);// & ~access_o[i].read());
+	}
+}
 
 void RouterCCwrapped::traffic_monitor(){
 	int i,aux2;

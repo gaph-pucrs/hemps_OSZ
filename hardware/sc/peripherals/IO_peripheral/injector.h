@@ -75,12 +75,14 @@ SC_MODULE(injector){
   sc_out<regflit >  data_out_primary;
   sc_in<bool >    credit_i_primary;
   sc_in<bool >    eop_in_primary;
+  sc_in<bool >    bop_in_primary;
 
   sc_in<bool >    clock_rx_primary;
   sc_in<bool >    rx_primary;
   sc_in<regflit >   data_in_primary;
   sc_out<bool >   credit_o_primary;
   sc_out<bool >   eop_out_primary;
+  sc_out<bool >   bop_out_primary;
 
    // brnoc interface
 
@@ -107,11 +109,13 @@ SC_MODULE(injector){
   sc_out<regflit >  data_out_secondary;
   sc_in<bool >    credit_i_secondary;
   sc_in<bool >    eop_in_secondary;
+  sc_in<bool >    bop_in_secondary;
   sc_in<bool >    clock_rx_secondary;
   sc_in<bool >    rx_secondary;
   sc_in<regflit >   data_in_secondary;
   sc_out<bool >   credit_o_secondary;
   sc_out<bool >   eop_out_secondary;
+  sc_out<bool >   bop_out_secondary;
 
   
 

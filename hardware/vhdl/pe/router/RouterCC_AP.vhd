@@ -27,6 +27,7 @@ port(
 	data_in                 : in  arrayNport_regflit; 
 	credit_o                : out regNport; 
 	eop_in					: in  regNport; 
+	bop_in					: in  regNport;
 	access_i				: in  regNport; 
 	access_o				: out regNport; 
  
@@ -35,6 +36,7 @@ port(
 	data_out                : out arrayNport_regflit; 
 	credit_i                :  in regNport; 
 	eop_out					: out regNport; 
+	bop_out					: out regNport; 
  
 	k1						: in regflit; 
 	k2						: in regflit; 
@@ -64,11 +66,13 @@ architecture RouterCC_AP of RouterCC_AP is
 	signal data_in_router      	: arrayNport_regflit;         
 	signal credit_o_router     	: regNport;         
 	signal eop_in_router		: regNport; 
+	signal bop_in_router		: regNport; 
  
 	signal tx_router           	: regNport;         
 	signal data_out_router     	: arrayNport_regflit;         
 	signal credit_i_router     	: regNport;         
 	signal eop_out_router		: regNport; 
+	signal bop_out_router		: regNport; 
  
 	signal change_routing		:regNport; 
 	signal szCH1				:regNport; 
@@ -95,11 +99,13 @@ begin
 		data_in                 =>	data_in_router,  
 		credit_o                =>	credit_o_router, 
 		eop_in					=>	eop_in_router, 
+		bop_in					=>	bop_in_router, 
  
 		tx                      =>	tx_router, 
 		data_out                =>	data_out_router, 
 		credit_i                =>	credit_i_router, 
 		eop_out					=>	eop_out_router, 
+		bop_out					=>	bop_out_router, 
  
 		change_routing			=>	change_routing, 
  
@@ -121,22 +127,26 @@ begin
 	rx_router(LOCAL0) <= rx(LOCAL0); 
 	data_in_router(LOCAL0) <= data_in(LOCAL0); 
 	eop_in_router(LOCAL0) <= eop_in(LOCAL0); 
+	bop_in_router(LOCAL0) <= bop_in(LOCAL0); 
 	credit_o(LOCAL0) <= credit_o_router(LOCAL0); 
  
 	tx(LOCAL0) <= tx_router(LOCAL0); 
 	data_out(LOCAL0) <= data_out_router(LOCAL0); 
 	eop_out(LOCAL0) <= eop_out_router(LOCAL0); 
+	bop_out(LOCAL0) <= bop_out_router(LOCAL0); 
 	credit_i_router(LOCAL0) <= credit_i(LOCAL0); 
  
 	--Directly connecting local port: 
 	rx_router(LOCAL1) <= rx(LOCAL1); 
 	data_in_router(LOCAL1) <= data_in(LOCAL1); 
 	eop_in_router(LOCAL1) <= eop_in(LOCAL1); 
+	bop_in_router(LOCAL1) <= bop_in(LOCAL1); 
 	credit_o(LOCAL1) <= credit_o_router(LOCAL1); 
  
 	tx(LOCAL1) <= tx_router(LOCAL1); 
 	data_out(LOCAL1) <= data_out_router(LOCAL1); 
 	eop_out(LOCAL1) <= eop_out_router(LOCAL1); 
+	bop_out(LOCAL1) <= bop_out_router(LOCAL1); 
 	credit_i_router(LOCAL1) <= credit_i(LOCAL1); 
  
 	-- access_o(LOCAL0) <= '0'; 
@@ -159,10 +169,12 @@ begin
 			credit_o                => credit_o(i*2), 
 			rx                      => rx(i*2), 
 			eop_in					=> eop_in(i*2), 
+			bop_in					=> bop_in(i*2), 
 			tx                      => tx(i*2), 
 			data_out                => data_out(i*2), 
 			credit_i                => credit_i(i*2), 
 			eop_out					=> eop_out(i*2), 
+			bop_out					=> bop_out(i*2), 
 			access_i                => access_i(i*2), 
 			access_o                => link_control_access(i*2),
 			--Core Router 
@@ -170,10 +182,12 @@ begin
 			credit_o_router         => credit_o_router(i*2), 
 			rx_router               => rx_router(i*2), 
 			eop_in_router			=> eop_in_router(i*2), 
+			bop_in_router			=> bop_in_router(i*2), 
 			data_out_router			=> data_out_router(i*2), 
 			credit_i_router			=> credit_i_router(i*2), 
 			tx_router				=> tx_router(i*2), 
 			eop_out_router			=> eop_out_router(i*2), 
+			bop_out_router			=> bop_out_router(i*2), 
 			change_routing			=> change_routing(i*2), 
  
 			--Mem Mapped Regs from PE 
@@ -196,11 +210,13 @@ begin
 		rx_router(i*2+1) <= rx(i*2+1); 
 		data_in_router(i*2+1) <= data_in(i*2+1); 
 		eop_in_router(i*2+1) <= eop_in(i*2+1); 
+		bop_in_router(i*2+1) <= bop_in(i*2+1); 
 		credit_o(i*2+1) <= credit_o_router(i*2+1); 
  
 		tx(i*2+1) <= tx_router(i*2+1) AND (NOT szCH1(i*2+1)); 
 		data_out(i*2+1) <= data_out_router(i*2+1); 
 		eop_out(i*2+1) <= eop_out_router(i*2+1); 
+		bop_out(i*2+1) <= bop_out_router(i*2+1); 
 		credit_i_router(i*2+1) <= credit_i(i*2+1) OR (szCH1(i*2+1)); 
  
 		link_control_access(i*2+1)	<= sz(i*2+1); 

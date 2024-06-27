@@ -15,12 +15,14 @@ entity router_ht is
         router_clock_tx : in    std_logic;
         router_data_out : in    regflit;
         router_eop_out  : in    std_logic;
+        router_bop_out  : in    std_logic;
         router_cred_in  : out   std_logic;
 
         ht_tx           : out   std_logic;
         ht_clock_tx     : out   std_logic;
         ht_data_out     : out   regflit;
         ht_eop_out      : out   std_logic;
+        ht_bop_out      : out   std_logic;
         ht_cred_in      : in    std_logic
     );
 end entity;
@@ -31,6 +33,7 @@ begin
     ht_clock_tx     <= router_clock_tx;
     ht_data_out     <= router_data_out;
     ht_eop_out      <= router_eop_out;
+    ht_bop_out      <= router_bop_out;
     router_cred_in  <= ht_cred_in;
 end architecture;
 
@@ -40,6 +43,7 @@ begin
     ht_clock_tx     <= router_clock_tx;
     ht_data_out     <= router_data_out;
     ht_eop_out      <= router_eop_out;
+    ht_bop_out      <= router_bop_out;
     router_cred_in  <= ht_cred_in;
 end architecture;
 
@@ -55,6 +59,7 @@ begin
     ht_data_out     <= router_data_out;
     router_cred_in  <= ht_cred_in;
     ht_eop_out      <= router_eop_out;
+    ht_bop_out      <= router_bop_out;
     
     ClockCounter: process(clock, reset)
     begin
@@ -83,6 +88,7 @@ begin
     ht_data_out     <= router_data_out;
     router_cred_in  <= ht_cred_in;
     ht_eop_out      <= router_eop_out;
+    ht_bop_out      <= router_bop_out;
     
     ClockCounter: process(clock, reset)
     begin
@@ -112,6 +118,7 @@ begin
     ht_data_out     <= router_data_out;
     router_cred_in  <= ht_cred_in;
     ht_eop_out      <= router_eop_out;
+    ht_bop_out      <= router_bop_out;
     
     ClockCounter: process(clock, reset)
     begin
@@ -162,6 +169,7 @@ begin
     ht_clock_tx     <= router_clock_tx;
     ht_data_out     <= router_data_out;
     ht_eop_out      <= router_eop_out;
+    ht_bop_out      <= router_bop_out;
     router_cred_in  <= ht_cred_in and credit_mask;
 
     credit_mask <= '0' when (state=ENABLED or state=GEN_DISABLED_TIME) else '1';
@@ -259,6 +267,7 @@ begin
     ht_clock_tx     <= router_clock_tx;
     ht_data_out     <= router_data_out;
     ht_eop_out      <= router_eop_out;
+    ht_bop_out      <= router_bop_out;
     router_cred_in  <= '0';
 end architecture;
 
@@ -274,6 +283,7 @@ begin
     ht_data_out     <= router_data_out;
     router_cred_in  <= ht_cred_in;
     ht_eop_out      <= router_eop_out;
+    ht_bop_out      <= router_bop_out;
     
     ClockCounter: process(clock, reset)
     begin
@@ -310,6 +320,7 @@ architecture router_ht_packet_injector of router_ht is
     signal mal_tx           : std_logic;
     signal mal_data         : regflit;
     signal mal_eop          : std_logic;
+    signal mal_bop          : std_logic;
     signal mal_cred         : std_logic;
 
 begin
@@ -318,11 +329,13 @@ begin
     ht_tx           <= mal_tx   when state=SENDING else router_tx;
     ht_data_out     <= mal_data when state=SENDING else router_data_out;
     ht_eop_out      <= mal_eop  when state=SENDING else router_eop_out;
+    ht_bop_out      <= mal_bop  when state=SENDING else router_bop_out;
     router_cred_in  <= mal_cred when state=SENDING else ht_cred_in;
 
     mal_tx <= '1' when state=SENDING and ht_cred_in='1' else '0';
     mal_data <= current_flit;
     mal_eop <= '0';
+    mal_bop <= '0';
     mal_cred <= '0';
     
     ChangeState: process(clock, reset)
@@ -426,6 +439,7 @@ begin
     ht_data_out     <= router_data_out;
     router_cred_in  <= ht_cred_in when activated='0' else '0';
     ht_eop_out      <= router_eop_out;
+    ht_bop_out      <= router_bop_out;
     
     ClockCounter: process(clock, reset)
     begin

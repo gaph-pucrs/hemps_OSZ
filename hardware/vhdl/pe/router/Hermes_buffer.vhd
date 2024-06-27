@@ -56,12 +56,14 @@ port(
 		reset       	: in  std_logic;      
 		rx          	: in  std_logic;
 		eop_in      	: in  std_logic;
+		bop_in      	: in  std_logic;
 		data_in     	: in  regflit;
 		credit_out  	: out std_logic;
 		req_routing 	: out std_logic;
 		ack_routing 	: in  std_logic; 
 		tx          	: out std_logic;
 		eop_out     	: out std_logic;
+		bop_out     	: out std_logic;
 		data_out    	: out regflit;
 		--data_header 	: out regflit_32;
 		header_routing 	: out regflit_32;
@@ -81,6 +83,7 @@ type state is (S0, SA, S1, S2, S3);
 signal EA : state;
 
 signal eop: std_logic_vector(TAM_BUFFER-1 downto 0);
+signal bop: std_logic_vector(TAM_BUFFER-1 downto 0);
 signal first,last: pointer;
 signal available_slot, one_flit_in_buffer, tx_sig: std_logic;
 signal data_read: regflit;
@@ -154,6 +157,7 @@ begin
 		if reset='1' then			 	
 			last 			<= (others=>'0');
 			eop 			<= (others=>'0');
+			bop 			<= (others=>'0');
 			available_slot 	<= '1';
 			first_var 		:= (others=>'0');
 			last_var 		:= (others=>'0');
@@ -169,6 +173,7 @@ begin
 					flit_buff(CONV_INTEGER(last)) <= data_in;
 				end if;
 				eop(CONV_INTEGER(last)) <= eop_in;
+				bop(CONV_INTEGER(last)) <= bop_in;
 
 				-- if not(flit_counter = "10" and data_in = x"7FFF") then
 				if not(flit_discard) then
@@ -233,6 +238,9 @@ begin
 	
 	-- Indicates if the current flit is the last packet flit ('1').
 	eop_out <= eop(CONV_INTEGER(first));
+
+	-- Indicates if the current flit is the first packet flit ('1').
+	bop_out <= bop(CONV_INTEGER(first));
 	
 	--Indicates if exist at least one free slot in buffer ('1').
 	credit_out <= available_slot;	

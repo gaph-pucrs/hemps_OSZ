@@ -30,10 +30,12 @@ entity Hermes_crossbar is
 		data_av		: in regNport;
 		data_ack	: out regNport;
 		eop_buffer	: in regNport;
+		bop_buffer	: in regNport;
 		
 		data_out	: out arrayNport_regflit;
 		tx			: out regNport;
 		eop_out		: out regNport;
+		bop_out		: out regNport;
 		credit_i	: in regNport
 	);
 end Hermes_crossbar;
@@ -443,6 +445,108 @@ begin
 						eop_buffer(NORTH0) when table(NORTH0)(LOCAL1) = '1'and credit(NORTH0) = '1'  else 
 						eop_buffer(NORTH1) when table(NORTH1)(LOCAL1) = '1'and credit(NORTH1) = '1'  else
 						eop_buffer(LOCAL1) when table(LOCAL1)(LOCAL1) = '1'and credit(LOCAL1) = '1'  else
+						'0'; 
+
+--bop_out
+	bop_out(EAST0) <=	bop_buffer(WEST0) when table(WEST0)(EAST0) = '1'  and credit(WEST0) = '1' else
+						bop_buffer(WEST1) when table(WEST1)(EAST0) = '1'  and credit(WEST1) = '1' else 	
+						bop_buffer(NORTH0) when table(NORTH0)(EAST0) = '1' and credit(NORTH0) = '1' else 
+						bop_buffer(NORTH1) when table(NORTH1)(EAST0) = '1' and credit(NORTH1) = '1' else
+						bop_buffer(SOUTH0) when table(SOUTH0)(EAST0) = '1' and credit(SOUTH0) = '1' else 
+						bop_buffer(SOUTH1) when table(SOUTH1)(EAST0) = '1' and credit(SOUTH1) = '1' else
+						bop_buffer(LOCAL0) when table(LOCAL0)(EAST0) = '1' and credit(LOCAL0) = '1' else
+						bop_buffer(LOCAL1) when table(LOCAL1)(EAST0) = '1' and credit(LOCAL1) = '1' else 
+						'0';
+					
+	bop_out(EAST1) <=	bop_buffer(WEST0) when table(WEST0)(EAST1) = '1'  and credit(WEST0) = '1' else
+						bop_buffer(WEST1) when table(WEST1)(EAST1) = '1'  and credit(WEST1) = '1' else 	
+						bop_buffer(NORTH0) when table(NORTH0)(EAST1) = '1' and credit(NORTH0) = '1' else 
+						bop_buffer(NORTH1) when table(NORTH1)(EAST1) = '1' and credit(NORTH1) = '1' else
+						bop_buffer(SOUTH0) when table(SOUTH0)(EAST1) = '1' and credit(SOUTH0) = '1' else 
+						bop_buffer(SOUTH1) when table(SOUTH1)(EAST1) = '1' and credit(SOUTH1) = '1' else
+						bop_buffer(LOCAL0) when table(LOCAL0)(EAST1) = '1' and credit(LOCAL0) = '1' else 
+						bop_buffer(LOCAL1) when table(LOCAL1)(EAST1) = '1' and credit(LOCAL1) = '1' else 
+						'0';
+			
+	bop_out(WEST0) <= 	bop_buffer(EAST0) when table(EAST0)(WEST0) = '1' and credit(EAST0) = '1'  else
+						bop_buffer(EAST1) when table(EAST1)(WEST0) = '1' and credit(EAST1) = '1'  else	 
+						bop_buffer(SOUTH0) when table(SOUTH0)(WEST0) = '1' and credit(SOUTH0) = '1' else
+						bop_buffer(SOUTH1) when table(SOUTH1)(WEST0) = '1' and credit(SOUTH1) = '1' else
+						bop_buffer(NORTH0) when table(NORTH0)(WEST0) = '1' and credit(NORTH0) = '1' else	
+						bop_buffer(NORTH1) when table(NORTH1)(WEST0) = '1' and credit(NORTH1) = '1' else
+						bop_buffer(LOCAL0) when table(LOCAL0)(WEST0) = '1' and credit(LOCAL0) = '1' else
+						bop_buffer(LOCAL1) when table(LOCAL1)(WEST0) = '1' and credit(LOCAL1) = '1' else 
+						'0';
+					
+	bop_out(WEST1) <= 	bop_buffer(EAST0) when table(EAST0)(WEST1) = '1' and credit(EAST0) = '1'  else
+						bop_buffer(EAST1) when table(EAST1)(WEST1) = '1' and credit(EAST1) = '1'  else	 
+						bop_buffer(SOUTH0) when table(SOUTH0)(WEST1) = '1' and credit(SOUTH0) = '1' else
+						bop_buffer(SOUTH1) when table(SOUTH1)(WEST1) = '1' and credit(SOUTH1) = '1' else
+						bop_buffer(NORTH0) when table(NORTH0)(WEST1) = '1' and credit(NORTH0) = '1' else	
+						bop_buffer(NORTH1) when table(NORTH1)(WEST1) = '1' and credit(NORTH1) = '1' else
+						bop_buffer(LOCAL0) when table(LOCAL0)(WEST1) = '1' and credit(LOCAL0) = '1' else
+						bop_buffer(LOCAL1) when table(LOCAL1)(WEST1) = '1' and credit(LOCAL1) = '1' else 
+						'0';
+							
+	bop_out(SOUTH0) <=	bop_buffer(EAST0) when table(EAST0)(SOUTH0) = '1' and credit(EAST0) = '1' else
+						bop_buffer(EAST1) when table(EAST1)(SOUTH0) = '1' and credit(EAST1) = '1' else 
+						bop_buffer(WEST0) when table(WEST0)(SOUTH0) = '1' and credit(WEST0) = '1' else  
+						bop_buffer(WEST1) when table(WEST1)(SOUTH0) = '1' and credit(WEST1) = '1' else
+						bop_buffer(NORTH0) when table(NORTH0)(SOUTH0) = '1' and credit(NORTH0) = '1' else 	
+						bop_buffer(NORTH1) when table(NORTH1)(SOUTH0) = '1' and credit(NORTH1) = '1' else
+						bop_buffer(LOCAL0) when table(LOCAL0)(SOUTH0) = '1' and credit(LOCAL0) = '1' else
+						bop_buffer(LOCAL1) when table(LOCAL1)(SOUTH0) = '1' and credit(LOCAL1) = '1' else 	
+						'0';
+					
+	bop_out(SOUTH1) <=	bop_buffer(EAST0) when table(EAST0)(SOUTH1) = '1' and credit(EAST0) = '1' else
+						bop_buffer(EAST1) when table(EAST1)(SOUTH1) = '1' and credit(EAST1) = '1' else 
+						bop_buffer(WEST0) when table(WEST0)(SOUTH1) = '1' and credit(WEST0) = '1' else  
+						bop_buffer(WEST1) when table(WEST1)(SOUTH1) = '1' and credit(WEST1) = '1' else
+						bop_buffer(NORTH0) when table(NORTH0)(SOUTH1) = '1' and credit(NORTH0) = '1' else 	
+						bop_buffer(NORTH1) when table(NORTH1)(SOUTH1) = '1' and credit(NORTH1) = '1' else
+						bop_buffer(LOCAL0) when table(LOCAL0)(SOUTH1) = '1' and credit(LOCAL0) = '1' else
+						bop_buffer(LOCAL1) when table(LOCAL1)(SOUTH1) = '1' and credit(LOCAL1) = '1' else 	
+						'0';
+		
+	bop_out(NORTH0) <=	bop_buffer(EAST0) when table(EAST0)(NORTH0) = '1' and credit(EAST0) = '1' else
+						bop_buffer(EAST1) when table(EAST1)(NORTH0) = '1' and credit(EAST1) = '1' else 
+						bop_buffer(WEST0) when table(WEST0)(NORTH0) = '1' and credit(WEST0) = '1' else  
+						bop_buffer(WEST1) when table(WEST1)(NORTH0) = '1' and credit(WEST1) = '1' else
+						bop_buffer(SOUTH0) when table(SOUTH0)(NORTH0) = '1' and credit(SOUTH0) = '1' else 	
+						bop_buffer(SOUTH1) when table(SOUTH1)(NORTH0) = '1' and credit(SOUTH1) = '1' else
+						bop_buffer(LOCAL0) when table(LOCAL0)(NORTH0) = '1' and credit(LOCAL0) = '1' else 
+						bop_buffer(LOCAL1) when table(LOCAL1)(NORTH0) = '1' and credit(LOCAL1) = '1' else 
+						'0';
+					
+	bop_out(NORTH1) <=	bop_buffer(EAST0) when table(EAST0)(NORTH1) = '1' and credit(EAST0) = '1' else
+						bop_buffer(EAST1) when table(EAST1)(NORTH1) = '1' and credit(EAST1) = '1' else 
+						bop_buffer(WEST0) when table(WEST0)(NORTH1) = '1' and credit(WEST0) = '1' else  
+						bop_buffer(WEST1) when table(WEST1)(NORTH1) = '1' and credit(WEST1) = '1' else
+						bop_buffer(SOUTH0) when table(SOUTH0)(NORTH1) = '1' and credit(SOUTH0) = '1' else 	
+						bop_buffer(SOUTH1) when table(SOUTH1)(NORTH1) = '1' and credit(SOUTH1) = '1' else
+						bop_buffer(LOCAL0) when table(LOCAL0)(NORTH1) = '1' and credit(LOCAL0) = '1' else
+						bop_buffer(LOCAL1) when table(LOCAL1)(NORTH1) = '1' and credit(LOCAL1) = '1' else 
+						'0';
+			
+	bop_out(LOCAL0) <=	bop_buffer(EAST0) when table(EAST0)(LOCAL0) = '1' and credit(EAST0) = '1' else
+						bop_buffer(EAST1) when table(EAST1)(LOCAL0) = '1' and credit(EAST1) = '1'else 	
+						bop_buffer(WEST0) when table(WEST0)(LOCAL0) = '1' and credit(WEST0) = '1' else 	
+						bop_buffer(WEST1) when table(WEST1)(LOCAL0) = '1' and credit(WEST1) = '1' else
+						bop_buffer(SOUTH0) when table(SOUTH0)(LOCAL0) = '1' and credit(SOUTH0) = '1' else 
+						bop_buffer(SOUTH1) when table(SOUTH1)(LOCAL0) = '1' and credit(SOUTH1) = '1' else
+						bop_buffer(NORTH0) when table(NORTH0)(LOCAL0) = '1'and credit(NORTH0) = '1'  else 
+						bop_buffer(NORTH1) when table(NORTH1)(LOCAL0) = '1'and credit(NORTH1) = '1'  else
+						'0';
+					
+	bop_out(LOCAL1) <=	bop_buffer(EAST0) when table(EAST0)(LOCAL1) = '1' and credit(EAST0) = '1' else
+						bop_buffer(EAST1) when table(EAST1)(LOCAL1) = '1' and credit(EAST1) = '1' else 	
+						bop_buffer(WEST0) when table(WEST0)(LOCAL1) = '1' and credit(WEST0) = '1' else 	
+						bop_buffer(WEST1) when table(WEST1)(LOCAL1) = '1' and credit(WEST1) = '1' else
+						bop_buffer(SOUTH0) when table(SOUTH0)(LOCAL1) = '1' and credit(SOUTH0) = '1' else 
+						bop_buffer(SOUTH1) when table(SOUTH1)(LOCAL1) = '1' and credit(SOUTH1) = '1' else
+						bop_buffer(NORTH0) when table(NORTH0)(LOCAL1) = '1'and credit(NORTH0) = '1'  else 
+						bop_buffer(NORTH1) when table(NORTH1)(LOCAL1) = '1'and credit(NORTH1) = '1'  else
+						bop_buffer(LOCAL1) when table(LOCAL1)(LOCAL1) = '1'and credit(LOCAL1) = '1'  else
 						'0'; 
 
 	data_ack <= credit;

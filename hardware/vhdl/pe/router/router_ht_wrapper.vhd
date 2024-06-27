@@ -19,6 +19,7 @@ entity router_ht_wrapper is
         data_in                 : in    arrayNport_regflit;
         credit_o                : out   regNport;
         eop_in                  : in    regNport;
+        bop_in                  : in    regNport;
         access_i                : in    regNport;
         access_o                : out   regNport;
 
@@ -27,6 +28,7 @@ entity router_ht_wrapper is
         data_out                : out   arrayNport_regflit;
         credit_i                : in    regNport;
         eop_out                 : out   regNport;
+        bop_out                 : out   regNport;
 
         k1                      : in    regflit;
         k2                      : in    regflit;
@@ -54,12 +56,14 @@ architecture router_ht_wrapper of router_ht_wrapper is
     signal router_clock_tx  : regNport;
     signal router_data_out  : arrayNport_regflit;
     signal router_eop_out   : regNport;
+    signal router_bop_out   : regNport;
     signal router_cred_in   : regNport;
 
     signal ht_tx            : regNport;
     signal ht_clock_tx      : regNport;
     signal ht_data_out      : arrayNport_regflit;
     signal ht_eop_out       : regNport;
+    signal ht_bop_out       : regNport;
     signal ht_cred_in       : regNport;
 
 begin
@@ -78,6 +82,7 @@ begin
         data_in     => data_in,
         credit_o    => credit_o,
         eop_in      => eop_in,
+        bop_in      => bop_in,
         access_i    => access_i,
         access_o    => access_o,
 
@@ -86,6 +91,7 @@ begin
         data_out    => router_data_out,
         credit_i    => router_cred_in,
         eop_out     => router_eop_out,
+        bop_out     => router_bop_out,
 
         k1          => k1,
         k2          => k2,
@@ -116,12 +122,14 @@ begin
                 router_clock_tx => router_clock_tx(i),
                 router_data_out => router_data_out(i),
                 router_eop_out  => router_eop_out(i),
+                router_bop_out  => router_bop_out(i),
                 router_cred_in  => router_cred_in(i),
 
                 ht_tx           => ht_tx(i),
                 ht_clock_tx     => ht_clock_tx(i),
                 ht_data_out     => ht_data_out(i),
                 ht_eop_out      => ht_eop_out(i),
+                ht_bop_out      => ht_bop_out(i),
                 ht_cred_in      => ht_cred_in(i)
             );
         end generate;
@@ -137,12 +145,14 @@ begin
                 router_clock_tx => router_clock_tx(i),
                 router_data_out => router_data_out(i),
                 router_eop_out  => router_eop_out(i),
+                router_bop_out  => router_bop_out(i),
                 router_cred_in  => router_cred_in(i),
 
                 ht_tx           => ht_tx(i),
                 ht_clock_tx     => ht_clock_tx(i),
                 ht_data_out     => ht_data_out(i),
                 ht_eop_out      => ht_eop_out(i),
+                ht_bop_out      => ht_bop_out(i),
                 ht_cred_in      => ht_cred_in(i)
             );
         end generate;
@@ -158,12 +168,14 @@ begin
                 router_clock_tx => router_clock_tx(i),
                 router_data_out => router_data_out(i),
                 router_eop_out  => router_eop_out(i),
+                router_bop_out  => router_bop_out(i),
                 router_cred_in  => router_cred_in(i),
 
                 ht_tx           => ht_tx(i),
                 ht_clock_tx     => ht_clock_tx(i),
                 ht_data_out     => ht_data_out(i),
                 ht_eop_out      => ht_eop_out(i),
+                ht_bop_out      => ht_bop_out(i),
                 ht_cred_in      => ht_cred_in(i)
             );
         end generate;
@@ -179,12 +191,14 @@ begin
                 router_clock_tx => router_clock_tx(i),
                 router_data_out => router_data_out(i),
                 router_eop_out  => router_eop_out(i),
+                router_bop_out  => router_bop_out(i),
                 router_cred_in  => router_cred_in(i),
 
                 ht_tx           => ht_tx(i),
                 ht_clock_tx     => ht_clock_tx(i),
                 ht_data_out     => ht_data_out(i),
                 ht_eop_out      => ht_eop_out(i),
+                ht_bop_out      => ht_bop_out(i),
                 ht_cred_in      => ht_cred_in(i)
             );
         end generate;
@@ -200,12 +214,14 @@ begin
                 router_clock_tx => router_clock_tx(i),
                 router_data_out => router_data_out(i),
                 router_eop_out  => router_eop_out(i),
+                router_bop_out  => router_bop_out(i),
                 router_cred_in  => router_cred_in(i),
 
                 ht_tx           => ht_tx(i),
                 ht_clock_tx     => ht_clock_tx(i),
                 ht_data_out     => ht_data_out(i),
                 ht_eop_out      => ht_eop_out(i),
+                ht_bop_out      => ht_bop_out(i),
                 ht_cred_in      => ht_cred_in(i)
             );
         end generate;
@@ -221,12 +237,14 @@ begin
             router_clock_tx => router_clock_tx(i),
             router_data_out => router_data_out(i),
             router_eop_out  => router_eop_out(i),
+            router_bop_out  => router_bop_out(i),
             router_cred_in  => router_cred_in(i),
 
             ht_tx           => ht_tx(i),
             ht_clock_tx     => ht_clock_tx(i),
             ht_data_out     => ht_data_out(i),
             ht_eop_out      => ht_eop_out(i),
+            ht_bop_out      => ht_bop_out(i),
             ht_cred_in      => ht_cred_in(i)
         );
         end generate;
@@ -242,12 +260,14 @@ begin
             router_clock_tx => router_clock_tx(i),
             router_data_out => router_data_out(i),
             router_eop_out  => router_eop_out(i),
+            router_bop_out  => router_bop_out(i),
             router_cred_in  => router_cred_in(i),
 
             ht_tx           => ht_tx(i),
             ht_clock_tx     => ht_clock_tx(i),
             ht_data_out     => ht_data_out(i),
             ht_eop_out      => ht_eop_out(i),
+            ht_bop_out      => ht_bop_out(i),
             ht_cred_in      => ht_cred_in(i)
         );
         end generate;
@@ -263,12 +283,14 @@ begin
                 router_clock_tx => router_clock_tx(i),
                 router_data_out => router_data_out(i),
                 router_eop_out  => router_eop_out(i),
+                router_bop_out  => router_bop_out(i),
                 router_cred_in  => router_cred_in(i),
 
                 ht_tx           => ht_tx(i),
                 ht_clock_tx     => ht_clock_tx(i),
                 ht_data_out     => ht_data_out(i),
                 ht_eop_out      => ht_eop_out(i),
+                ht_bop_out      => ht_bop_out(i),
                 ht_cred_in      => ht_cred_in(i)
             );
         end generate;
@@ -279,6 +301,7 @@ begin
     clock_tx    <= ht_clock_tx;
     data_out    <= ht_data_out;
     eop_out     <= ht_eop_out;
+    bop_out     <= ht_bop_out;
     ht_cred_in  <= credit_i;
 
 end architecture;

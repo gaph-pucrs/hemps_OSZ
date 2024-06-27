@@ -31,6 +31,7 @@ SC_MODULE(pe) {///////////////////////// INPUT AND OUTPUT //////////////////////
 	sc_out<regflit >	data_out[NPORT-1];
 	sc_in<bool >		credit_i[NPORT-1];
 	sc_out<bool >		eop_out[NPORT-1];
+	sc_out<bool >		bop_out[NPORT-1];
 	sc_in<bool > 		access_i[NPORT-1];
 
 	// -- NoC IN
@@ -38,6 +39,7 @@ SC_MODULE(pe) {///////////////////////// INPUT AND OUTPUT //////////////////////
 	sc_in<bool > 		rx[NPORT-1];
 	sc_in<regflit >		data_in[NPORT-1];
 	sc_in<bool >		eop_in[NPORT-1];
+	sc_in<bool >		bop_in[NPORT-1];
 	sc_out<bool >		credit_o[NPORT-1];
 	sc_out<bool > 		access_o[NPORT-1];
 
@@ -203,18 +205,21 @@ SC_MODULE(pe) {///////////////////////// INPUT AND OUTPUT //////////////////////
 	sc_signal< regflit > 		data_out_sender;
 	sc_signal< bool > 			credit_i_sender;	
 	sc_signal<bool>				eop_out_sender;
+	sc_signal<bool>				bop_out_sender;
 
 	// DMNI to Sender
 	sc_signal< bool > 			tx_ni;
 	sc_signal< reg32 > 			data_out_ni;
 	sc_signal< bool > 			credit_i_ni;
 	sc_signal<bool>				eop_out_ni;
+	sc_signal<bool>				bop_out_ni;
 
 	// Router do DMNI
 	sc_signal< bool > 			rx_ni;
 	sc_signal< regflit > 		data_in_ni;
 	sc_signal< bool > 			credit_o_ni;
 	sc_signal<bool>				eop_in_ni;
+	sc_signal<bool>				bop_in_ni;
 
 
 	//dmni
@@ -261,6 +266,8 @@ SC_MODULE(pe) {///////////////////////// INPUT AND OUTPUT //////////////////////
 	sc_signal<regflit>			data_out_local0;
 	sc_signal<bool>				eop_out_local0;
 	sc_signal<bool>				eop_in_local0;
+	sc_signal<bool>				bop_out_local0;
+	sc_signal<bool>				bop_in_local0;
 
 
 	unsigned char shift_mem_page;
@@ -373,6 +380,7 @@ SC_MODULE(pe) {///////////////////////// INPUT AND OUTPUT //////////////////////
 		dm_ni->clock_tx(clock_tx_ni);
 		dm_ni->tx(tx_ni);
 		dm_ni->eop_out(eop_out_ni);
+		dm_ni->bop_out(bop_out_ni);
 		dm_ni->data_out(data_out_ni);
 		dm_ni->credit_i(credit_i_ni);
 
@@ -380,6 +388,7 @@ SC_MODULE(pe) {///////////////////////// INPUT AND OUTPUT //////////////////////
 		dm_ni->clock_rx(clock_rx_ni);
 		dm_ni->rx(rx_ni);
 		dm_ni->eop_in(eop_in_ni);
+		dm_ni->bop_in(bop_in_ni);
 		dm_ni->data_in(data_in_ni);
 		dm_ni->credit_o(credit_o_ni);
 
@@ -395,12 +404,14 @@ SC_MODULE(pe) {///////////////////////// INPUT AND OUTPUT //////////////////////
 		ser->rx(tx_ni);
 		ser->credit_o(credit_i_ni);
 		ser->eop_in(eop_out_ni);
+		ser->bop_in(bop_out_ni);
 
 		// Sender -> Output
 		ser->tx(tx_sender);
 		ser->data_out(data_out_sender);
 		ser->credit_in(credit_i_sender);
-		ser->eop_out(eop_out_sender);	
+		ser->eop_out(eop_out_sender); 
+		ser->bop_out(bop_out_sender);	
 		
 		router = new RouterCCwrapped("RouterCCwrapped",router_address,ht_param);
 		seek = new router_seek_wrapped("router_seek_wrapped", router_address);
@@ -429,8 +440,10 @@ SC_MODULE(pe) {///////////////////////// INPUT AND OUTPUT //////////////////////
 				router->clock_tx[i](clock_tx[i]);
 				router->tx[i](tx[i]);
 				router->eop_out[i](eop_out[i]);
+				router->bop_out[i](bop_out[i]);
 				router->rx[i](rx[i]);
 				router->eop_in[i](eop_in[i]);
+				router->bop_in[i](bop_in[i]);
 				router->credit_o[i](credit_o[i]);
 				router->data_out[i](data_out[i]);
 				router->credit_i[i](credit_i[i]);
@@ -445,12 +458,14 @@ SC_MODULE(pe) {///////////////////////// INPUT AND OUTPUT //////////////////////
 			router->credit_o 	[LOCAL1](credit_i_sender);
 			router->data_in 	[LOCAL1](data_out_sender);
 			router->eop_in 		[LOCAL1](eop_out_sender);
+			router->bop_in		[LOCAL1](bop_out_sender);
 
 			// -- Noc to DMNI
 			router->tx			[LOCAL1](rx_ni);
 			router->data_out 	[LOCAL1](data_in_ni);
 			router->credit_i 	[LOCAL1](credit_o_ni);
 			router->eop_out		[LOCAL1](eop_in_ni);
+			router->bop_out		[LOCAL1](bop_in_ni);
 			
 			// -- Access Point and Security
 			router->k1			(k1);
@@ -484,6 +499,8 @@ SC_MODULE(pe) {///////////////////////// INPUT AND OUTPUT //////////////////////
 			router->data_in 	[LOCAL0](data_out_local0);
 			router->eop_out		[LOCAL0](eop_out_local0);
 			router->eop_in		[LOCAL0](eop_in_local0);
+			router->bop_out		[LOCAL0](bop_out_local0);
+			router->bop_in		[LOCAL0](bop_in_local0);
 
 
 			//////////////////// brNOC CONNECTIONS ////////////////

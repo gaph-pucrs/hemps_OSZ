@@ -9,12 +9,14 @@
 //			 -------------------------
 //			|						  |<--- data_in / 16
 //			|						  |<--- eop_in
+//			|						  |<--- bop_in
 //			|		    			  |<--- rx
 //			|			DMNI		  |---> credit_out
 //			|	   		   -----------
 //			|			  |	  --------
 //			|			  |32|		  |---> data_out /16
 //			|			  |--| Sender |---> eop_out
+//			|			  |--|		  |---> bop_out
 //			|			  |--|		  |---> tx
 //			|			  |--|		  |<--- credit_in
 //			 -------------    --------
@@ -63,12 +65,14 @@ void plasma_sender::in_proc_updPtr(){
 		for(int i=0;i<BUFFER_TAM_SENDER;i++){
 			buffer_in[i]=0;	
 			eop_buffer[i]=0;
+			bop_buffer[i]=0;
 		} 
 	}
 	else{
 		if((tem_espaco_na_fila.read()==true) && (rx.read()==true)){
 			buffer_in[last.read()] = data_in.read();
 			eop_buffer[last.read()] = eop_in.read();
+			bop_buffer[last.read()] = bop_in.read();
 			//incrementa o last
 			if(last.read()==(BUFFER_TAM_SENDER - 1))
 				last.write(0);
@@ -103,6 +107,7 @@ void plasma_sender::out_proc_FSM(){
 				//tx.write(0);
 				data_avail.write(0);
 				eop_out.write(0);
+				bop_out.write(0);
 				if(local_first != local_last){ // detectou dado na fila
 					EA.write(SEND_HIGH);
 				}
@@ -115,6 +120,7 @@ void plasma_sender::out_proc_FSM(){
 				if(credit_in.read() == 1){
 					EA.write(SEND_LOW);      // depois de rotear envia o pacote	
 					data_out.write(buffer_in[local_first](31, 16));
+					bop_out.write(bop_buffer[local_first].read());
 					eop_out.write(0);
 					data_avail.write(1);
 					//tx.write(1);
@@ -140,6 +146,7 @@ void plasma_sender::out_proc_FSM(){
 				if(credit_in.read() == 1){
 					data_out.write(buffer_in[local_first](15, 0));
 					eop_out.write(eop_buffer[local_first].read());
+					bop_out.write(0);
 					//tx.write(1);
 					last_send = 0;
 					// logica de próximo estado
@@ -174,6 +181,7 @@ void plasma_sender::out_proc_FSM(){
 					EA.write(S_INIT);
 					data_avail.write(0);
 					eop_out.write(0);
+					bop_out.write(0);
 				}
 			break;
 		}

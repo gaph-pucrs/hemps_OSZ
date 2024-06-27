@@ -33,6 +33,7 @@ port(
     reset 		    : in  std_logic;  
     req_routing     : in  regNport;
 	eop_in          : in  regNport;
+	bop_in          : in  regNport;
     ack_routing     : out regNport;     
     data_in_header  : in  arrayNport_regflit_32;
     data_in_header_fixed  : in  arrayNport_regflit_32;

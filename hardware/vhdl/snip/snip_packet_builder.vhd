@@ -19,6 +19,7 @@ entity snip_packet_builder is
         hermes_tx           : out   std_logic;
         hermes_data_out     : out   regflit;
         hermes_eop_out      : out   std_logic;
+        hermes_bop_out      : out   std_logic;
         hermes_credit_in    : in    std_logic;
 
         tableIn             : in    AppTableSecondaryOutput;
@@ -559,6 +560,8 @@ begin
         data_eop    when (state=DATA_PAYLOAD)   else
         warning_eop when (state=BUILD_WARNING)  else
         '0';
+
+    hermes_bop_out <= '1' when (state=HERMES_FIXED_HEADER and fixed_header_flit=0) or(state=BUILD_WARNING and header_flit=0) else '0';
 
     -----------------------
     -- GENERATE WARNINGS --
