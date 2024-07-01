@@ -92,6 +92,9 @@ signal data_read: regflit;
 signal header_high 				: std_logic;
 signal flit_discard 				: std_logic;
 
+signal verified_bop				: std_logic;
+signal failed_bop				: std_logic;
+
 -- Flit Buffer implemented using array.
 signal flit_buff: buff;
 
@@ -165,50 +168,70 @@ begin
 			flit_counter 	<= (others=>'0');
 			header_fixed	<= (others=>'0');
 			header_routing	<= (others=>'0');
+			verified_bop	<= '0';
+			failed_bop		<= '0';
 
 		elsif rising_edge(clock) then
 			-- Stores a flit.
 			if rx = '1' and available_slot = '1' then
-				if buffer_type = "SIM" then
-					flit_buff(CONV_INTEGER(last)) <= data_in;
-				end if;
-				eop(CONV_INTEGER(last)) <= eop_in;
-				bop(CONV_INTEGER(last)) <= bop_in;
 
-				-- if not(flit_counter = "10" and data_in = x"7FFF") then
-				if not(flit_discard) then
-					last <= last + 1;
-					last_var := last + 1;
-				end if;
-
-				if eop_in = '1' then
-					flit_counter <= (others=>'0');
-				elsif not(flit_discard) then
-					flit_counter <= flit_counter + '1';
-				end if;
-
-				case flit_counter is
-					when "000" =>--gets higher bits from header fixed
-						header_fixed 	<= data_in & header_fixed(15 downto 0);
-					when "001" =>--gets lower bits from header fixed
-						header_fixed 	<= header_fixed(31 downto 16) & data_in;
-					when "010" =>--gets higher bits from header routing
-						if data_in /= x"7FFF" then
-							header_routing 	<= data_in & header_routing(15 downto 0);
-						end if;
-						if change_routing = '1' and data_in(15 downto 12) = "0111" then
-							flit_buff(CONV_INTEGER(last)) <= header_fixed(31 downto 16);
-							header_routing 	<= header_fixed(31 downto 16) & header_routing(15 downto 0);
-						end if;
-					when "011" =>--gets lower bits from header routing
-						header_routing 	<= header_routing(31 downto 16) & data_in;
-						if change_routing = '1' and data_in(15 downto 12) = "0111" then
-							flit_buff(CONV_INTEGER(last)) <= header_fixed(15 downto 0);
-							header_routing 	<= header_routing(31 downto 16) & header_fixed(15 downto 0);
-						end if;
-					when others =>
+				-- If BOP verification fails the flit is not written into the buffer
+				if (verified_bop='0' and flit_counter="000" and bop_in='0') or failed_bop='1' then
+					if eop_in='1' then
+						-- reset
+						verified_bop <= '0';
+						failed_bop <= '0';
+					else
+						verified_bop <= '1';
+						failed_bop <= '1';
+					end if;
 				
-				end case ;
+				else
+					
+					verified_bop <= '1';
+
+					if buffer_type = "SIM" then
+						flit_buff(CONV_INTEGER(last)) <= data_in;
+					end if;
+					eop(CONV_INTEGER(last)) <= eop_in;
+					bop(CONV_INTEGER(last)) <= bop_in;
+
+					-- if not(flit_counter = "10" and data_in = x"7FFF") then
+					if not(flit_discard) then
+						last <= last + 1;
+						last_var := last + 1;
+					end if;
+
+					if eop_in = '1' then
+						flit_counter <= (others=>'0');
+						verified_bop <= '0';
+					elsif not(flit_discard) then
+						flit_counter <= flit_counter + '1';
+					end if;
+
+					case flit_counter is
+						when "000" =>--gets higher bits from header fixed
+							header_fixed 	<= data_in & header_fixed(15 downto 0);
+						when "001" =>--gets lower bits from header fixed
+							header_fixed 	<= header_fixed(31 downto 16) & data_in;
+						when "010" =>--gets higher bits from header routing
+							if data_in /= x"7FFF" then
+								header_routing 	<= data_in & header_routing(15 downto 0);
+							end if;
+							if change_routing = '1' and data_in(15 downto 12) = "0111" then
+								flit_buff(CONV_INTEGER(last)) <= header_fixed(31 downto 16);
+								header_routing 	<= header_fixed(31 downto 16) & header_routing(15 downto 0);
+							end if;
+						when "011" =>--gets lower bits from header routing
+							header_routing 	<= header_routing(31 downto 16) & data_in;
+							if change_routing = '1' and data_in(15 downto 12) = "0111" then
+								flit_buff(CONV_INTEGER(last)) <= header_fixed(15 downto 0);
+								header_routing 	<= header_routing(31 downto 16) & header_fixed(15 downto 0);
+							end if;
+						when others =>
+					
+					end case ;
+				end if;
 			end if;
 
 			-- Verifies if a flit is transmited.
