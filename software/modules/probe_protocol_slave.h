@@ -119,6 +119,8 @@ void register_suspicious_path(unsigned int target);
 
 void handle_broken_path_request(unsigned int pkt_source, unsigned int pkt_target, unsigned int pkt_payload);
 
-void clear_residual_switching();
+void request_to_clear_residual_switching(unsigned int faulty_packet_source);
+
+void clear_residual_switching(unsigned int faulty_packet_source, unsigned int faulty_packet_target);
 
 #endif

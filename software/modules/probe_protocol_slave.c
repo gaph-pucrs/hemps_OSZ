@@ -408,22 +408,74 @@ void handle_broken_path_request(unsigned int pkt_source, unsigned int pkt_target
     probe_puts("\n");
 }
 
-void clear_residual_switching() {
+void request_to_clear_residual_switching(unsigned int faulty_packet_source) {
+    probe_puts("[DMNI TIMEOUT] Sending reset router REQUEST to "); probe_puts(itoh(faulty_packet_source)); probe_puts("\n");
+    Seek(INIT_ROUTER_RESET, get_net_address(), faulty_packet_source, 0);
+}
 
-    unsigned int reset_mask;
+void clear_residual_switching(unsigned int faulty_packet_source, unsigned int faulty_packet_target) {
 
-    reset_mask = (1 << PORT_LOCAL0) | (1 << PORT_LOCAL1);
-    Seek(RESET_HERMES_PORT_SERVICE, (reset_mask << 16) | get_net_address(), 0x0000, 0);
+    probe_puts("[DMNI TIMEOUT] Clearing path to "); probe_puts(itoh(faulty_packet_target)); probe_puts("\n");
 
-    reset_mask = (1 << PORT_WEST0) | (1 << PORT_WEST1);
-    Seek(RESET_HERMES_PORT_SERVICE, (reset_mask << 16) | get_net_address(), 0x0100, 0);
+    // GET FAULTY PATH
 
-    reset_mask = (1 << 15) | (1 << PORT_WEST0) | (1 << PORT_WEST1);
-    Seek(RESET_HERMES_PORT_SERVICE, (reset_mask << 16) | get_net_address(), 0x0200, 0);
+    char faulty_path[MAX_PROBE_PATH_SIZE];
+    int faulty_path_size;
 
-    reset_mask = (1 << PORT_SOUTH0) | (1 << PORT_SOUTH1);
-    Seek(RESET_HERMES_PORT_SERVICE, (reset_mask << 16) | get_net_address(), 0x0201, 0);
+    int sr_slot = SearchSourceRoutingDestination(faulty_packet_target);
+    
+    if(sr_slot < 0)
+        faulty_path_size = write_xy_path(faulty_path, faulty_packet_source, faulty_packet_target); // Path is XY
+    else
+        faulty_path_size = convert_sr_header_to_path(SR_Table[sr_slot].path, SR_Table[sr_slot].path_size, faulty_path); // Path is SR
 
-    reset_mask = (1 << 15) | (1 << PORT_SOUTH0) | (1 << PORT_SOUTH1);
-    Seek(RESET_HERMES_PORT_SERVICE, (reset_mask << 16) | get_net_address(), 0x0202, 0);
+    probe_puts("[DMNI TIMEOUT] Faulty path: "); print_path(faulty_path, faulty_path_size); probe_puts("\n");
+
+    // RESET SOURCE LOCAL PORT
+    
+    unsigned int reset_mask = (1 << PORT_LOCAL0) | (1 << PORT_LOCAL1);
+    probe_puts("[DMNI TIMEOUT]   Resetting "); probe_puts(itoh(faulty_packet_source)); probe_puts(" L\n");
+    Seek(RESET_HERMES_PORT_SERVICE, (reset_mask << 16) | get_net_address(), faulty_packet_source, 0);
+
+    // RESET INTERMEDIATE HOPS
+
+    int current_x = faulty_packet_source >> 8;
+    int current_y = faulty_packet_source & 0xff;
+
+    for(int i = 0; i < faulty_path_size; i++) {
+
+        // Obs: the hops denoted in "faulty_path[]" indicates the OUTPUT direction used to transmit the packet to the next router
+        // As the Router Reset needs to clear the INPUT BUFFERS of the routers, we clear the hops OPPOSITE to those in "faulty_path[]"
+
+        switch(faulty_path[i]) {
+            case EAST:
+                current_x += 1;
+                reset_mask = (1 << PORT_WEST0) | (1 << PORT_WEST1);
+                break;
+
+            case WEST:
+                current_x -= 1;
+                reset_mask = (1 << PORT_EAST0) | (1 << PORT_EAST1);
+                
+                break;
+
+            case NORTH:
+                current_y +=1;
+                reset_mask = (1 << PORT_SOUTH0) | (1 << PORT_SOUTH1);
+                break;
+
+            case SOUTH:
+                current_y -= 1;
+                reset_mask = (1 << PORT_NORTH0) | (1 << PORT_NORTH1);
+                break;
+            
+            default:
+                probe_puts("[DMNI TIMEOUT] UNRECOGNIZEBLE TURN: "); probe_puts(itoh(faulty_path[i])); probe_puts("\n");
+        }
+
+        int current_router = (current_x << 8) | current_y;
+
+        probe_puts("[DMNI TIMEOUT]   Resetting "); probe_puts(itoh(current_router)); probe_puts(" "); print_turn(get_opposite_direction(faulty_path[i])); probe_puts("\n");
+        Seek(RESET_HERMES_PORT_SERVICE, (reset_mask << 16) | get_net_address(), current_router, 0);        
+    }
 }

@@ -801,6 +801,10 @@ void pe::seek_receive(){
 						cout << "RESET_HERMES_PORT_SERVICE -- ERROR: should not reach pe!";
 						int_seek.write(1);
 					break;
+					case 0x32:
+						cout << "INIT_ROUTER_RESET";
+						int_seek.write(1);
+					break;
 					default:
 						cout << out_service_fifopdn.read() << " unknown --- ERROR! " ;
 						in_ack_fifopdn.write(1);

@@ -2562,6 +2562,10 @@ int SeekInterruptHandler(){
 			handle_broken_path_request(source, target, payload);
 			break;
 
+		case INIT_ROUTER_RESET:
+			clear_residual_switching(target, source);
+			break;
+
 		case CLEAR_SERVICE:
 			puts("[SEEK] WARNING -- Received a CLEAR_SERVICE packet, this should not have happened\n");
 			break;
@@ -2628,6 +2632,8 @@ void OS_InterruptServiceRoutine(unsigned int status) {
 		}
 		else{//failed packet reception
 			MemoryWrite(DMNI_TIMEOUT_SIGNAL,0);
+			probe_puts("[DMNI TIMEOUT] Clearing path starting at "); probe_puts(itoh(p.header[MAX_SOURCE_ROUTING_PATH_SIZE-2] & 0xffff)); probe_puts("\n");
+			request_to_clear_residual_switching(p.header[MAX_SOURCE_ROUTING_PATH_SIZE-2] & 0xffff);
 		}
 
 	} else if (status & IRQ_PENDING_SERVICE) {
