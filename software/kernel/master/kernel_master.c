@@ -1355,6 +1355,10 @@ int SeekInterruptHandler(){
 			receive_binary_search_path(source, payload, service);
 			break;
 			
+		case INIT_ROUTER_RESET:
+			clear_residual_switching(source, target, payload, service);
+			break;
+			
 		//----------------------------------------------------------------------
 		// the services bellow if received by master is of another cluster
 		case OPEN_SECURE_ZONE_SERVICE:

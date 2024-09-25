@@ -123,4 +123,8 @@ void handle_probe_results(unsigned int packet_source_field, unsigned int payload
 
 void update_trust_scores(unsigned int source, unsigned int target, char *path, int path_size, int probe_result);
 
+void clear_residual_switching(unsigned int pkt_source, unsigned int pkt_target, unsigned int pkt_payload, unsigned int pkt_service);
+
+void clear_residual_switching_from_probe_id(int probe_id);
+
 #endif

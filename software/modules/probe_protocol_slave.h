@@ -5,17 +5,6 @@
 #include "packet.h"
 #include "seek.h"
 
-#define PORT_EAST0  0
-#define PORT_EAST1  1
-#define PORT_WEST0  2
-#define PORT_WEST1  3
-#define PORT_NORTH0 4
-#define PORT_NORTH1 5
-#define PORT_SOUTH0 6
-#define PORT_SOUTH1 7
-#define PORT_LOCAL0 8
-#define PORT_LOCAL1 9 
-
 #define MAX_INCOMING_PROBES 10
 #define MAX_OUTGOING_PROBES 10
 #define MAX_SUSPICIOUS_PATHS 10
@@ -120,7 +109,5 @@ void register_suspicious_path(unsigned int target);
 void handle_broken_path_request(unsigned int pkt_source, unsigned int pkt_target, unsigned int pkt_payload);
 
 void request_to_clear_residual_switching(unsigned int faulty_packet_source);
-
-void clear_residual_switching(unsigned int faulty_packet_source, unsigned int faulty_packet_target);
 
 #endif

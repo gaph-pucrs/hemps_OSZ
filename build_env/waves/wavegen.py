@@ -120,7 +120,7 @@ for pe in range(0,max_pe):
 			print(it)
 
 	signals_pfx = "add wave -noupdate -group {%s %dx%d - %d} -group seek -group signals /test_bench/HeMPS/%s%dx%d/router_seek_wrapped/router_seek/" % 			(pe_type_str, posX, posY, pe, pe_type_str, posX, posY)
-	signals_sds = ["router_address", "backtrack_id", "EA_manager", "EA_manager_input", "sel_port", "next_port", "req_int", "task", "req_task", "sel", "prox", "free_index", "source_index", "source_table", "target_table", "service_table", "payload_table", "opmode_table", "my_payload_table", "backtrack_port_table", "source_router_port_table", "used_table", "pending_table", "pending_local", "int_out_ack_router_seek", "out_nack_router_seek", "out_ack_router_seek", "in_fail_router_seek", "fail_with_mode_in", "fail_with_mode_out", "int_in_req_router_seek", "in_nack_router_seek", "in_ack_router_seek", "int_in_ack_router_seek", "in_source_router_seek", "in_target_router_seek", "in_payload_router_seek", "in_service_router_seek", "in_opmode_router_seek", "int_out_req_router_seek", "out_service_router_seek", "out_source_router_seek", "out_target_router_seek", "out_payload_router_seek", "out_opmode_router_seek", "backtrack_port", "reg_backtrack", "vector_ack_ports", "vector_nack_ports", "in_the_table", "space_aval_in_the_table", "is_my_turn_send_backtrack"]
+	signals_sds = ["router_address", "backtrack_id", "EA_manager", "EA_manager_input", "sel_port", "next_port", "req_int", "task", "req_task", "sel", "prox", "free_index", "source_index", "source_table", "target_table", "service_table", "payload_table", "opmode_table", "my_payload_table", "backtrack_port_table", "source_router_port_table", "used_table", "pending_table", "pending_local", "int_out_ack_router_seek", "out_nack_router_seek", "out_ack_router_seek", "in_fail_router_seek", "fail_with_mode_in", "fail_with_mode_out", "int_in_req_router_seek", "in_nack_router_seek", "in_ack_router_seek", "int_in_ack_router_seek", "in_source_router_seek", "in_target_router_seek", "in_payload_router_seek", "in_service_router_seek", "in_opmode_router_seek", "int_out_req_router_seek", "out_service_router_seek", "out_source_router_seek", "out_target_router_seek", "out_payload_router_seek", "out_opmode_router_seek", "backtrack_port", "reg_backtrack", "vector_ack_ports", "vector_nack_ports", "in_the_table", "space_aval_in_the_table", "is_my_turn_send_backtrack", "reset_hermes_port"]
 	for it in map(lambda sd: signals_pfx + sd, signals_sds):
 		print (it)
 	
@@ -142,6 +142,9 @@ for pe in range(0,max_pe):
 	# for it in map(lambda sd: fail_wrapper_signals_pfx + sd, fail_wrapper_signals_sds):
 	# 	print (it)
 
+	# switch control signals
+	print ("add wave -noupdate -group {%s %dx%d - %d} -group switchcontrol /test_bench/HeMPS/%s%dx%d/RouterCCwrapped/router_ht_wrapper/Router/coreRouter/SwitchControl_SR_write/*" % (pe_type_str, posX, posY, pe, pe_type_str, posX, posY))
+
 	# dmni signals
 	dmni_signals_pfx = "add wave -noupdate -group {%s %dx%d - %d} -group dmni /test_bench/HeMPS/%s%dx%d/dmni/" %  	(pe_type_str, posX, posY, pe, pe_type_str, posX, posY)
 	dmni_dividers_pfx = "add wave -noupdate -group {%s %dx%d - %d} -group dmni -divider " % (pe_type_str, posX, posY, pe)
@@ -155,7 +158,7 @@ for pe in range(0,max_pe):
 		print (it)
 
 	print (dmni_dividers_pfx +"DMNI_Receive")
-	dmni_signals_sds3=["DMNI_Receive","recv_size","first"]
+	dmni_signals_sds3=["DMNI_Receive","recv_size","first","receive_flit_timeout","rx","slot_available","counter_receive_timeout","buffer","flit_location","tick_counter"]
 	for it in map(lambda sd: dmni_signals_pfx + sd, dmni_signals_sds3):
 		print (it)
 		

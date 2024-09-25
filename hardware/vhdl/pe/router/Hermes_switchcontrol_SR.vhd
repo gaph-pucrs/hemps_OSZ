@@ -426,7 +426,9 @@ begin
 				when Sshift =>
 					--if shift_counter = "01" then
 
-					if tx_internal(to_integer(unsigned(sr_port_0))*2+to_integer(unsigned'("" & sr_channel_0))) = '1' then
+					if	header(TAM_FLIT_32-1 downto TAM_FLIT_32-4) /= PACKET_SWITCHING_SR then
+						EA <= S0; 
+					elsif tx_internal(to_integer(unsigned(sr_port_0))*2+to_integer(unsigned'("" & sr_channel_0))) = '1' then
 						EA 					<= S0;
                         enable_shift(sel)	<= '1';
 					--elsif tx_internal(to_integer(unsigned(sr_port_0))*2+to_integer(unsigned'("" & sr_channel_0))) = '1' then

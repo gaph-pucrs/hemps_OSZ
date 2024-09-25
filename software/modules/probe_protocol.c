@@ -389,3 +389,74 @@ int convert_single_channel_path_to_dual_channel_path(char *path, int path_size, 
 
     return path_size;
 }
+
+void clear_residual_switching_from_current_path(unsigned int faulty_packet_source, unsigned int faulty_packet_target) {
+
+    // probe_puts("[ROUTER RST] ** DATA MESSAGE RESET **\n");
+
+    char faulty_path[MAX_PROBE_PATH_SIZE];
+    int faulty_path_size;
+
+    int sr_slot = SearchSourceRoutingDestination(faulty_packet_target);
+    
+    if(sr_slot < 0)
+        faulty_path_size = write_xy_path(faulty_path, faulty_packet_source, faulty_packet_target); // Path is XY
+    else
+        faulty_path_size = convert_sr_header_to_path(SR_Table[sr_slot].path, SR_Table[sr_slot].path_size, faulty_path); // Path is SR
+    
+    send_reset_packets_to_routers_in_path(faulty_packet_source, faulty_path, faulty_path_size);
+}
+
+void send_reset_packets_to_routers_in_path(unsigned int source, char *path, int path_size) {
+
+    // probe_puts("[ROUTER RST] Clearing path from "); probe_puts(itoh(source)); probe_puts("\n");
+    // probe_puts("[ROUTER RST] Faulty path: "); print_path(path, path_size); probe_puts("\n");
+
+    // RESET SOURCE LOCAL PORT
+    
+    unsigned int reset_mask = (1 << PORT_LOCAL0) | (1 << PORT_LOCAL1);
+    // probe_puts("[ROUTER RST]   Resetting "); probe_puts(itoh(source)); probe_puts(" L\n");
+    Seek(RESET_HERMES_PORT_SERVICE, (MemoryRead(TICK_COUNTER) << 16) | reset_mask, source, 0);
+
+    // RESET INTERMEDIATE HOPS
+
+    int current_x = source >> 8;
+    int current_y = source & 0xff;
+
+    for(int i = 0; i < path_size; i++) {
+
+        // Obs: the hops denoted in "faulty_path[]" indicates the OUTPUT direction used to transmit the packet to the next router
+        // As the Router Reset needs to clear the INPUT BUFFERS of the routers, we clear the hops OPPOSITE to those in "faulty_path[]"
+
+        switch(path[i]) {
+            case EAST:
+                current_x += 1;
+                reset_mask = (1 << PORT_WEST0) | (1 << PORT_WEST1);
+                break;
+
+            case WEST:
+                current_x -= 1;
+                reset_mask = (1 << PORT_EAST0) | (1 << PORT_EAST1);
+                
+                break;
+
+            case NORTH:
+                current_y +=1;
+                reset_mask = (1 << PORT_SOUTH0) | (1 << PORT_SOUTH1);
+                break;
+
+            case SOUTH:
+                current_y -= 1;
+                reset_mask = (1 << PORT_NORTH0) | (1 << PORT_NORTH1);
+                break;
+            
+            default:
+                probe_puts("[ROUTER RST] UNRECOGNIZEBLE TURN: "); probe_puts(itoh(path[i])); probe_puts("\n");
+        }
+
+        int current_router = (current_x << 8) | current_y;
+
+        // probe_puts("[ROUTER RST]   Resetting "); probe_puts(itoh(current_router)); probe_puts(" "); print_turn(get_opposite_direction(path[i])); probe_puts("\n");
+        Seek(RESET_HERMES_PORT_SERVICE, (MemoryRead(TICK_COUNTER) << 16) | reset_mask, current_router, 0);
+    }
+}

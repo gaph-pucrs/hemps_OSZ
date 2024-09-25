@@ -13,6 +13,17 @@
 #define PROBE_RESULT_SUCCESS 10
 #define PROBE_RESULT_FAILURE 20
 
+#define PORT_EAST0  0
+#define PORT_EAST1  1
+#define PORT_WEST0  2
+#define PORT_WEST1  3
+#define PORT_NORTH0 4
+#define PORT_NORTH1 5
+#define PORT_SOUTH0 6
+#define PORT_SOUTH1 7
+#define PORT_LOCAL0 8
+#define PORT_LOCAL1 9 
+
 // Ways to represent a probe path:
 // Path) String of chars in which each char represents a hop. Does NOT include a termination (opposite) hop.
 // Compressed path) Used to send paths unsing the brNoC. Each hop is represented using 2 bits, end of path is signaled using an opposite hop. Max length = 24 bits.
@@ -49,5 +60,9 @@ int convert_compressed_path_to_sr_header(unsigned char *compressed_path, unsigne
 void convert_sr_header_to_compressed_path(unsigned int *header, int header_size, unsigned char *compressed_path);
 
 int convert_single_channel_path_to_dual_channel_path(char *path, int path_size, char *dual_channel_path);
+
+void clear_residual_switching_from_current_path(unsigned int faulty_packet_source, unsigned int faulty_packet_target);
+
+void send_reset_packets_to_routers_in_path(unsigned int source, char *path, int path_size);
 
 #endif

@@ -1852,6 +1852,7 @@ int SeekInterruptHandler(){
 
 			if(payload == 0xFF)
 			{
+				clear_residual_switching_from_current_path(get_net_address() & 0xffff, source & 0xffff);
 				auxCode = ((source >> 16) & 0xFFC0); // 10-bit Code
 				auxIndex = checkSessionCode(Sessions, auxCode);
 				puts("[TUS] Session SUPICIOUS: "); puts(itoa(auxIndex)); puts("\n");
@@ -2563,7 +2564,7 @@ int SeekInterruptHandler(){
 			break;
 
 		case INIT_ROUTER_RESET:
-			clear_residual_switching(target, source);
+			clear_residual_switching_from_current_path(target, source);
 			break;
 
 		case CLEAR_SERVICE:

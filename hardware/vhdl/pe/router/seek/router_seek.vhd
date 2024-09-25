@@ -1123,6 +1123,6 @@ end generate;
 -- end generate gen_test_count;
 -- -- systhensis translate_on
 
-reset_hermes_port <= source_table(sel)(16+NPORT-1 downto 16) when PE_manager=HERMES_RESET else (others => '0');
+reset_hermes_port <= source_table(sel)(9 downto 0) when PE_manager=HERMES_RESET else (others => '0');
 
 end router_seek;

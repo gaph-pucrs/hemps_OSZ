@@ -373,6 +373,9 @@ void handle_probe_results(unsigned int packet_source_field, unsigned int payload
     print_probe_result(result);
     probe_puts("\n");
 
+    if(result == PROBE_RESULT_FAILURE)
+        clear_residual_switching_from_probe_id(probe_id);
+
     if(packet_src != probes[i].target)
         probe_puts("[HT]    ERROR: PROBE_RESULTS was sent by someone other than original probe_target\n");
 
@@ -432,4 +435,19 @@ void update_trust_scores(unsigned int source, unsigned int target, char *path, i
     }
 
     //print_trust_score_matrix();
+}
+
+void clear_residual_switching(unsigned int pkt_source, unsigned int pkt_target, unsigned int pkt_payload, unsigned int pkt_service) {
+    if(pkt_payload == 1)
+        clear_residual_switching_from_probe_id(pkt_source);
+    else
+        clear_residual_switching_from_current_path(pkt_target, pkt_source);
+}
+
+void clear_residual_switching_from_probe_id(int probe_id) {
+
+    // probe_puts("[ROUTER RST] ** PROBE PACKET RESET **\n");
+
+    int probe_index = PROBE_INDEX(probe_id);
+    send_reset_packets_to_routers_in_path(probes[probe_index].source, probes[probe_index].path, probes[probe_index].path_size);
 }

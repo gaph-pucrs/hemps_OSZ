@@ -847,6 +847,11 @@ unsigned int timeoutMonitor(Session* sessions, int time, int *timed_out_session_
 
 void updateTimeoutThreshold(Session* session, ServiceHeader* newPacket){
   
+  // [Probes] Temp fix: disable dynamic threshold to avoid false-positive HT detection.
+  // When working with Credit-blocking HTs, sometimes the Hermes Reset feature takes too long
+  // to activate, resulting in unecessary packet retransmission that might clog the network.
+  return;
+
   session_puts("[THRESHOLD] Updating latency threshold\n");
   session_puts("[THRESHOLD]   Producer: "); session_puts(itoa(session->producer)); session_puts("\n");
   session_puts("[THRESHOLD]   Consumer: "); session_puts(itoa(session->consumer)); session_puts("\n");
