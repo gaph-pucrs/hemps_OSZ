@@ -180,6 +180,29 @@ begin
             );
         end generate;
 
+        BlackholeHT_3ms: if hts_setup(i+1)='M' generate
+            HT: entity work.router_ht(router_ht_blackhole_3ms)
+            port map
+            (
+                clock           => clock,
+                reset           => reset,
+
+                router_tx       => router_tx(i),
+                router_clock_tx => router_clock_tx(i),
+                router_data_out => router_data_out(i),
+                router_eop_out  => router_eop_out(i),
+                router_bop_out  => router_bop_out(i),
+                router_cred_in  => router_cred_in(i),
+
+                ht_tx           => ht_tx(i),
+                ht_clock_tx     => ht_clock_tx(i),
+                ht_data_out     => ht_data_out(i),
+                ht_eop_out      => ht_eop_out(i),
+                ht_bop_out      => ht_bop_out(i),
+                ht_cred_in      => ht_cred_in(i)
+            );
+        end generate;
+
         BlackholeHT_300usTo1950ms: if hts_setup(i+1)='w' generate
             HT: entity work.router_ht(router_ht_blackhole_300us_to_1950us)
             port map
@@ -205,6 +228,29 @@ begin
 
         IntermittentHT: if hts_setup(i+1)='i' generate
             HT: entity work.router_ht(router_ht_intermittent)
+            port map
+            (
+                clock           => clock,
+                reset           => reset,
+
+                router_tx       => router_tx(i),
+                router_clock_tx => router_clock_tx(i),
+                router_data_out => router_data_out(i),
+                router_eop_out  => router_eop_out(i),
+                router_bop_out  => router_bop_out(i),
+                router_cred_in  => router_cred_in(i),
+
+                ht_tx           => ht_tx(i),
+                ht_clock_tx     => ht_clock_tx(i),
+                ht_data_out     => ht_data_out(i),
+                ht_eop_out      => ht_eop_out(i),
+                ht_bop_out      => ht_bop_out(i),
+                ht_cred_in      => ht_cred_in(i)
+            );
+        end generate;
+
+        IntermittentHT_Drop: if hts_setup(i+1)='I' generate
+            HT: entity work.router_ht(router_ht_intermittent_drop)
             port map
             (
                 clock           => clock,
@@ -293,6 +339,7 @@ begin
                 ht_bop_out      => ht_bop_out(i),
                 ht_cred_in      => ht_cred_in(i)
             );
+
         end generate;
         
     end generate;
