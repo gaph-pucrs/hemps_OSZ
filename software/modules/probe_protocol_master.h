@@ -87,7 +87,23 @@ struct binary_search {
 
 struct binary_search bs_data;
 
-void print_trust_score_matrix();
+/**** NOC HEALTH MATRIX  ****/
+
+enum link_status {HEALTHY, SUSPICIOUS, INFECTED};
+
+struct link_health {
+    enum link_status status;
+    short total_probes;
+    short failed_probes;
+};
+
+struct router_health {
+    struct link_health links[NUM_LINKS_PER_ROUTER];
+};
+
+struct router_health noc_health[XDIMENSION][YDIMENSION];
+
+/**** FUNCTION SIGNATURES ****/
 
 void init_probe_master_structures();
 
@@ -126,5 +142,9 @@ void update_trust_scores(unsigned int source, unsigned int target, char *path, i
 void clear_residual_switching(unsigned int pkt_source, unsigned int pkt_target, unsigned int pkt_payload, unsigned int pkt_service);
 
 void clear_residual_switching_from_probe_id(int probe_id);
+
+void set_suspicious_health(unsigned int source_address, char *path, int path_size);
+
+void print_noc_health();
 
 #endif

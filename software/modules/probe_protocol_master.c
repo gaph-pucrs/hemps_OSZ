@@ -1,57 +1,5 @@
 #include "probe_protocol_master.h"
 
-void print_trust_score_matrix() {
-
-    for(int link = 0; link < NUM_LINKS_PER_ROUTER; link++) {
-
-        switch(link) {
-            case EAST:
-                probe_puts("EAST:\n");
-                break;
-            case WEST:
-                probe_puts("WEST:\n");
-                break;
-            case NORTH:
-                probe_puts("NORTH:\n");
-                break;
-            case SOUTH:
-                probe_puts("SOUTH:\n");
-                break;
-        }
-
-        for(int y = YDIMENSION-1; y >= 0; y--) {
-            for(int x = 0; x < XDIMENSION; x++) {
-
-                int score = link_trust_scores[x][y][link];
-
-                //signal
-                if(score >= 0) {
-                    probe_puts("+");
-                }
-                else {
-                    probe_puts("-");
-                    score *= -1;
-                }
-
-                //limit to 2 digits
-                if(score > 99)
-                    score = 99;
-                
-                //leading 0
-                if(score < 10)
-                    probe_puts("0");
-                
-                //actual print
-                probe_puts(itoa(score));
-
-                //spacing
-                probe_puts(" ");
-            }
-            probe_puts("\n");
-        }
-    }
-}
-
 void init_probe_master_structures() {
     //init binary search
     bs_data.status = BS_IDLE;
@@ -64,11 +12,13 @@ void init_probe_master_structures() {
     for(int i = 0; i < MAX_PROBE_ENTRIES; i++) {
         probes[i].status = PROBE_STATUS_FREE;
     }
-    //init trust scores cube matrix
+    //init noc health matrix
     for(int x = 0; x < XDIMENSION; x++) {
         for(int y = 0; y < YDIMENSION; y++) {
             for(int z = 0; z < NUM_LINKS_PER_ROUTER; z++) {
-                link_trust_scores[x][y][z] = 0;
+                noc_health[x][y].links[z].status = HEALTHY;
+                noc_health[x][y].links[z].total_probes = 0;
+                noc_health[x][y].links[z].failed_probes = 0;
             }
         }
     }
@@ -219,6 +169,10 @@ void receive_binary_search_path(unsigned int pkt_source, unsigned int pkt_payloa
     else {
         bs_data.suspicious_path_size = convert_compressed_path_to_path(compressed_path, bs_data.suspicious_path);
     }
+
+    //mark suspicous path
+    set_suspicious_health(bs_data.suspicious_source, bs_data.suspicious_path, bs_data.suspicious_path_size);
+    print_noc_health();
 
     probe_puts("[HT] **** Starting new Binary Search - Source:");
     probe_puts(itoh(bs_data.suspicious_source));
@@ -402,10 +356,9 @@ void update_trust_scores(unsigned int source, unsigned int target, char *path, i
         
         int port = path[i];
 
-        if(probe_result == PROBE_RESULT_SUCCESS)
-            link_trust_scores[x][y][port]++;
-        else
-            link_trust_scores[x][y][port]--;
+        noc_health[x][y].links[port].total_probes++;
+        if(probe_result == PROBE_RESULT_FAILURE)
+            noc_health[x][y].links[port].failed_probes++;
         
         //jump to next router in the path
         switch(port) {
@@ -450,4 +403,90 @@ void clear_residual_switching_from_probe_id(int probe_id) {
 
     int probe_index = PROBE_INDEX(probe_id);
     send_reset_packets_to_routers_in_path(probes[probe_index].source, probes[probe_index].path, probes[probe_index].path_size);
+}
+
+void set_suspicious_health(unsigned int source_address, char *path, int path_size) {
+    
+    int current_x = source_address >> 8;
+    int current_y = source_address && 0xff;
+    
+    for(int i = 0; i < path_size; i++) {
+        noc_health[current_x][current_y].links[path[i]].status = SUSPICIOUS;
+        
+        switch(path[i]) {
+            case EAST:
+                current_x++;
+                break;
+            case WEST:
+                current_x--;
+                break;
+            case NORTH:
+                current_y++;
+                break;
+            case SOUTH:
+                current_y--;
+                break;
+        }
+    }
+}
+
+void print_noc_health() {
+
+    for(int link = 0; link < NUM_LINKS_PER_ROUTER; link++) {
+
+        switch(link) {
+            case EAST:
+                probe_puts("EAST:\n");
+                break;
+            case WEST:
+                probe_puts("WEST:\n");
+                break;
+            case NORTH:
+                probe_puts("NORTH:\n");
+                break;
+            case SOUTH:
+                probe_puts("SOUTH:\n");
+                break;
+        }
+
+        // PRINT NUMERICAL SCORE FOR EACH ROUTER
+        // for(int y = YDIMENSION-1; y >= 0; y--) {
+        //     for(int x = 0; x < XDIMENSION; x++) {
+        //         int score = link_trust_scores[x][y][link];
+        //         if(score >= 0) { //signal
+        //             probe_puts("+");
+        //         }
+        //         else {
+        //             probe_puts("-");
+        //             score *= -1;
+        //         }
+        //         if(score > 99) //limit to 2 digits
+        //             score = 99;
+        //         if(score < 10) //leading 0
+        //             probe_puts("0");
+        //         probe_puts(itoa(score)); //actual print
+        //         probe_puts(" "); //spacing
+        //     }
+        //     probe_puts("\n");
+        // }
+
+        for(int y = YDIMENSION-1; y >= 0; y--) {
+            for(int x = 0; x < XDIMENSION; x++) {
+                switch(noc_health[x][y].links[link].status) {
+                    case HEALTHY:
+                        probe_puts("H ");
+                        break;
+                    case SUSPICIOUS:
+                        probe_puts("S ");
+                        break;
+                    case INFECTED:
+                        probe_puts("I ");
+                        break;
+                    default:
+                        probe_puts("? ");
+                }
+            }
+            probe_puts("\n");
+        }
+    }
 }
