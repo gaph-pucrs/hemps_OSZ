@@ -14,6 +14,8 @@
 
 #define PROBE_INDEX(probe_id) (probe_id % MAX_PROBE_ENTRIES)
 
+/**** PROBE TABLE ****/
+
 enum probe_status {
     PROBE_STATUS_FREE,
     PROBE_STATUS_ALLOCATED,
@@ -34,7 +36,7 @@ struct probe {
 short next_probe_id;
 struct probe probes[MAX_PROBE_ENTRIES];
 
-int link_trust_scores[XDIMENSION][YDIMENSION][NUM_LINKS_PER_ROUTER];
+/**** MISSING PACKETS QUEUE ****/
 
 enum missing_packet_status {
     MISSING_PACKET_FREE,
@@ -50,6 +52,8 @@ struct missing_packet {
 
 struct missing_packet missing_packets_queue[SIZE_MISSING_PACKETS_QUEUE];
 int next_missing_packet_pending, next_missing_packet_slot, missing_packets_pending;
+
+/**** BINARY SEARCH DATA ****/
 
 enum binary_search_probe_status {
     BS_PROBE_USED,

@@ -7,6 +7,9 @@
 #define probe_puts(argument) puts(argument)
 // #define probe_puts(argument)
 
+#define probe_debug_puts(argument) puts(argument)
+// #define probe_debug_puts(argument)
+
 #define MAX_PROBE_SR_LENGTH 2
 #define MAX_PROBE_PATH_SIZE 11
 
