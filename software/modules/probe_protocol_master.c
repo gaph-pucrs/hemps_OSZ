@@ -115,6 +115,15 @@ void check_missing_packets_queue() {
     start_binary_search(source, target);
 }
 
+void handle_report_suspicious_path(unsigned int pkt_source, unsigned int pkt_target, unsigned int pkt_payload) {
+    unsigned int source = (((pkt_source & 0xF000) >> 4) | ((pkt_source & 0xF00) >> 8));
+    unsigned int target = (((pkt_source & 0xF0) << 4) | (pkt_source & 0xF));
+    unsigned char compressed_path[3];
+    compressed_path[0] = ((pkt_source & 0xFF000000) >> 24);
+    compressed_path[1] = ((pkt_source & 0xFF0000) >> 16);
+    compressed_path[2] = (pkt_payload);
+}
+
 void start_binary_search(unsigned int source, unsigned int target) {
     
     if(bs_data.status == BS_BUSY) {

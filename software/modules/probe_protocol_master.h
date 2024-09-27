@@ -123,6 +123,8 @@ void report_missing_packet(unsigned int source, unsigned int target);
 
 void check_missing_packets_queue();
 
+void handle_report_suspicious_path(unsigned int pkt_source, unsigned int pkt_target, unsigned int pkt_payload);
+
 void start_binary_search(unsigned int source, unsigned int target);
 
 void receive_binary_search_path(unsigned int pkt_source, unsigned int pkt_payload, unsigned int pkt_service);

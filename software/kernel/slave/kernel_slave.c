@@ -1857,7 +1857,7 @@ int SeekInterruptHandler(){
 				auxIndex = checkSessionCode(Sessions, auxCode);
 				puts("[TUS] Session SUPICIOUS: "); puts(itoa(auxIndex)); puts("\n");
 				Sessions[auxIndex].status = RECOVERING;
-				register_suspicious_path(source & 0xFFFF);
+				report_suspicious_path_to_mpe(source & 0xFFFF);
 				fireRecoverySearchpath((source & 0xFFFF));
 				break;
 			}

@@ -104,7 +104,7 @@ void send_probe_result(unsigned int probe_id, unsigned int probe_source, int res
 
 void monitor_probe_timeout();
 
-void register_suspicious_path(unsigned int target);
+void report_suspicious_path_to_mpe(unsigned int target);
 
 void handle_broken_path_request(unsigned int pkt_source, unsigned int pkt_target, unsigned int pkt_payload);
 
