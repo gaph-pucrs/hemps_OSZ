@@ -11,6 +11,7 @@
 #define MAX_BINARY_SEARCH_PROBES MAX_PROBE_PATH_SIZE+1 //maximum possible number of parallel path segments + 1 slot used during configuration
 #define MAX_BINARY_SEARCH_HTS MAX_PROBE_PATH_SIZE //maximum possible number of hts in a searched path
 #define SIZE_MISSING_PACKETS_QUEUE 10
+#define SUSPICIOUS_PATH_TABLE_SIZE 20
 
 #define PROBE_INDEX(probe_id) (probe_id % MAX_PROBE_ENTRIES)
 
@@ -36,22 +37,17 @@ struct probe {
 short next_probe_id;
 struct probe probes[MAX_PROBE_ENTRIES];
 
-/**** MISSING PACKETS QUEUE ****/
+/**** SUSPICIOUS PATH TABLE ****/
 
-enum missing_packet_status {
-    MISSING_PACKET_FREE,
-    MISSING_PACKET_PENDING,
-    MISSING_PACKET_HANDLED
+struct suspicious_path {
+    unsigned short used; // set to 1 or 0
+    unsigned short source;
+    unsigned short target;
+    char path[MAX_PROBE_PATH_SIZE];
+    int path_size;
 };
 
-struct missing_packet {
-    short source;
-    short target;
-    enum missing_packet_status status;
-};
-
-struct missing_packet missing_packets_queue[SIZE_MISSING_PACKETS_QUEUE];
-int next_missing_packet_pending, next_missing_packet_slot, missing_packets_pending;
+struct suspicious_path suspicious_path_table[SUSPICIOUS_PATH_TABLE_SIZE];
 
 /**** BINARY SEARCH DATA ****/
 
@@ -119,9 +115,7 @@ int get_binary_search_probe_by_id(int id);
 
 int is_binary_search_probes_empty();
 
-void report_missing_packet(unsigned int source, unsigned int target);
-
-void check_missing_packets_queue();
+int get_new_suspicious_path_slot();
 
 void handle_report_suspicious_path(unsigned int pkt_source, unsigned int pkt_target, unsigned int pkt_payload);
 

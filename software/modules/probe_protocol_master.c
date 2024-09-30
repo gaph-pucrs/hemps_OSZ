@@ -22,12 +22,9 @@ void init_probe_master_structures() {
             }
         }
     }
-    //init missing packets queue
-    next_missing_packet_pending = 0;
-    next_missing_packet_slot = 0;
-    missing_packets_pending = 0;
-    for(int i = 0; i < SIZE_MISSING_PACKETS_QUEUE; i ++) {
-        missing_packets_queue[i].status = MISSING_PACKET_FREE;
+    //init suspicious path table
+    for (int i = 0; i < SUSPICOUS_PATH_TABLE_SIZE; i++) {
+        suspicious_path_table[i].used = 0;
     }
 }
 
@@ -72,47 +69,13 @@ int is_binary_search_probes_empty() {
     return 1;
 }
 
-void report_missing_packet(unsigned int source, unsigned int target) {
-
-    //mpe already busy with a binary search, queue for later
-    if(bs_data.status == BS_BUSY) {
-
-        //if queue is full, ignore missing packet
-        if(missing_packets_pending == SIZE_MISSING_PACKETS_QUEUE) {
-            probe_puts("[HT] Missing Packets Queue is completely full, ignoring Missing Packet Report. Source=");
-            probe_puts(itoh(source));
-            probe_puts(" Target=");
-            probe_puts(itoh(target));
-            probe_puts("\n");
-            return;
+int get_new_suspicious_path_slot() {
+    for (int i = 0; i < SUSPICIOUS_PATH_TABLE_SIZE; i++) {
+        if (suspicious_path_table[i].used == 0) {
+            return i;
         }
-
-        missing_packets_queue[next_missing_packet_slot].source = source; 
-        missing_packets_queue[next_missing_packet_slot].target = target;
-        missing_packets_queue[next_missing_packet_slot].status = MISSING_PACKET_PENDING;
-        next_missing_packet_slot = (next_missing_packet_slot + 1) % SIZE_MISSING_PACKETS_QUEUE;
-        missing_packets_pending++;
-        return;
     }
-
-    //binary search is not busy, perform binary search on the missing packet
-    start_binary_search(source, target);
-}
-
-void check_missing_packets_queue() {
-    
-    //no missing packets to handle
-    if(missing_packets_pending == 0)
-        return;
-    
-    //consume missing packet from queue
-    unsigned int source = missing_packets_queue[next_missing_packet_pending].source;
-    unsigned int target = missing_packets_queue[next_missing_packet_pending].target;
-    missing_packets_queue[next_missing_packet_pending].status = MISSING_PACKET_HANDLED;
-    next_missing_packet_pending = (next_missing_packet_pending + 1) % SIZE_MISSING_PACKETS_QUEUE;
-    missing_packets_pending--;
-
-    start_binary_search(source, target);
+    return -1;
 }
 
 void handle_report_suspicious_path(unsigned int pkt_source, unsigned int pkt_target, unsigned int pkt_payload) {
@@ -122,6 +85,21 @@ void handle_report_suspicious_path(unsigned int pkt_source, unsigned int pkt_tar
     compressed_path[0] = ((pkt_source & 0xFF000000) >> 24);
     compressed_path[1] = ((pkt_source & 0xFF0000) >> 16);
     compressed_path[2] = (pkt_payload);
+
+    int slot = get_new_suspicious_path_slot();
+    if (slot == -1) {
+        probe_puts("[HT] The suspicious path table is full, discarding this path.\n");
+        return;
+    }
+    suspicious_path_table[slot].used = 1;
+    suspicious_path_table[slot].source = source;
+    suspicious_path_table[slot].target = target;
+    suspicious_path_table[slot].path_size = convert_compressed_path_to_path(compressed_path, suspicious_path_table[slot].path);
+    probe_puts("[HT] Registered new path in the suspicious path table.\n");
+    probe_puts("[HT] Source: "); probe_puts(itoh(source));
+    probe_puts(" Target: "); probe_puts(itoh(target));
+    probe_puts(" Path: "); print_path(suspicious_path_table[slot].path, suspicious_path_table[slot].size); probe_puts("\n");
+    set_suspicious_health(source, suspicious_path_table[slot].path, suspicious_path_table[slot].size);    
 }
 
 void start_binary_search(unsigned int source, unsigned int target) {
@@ -275,7 +253,6 @@ void finalize_binary_search() {
     print_binary_search_result();
     bs_data.ht_counter = 0;
     bs_data.status = BS_IDLE;
-    check_missing_packets_queue();
 }
 
 int send_probe_request(unsigned int source_addr, unsigned int target_addr, char *path, int path_size) {
