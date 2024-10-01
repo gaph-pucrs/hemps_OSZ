@@ -395,7 +395,7 @@ void clear_residual_switching_from_probe_id(int probe_id) {
 void set_suspicious_health(unsigned int source_address, char *path, int path_size) {
     
     int current_x = source_address >> 8;
-    int current_y = source_address && 0xff;
+    int current_y = source_address & 0xff;
     
     for(int i = 0; i < path_size; i++) {
         noc_health[current_x][current_y].links[(int) path[i]].status = SUSPICIOUS;
