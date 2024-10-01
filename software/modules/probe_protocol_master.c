@@ -399,8 +399,6 @@ void set_suspicious_health(unsigned int source_address, char *path, int path_siz
     
     for(int i = 0; i < path_size; i++) {
         noc_health[current_x][current_y].links[(int) path[i]].status = SUSPICIOUS;
-
-        puts("[DEBUG MTX] Logging link "); puts(itoa(current_x)); puts("x"); puts(itoa(current_y)); puts(" link:") puts(itoa((int)path[i])) puts("\n");
         
         switch(path[i]) {
             case EAST:
