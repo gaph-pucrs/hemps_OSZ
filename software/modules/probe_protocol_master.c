@@ -23,7 +23,7 @@ void init_probe_master_structures() {
         }
     }
     //init suspicious path table
-    for (int i = 0; i < SUSPICOUS_PATH_TABLE_SIZE; i++) {
+    for (int i = 0; i < SUSPICIOUS_PATH_TABLE_SIZE; i++) {
         suspicious_path_table[i].used = 0;
     }
 }
@@ -98,8 +98,8 @@ void handle_report_suspicious_path(unsigned int pkt_source, unsigned int pkt_tar
     probe_puts("[HT] Registered new path in the suspicious path table.\n");
     probe_puts("[HT] Source: "); probe_puts(itoh(source));
     probe_puts(" Target: "); probe_puts(itoh(target));
-    probe_puts(" Path: "); print_path(suspicious_path_table[slot].path, suspicious_path_table[slot].size); probe_puts("\n");
-    set_suspicious_health(source, suspicious_path_table[slot].path, suspicious_path_table[slot].size);    
+    probe_puts(" Path: "); print_path(suspicious_path_table[slot].path, suspicious_path_table[slot].path_size); probe_puts("\n");
+    set_suspicious_health(source, suspicious_path_table[slot].path, suspicious_path_table[slot].path_size);    
 }
 
 void start_binary_search(unsigned int source, unsigned int target) {

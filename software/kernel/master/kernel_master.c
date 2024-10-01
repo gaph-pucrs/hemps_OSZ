@@ -1359,7 +1359,7 @@ int SeekInterruptHandler(){
 			clear_residual_switching(source, target, payload, service);
 			break;
 
-		case REPORT_SUSPICOUS_PATH:
+		case REPORT_SUSPICIOUS_PATH:
 			handle_report_suspicious_path(source, target, payload);
 			break;
 			

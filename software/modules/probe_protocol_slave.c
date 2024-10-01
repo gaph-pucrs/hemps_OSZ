@@ -358,7 +358,7 @@ void report_suspicious_path_to_mpe(unsigned int target) {
     unsigned char target_address = ((target & (0xF00 >> 8)) | (target & 0xF));
     unsigned int source_field = ((compressed_path[0] << 24) | (compressed_path[1] << 16) | (source_address << 8) | (target_address));
     Seek(REPORT_SUSPICIOUS_PATH, source_field, *probe_mpe_addr_ptr, compressed_path[2]);
-
+}
 
 void handle_broken_path_request(unsigned int pkt_source, unsigned int pkt_target, unsigned int pkt_payload) {
 
@@ -415,3 +415,4 @@ void request_to_clear_residual_switching(unsigned int faulty_packet_source) {
     probe_puts("[DMNI TIMEOUT] Sending reset router REQUEST to "); probe_puts(itoh(faulty_packet_source)); probe_puts("\n");
     Seek(INIT_ROUTER_RESET, get_net_address(), faulty_packet_source, 0); // payload '0' indicates that it is a regular faulty packet, src field contais src addr
 }
+
