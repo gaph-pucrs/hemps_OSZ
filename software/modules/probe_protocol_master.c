@@ -100,6 +100,7 @@ void handle_report_suspicious_path(unsigned int pkt_source, unsigned int pkt_tar
     probe_puts(" Target: "); probe_puts(itoh(target));
     probe_puts(" Path: "); print_path(suspicious_path_table[slot].path, suspicious_path_table[slot].path_size); probe_puts("\n");
     set_suspicious_health(source, suspicious_path_table[slot].path, suspicious_path_table[slot].path_size);    
+    print_noc_health(); 
 }
 
 void start_binary_search(unsigned int source, unsigned int target) {
@@ -397,7 +398,9 @@ void set_suspicious_health(unsigned int source_address, char *path, int path_siz
     int current_y = source_address && 0xff;
     
     for(int i = 0; i < path_size; i++) {
-        noc_health[current_x][current_y].links[path[i]].status = SUSPICIOUS;
+        noc_health[current_x][current_y].links[(int) path[i]].status = SUSPICIOUS;
+
+        puts("[DEBUG MTX] Logging link "); puts(itoa(current_x)); puts("x"); puts(itoa(current_y)); puts(" link:") puts(itoa((int)path[i])) puts("\n");
         
         switch(path[i]) {
             case EAST:
