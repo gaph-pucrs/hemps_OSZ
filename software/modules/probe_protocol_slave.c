@@ -345,8 +345,10 @@ void monitor_probe_timeout() {
 }
 
 void report_suspicious_path_to_mpe(unsigned int target) {
-    int sr_path_index = SearchSourceRoutingDestination(target);
+    
     unsigned char compressed_path[3];
+
+    int sr_path_index = SearchSourceRoutingDestination(target);
     if (sr_path_index != -1) { // is using source routing
         convert_sr_header_to_compressed_path(SR_Table[sr_path_index].path, SR_Table[sr_path_index].path_size, compressed_path);
     } else { // is using xy
@@ -354,9 +356,11 @@ void report_suspicious_path_to_mpe(unsigned int target) {
         int path_size = write_xy_path(path, get_net_address()&0xFFFF, target);
         convert_path_to_compressed_path(path, path_size, compressed_path);
     }
-    unsigned char source_address = ((get_net_address() & (0xF00 >> 8)) | (get_net_address() & 0xF));
-    unsigned char target_address = ((target & (0xF00 >> 8)) | (target & 0xF));
+    
+    unsigned char source_address = ((get_net_address() & 0xF00) >> 4) | (get_net_address() & 0xF);
+    unsigned char target_address = ((target & 0xF00) >> 4) | (target & 0xF);
     unsigned int source_field = ((compressed_path[0] << 24) | (compressed_path[1] << 16) | (source_address << 8) | (target_address));
+    
     Seek(REPORT_SUSPICIOUS_PATH, source_field, *probe_mpe_addr_ptr, compressed_path[2]);
 }
 
