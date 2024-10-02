@@ -95,6 +95,7 @@ struct link_health {
     enum link_status status;
     short total_probes;
     short failed_probes;
+    short intersections; //number of suspicious paths intersecting the link
 };
 
 struct router_health {
@@ -145,6 +146,8 @@ void clear_residual_switching_from_probe_id(int probe_id);
 
 void set_suspicious_health(unsigned int source_address, char *path, int path_size);
 
-void print_noc_health();
+void print_noc_health_status();
+
+void print_noc_health_intersections();
 
 #endif

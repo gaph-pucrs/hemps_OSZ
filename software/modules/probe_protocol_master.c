@@ -19,6 +19,7 @@ void init_probe_master_structures() {
                 noc_health[x][y].links[z].status = HEALTHY;
                 noc_health[x][y].links[z].total_probes = 0;
                 noc_health[x][y].links[z].failed_probes = 0;
+                noc_health[x][y].links[z].intersections = 0;
             }
         }
     }
@@ -100,7 +101,7 @@ void handle_report_suspicious_path(unsigned int pkt_source, unsigned int pkt_tar
     probe_puts(" Target: "); probe_puts(itoh(target));
     probe_puts(" Path: "); print_path(suspicious_path_table[slot].path, suspicious_path_table[slot].path_size); probe_puts("\n");
     set_suspicious_health(source, suspicious_path_table[slot].path, suspicious_path_table[slot].path_size);    
-    print_noc_health(); 
+    print_noc_health_intersections(); 
 }
 
 void start_binary_search(unsigned int source, unsigned int target) {
@@ -160,7 +161,7 @@ void receive_binary_search_path(unsigned int pkt_source, unsigned int pkt_payloa
 
     //mark suspicous path
     set_suspicious_health(bs_data.suspicious_source, bs_data.suspicious_path, bs_data.suspicious_path_size);
-    print_noc_health();
+    print_noc_health_intersections();
 
     probe_puts("[HT] **** Starting new Binary Search - Source:");
     probe_puts(itoh(bs_data.suspicious_source));
@@ -399,6 +400,7 @@ void set_suspicious_health(unsigned int source_address, char *path, int path_siz
     
     for(int i = 0; i < path_size; i++) {
         noc_health[current_x][current_y].links[(int) path[i]].status = SUSPICIOUS;
+        noc_health[current_x][current_y].links[(int) path[i]].intersections++;
         
         switch(path[i]) {
             case EAST:
@@ -417,7 +419,7 @@ void set_suspicious_health(unsigned int source_address, char *path, int path_siz
     }
 }
 
-void print_noc_health() {
+void print_noc_health_status() {
 
     for(int link = 0; link < NUM_LINKS_PER_ROUTER; link++) {
 
@@ -436,27 +438,6 @@ void print_noc_health() {
                 break;
         }
 
-        // PRINT NUMERICAL SCORE FOR EACH ROUTER
-        // for(int y = YDIMENSION-1; y >= 0; y--) {
-        //     for(int x = 0; x < XDIMENSION; x++) {
-        //         int score = link_trust_scores[x][y][link];
-        //         if(score >= 0) { //signal
-        //             probe_puts("+");
-        //         }
-        //         else {
-        //             probe_puts("-");
-        //             score *= -1;
-        //         }
-        //         if(score > 99) //limit to 2 digits
-        //             score = 99;
-        //         if(score < 10) //leading 0
-        //             probe_puts("0");
-        //         probe_puts(itoa(score)); //actual print
-        //         probe_puts(" "); //spacing
-        //     }
-        //     probe_puts("\n");
-        // }
-
         for(int y = YDIMENSION-1; y >= 0; y--) {
             for(int x = 0; x < XDIMENSION; x++) {
                 switch(noc_health[x][y].links[link].status) {
@@ -471,6 +452,41 @@ void print_noc_health() {
                         break;
                     default:
                         probe_puts("? ");
+                }
+            }
+            probe_puts("\n");
+        }
+    }
+}
+
+void print_noc_health_intersections() {
+
+    for(int link = 0; link < NUM_LINKS_PER_ROUTER; link++) {
+
+        switch(link) {
+            case EAST:
+                probe_puts("EAST:\n");
+                break;
+            case WEST:
+                probe_puts("WEST:\n");
+                break;
+            case NORTH:
+                probe_puts("NORTH:\n");
+                break;
+            case SOUTH:
+                probe_puts("SOUTH:\n");
+                break;
+        }
+
+        for(int y = YDIMENSION-1; y >= 0; y--) {
+            for(int x = 0; x < XDIMENSION; x++) {
+                int intersections = noc_health[x][y].links[link].intersections;
+                if(intersections < 0) {
+                    probe_puts("X");
+                } else {
+                    intersections %= 10; //print only one decimal place
+                    probe_puts(itoa(intersections));
+                    probe_puts(" ");
                 }
             }
             probe_puts("\n");
