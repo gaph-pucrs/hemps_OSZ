@@ -808,6 +808,7 @@ void pe::seek_receive(){
 					case 0x33:
 						cout << "REPORT_SUSPICIOUS_PATH";
 						int_seek.write(1);
+					break;
 					default:
 						cout << out_service_fifopdn.read() << " unknown --- ERROR! " ;
 						in_ack_fifopdn.write(1);
