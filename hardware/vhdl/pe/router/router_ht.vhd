@@ -76,6 +76,35 @@ begin
 
 end architecture;
 
+architecture router_ht_credit_block_300us of router_ht is
+    constant trigger_time : integer := 30000; -- 300 us = 300 000 ns = 30 000 cc 
+
+    signal activated    : std_logic;
+    signal counter      : integer;
+begin
+    
+    ht_tx           <= router_tx;
+    ht_clock_tx     <= router_clock_tx;
+    ht_data_out     <= router_data_out;
+    router_cred_in  <= ht_cred_in when activated='0' else '0';
+    ht_eop_out      <= router_eop_out;
+    ht_bop_out      <= router_bop_out;
+    
+    ClockCounter: process(clock, reset)
+    begin
+        if reset='1' then
+            counter <= 0;
+        elsif rising_edge(clock) then
+            if counter/=trigger_time then
+                counter <= counter + 1;
+            end if;
+        end if;
+    end process;
+
+    activated <= '1' when counter=trigger_time else '0';
+
+end architecture;
+
 architecture router_ht_blackhole_2ms of router_ht is
     constant trigger_time : integer := 200000; -- 2 000 us = 2 000 000 ns = 200 000 cc 
 
@@ -87,6 +116,35 @@ begin
     ht_clock_tx     <= router_clock_tx;
     ht_data_out     <= router_data_out;
     router_cred_in  <= ht_cred_in;
+    ht_eop_out      <= router_eop_out;
+    ht_bop_out      <= router_bop_out;
+    
+    ClockCounter: process(clock, reset)
+    begin
+        if reset='1' then
+            counter <= 0;
+        elsif rising_edge(clock) then
+            if counter/=trigger_time then
+                counter <= counter + 1;
+            end if;
+        end if;
+    end process;
+
+    activated <= '1' when counter=trigger_time else '0';
+
+end architecture;
+
+architecture router_ht_credit_block_2ms of router_ht is
+    constant trigger_time : integer := 200000; -- 2 000 us = 2 000 000 ns = 200 000 cc 
+
+    signal activated    : std_logic;
+    signal counter      : integer;
+begin
+    
+    ht_tx           <= router_tx;
+    ht_clock_tx     <= router_clock_tx;
+    ht_data_out     <= router_data_out;
+    router_cred_in  <= ht_cred_in when activated='0' else '0';
     ht_eop_out      <= router_eop_out;
     ht_bop_out      <= router_bop_out;
     
@@ -131,6 +189,47 @@ begin
     end process;
 
     activated <= '1' when counter=trigger_time else '0';
+
+end architecture;
+
+architecture router_ht_credit_block_300us_to_1950us of router_ht is
+    constant activate_time      : integer := 30000;     --   300 us =   300 000 ns =  30 000 cc
+    constant deactivate_time    : integer := 195000;    -- 1 950 us = 1 950 000 ns = 195 000 cc 
+
+    signal activated    : std_logic;
+    signal counter      : integer;
+begin
+    
+    ht_tx           <= router_tx;
+    ht_clock_tx     <= router_clock_tx;
+    ht_data_out     <= router_data_out;
+    router_cred_in  <= ht_cred_in when activated='0' else '0';
+    ht_eop_out      <= router_eop_out;
+    ht_bop_out      <= router_bop_out;
+    
+    ClockCounter: process(clock, reset)
+    begin
+        if reset='1' then
+            counter <= 0;
+        elsif rising_edge(clock) then
+            if counter/=deactivate_time then
+                counter <= counter + 1;
+            end if;
+        end if;
+    end process;
+
+    AvtivateRegister: process(clock, reset)
+    begin
+        if reset='1' then
+            activated <= '0';
+        elsif rising_edge(clock) then
+            if counter=activate_time then
+                activated <= '1';
+            elsif counter=deactivate_time then
+                activated <= '0';
+            end if;
+        end if;
+    end process;
 
 end architecture;
 
