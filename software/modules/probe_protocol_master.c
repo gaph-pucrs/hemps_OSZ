@@ -87,6 +87,8 @@ void handle_report_suspicious_path(unsigned int pkt_source, unsigned int pkt_tar
     compressed_path[1] = ((pkt_source & 0xFF0000) >> 16);
     compressed_path[2] = (pkt_payload);
 
+    // TODO: handle reverb
+
     int slot = get_new_suspicious_path_slot();
     if (slot == -1) {
         probe_puts("[HT] The suspicious path table is full, discarding this path.\n");

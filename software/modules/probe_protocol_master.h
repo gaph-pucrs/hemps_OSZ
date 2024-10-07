@@ -11,7 +11,7 @@
 #define MAX_BINARY_SEARCH_PROBES MAX_PROBE_PATH_SIZE+1 //maximum possible number of parallel path segments + 1 slot used during configuration
 #define MAX_BINARY_SEARCH_HTS MAX_PROBE_PATH_SIZE //maximum possible number of hts in a searched path
 #define SIZE_MISSING_PACKETS_QUEUE 10
-#define SUSPICIOUS_PATH_TABLE_SIZE 20
+#define SUSPICIOUS_PATH_TABLE_SIZE 40
 
 #define PROBE_INDEX(probe_id) (probe_id % MAX_PROBE_ENTRIES)
 
