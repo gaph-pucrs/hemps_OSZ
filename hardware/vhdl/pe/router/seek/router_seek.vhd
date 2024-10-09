@@ -803,7 +803,7 @@ process(EA_manager, req_task , source_table, service_table, target_table, payloa
 				end if;
 
 			when RESEND_CLEAR =>
-				PE_manager <= RESEND_CLEAR;
+				PE_manager <= PROPAGATE;
 				-- if  ((vector_ack_ports or vector_nack_ports) = "0000" )  then
 				-- 	PE_manager <= PROPAGATE;
 				-- else
