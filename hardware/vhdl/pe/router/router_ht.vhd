@@ -358,8 +358,10 @@ begin
 
             -- set counter for next state
             if counter=0 then
-                if state=GEN_DISABLED_TIME or state=GEN_ENABLED_TIME then
-                    counter <= lfsr;
+                if state=GEN_DISABLED_TIME then
+                    counter <= lfsr or x"E000";
+                elsif state=GEN_ENABLED_TIME then
+                    counter <= lfsr and x"1FFF";
                 elsif state=DISABLED or state=ENABLED then
                     counter <= conv_std_logic_vector(LFSR_FIXED_TURNS, counter'length);
                 end if;
