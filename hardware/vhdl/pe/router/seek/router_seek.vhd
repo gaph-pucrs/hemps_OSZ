@@ -89,6 +89,7 @@ signal	compare_searchpath_pending_in_table							: std_logic_vector(TABLE_SEEK_L
 signal  compare_service_pending_in_table							: std_logic_vector(TABLE_SEEK_LENGHT-1 downto 0);
 signal  count_clear													: std_logic_vector(4 downto 0);
 signal	backtrack_port												: std_logic_vector(2 downto 0);
+signal  propagate_service											: std_logic_vector(TAM_SERVICE_SEEK-1 downto 0);
 signal  req_task, req_int, is_my_turn_send_backtrack				: std_logic;
 signal	in_the_table, space_aval_in_the_table, nack_recv			: std_logic;
 signal	backtrack_pending_in_table, searchpath_pending_in_table		: std_logic;
@@ -469,6 +470,7 @@ process(clock, reset)--processo que gerencia cada estado manager
 					reg_backtrack				<= (others => '0');
 					backtrack_id 				<= (others => '1');--value invalid
 					out_req_send_kernel_seek	<= '0';
+					propagate_service			<= (others => '0');
 					
 		elsif clock'event and clock='1' then   
 				case EA_manager is
@@ -509,7 +511,8 @@ process(clock, reset)--processo que gerencia cada estado manager
 						end if;	
 
 						
-					when PROPAGATE =>							
+					when PROPAGATE =>
+					propagate_service <= service_table(sel);					
 					if (service_table(sel) = SEARCHPATH_SERVICE) and (backtrack_port_table(sel) = LOCAL) then
 						for j in 0 to 3 loop
 							int_out_req_router_seek(j) <= not searchpath_send_mask(j);
@@ -545,6 +548,7 @@ process(clock, reset)--processo que gerencia cada estado manager
 							end if;
 							
 						end loop;
+
 						
 					when CLEAR_TABLE =>	
 						int_out_req_router_seek <= (others => '0');
@@ -786,6 +790,8 @@ process(EA_manager, req_task , source_table, service_table, target_table, payloa
 					PE_manager <= SEND_LOCAL;	
 				elsif ((vector_ack_ports or vector_nack_ports) = "1111" )  and service_table(sel) = UNFREEZE_TASK_SERVICE and source_table(sel)(15 downto 0) /= router_address then
 					PE_manager <= SEND_LOCAL;
+				elsif ((vector_ack_ports or vector_nack_ports) = "1111" )  and propagate_service /= CLEAR_SERVICE and service_table(sel) = CLEAR_SERVICE then
+					PE_manager <= RESEND_CLEAR;
 				elsif ((vector_ack_ports or vector_nack_ports) = "1111" )  and service_table(sel) = CLEAR_SERVICE then
 					PE_manager <= CLEAR_TABLE;				
 				elsif  ((vector_ack_ports or vector_nack_ports) = "1111" )   then  	
@@ -795,6 +801,15 @@ process(EA_manager, req_task , source_table, service_table, target_table, payloa
 				else
 					PE_manager <= WAIT_ACK_PORTS;
 				end if;
+
+			when RESEND_CLEAR =>
+				PE_manager <= RESEND_CLEAR;
+				-- if  ((vector_ack_ports or vector_nack_ports) = "0000" )  then
+				-- 	PE_manager <= PROPAGATE;
+				-- else
+				-- 	PE_manager <= RESEND_CLEAR;
+				-- end if;
+		
 				
 			when HERMES_RESET =>
 			
