@@ -804,11 +804,7 @@ process(EA_manager, req_task , source_table, service_table, target_table, payloa
 
 			when RESEND_CLEAR =>
 				PE_manager <= PROPAGATE;
-				-- if  ((vector_ack_ports or vector_nack_ports) = "0000" )  then
-				-- 	PE_manager <= PROPAGATE;
-				-- else
-				-- 	PE_manager <= RESEND_CLEAR;
-				-- end if;
+				
 		
 				
 			when HERMES_RESET =>
