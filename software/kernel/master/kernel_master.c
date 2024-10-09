@@ -1358,6 +1358,10 @@ int SeekInterruptHandler(){
 		case INIT_ROUTER_RESET:
 			clear_residual_switching(source, target, payload, service);
 			break;
+
+		case REPORT_SUSPICIOUS_PATH:
+			handle_report_suspicious_path(source, target, payload);
+			break;
 			
 		//----------------------------------------------------------------------
 		// the services bellow if received by master is of another cluster
@@ -1478,11 +1482,6 @@ int SeekInterruptHandler(){
 			w.type = W1_MISSING_PACKET;
 
 			addReport(w);			
-
-			// payload 1 means its a non-IO packet and will trigger localization
-			if(payload == 1) {	
-				report_missing_packet(source >> 16, source & 0xFFFF);
-			}
 
 			// if (payload & 0x1 == 0){ // Key 
 			// 	puts("W4- Wrong Key\n");

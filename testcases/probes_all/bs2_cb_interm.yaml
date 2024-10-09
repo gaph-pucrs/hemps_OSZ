@@ -1,0 +1,28 @@
+hw:
+  page_size_KB: 128
+  tasks_per_PE: 1
+  repository_size_MB: 1
+  physical_channels: 2
+  model_description: hybrid
+  noc_buffer_size: 8
+  mpsoc_dimension: [5,5]
+  cluster_dimension: [5,5]
+  master_location: LT
+  session: yes
+  gray_area:
+    rows: [0,1,2,3,4]
+    cols: [0,1,2,3,4]
+  open_port:
+    - port: [Injector,90,0,4,N,0,2,W]
+  ht: # e0 e1 w0 w1 n0 n1 s0 s1 l0 l1
+    - router: [3,0,"xxiixxxxxx"] # m = drop packets start @ 2 ms
+apps:
+  - name: mpeg
+    start_time_ms: 0
+    secure: no
+    static_mapping:
+      start: [2,1]
+      print: [1,1]
+      iquant: [3,1]
+      idct: [2,0]
+      ivlc: [3,0]

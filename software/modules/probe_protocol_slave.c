@@ -344,35 +344,24 @@ void monitor_probe_timeout() {
     }
 }
 
-void register_suspicious_path(unsigned int target) {
-
-    probe_puts("[HT] Registering suspicious path to address "); probe_puts(itoh(target)); probe_puts("\n");
-
-    int sus_path_slot = get_suspicious_path_by_target(target);
+void report_suspicious_path_to_mpe(unsigned int target) {
     
-    if(sus_path_slot < 0) {
-        probe_puts("[HT] [DEBUG] New suspicious target\n");
-        sus_path_slot = get_new_suspicious_path_slot();
+    unsigned char compressed_path[3];
+
+    int sr_path_index = SearchSourceRoutingDestination(target);
+    if (sr_path_index != -1) { // is using source routing
+        convert_sr_header_to_compressed_path(SR_Table[sr_path_index].path, SR_Table[sr_path_index].path_size, compressed_path);
+    } else { // is using xy
+        char path[MAX_PROBE_PATH_SIZE];
+        int path_size = write_xy_path(path, get_net_address()&0xFFFF, target);
+        convert_path_to_compressed_path(path, path_size, compressed_path);
     }
     
-    if(sus_path_slot < 0) {
-        probe_puts("[HT] Error: could not save suspicious path.\n");
-        return;
-    }
-
-    suspicious_paths[sus_path_slot].target = target;
-
-    int sr_slot = SearchSourceRoutingDestination(target);
+    unsigned char source_address = ((get_net_address() & 0xF00) >> 4) | (get_net_address() & 0xF);
+    unsigned char target_address = ((target & 0xF00) >> 4) | (target & 0xF);
+    unsigned int source_field = ((compressed_path[0] << 24) | (compressed_path[1] << 16) | (source_address << 8) | (target_address));
     
-    if(sr_slot < 0) {
-        probe_puts("[HT] [DEBUG] Suspicious path is XY\n");
-        suspicious_paths[sus_path_slot].status = SUS_PATH_XY_PENDING;
-        return;
-    }
-
-    probe_puts("[HT] [DEBUG] Suspicious path is SR\n");
-    suspicious_paths[sus_path_slot].status = SUS_PATH_SR_PENDING;
-    convert_sr_header_to_compressed_path(SR_Table[sr_slot].path, SR_Table[sr_slot].path_size, suspicious_paths[sus_path_slot].compressed_sr_path);
+    Seek(REPORT_SUSPICIOUS_PATH, source_field, *probe_mpe_addr_ptr, compressed_path[2]);
 }
 
 void handle_broken_path_request(unsigned int pkt_source, unsigned int pkt_target, unsigned int pkt_payload) {
@@ -430,3 +419,4 @@ void request_to_clear_residual_switching(unsigned int faulty_packet_source) {
     probe_puts("[DMNI TIMEOUT] Sending reset router REQUEST to "); probe_puts(itoh(faulty_packet_source)); probe_puts("\n");
     Seek(INIT_ROUTER_RESET, get_net_address(), faulty_packet_source, 0); // payload '0' indicates that it is a regular faulty packet, src field contais src addr
 }
+

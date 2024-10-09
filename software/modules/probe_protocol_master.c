@@ -19,15 +19,13 @@ void init_probe_master_structures() {
                 noc_health[x][y].links[z].status = HEALTHY;
                 noc_health[x][y].links[z].total_probes = 0;
                 noc_health[x][y].links[z].failed_probes = 0;
+                noc_health[x][y].links[z].intersections = 0;
             }
         }
     }
-    //init missing packets queue
-    next_missing_packet_pending = 0;
-    next_missing_packet_slot = 0;
-    missing_packets_pending = 0;
-    for(int i = 0; i < SIZE_MISSING_PACKETS_QUEUE; i ++) {
-        missing_packets_queue[i].status = MISSING_PACKET_FREE;
+    //init suspicious path table
+    for (int i = 0; i < SUSPICIOUS_PATH_TABLE_SIZE; i++) {
+        suspicious_path_table[i].used = 0;
     }
 }
 
@@ -72,47 +70,40 @@ int is_binary_search_probes_empty() {
     return 1;
 }
 
-void report_missing_packet(unsigned int source, unsigned int target) {
-
-    //mpe already busy with a binary search, queue for later
-    if(bs_data.status == BS_BUSY) {
-
-        //if queue is full, ignore missing packet
-        if(missing_packets_pending == SIZE_MISSING_PACKETS_QUEUE) {
-            probe_puts("[HT] Missing Packets Queue is completely full, ignoring Missing Packet Report. Source=");
-            probe_puts(itoh(source));
-            probe_puts(" Target=");
-            probe_puts(itoh(target));
-            probe_puts("\n");
-            return;
+int get_new_suspicious_path_slot() {
+    for (int i = 0; i < SUSPICIOUS_PATH_TABLE_SIZE; i++) {
+        if (suspicious_path_table[i].used == 0) {
+            return i;
         }
-
-        missing_packets_queue[next_missing_packet_slot].source = source; 
-        missing_packets_queue[next_missing_packet_slot].target = target;
-        missing_packets_queue[next_missing_packet_slot].status = MISSING_PACKET_PENDING;
-        next_missing_packet_slot = (next_missing_packet_slot + 1) % SIZE_MISSING_PACKETS_QUEUE;
-        missing_packets_pending++;
-        return;
     }
-
-    //binary search is not busy, perform binary search on the missing packet
-    start_binary_search(source, target);
+    return -1;
 }
 
-void check_missing_packets_queue() {
-    
-    //no missing packets to handle
-    if(missing_packets_pending == 0)
-        return;
-    
-    //consume missing packet from queue
-    unsigned int source = missing_packets_queue[next_missing_packet_pending].source;
-    unsigned int target = missing_packets_queue[next_missing_packet_pending].target;
-    missing_packets_queue[next_missing_packet_pending].status = MISSING_PACKET_HANDLED;
-    next_missing_packet_pending = (next_missing_packet_pending + 1) % SIZE_MISSING_PACKETS_QUEUE;
-    missing_packets_pending--;
+void handle_report_suspicious_path(unsigned int pkt_source, unsigned int pkt_target, unsigned int pkt_payload) {
+    unsigned int source = (((pkt_source & 0xF000) >> 4) | ((pkt_source & 0xF00) >> 8));
+    unsigned int target = (((pkt_source & 0xF0) << 4) | (pkt_source & 0xF));
+    unsigned char compressed_path[3];
+    compressed_path[0] = ((pkt_source & 0xFF000000) >> 24);
+    compressed_path[1] = ((pkt_source & 0xFF0000) >> 16);
+    compressed_path[2] = (pkt_payload);
 
-    start_binary_search(source, target);
+    // TODO: handle reverb
+
+    int slot = get_new_suspicious_path_slot();
+    if (slot == -1) {
+        probe_puts("[HT] The suspicious path table is full, discarding this path.\n");
+        return;
+    }
+    suspicious_path_table[slot].used = 1;
+    suspicious_path_table[slot].source = source;
+    suspicious_path_table[slot].target = target;
+    suspicious_path_table[slot].path_size = convert_compressed_path_to_path(compressed_path, suspicious_path_table[slot].path);
+    probe_puts("[HT] Registered new path in the suspicious path table.\n");
+    probe_puts("[HT] Source: "); probe_puts(itoh(source));
+    probe_puts(" Target: "); probe_puts(itoh(target));
+    probe_puts(" Path: "); print_path(suspicious_path_table[slot].path, suspicious_path_table[slot].path_size); probe_puts("\n");
+    set_suspicious_health(source, suspicious_path_table[slot].path, suspicious_path_table[slot].path_size);    
+    print_noc_health_intersections(); 
 }
 
 void start_binary_search(unsigned int source, unsigned int target) {
@@ -172,7 +163,7 @@ void receive_binary_search_path(unsigned int pkt_source, unsigned int pkt_payloa
 
     //mark suspicous path
     set_suspicious_health(bs_data.suspicious_source, bs_data.suspicious_path, bs_data.suspicious_path_size);
-    print_noc_health();
+    print_noc_health_intersections();
 
     probe_puts("[HT] **** Starting new Binary Search - Source:");
     probe_puts(itoh(bs_data.suspicious_source));
@@ -266,7 +257,6 @@ void finalize_binary_search() {
     print_binary_search_result();
     bs_data.ht_counter = 0;
     bs_data.status = BS_IDLE;
-    check_missing_packets_queue();
 }
 
 int send_probe_request(unsigned int source_addr, unsigned int target_addr, char *path, int path_size) {
@@ -408,10 +398,11 @@ void clear_residual_switching_from_probe_id(int probe_id) {
 void set_suspicious_health(unsigned int source_address, char *path, int path_size) {
     
     int current_x = source_address >> 8;
-    int current_y = source_address && 0xff;
+    int current_y = source_address & 0xff;
     
     for(int i = 0; i < path_size; i++) {
-        noc_health[current_x][current_y].links[path[i]].status = SUSPICIOUS;
+        noc_health[current_x][current_y].links[(int) path[i]].status = SUSPICIOUS;
+        noc_health[current_x][current_y].links[(int) path[i]].intersections++;
         
         switch(path[i]) {
             case EAST:
@@ -430,7 +421,7 @@ void set_suspicious_health(unsigned int source_address, char *path, int path_siz
     }
 }
 
-void print_noc_health() {
+void print_noc_health_status() {
 
     for(int link = 0; link < NUM_LINKS_PER_ROUTER; link++) {
 
@@ -449,27 +440,6 @@ void print_noc_health() {
                 break;
         }
 
-        // PRINT NUMERICAL SCORE FOR EACH ROUTER
-        // for(int y = YDIMENSION-1; y >= 0; y--) {
-        //     for(int x = 0; x < XDIMENSION; x++) {
-        //         int score = link_trust_scores[x][y][link];
-        //         if(score >= 0) { //signal
-        //             probe_puts("+");
-        //         }
-        //         else {
-        //             probe_puts("-");
-        //             score *= -1;
-        //         }
-        //         if(score > 99) //limit to 2 digits
-        //             score = 99;
-        //         if(score < 10) //leading 0
-        //             probe_puts("0");
-        //         probe_puts(itoa(score)); //actual print
-        //         probe_puts(" "); //spacing
-        //     }
-        //     probe_puts("\n");
-        // }
-
         for(int y = YDIMENSION-1; y >= 0; y--) {
             for(int x = 0; x < XDIMENSION; x++) {
                 switch(noc_health[x][y].links[link].status) {
@@ -484,6 +454,41 @@ void print_noc_health() {
                         break;
                     default:
                         probe_puts("? ");
+                }
+            }
+            probe_puts("\n");
+        }
+    }
+}
+
+void print_noc_health_intersections() {
+
+    for(int link = 0; link < NUM_LINKS_PER_ROUTER; link++) {
+
+        switch(link) {
+            case EAST:
+                probe_puts("EAST:\n");
+                break;
+            case WEST:
+                probe_puts("WEST:\n");
+                break;
+            case NORTH:
+                probe_puts("NORTH:\n");
+                break;
+            case SOUTH:
+                probe_puts("SOUTH:\n");
+                break;
+        }
+
+        for(int y = YDIMENSION-1; y >= 0; y--) {
+            for(int x = 0; x < XDIMENSION; x++) {
+                int intersections = noc_health[x][y].links[link].intersections;
+                if(intersections < 0) {
+                    probe_puts("X");
+                } else {
+                    intersections %= 10; //print only one decimal place
+                    probe_puts(itoa(intersections));
+                    probe_puts(" ");
                 }
             }
             probe_puts("\n");

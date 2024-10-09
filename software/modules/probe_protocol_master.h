@@ -11,6 +11,7 @@
 #define MAX_BINARY_SEARCH_PROBES MAX_PROBE_PATH_SIZE+1 //maximum possible number of parallel path segments + 1 slot used during configuration
 #define MAX_BINARY_SEARCH_HTS MAX_PROBE_PATH_SIZE //maximum possible number of hts in a searched path
 #define SIZE_MISSING_PACKETS_QUEUE 10
+#define SUSPICIOUS_PATH_TABLE_SIZE 40
 
 #define PROBE_INDEX(probe_id) (probe_id % MAX_PROBE_ENTRIES)
 
@@ -36,22 +37,17 @@ struct probe {
 short next_probe_id;
 struct probe probes[MAX_PROBE_ENTRIES];
 
-/**** MISSING PACKETS QUEUE ****/
+/**** SUSPICIOUS PATH TABLE ****/
 
-enum missing_packet_status {
-    MISSING_PACKET_FREE,
-    MISSING_PACKET_PENDING,
-    MISSING_PACKET_HANDLED
+struct suspicious_path {
+    unsigned short used; // set to 1 or 0
+    unsigned short source;
+    unsigned short target;
+    char path[MAX_PROBE_PATH_SIZE];
+    int path_size;
 };
 
-struct missing_packet {
-    short source;
-    short target;
-    enum missing_packet_status status;
-};
-
-struct missing_packet missing_packets_queue[SIZE_MISSING_PACKETS_QUEUE];
-int next_missing_packet_pending, next_missing_packet_slot, missing_packets_pending;
+struct suspicious_path suspicious_path_table[SUSPICIOUS_PATH_TABLE_SIZE];
 
 /**** BINARY SEARCH DATA ****/
 
@@ -99,6 +95,7 @@ struct link_health {
     enum link_status status;
     short total_probes;
     short failed_probes;
+    short intersections; //number of suspicious paths intersecting the link
 };
 
 struct router_health {
@@ -119,9 +116,9 @@ int get_binary_search_probe_by_id(int id);
 
 int is_binary_search_probes_empty();
 
-void report_missing_packet(unsigned int source, unsigned int target);
+int get_new_suspicious_path_slot();
 
-void check_missing_packets_queue();
+void handle_report_suspicious_path(unsigned int pkt_source, unsigned int pkt_target, unsigned int pkt_payload);
 
 void start_binary_search(unsigned int source, unsigned int target);
 
@@ -149,6 +146,8 @@ void clear_residual_switching_from_probe_id(int probe_id);
 
 void set_suspicious_health(unsigned int source_address, char *path, int path_size);
 
-void print_noc_health();
+void print_noc_health_status();
+
+void print_noc_health_intersections();
 
 #endif

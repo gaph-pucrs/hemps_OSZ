@@ -157,8 +157,54 @@ begin
             );
         end generate;
 
+        CreditBlockHT_300us: if hts_setup(i+1)='R' generate
+            HT: entity work.router_ht(router_ht_credit_block_300us)
+            port map
+            (
+                clock           => clock,
+                reset           => reset,
+
+                router_tx       => router_tx(i),
+                router_clock_tx => router_clock_tx(i),
+                router_data_out => router_data_out(i),
+                router_eop_out  => router_eop_out(i),
+                router_bop_out  => router_bop_out(i),
+                router_cred_in  => router_cred_in(i),
+
+                ht_tx           => ht_tx(i),
+                ht_clock_tx     => ht_clock_tx(i),
+                ht_data_out     => ht_data_out(i),
+                ht_eop_out      => ht_eop_out(i),
+                ht_bop_out      => ht_bop_out(i),
+                ht_cred_in      => ht_cred_in(i)
+            );
+        end generate;
+
         BlackholeHT_2ms: if hts_setup(i+1)='m' generate
             HT: entity work.router_ht(router_ht_blackhole_2ms)
+            port map
+            (
+                clock           => clock,
+                reset           => reset,
+
+                router_tx       => router_tx(i),
+                router_clock_tx => router_clock_tx(i),
+                router_data_out => router_data_out(i),
+                router_eop_out  => router_eop_out(i),
+                router_bop_out  => router_bop_out(i),
+                router_cred_in  => router_cred_in(i),
+
+                ht_tx           => ht_tx(i),
+                ht_clock_tx     => ht_clock_tx(i),
+                ht_data_out     => ht_data_out(i),
+                ht_eop_out      => ht_eop_out(i),
+                ht_bop_out      => ht_bop_out(i),
+                ht_cred_in      => ht_cred_in(i)
+            );
+        end generate;
+
+        CreditBlockHT_2ms: if hts_setup(i+1)='o' generate
+            HT: entity work.router_ht(router_ht_credit_block_2ms)
             port map
             (
                 clock           => clock,
@@ -224,6 +270,29 @@ begin
                 ht_bop_out      => ht_bop_out(i),
                 ht_cred_in      => ht_cred_in(i)
             );
+        end generate;
+
+        CreditBlockHT_300usTo1950ms: if hts_setup(i+1)='r' generate
+        HT: entity work.router_ht(router_ht_credit_block_300us_to_1950us)
+        port map
+        (
+            clock           => clock,
+            reset           => reset,
+
+            router_tx       => router_tx(i),
+            router_clock_tx => router_clock_tx(i),
+            router_data_out => router_data_out(i),
+            router_eop_out  => router_eop_out(i),
+            router_bop_out  => router_bop_out(i),
+            router_cred_in  => router_cred_in(i),
+
+            ht_tx           => ht_tx(i),
+            ht_clock_tx     => ht_clock_tx(i),
+            ht_data_out     => ht_data_out(i),
+            ht_eop_out      => ht_eop_out(i),
+            ht_bop_out      => ht_bop_out(i),
+            ht_cred_in      => ht_cred_in(i)
+        );
         end generate;
 
         IntermittentHT: if hts_setup(i+1)='i' generate
