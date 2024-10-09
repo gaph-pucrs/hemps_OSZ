@@ -45,6 +45,7 @@ struct suspicious_path {
     unsigned short target;
     char path[MAX_PROBE_PATH_SIZE];
     int path_size;
+    unsigned short path_addrs[MAX_PROBE_PATH_SIZE]; //address of each pe contained in the suspicious path path, used for optimization
 };
 
 struct suspicious_path suspicious_path_table[SUSPICIOUS_PATH_TABLE_SIZE];
@@ -120,6 +121,10 @@ int get_new_suspicious_path_slot();
 
 void handle_report_suspicious_path(unsigned int pkt_source, unsigned int pkt_target, unsigned int pkt_payload);
 
+void release_suspicious_path_by_slot(int slot);
+
+void fill_suspicious_path_pe_addrs(int slot);
+
 void start_binary_search(unsigned int source, unsigned int target);
 
 void receive_binary_search_path(unsigned int pkt_source, unsigned int pkt_payload, unsigned int pkt_service);
@@ -145,6 +150,10 @@ void clear_residual_switching(unsigned int pkt_source, unsigned int pkt_target, 
 void clear_residual_switching_from_probe_id(int probe_id);
 
 void set_suspicious_health(unsigned int source_address, char *path, int path_size);
+
+void set_infected_health(unsigned int ht_address, char ht_link);
+
+void set_healthy_health(unsigned int source_address, char *path, int path_size);
 
 void print_noc_health_status();
 
