@@ -98,12 +98,48 @@ void handle_report_suspicious_path(unsigned int pkt_source, unsigned int pkt_tar
     suspicious_path_table[slot].source = source;
     suspicious_path_table[slot].target = target;
     suspicious_path_table[slot].path_size = convert_compressed_path_to_path(compressed_path, suspicious_path_table[slot].path);
+    
+    fill_suspicious_path_pe_addrs(slot);
+    
     probe_puts("[HT] Registered new path in the suspicious path table.\n");
     probe_puts("[HT] Source: "); probe_puts(itoh(source));
     probe_puts(" Target: "); probe_puts(itoh(target));
     probe_puts(" Path: "); print_path(suspicious_path_table[slot].path, suspicious_path_table[slot].path_size); probe_puts("\n");
     set_suspicious_health(source, suspicious_path_table[slot].path, suspicious_path_table[slot].path_size);    
     print_noc_health_intersections(); 
+}
+
+void release_suspicious_path_by_slot(int slot) {
+    set_healthy_health(suspicious_path_table[slot].source, suspicious_path_table[slot].path, suspicious_path_table[slot].path_size);
+    suspicious_path_table[slot].used = 0;
+}
+
+void fill_suspicious_path_pe_addrs(int slot) {
+
+    int x = suspicious_path_table[slot].source >> 8;
+    int y = suspicious_path_table[slot].source & 0xff;
+    
+    for(int i = 0; i < suspicious_path_table[slot].path_size; i++) {
+
+        suspicious_path_table[slot].path_addrs[i] = (x << 8) | (y & 0xff);
+
+        puts(itoh(suspicious_path_table[slot].path_addrs[i])); puts("\n");
+
+        switch(suspicious_path_table[slot].path[i]) {
+            case EAST:
+                x++;
+                break;
+            case WEST:
+                x--;
+                break;
+            case NORTH:
+                y++;
+                break;
+            case SOUTH:
+                y--;
+                break;
+        }
+    }
 }
 
 void start_binary_search(unsigned int source, unsigned int target) {
@@ -401,8 +437,55 @@ void set_suspicious_health(unsigned int source_address, char *path, int path_siz
     int current_y = source_address & 0xff;
     
     for(int i = 0; i < path_size; i++) {
-        noc_health[current_x][current_y].links[(int) path[i]].status = SUSPICIOUS;
+        if(noc_health[current_x][current_y].links[(int) path[i]].status != INFECTED)
+            noc_health[current_x][current_y].links[(int) path[i]].status = SUSPICIOUS;
         noc_health[current_x][current_y].links[(int) path[i]].intersections++;
+        
+        switch(path[i]) {
+            case EAST:
+                current_x++;
+                break;
+            case WEST:
+                current_x--;
+                break;
+            case NORTH:
+                current_y++;
+                break;
+            case SOUTH:
+                current_y--;
+                break;
+        }
+    }
+}
+
+void set_infected_health(unsigned int ht_address, char ht_link) {
+    
+    int ht_x = ht_address >> 8;
+    int ht_y = ht_address & 0xff;
+    noc_health[ht_x][ht_y].links[(int) ht_link].status = INFECTED;
+    
+    //Release suspicious paths that intersect with the infected link
+    for(int i = 0; i < SUSPICIOUS_PATH_TABLE_SIZE; i++) {
+        if(suspicious_path_table[i].used == 0)
+            continue; //ignores empty sus path
+            
+        for(int hop = 0; hop < suspicious_path_table[i].path_size; hop++) {
+            if((suspicious_path_table[i].path_addrs[hop] == (unsigned short) ht_address) && (suspicious_path_table[i].path[hop] == ht_link)) {
+                release_suspicious_path_by_slot(i);
+                break; //proceeds to next sus path
+            }
+        }
+    }
+}
+
+void set_healthy_health(unsigned int source_address, char *path, int path_size) {
+    int current_x = source_address >> 8;
+    int current_y = source_address & 0xff;
+    
+    for(int i = 0; i < path_size; i++) {
+        if(noc_health[current_x][current_y].links[(int) path[i]].status != INFECTED)
+            noc_health[current_x][current_y].links[(int) path[i]].status = HEALTHY;
+        noc_health[current_x][current_y].links[(int) path[i]].intersections = 0;
         
         switch(path[i]) {
             case EAST:
