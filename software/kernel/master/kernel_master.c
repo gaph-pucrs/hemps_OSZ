@@ -1350,11 +1350,6 @@ int SeekInterruptHandler(){
 			handle_probe_results(source, payload);
 			break;
 			
-		case PROBE_PATH:
-		case PROBE_PATH_XY:
-			receive_binary_search_path(source, payload, service);
-			break;
-			
 		case INIT_ROUTER_RESET:
 			clear_residual_switching(source, target, payload, service);
 			break;

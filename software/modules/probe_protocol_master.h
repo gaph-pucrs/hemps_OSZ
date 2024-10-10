@@ -67,7 +67,9 @@ struct binary_search {
     enum {BSA_BUSY, BSA_IDLE} status;
     
     struct suspicious_path path;
+
     struct suspicious_path path_queue[BSA_QUEUE_SIZE];
+    int next_queue_slot, next_path_in_queue, queued_paths;
 
     struct binary_search_probe bsa_probes[MAX_BINARY_SEARCH_PROBES];
 
@@ -75,7 +77,7 @@ struct binary_search {
     int ht_counter;
 };
 
-struct binary_search bsa_data;
+struct binary_search bsa;
 
 /**** NOC HEALTH MATRIX  ****/
 
@@ -108,15 +110,17 @@ int is_binary_search_probes_empty();
 
 int get_new_suspicious_path_slot();
 
+void copy_suspicious_path(struct suspicious_path *original, struct suspicious_path *copy);
+
 void handle_report_suspicious_path(unsigned int pkt_source, unsigned int pkt_target, unsigned int pkt_payload);
 
 void release_suspicious_path_by_slot(int slot);
 
 void fill_suspicious_path_pe_addrs(int slot);
 
-void start_binary_search(unsigned int source, unsigned int target);
+void register_new_binary_search(struct suspicious_path *new_bsa_path);
 
-void receive_binary_search_path(unsigned int pkt_source, unsigned int pkt_payload, unsigned int pkt_service);
+void start_binary_search();
 
 void binary_search_divide(unsigned int source, unsigned int target, char *path, int path_size);
 
