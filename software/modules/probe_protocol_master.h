@@ -12,6 +12,7 @@
 #define MAX_BINARY_SEARCH_HTS MAX_PROBE_PATH_SIZE //maximum possible number of hts in a searched path
 #define SIZE_MISSING_PACKETS_QUEUE 10
 #define SUSPICIOUS_PATH_TABLE_SIZE 40
+#define BSA_QUEUE_SIZE 5
 
 #define PROBE_INDEX(probe_id) (probe_id % MAX_PROBE_ENTRIES)
 
@@ -52,19 +53,9 @@ struct suspicious_path suspicious_path_table[SUSPICIOUS_PATH_TABLE_SIZE];
 
 /**** BINARY SEARCH DATA ****/
 
-enum binary_search_probe_status {
-    BS_PROBE_USED,
-    BS_PROBE_UNUSED
-};
-
 struct binary_search_probe {
     short id;
-    enum binary_search_probe_status status;
-};
-
-enum binary_search_status {
-    BS_IDLE,
-    BS_BUSY
+    enum {BSA_PROBE_USED, BSA_PROBE_UNUSED} status;
 };
 
 struct binary_search_ht {
@@ -73,20 +64,18 @@ struct binary_search_ht {
 };
 
 struct binary_search {
+    enum {BSA_BUSY, BSA_IDLE} status;
+    
+    struct suspicious_path path;
+    struct suspicious_path path_queue[BSA_QUEUE_SIZE];
 
-    unsigned short suspicious_source;
-    unsigned short suspicious_target;
-    char suspicious_path[MAX_PROBE_PATH_SIZE];
-    int suspicious_path_size;
-
-    enum binary_search_status status;
-    struct binary_search_probe bs_probes[MAX_BINARY_SEARCH_PROBES];
+    struct binary_search_probe bsa_probes[MAX_BINARY_SEARCH_PROBES];
 
     struct binary_search_ht hts[MAX_BINARY_SEARCH_HTS];
     int ht_counter;
 };
 
-struct binary_search bs_data;
+struct binary_search bsa_data;
 
 /**** NOC HEALTH MATRIX  ****/
 

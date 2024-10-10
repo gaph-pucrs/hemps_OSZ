@@ -2,10 +2,14 @@
 
 void init_probe_master_structures() {
     //init binary search
-    bs_data.status = BS_IDLE;
-    bs_data.ht_counter = 0;
+    bsa_data.status = BSA_IDLE;
+    bsa_data.ht_counter = 0;
     for(int i = 0; i < MAX_BINARY_SEARCH_PROBES; i++) {
-        bs_data.bs_probes[i].status = BS_PROBE_UNUSED;
+        bsa_data.bsa_probes[i].status = BSA_PROBE_UNUSED;
+    }
+    bsa_data.path.used = 0;
+    for (int i = 0; i < BSA_QUEUE_SIZE; i++) {
+        bsa_data.path_queue[i].used = 0;
     }
     //init probe entries
     next_probe_id = 0;
@@ -45,8 +49,8 @@ int get_new_probe_slot() {
 
 int get_new_binary_search_probe_slot() {
     for(int i = 0; i < MAX_BINARY_SEARCH_PROBES; i++) {
-        if(bs_data.bs_probes[i].status == BS_PROBE_UNUSED) {
-            bs_data.bs_probes[i].status = BS_PROBE_USED;
+        if(bsa_data.bsa_probes[i].status == BSA_PROBE_UNUSED) {
+            bsa_data.bsa_probes[i].status = BSA_PROBE_USED;
             return i;
         }
     }
@@ -56,7 +60,7 @@ int get_new_binary_search_probe_slot() {
 
 int get_binary_search_probe_by_id(int id) {
     for(int i = 0; i < MAX_BINARY_SEARCH_PROBES; i++) {
-        if(bs_data.bs_probes[i].id == id) {
+        if(bsa_data.bsa_probes[i].id == id) {
             return i;
         }
     }
@@ -65,7 +69,7 @@ int get_binary_search_probe_by_id(int id) {
 
 int is_binary_search_probes_empty() {
     for(int i = 0; i < MAX_BINARY_SEARCH_PROBES; i++)
-        if(bs_data.bs_probes[i].status == BS_PROBE_USED)
+        if(bsa_data.bsa_probes[i].status == BSA_PROBE_USED)
             return 0;
     return 1;
 }
@@ -144,14 +148,14 @@ void fill_suspicious_path_pe_addrs(int slot) {
 
 void start_binary_search(unsigned int source, unsigned int target) {
     
-    if(bs_data.status == BS_BUSY) {
+    if(bsa_data.status == BS_BUSY) {
         probe_puts("[HT] MPE already has ongoing binary search. Discarding...\n");        
         return;
     }
     
-    bs_data.status = BS_BUSY;
-    bs_data.suspicious_source = source;
-    bs_data.suspicious_target = target;
+    bsa_data.status = BS_BUSY;
+    bsa_data.suspicious_source = source;
+    bsa_data.suspicious_target = target;
 
     probe_puts("[HT] New binary search from ");
     probe_puts(itoh(source));
@@ -167,7 +171,7 @@ void start_binary_search(unsigned int source, unsigned int target) {
 
 void receive_binary_search_path(unsigned int pkt_source, unsigned int pkt_payload, unsigned int pkt_service) {
 
-    if(bs_data.status == BS_IDLE) {
+    if(bsa_data.status == BS_IDLE) {
         probe_puts("[HT] Warning: MPE received binary search path while binary search is disabled. Ignoring...\n");
         return;
     }
@@ -178,9 +182,9 @@ void receive_binary_search_path(unsigned int pkt_source, unsigned int pkt_payloa
     compressed_path[1] = pkt_source & 0xff;
     compressed_path[2] = pkt_payload;
 
-    if(packet_source_address != bs_data.suspicious_source) {
+    if(packet_source_address != bsa_data.suspicious_source) {
         probe_puts("[HT] Error: MPE was expecting binary search path from ");
-        probe_puts(itoh(bs_data.suspicious_source));
+        probe_puts(itoh(bsa_data.suspicious_source));
         probe_puts(" but received from ");
         probe_puts(itoh(packet_source_address));
         probe_puts("\n");
@@ -189,27 +193,27 @@ void receive_binary_search_path(unsigned int pkt_source, unsigned int pkt_payloa
 
     /* PATH IS XY */
     if(pkt_service == PROBE_PATH_XY) {
-        bs_data.suspicious_path_size = write_xy_path(bs_data.suspicious_path, bs_data.suspicious_source, bs_data.suspicious_target);
+        bsa_data.suspicious_path_size = write_xy_path(bsa_data.suspicious_path, bsa_data.suspicious_source, bsa_data.suspicious_target);
     }
 
     /* PATH IS SOURCE ROUTING */
     else {
-        bs_data.suspicious_path_size = convert_compressed_path_to_path(compressed_path, bs_data.suspicious_path);
+        bsa_data.suspicious_path_size = convert_compressed_path_to_path(compressed_path, bsa_data.suspicious_path);
     }
 
     //mark suspicous path
-    set_suspicious_health(bs_data.suspicious_source, bs_data.suspicious_path, bs_data.suspicious_path_size);
+    set_suspicious_health(bsa_data.suspicious_source, bsa_data.suspicious_path, bsa_data.suspicious_path_size);
     print_noc_health_intersections();
 
     probe_puts("[HT] **** Starting new Binary Search - Source:");
-    probe_puts(itoh(bs_data.suspicious_source));
+    probe_puts(itoh(bsa_data.suspicious_source));
     probe_puts(" Target:");
-    probe_puts(itoh(bs_data.suspicious_target));
+    probe_puts(itoh(bsa_data.suspicious_target));
     probe_puts(" Path:");
-    print_path(bs_data.suspicious_path, bs_data.suspicious_path_size);
+    print_path(bsa_data.suspicious_path, bsa_data.suspicious_path_size);
     probe_puts("\n");
 
-    binary_search_divide(bs_data.suspicious_source, bs_data.suspicious_target, bs_data.suspicious_path, bs_data.suspicious_path_size);
+    binary_search_divide(bsa_data.suspicious_source, bsa_data.suspicious_target, bsa_data.suspicious_path, bsa_data.suspicious_path_size);
 }
 
 void binary_search_divide(unsigned int source, unsigned int target, char *path, int path_size) {
@@ -224,7 +228,7 @@ void binary_search_divide(unsigned int source, unsigned int target, char *path, 
     int left_path_size = path_size / 2;
 
     int left_slot = get_new_binary_search_probe_slot();
-    bs_data.bs_probes[left_slot].id = send_probe_request(left_source, left_target, left_path, left_path_size);
+    bsa_data.bsa_probes[left_slot].id = send_probe_request(left_source, left_target, left_path, left_path_size);
 
     /* SEND RIGHT PROBE */
 
@@ -234,12 +238,12 @@ void binary_search_divide(unsigned int source, unsigned int target, char *path, 
     int right_path_size = path_size - left_path_size;
 
     int right_slot = get_new_binary_search_probe_slot();
-    bs_data.bs_probes[right_slot].id = send_probe_request(right_source, right_target, right_path, right_path_size);
+    bsa_data.bsa_probes[right_slot].id = send_probe_request(right_source, right_target, right_path, right_path_size);
 }
 
 void receive_binary_search_probe(int bs_probe_slot, int result) {
 
-    int probe_id = bs_data.bs_probes[bs_probe_slot].id;
+    int probe_id = bsa_data.bsa_probes[BSA_PROBE_slot].id;
     int probe_index = PROBE_INDEX(probe_id);
 
     if(result == PROBE_RESULT_FAILURE) {
@@ -254,45 +258,45 @@ void receive_binary_search_probe(int bs_probe_slot, int result) {
             
     }
 
-    bs_data.bs_probes[bs_probe_slot].status = BS_PROBE_UNUSED;
+    bsa_data.bsa_probes[bs_probe_slot].status = BSA_PROBE_UNUSED;
     if(is_binary_search_probes_empty())
         finalize_binary_search();
 }
 
 void register_binary_search_ht(unsigned int router, char port) {
 
-    if(bs_data.ht_counter == MAX_BINARY_SEARCH_HTS) {
+    if(bsa_data.ht_counter == MAX_BINARY_SEARCH_HTS) {
         return;
     }
 
-    bs_data.hts[bs_data.ht_counter].router = router;
-    bs_data.hts[bs_data.ht_counter].port = port;
-    bs_data.ht_counter++;
+    bsa_data.hts[bsa_data.ht_counter].router = router;
+    bsa_data.hts[bsa_data.ht_counter].port = port;
+    bsa_data.ht_counter++;
 }
 
 void print_binary_search_result() {
     probe_puts("[HT] **** BINARY SEARCH FINALIZED ****\n");
 
-    if(bs_data.ht_counter == 0) {
+    if(bsa_data.ht_counter == 0) {
         probe_puts("[HT]          No HT found.\n");
         return;
     }
 
-    for(int i = 0; i < bs_data.ht_counter; i++) {
+    for(int i = 0; i < bsa_data.ht_counter; i++) {
         probe_puts("[HT]          HT #");
         probe_puts(itoa(i+1));
         probe_puts(": ");
-        probe_puts(itoh(bs_data.hts[i].router));
+        probe_puts(itoh(bsa_data.hts[i].router));
         probe_puts(" ");
-        print_turn(bs_data.hts[i].port);
+        print_turn(bsa_data.hts[i].port);
         probe_puts("\n");
     }
 }
 
 void finalize_binary_search() {
     print_binary_search_result();
-    bs_data.ht_counter = 0;
-    bs_data.status = BS_IDLE;
+    bsa_data.ht_counter = 0;
+    bsa_data.status = BS_IDLE;
 }
 
 int send_probe_request(unsigned int source_addr, unsigned int target_addr, char *path, int path_size) {
@@ -361,7 +365,7 @@ void handle_probe_results(unsigned int packet_source_field, unsigned int payload
 
     update_trust_scores(probes[i].source, probes[i].target, probes[i].path, probes[i].path_size, result);
 
-    if(bs_data.status == BS_BUSY) {
+    if(bsa_data.status == BS_BUSY) {
         int bs_probe_slot = get_binary_search_probe_by_id(probe_id);
         if(bs_probe_slot >= 0) {
             receive_binary_search_probe(bs_probe_slot, result);
