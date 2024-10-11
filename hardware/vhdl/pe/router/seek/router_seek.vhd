@@ -741,10 +741,6 @@ process(EA_manager, req_task , source_table, service_table, target_table, payloa
 					PE_manager <= INIT_CLEAR;
 				elsif (int_in_ack_router_seek(LOCAL) = '1'  and  service_table(sel) = PROBE_RESULT ) then
 					PE_manager <= INIT_CLEAR;
-				elsif (int_in_ack_router_seek(LOCAL) = '1'  and  service_table(sel) = PROBE_REQUEST_PATH ) then
-					PE_manager <= INIT_CLEAR;
-				elsif (int_in_ack_router_seek(LOCAL) = '1'  and  service_table(sel) = PROBE_PATH_XY ) then
-					PE_manager <= INIT_CLEAR;
 				elsif (int_in_ack_router_seek(LOCAL) = '1'  and  service_table(sel) = INIT_ROUTER_RESET ) then
 					PE_manager <= INIT_CLEAR;
 				elsif (int_in_ack_router_seek(LOCAL) = '1'  and  service_table(sel) = REPORT_SUSPICIOUS_PATH ) then

@@ -70,8 +70,7 @@
 #define PROBE_PATH						44  //0x2C
 #define PROBE_CONTROL					45  //0x2D
 #define PROBE_RESULT					46  //0x2E
-#define PROBE_REQUEST_PATH				47  //0x2F
-#define PROBE_PATH_XY					48  //0x30
+
 #define RESET_HERMES_PORT_SERVICE		49  //0x31
 #define INIT_ROUTER_RESET				50  //0x32
 #define REPORT_SUSPICIOUS_PATH			51  //0x33
