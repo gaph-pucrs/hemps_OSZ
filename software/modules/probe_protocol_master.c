@@ -502,9 +502,10 @@ void set_healthy_health(unsigned int source_address, char *path, int path_size) 
     int current_y = source_address & 0xff;
     
     for(int i = 0; i < path_size; i++) {
-        if(noc_health[current_x][current_y].links[(int) path[i]].status != INFECTED)
+        if(noc_health[current_x][current_y].links[(int) path[i]].status != INFECTED) {
             noc_health[current_x][current_y].links[(int) path[i]].status = HEALTHY;
-        noc_health[current_x][current_y].links[(int) path[i]].intersections = 0;
+            noc_health[current_x][current_y].links[(int) path[i]].intersections = 0;
+        }
         
         switch(path[i]) {
             case EAST:
