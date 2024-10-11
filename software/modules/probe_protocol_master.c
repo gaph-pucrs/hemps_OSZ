@@ -588,11 +588,12 @@ void print_noc_health_intersections() {
                 int intersections = noc_health[x][y].links[link].intersections;
                 if(intersections < 0) {
                     probe_puts("X");
+                } else if(intersections == 0) {
+                    probe_puts(".");
                 } else {
-                    intersections %= 10; //print only one decimal place
                     probe_puts(itoa(intersections));
-                    probe_puts(" ");
                 }
+                probe_puts(" ");
             }
             probe_puts("\n");
         }
