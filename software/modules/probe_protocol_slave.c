@@ -10,10 +10,6 @@ void init_probe_structures(unsigned int *mpe_addr_ptr) {
     for(int i = 0; i < MAX_OUTGOING_PROBES; i++) {
         outgoing_probes[i].status = OUTGOING_PROBE_BLANK;
     }
-    next_suspicious_path_slot = 0;
-    for(int i = 0; i < MAX_SUSPICIOUS_PATHS; i++) {
-        suspicious_paths[i].status = SUS_PATH_BLANK;
-    }
 }
 
 int get_new_incoming_probe_slot() {
@@ -60,28 +56,6 @@ int get_new_outgoing_probe_slot() {
     return -1;
 }
 
-int get_new_suspicious_path_slot() {
-
-    int remaining_slots = MAX_SUSPICIOUS_PATHS;
-    while(remaining_slots > 0) {
-
-        int slot = next_suspicious_path_slot;
-        enum suspicious_path_status slot_status = suspicious_paths[slot].status;
-
-        next_suspicious_path_slot = (next_suspicious_path_slot + 1) % MAX_SUSPICIOUS_PATHS;
-        
-        if(slot_status == SUS_PATH_BLANK || slot_status == SUS_PATH_XY_SENT || slot_status == SUS_PATH_SR_SENT) {
-            suspicious_paths[slot].status = SUS_PATH_ALLOCATED;
-            return slot;
-        }
-
-        remaining_slots--;
-    }
-
-    probe_puts("[HT] ERROR: suspicious_paths array has no slot available\n");
-    return -1;
-}
-
 int get_incoming_probe_by_id(unsigned int probe_id) {
     for(int i = 0; i < MAX_INCOMING_PROBES; i++)
         if(incoming_probes[i].id == probe_id && incoming_probes[i].status != INCOMING_PROBE_BLANK)
@@ -93,16 +67,6 @@ int get_outgoing_probe_by_id(unsigned int probe_id) {
     for(int i = 0; i < MAX_OUTGOING_PROBES; i++)
         if(outgoing_probes[i].id == probe_id && outgoing_probes[i].status != OUTGOING_PROBE_BLANK)
             return i;
-    return -1;
-}
-
-int get_suspicious_path_by_target(unsigned int target) {
-    int i = 0;
-    while(i < MAX_SUSPICIOUS_PATHS) {
-        if(suspicious_paths[i].target == target && suspicious_paths[i].status != SUS_PATH_BLANK)
-            return i;
-        i++;
-    }
     return -1;
 }
 
@@ -364,39 +328,6 @@ void report_suspicious_path_to_mpe(unsigned int target) {
     Seek(REPORT_SUSPICIOUS_PATH, source_field, *probe_mpe_addr_ptr, compressed_path[2]);
 }
 
-void handle_broken_path_request(unsigned int pkt_source, unsigned int pkt_target, unsigned int pkt_payload) {
-
-    unsigned int target = pkt_source >> 16;
-
-    probe_puts("[HT] Received PROBE_PATH_REQUEST\n");
-    probe_puts("[HT]        Target: "); probe_puts(itoh(target)); probe_puts("\n");
-
-    int sus_path_slot = get_suspicious_path_by_target(target);
-    if(sus_path_slot < 0) {
-        probe_puts("[HT] Error: Suspicious path requested by the MPE was not registered in suspicious_paths array\n");
-        return;
-    }
-
-    if(suspicious_paths[sus_path_slot].status == SUS_PATH_XY_PENDING) {
-        probe_puts("[HT]        Path is XY\n");
-        Seek(PROBE_PATH_XY, get_net_address() << 16, *probe_mpe_addr_ptr, 0);
-        suspicious_paths[sus_path_slot].status = SUS_PATH_XY_SENT;
-        return;
-    }
-
-    if(suspicious_paths[sus_path_slot].status == SUS_PATH_SR_PENDING) {
-        unsigned char *compressed_sr_path = suspicious_paths[sus_path_slot].compressed_sr_path;
-        probe_puts("[HT]        Compressed path (SR): "); print_compressed_path(compressed_sr_path); probe_puts("\n");
-        Seek(PROBE_PATH, (get_net_address() << 16) | (compressed_sr_path[0] << 8) | compressed_sr_path[1], *probe_mpe_addr_ptr, compressed_sr_path[2]);
-        suspicious_paths[sus_path_slot].status = SUS_PATH_SR_SENT;
-        return;
-    }
-
-    probe_puts("[HT] ERROR: handle_broken_path function expected slot to be XY_PENDING or SR_PENDING, but was: ");
-    probe_puts(itoa(suspicious_paths[sus_path_slot].status));
-    probe_puts("\n");
-}
-
 void request_to_clear_residual_switching(unsigned int faulty_packet_source) {
 
     /* PACKET IS PROBE DEFINED BY THE MPE */
@@ -419,4 +350,3 @@ void request_to_clear_residual_switching(unsigned int faulty_packet_source) {
     probe_puts("[DMNI TIMEOUT] Sending reset router REQUEST to "); probe_puts(itoh(faulty_packet_source)); probe_puts("\n");
     Seek(INIT_ROUTER_RESET, get_net_address(), faulty_packet_source, 0); // payload '0' indicates that it is a regular faulty packet, src field contais src addr
 }
-

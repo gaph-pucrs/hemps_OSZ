@@ -2559,10 +2559,6 @@ int SeekInterruptHandler(){
 			receive_probe_control(source, target, payload);
 			break;
 
-		case PROBE_REQUEST_PATH:
-			handle_broken_path_request(source, target, payload);
-			break;
-
 		case INIT_ROUTER_RESET:
 			clear_residual_switching_from_current_path(target, source);
 			break;

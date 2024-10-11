@@ -789,14 +789,6 @@ void pe::seek_receive(){
 						cout << "PROBE_RESULT";
 						int_seek.write(1);
 					break;
-					case 0x2F:
-						cout << "PROBE_REQUEST_PATH";
-						int_seek.write(1);
-					break;
-					case 0x30:
-						cout << "PROBE_PATH_XY";
-						int_seek.write(1);
-					break;
 					case 0x31:
 						cout << "RESET_HERMES_PORT_SERVICE -- ERROR: should not reach pe!";
 						int_seek.write(1);
