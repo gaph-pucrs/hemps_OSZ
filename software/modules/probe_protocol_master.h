@@ -13,6 +13,7 @@
 #define SIZE_MISSING_PACKETS_QUEUE 10
 #define SUSPICIOUS_PATH_TABLE_SIZE 40
 #define BSA_QUEUE_SIZE 5
+#define THRESHOLD_SUS_PATHS_INTERSECTIONS 3
 
 #define PROBE_INDEX(probe_id) (probe_id % MAX_PROBE_ENTRIES)
 
@@ -142,7 +143,7 @@ void clear_residual_switching(unsigned int pkt_source, unsigned int pkt_target, 
 
 void clear_residual_switching_from_probe_id(int probe_id);
 
-void set_suspicious_health(unsigned int source_address, char *path, int path_size);
+void set_suspicious_health(struct suspicious_path *sus_path);
 
 void set_infected_health(unsigned int ht_address, char ht_link);
 

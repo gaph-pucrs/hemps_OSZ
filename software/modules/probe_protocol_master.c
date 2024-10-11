@@ -123,7 +123,7 @@ void handle_report_suspicious_path(unsigned int pkt_source, unsigned int pkt_tar
     probe_puts("[HT] Source: "); probe_puts(itoh(source));
     probe_puts(" Target: "); probe_puts(itoh(target));
     probe_puts(" Path: "); print_path(suspicious_path_table[slot].path, suspicious_path_table[slot].path_size); probe_puts("\n");
-    set_suspicious_health(source, suspicious_path_table[slot].path, suspicious_path_table[slot].path_size);    
+    set_suspicious_health(&suspicious_path_table[slot]);
     print_noc_health_intersections(); 
 }
 
@@ -140,8 +140,6 @@ void fill_suspicious_path_pe_addrs(int slot) {
     for(int i = 0; i < suspicious_path_table[slot].path_size; i++) {
 
         suspicious_path_table[slot].path_addrs[i] = (x << 8) | (y & 0xff);
-
-        puts(itoh(suspicious_path_table[slot].path_addrs[i])); puts("\n");
 
         switch(suspicious_path_table[slot].path[i]) {
             case EAST:
@@ -251,6 +249,8 @@ void receive_binary_search_probe(int bs_probe_slot, int result) {
 
 void register_binary_search_ht(unsigned int router, char port) {
 
+    set_infected_health(router, port);
+
     if(bsa.ht_counter == MAX_BINARY_SEARCH_HTS) {
         return;
     }
@@ -284,6 +284,7 @@ void finalize_binary_search() {
     
     print_binary_search_result();
     bsa.ht_counter = 0;
+    print_noc_health_intersections();
 
     //check bsa queue
     if(bsa.queued_paths > 0) {
@@ -438,17 +439,27 @@ void clear_residual_switching_from_probe_id(int probe_id) {
     send_reset_packets_to_routers_in_path(probes[probe_index].source, probes[probe_index].path, probes[probe_index].path_size);
 }
 
-void set_suspicious_health(unsigned int source_address, char *path, int path_size) {
+void set_suspicious_health(struct suspicious_path *sus_path) {
     
-    int current_x = source_address >> 8;
-    int current_y = source_address & 0xff;
+    int current_x = sus_path->source >> 8;
+    int current_y = sus_path->source & 0xff;
     
-    for(int i = 0; i < path_size; i++) {
-        if(noc_health[current_x][current_y].links[(int) path[i]].status != INFECTED)
-            noc_health[current_x][current_y].links[(int) path[i]].status = SUSPICIOUS;
-        noc_health[current_x][current_y].links[(int) path[i]].intersections++;
+    int registered_new_bsa = 0;
+    for(int i = 0; i < sus_path->path_size; i++) {
         
-        switch(path[i]) {
+        if(noc_health[current_x][current_y].links[(int) sus_path->path[i]].status != INFECTED) {
+            noc_health[current_x][current_y].links[(int) sus_path->path[i]].status = SUSPICIOUS;
+            noc_health[current_x][current_y].links[(int) sus_path->path[i]].intersections++;
+        }
+
+        if(registered_new_bsa == 0 && noc_health[current_x][current_y].links[(int) sus_path->path[i]].intersections >= THRESHOLD_SUS_PATHS_INTERSECTIONS) {
+            register_new_binary_search(sus_path);
+            registered_new_bsa = 1;
+            probe_puts("[HT] Suspicious path violation in link "); probe_puts(itoa(current_x)); probe_puts("x");
+            probe_puts(itoa(current_y)); probe_puts(" "); print_turn(sus_path->path[i]); probe_puts("\n");
+        }
+        
+        switch(sus_path->path[i]) {
             case EAST:
                 current_x++;
                 break;
@@ -470,6 +481,7 @@ void set_infected_health(unsigned int ht_address, char ht_link) {
     int ht_x = ht_address >> 8;
     int ht_y = ht_address & 0xff;
     noc_health[ht_x][ht_y].links[(int) ht_link].status = INFECTED;
+    noc_health[ht_x][ht_y].links[(int) ht_link].intersections = -1;
     
     //Release suspicious paths that intersect with the infected link
     for(int i = 0; i < SUSPICIOUS_PATH_TABLE_SIZE; i++) {
