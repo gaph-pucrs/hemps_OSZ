@@ -133,6 +133,8 @@ void print_binary_search_result();
 
 void finalize_binary_search();
 
+int check_if_path_intersects_with_registered_bsa(struct suspicious_path *new_path);
+
 int send_probe_request(unsigned int source_addr, unsigned int target_addr, char *path, int path_size);
 
 void handle_probe_results(unsigned int packet_source_field, unsigned int payload);

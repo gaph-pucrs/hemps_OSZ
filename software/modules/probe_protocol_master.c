@@ -170,8 +170,13 @@ void register_new_binary_search(struct suspicious_path *new_bsa_path) {
             probe_puts("[HT] BSA queue is full, ignoring new binary search.\n");
             return;
         }
-        probe_puts("[HT] MPE already has ongoing binary search, queueing new BSA.\n");
 
+        if(check_if_path_intersects_with_registered_bsa(new_bsa_path) == 1) {
+            probe_puts("[HT] Path intersects with registered BSAs, ignoring new binary search.\n");
+            return;
+        }
+
+        probe_puts("[HT] MPE already has ongoing binary search, queueing new BSA.\n");
         copy_suspicious_path(new_bsa_path, &bsa.path_queue[bsa.next_queue_slot]);
         bsa.path_queue[bsa.next_queue_slot].used = 1;
         bsa.next_queue_slot = (bsa.next_queue_slot + 1) % BSA_QUEUE_SIZE;
@@ -301,6 +306,29 @@ void finalize_binary_search() {
 
     bsa.status = BSA_IDLE;
     bsa.path.used = 0;
+}
+
+int check_if_path_intersects_with_registered_bsa(struct suspicious_path *new_path) {
+    
+    //check ongoing bsa path
+    for(int i = 0; i < bsa.path.path_size; i++)
+        for(int j = 0; j < new_path->path_size; j++)
+            if(bsa.path.path_addrs[i] == new_path->path_addrs[j] && bsa.path.path[i] == new_path->path[j])
+                return 1;
+    
+    //check paths in the bsa queue
+    int checked_paths = 0;
+    int p = bsa.next_path_in_queue;
+    while(checked_paths < bsa.queued_paths) {
+        for(int i = 0; i < bsa.path_queue[p].path_size; i++)
+            for(int j = 0; j < new_path->path_size; j++)
+                if(bsa.path_queue[p].path_addrs[i] == new_path->path_addrs[j] && bsa.path_queue[p].path[i] == new_path->path[j])
+                    return 1;
+        p = (p + 1) % BSA_QUEUE_SIZE;
+        checked_paths++;
+    }
+
+    return 0;
 }
 
 int send_probe_request(unsigned int source_addr, unsigned int target_addr, char *path, int path_size) {
@@ -455,7 +483,7 @@ void set_suspicious_health(struct suspicious_path *sus_path) {
         if(registered_new_bsa == 0 && noc_health[current_x][current_y].links[(int) sus_path->path[i]].intersections >= THRESHOLD_SUS_PATHS_INTERSECTIONS) {
             register_new_binary_search(sus_path);
             registered_new_bsa = 1;
-            probe_puts("[HT] Suspicious path violation in link "); probe_puts(itoa(current_x)); probe_puts("x");
+            probe_puts("[HT] Suspicious path threshold violation in link "); probe_puts(itoa(current_x)); probe_puts("x");
             probe_puts(itoa(current_y)); probe_puts(" "); print_turn(sus_path->path[i]); probe_puts("\n");
         }
         
