@@ -785,6 +785,9 @@ void handle_packet() {
 
 		break;
 
+	case PROBE_MESSAGE:
+		receive_probe(p.probe_id, p.probe_source, p.probe_target);
+		break;
 
 
 	default:
@@ -1345,6 +1348,18 @@ int SeekInterruptHandler(){
 			app->nTurns = nTurns_aux; 
 			renew_snips(app); 
 		break;
+
+		case PROBE_REQUEST:
+			handle_probe_request(source, target, payload);
+			break;
+
+		case PROBE_PATH: 
+			handle_probe_path(source, target, payload);
+			break;
+
+		case PROBE_CONTROL:
+			receive_probe_control(source, target, payload);
+			break;
 		
 		case PROBE_RESULT:
 			handle_probe_results(source, payload);
@@ -1531,6 +1546,7 @@ int main() {
 		initialize_IO();
 
 		init_probe_master_structures();
+		init_probe_structures(&global_master_address);
 	} else {
 
 		puts("This kernel is local master\n");
