@@ -1,4 +1,4 @@
-#include "probe_protocol_master.h"
+#include "probe_master.h"
 
 void init_probe_master_structures() {
     //init binary search

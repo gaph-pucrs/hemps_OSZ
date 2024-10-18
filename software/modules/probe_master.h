@@ -1,7 +1,7 @@
 #ifndef PROBE_PROTOCOL_MASTER_H_
 #define PROBE_PROTOCOL_MASTER_H_
 
-#include "probe_protocol.h"
+#include "probe.h"
 #include "packet.h"
 #include "seek.h"
 #include "../../include/kernel_pkg.h"
