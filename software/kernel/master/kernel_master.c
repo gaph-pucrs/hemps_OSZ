@@ -35,7 +35,7 @@
 
 #include "../../modules/osz_master.h"
 #include "../../modules/snip_master.h"
-#include "../../modules/probe_protocol_master.h"
+#include "../../modules/probe_master.h"
 
 
 NewTask * pending_new_task;

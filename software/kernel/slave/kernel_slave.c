@@ -35,7 +35,7 @@
 #include "../../modules/lfsr.h"
 
 #include "../../modules/osz_slave.h"
-#include "../../modules/probe_protocol_slave.h"
+#include "../../modules/probe.h"
 
 #ifdef AES_MODULE
 #include "../../modules/aes.h"
