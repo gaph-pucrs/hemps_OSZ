@@ -34,10 +34,6 @@ void quicksort(void *base, unsigned short num, unsigned short size, int (*cmp)(c
     }
 }
 
-// int compare_ints(const void *a, const void *b) {
-//     return ((struct most_suspicious_search *)b)->intersections - ((struct most_suspicious_search *)a)->intersections;
-// }
-
 unsigned short get_x(unsigned short coord) {
     return coord >> 8;
 }
@@ -61,9 +57,10 @@ int compare_suspicious(const void *a, const void *b) {
     int intersections_diff = slot_b->intersections - slot_a->intersections;
     if (intersections_diff != 0) return intersections_diff;
 
-    unsigned short target =
+    unsigned short target = var_most_suspicious_with_target.target;
     int distance_a = distance_between_PEs(slot_a->addr, target);
     int distance_b = distance_between_PEs(slot_b->addr, target);
+
     return distance_a - distance_b;
 }
 
@@ -84,7 +81,7 @@ void init_probe_master_structures() {
     }
     bsa.path.used = 0;
     for (int i = 0; i < BSA_QUEUE_SIZE; i++) {
-s        bsa.path_queue[i].used = 0;
+        bsa.path_queue[i].used = 0;
     }
     bsa.next_queue_slot = 0;
     bsa.next_path_in_queue = 0;
@@ -440,7 +437,7 @@ void most_suspicious_search(struct suspicious_path *path) {
         probe_puts("]\n");
     }
 
-    quicksort(var_most_suspicious_with_target, path->path_size, sizeof(struct var_most_suspicious_with_target), compare_distance_between_PEs);
+    quicksort(var_most_suspicious_with_target.most_suspicious, path->path_size, sizeof(struct most_suspicious_search), compare_suspicious);
     probe_puts("[HT] SORTED PATH:\n");
     for (int i = 0; i < path->path_size; i++) {
         probe_puts("[");
