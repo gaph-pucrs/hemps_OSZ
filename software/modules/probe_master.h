@@ -80,6 +80,18 @@ struct binary_search {
 
 struct binary_search bsa;
 
+/**** MOST_SUSPICIOUS_SEARCH ****/
+
+struct most_suspicious_search {
+    unsigned short addr;
+    char port;
+    short intersections;    
+};
+
+struct most_suspicious_search most_suspicious[MAX_PROBE_PATH_SIZE];
+
+int get_turn_integer(char);
+
 /**** NOC HEALTH MATRIX  ****/
 
 enum link_status {HEALTHY, SUSPICIOUS, INFECTED};
