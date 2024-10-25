@@ -86,9 +86,16 @@ struct most_suspicious_search {
     unsigned short addr;
     char port;
     short intersections;    
-};
+} ;
 
-struct most_suspicious_search most_suspicious[MAX_PROBE_PATH_SIZE];
+
+
+struct most_suspicious_with_target{
+    unsigned short target;
+    struct  most_suspicious_search most_suspicious[MAX_PROBE_PATH_SIZE];
+}; 
+
+struct most_suspicious_with_target var_most_suspicious_with_target;
 
 int get_turn_integer(char);
 

@@ -410,10 +410,11 @@ int check_if_path_intersects_with_registered_bsa(struct suspicious_path *new_pat
 /***************************/
 
 void populate_most_suspicious_path(struct suspicious_path *path) {
+    var_most_suspicious_with_target.target = path->target;
     for (int i = 0; i < path->path_size; i++) {
-        most_suspicious[i].addr = path->path_addrs[i];
-        most_suspicious[i].port = path->path[i];
-        most_suspicious[i].intersections = noc_health[(path->path_addrs[i] & 0xFF00) >> 8][path->path_addrs[i] & 0xFF].links[path->path[i]].intersections;
+        var_most_suspicious_with_target.most_suspicious[i].addr = path->path_addrs[i];
+        var_most_suspicious_with_target.most_suspicious[i].port = path->path[i];
+        var_most_suspicious_with_target.most_suspicious[i].intersections = noc_health[(path->path_addrs[i] & 0xFF00) >> 8][path->path_addrs[i] & 0xFF].links[path->path[i]].intersections;
         // probe_puts("\n\n[LOG]\n");
         // probe_puts(itoh(path->path[i]));
         // probe_puts("\n");
@@ -431,23 +432,23 @@ void most_suspicious_search(struct suspicious_path *path) {
     probe_puts("[HT] NON-SORTED PATH:\n");
     for (int i = 0; i < path->path_size; i++) {
         probe_puts("[");
-        probe_puts(itoh(most_suspicious[i].port));
+        probe_puts(itoh(var_most_suspicious_with_target.most_suspicious[i].port));
         probe_puts(", ");
-        probe_puts(itoh(most_suspicious[i].addr));
+        probe_puts(itoh(var_most_suspicious_with_target.most_suspicious[i].addr));
         probe_puts(", ");
-        probe_puts(itoh(most_suspicious[i].intersections));
+        probe_puts(itoh(var_most_suspicious_with_target.most_suspicious[i].intersections));
         probe_puts("]\n");
     }
 
-    quicksort(most_suspicious, path->path_size, sizeof(struct most_suspicious_search), compare_ints);
+    quicksort(var_most_suspicious_with_target, path->path_size, sizeof(struct var_most_suspicious_with_target), compare_distance_between_PEs);
     probe_puts("[HT] SORTED PATH:\n");
     for (int i = 0; i < path->path_size; i++) {
         probe_puts("[");
-        probe_puts(itoh(most_suspicious[i].port));
+        probe_puts(itoh(var_most_suspicious_with_target.most_suspicious[i].port));
         probe_puts(", ");
-        probe_puts(itoh(most_suspicious[i].addr));
+        probe_puts(itoh(var_most_suspicious_with_target.most_suspicious[i].addr));
         probe_puts(", ");
-        probe_puts(itoh(most_suspicious[i].intersections));
+        probe_puts(itoh(var_most_suspicious_with_target.most_suspicious[i].intersections));
         probe_puts("]\n");
         }
     return;
