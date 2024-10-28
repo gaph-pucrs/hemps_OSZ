@@ -42,6 +42,8 @@ char *strcpy(char *, const char *);
 
 int strlen(const char *);
 
+void quicksort(void *base, unsigned short num, unsigned short size, int (*cmp)(const void *, const void *));
+
 //int puts(char *);
 
 #define putsv(string, value) puts(string); puts(itoa(value)); puts("\n");
