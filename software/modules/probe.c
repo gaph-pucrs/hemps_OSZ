@@ -93,6 +93,14 @@ void print_compressed_path(unsigned char *compressed_path) {
 
 /**** PATH LOGIC ****/
 
+int get_turn_integer(char turn) {
+    if (turn == 'E') return EAST;
+    if (turn == 'W') return WEST;
+    if (turn == 'N') return NORTH;
+    if (turn == 'S') return SOUTH;
+    return -1;
+}
+
 char get_opposite_direction(char direction) {
 
     if(direction >= 4) //uses the second channel

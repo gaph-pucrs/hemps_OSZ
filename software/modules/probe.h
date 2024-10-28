@@ -10,6 +10,9 @@
 #define probe_debug_puts(argument) puts(argument)
 // #define probe_debug_puts(argument)
 
+#define GET_X(argument) (argument >> 8)
+#define GET_Y(argument) (argument & 0xFF)
+
 #define MAX_PROBE_SR_LENGTH 2
 #define MAX_PROBE_PATH_SIZE 11
 
@@ -95,6 +98,8 @@ void print_sr_header(unsigned int *header, int header_size);
 void print_compressed_path(unsigned char *compressed_path);
 
 /**** PATH LOGIC ****/
+
+int get_turn_integer(char turn);
 
 char get_opposite_direction(char direction);
 

@@ -4,6 +4,7 @@
 #include "probe.h"
 #include "packet.h"
 #include "seek.h"
+#include "utils.h"
 #include "../../include/kernel_pkg.h"
 
 #define NUM_LINKS_PER_ROUTER 4
@@ -80,20 +81,20 @@ struct binary_search {
 
 struct binary_search bsa;
 
-/**** MOST_SUSPICIOUS_SEARCH ****/
+/**** ORDERED SEARCH STRUCTURES ****/
 
-struct most_suspicious_search {
+struct ordered_search_hop {
     unsigned short addr;
     char port;
     short intersections;    
 };
 
-struct most_suspicious_with_target{
+struct ordered_search {
     unsigned short target;
-    struct most_suspicious_search most_suspicious[MAX_PROBE_PATH_SIZE];
+    struct ordered_search_hop hops[MAX_PROBE_PATH_SIZE];
 }; 
 
-struct most_suspicious_with_target var_most_suspicious_with_target;
+struct ordered_search ordered_search;
 
 int get_turn_integer(char);
 
@@ -171,5 +172,15 @@ void set_healthy_health(unsigned int source_address, char *path, int path_size);
 void print_noc_health_status();
 
 void print_noc_health_intersections();
+
+/**** ORDERED SEARCH ****/
+
+int distance_between_PEs(unsigned short addr, unsigned short target);
+
+int compare_suspicious_hops(const void *a, const void *b);
+
+void populate_ordered_search(struct suspicious_path *path);
+
+void start_ordered_search(struct suspicious_path *path);
 
 #endif
