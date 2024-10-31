@@ -89,9 +89,15 @@ struct ordered_search_hop {
     short intersections;    
 };
 
+enum ordered_search_status {OS_IDLE, OS_BUSY};
+
 struct ordered_search {
+    enum ordered_search_status status;
     unsigned short target;
     struct ordered_search_hop hops[MAX_PROBE_PATH_SIZE];
+    int hops_size;
+    unsigned short next_hop;
+    unsigned short current_probe_id;
 }; 
 
 struct ordered_search ordered_search;
