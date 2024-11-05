@@ -62,7 +62,6 @@ void print_turn(char turn) {
             probe_puts("S");
             return;
     }
-    probe_puts("?");
 }
 
 void print_path(char *path, int path_size) {
