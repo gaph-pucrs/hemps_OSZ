@@ -87,7 +87,7 @@ signal	opmode_table												: std_logic_vector(TABLE_SEEK_LENGHT-1 downto 0);
 signal	compare_bactrack_pending_in_table							: std_logic_vector(TABLE_SEEK_LENGHT-1 downto 0);
 signal	compare_searchpath_pending_in_table							: std_logic_vector(TABLE_SEEK_LENGHT-1 downto 0);
 signal  compare_service_pending_in_table							: std_logic_vector(TABLE_SEEK_LENGHT-1 downto 0);
-signal  count_clear													: std_logic_vector(4 downto 0);
+signal  count_clear, counter_reset													: std_logic_vector(4 downto 0);
 signal	backtrack_port												: std_logic_vector(2 downto 0);
 signal  propagate_service											: std_logic_vector(TAM_SERVICE_SEEK-1 downto 0);
 signal  req_task, req_int, is_my_turn_send_backtrack				: std_logic;
@@ -289,7 +289,7 @@ begin
 					when others => 
 					
 				end case;	
----------------------------------------------------------------------------------------------------------------
+
 				case  EA_manager is 
 				    when WAIT_ACK_PORTS =>   
 						--if nack_recv = '0' then
@@ -346,7 +346,8 @@ begin
 			            payload_table(sel) 			<=  my_payload_table(sel);		            
 			            
 			        when S_INIT =>    	
-			            count_clear 			<= "00000"; 
+			            count_clear 			<= "00000";
+						counter_reset				<= "00000";
 
 			        when COUNT =>
 			        	count_clear <= count_clear(3 downto 0)&'1';
@@ -356,8 +357,15 @@ begin
 			        	if (count_clear >= "11111") then
 			        		service_table(sel) 		<=  CLEAR_SERVICE;	
 							pending_table(sel)		<= '1';
-							backtrack_port_table(source_index)			<=	std_logic_vector(to_unsigned(LOCAL, 3));
+							-- backtrack_port_table(source_index)			<=	std_logic_vector(to_unsigned(LOCAL, 3));
+							backtrack_port_table(sel)			<=	std_logic_vector(to_unsigned(LOCAL, 3));
 			        	end if;
+
+					when COUNT_RESET =>
+						counter_reset <= counter_reset(3 downto 0)&'1';
+
+					-- when WAIT_RESET =>
+		
 
 					when others => null;
 
@@ -663,11 +671,24 @@ process(EA_manager, req_task , source_table, service_table, target_table, payloa
 					PE_manager <= COUNT;
 				else	
 					PE_manager <= S_INIT ;	
-				end if;	
+				end if;
 
+			when WAIT_RESET =>
+
+				if counter_reset /= "11111" then
+					PE_manager <= COUNT_RESET;
+				else	
+					PE_manager <= INIT_CLEAR ;	
+				end if;	
+				
 			when COUNT =>
 				
 				PE_manager <= INIT_CLEAR;	
+
+			when COUNT_RESET =>
+				
+				PE_manager <= WAIT_RESET;	
+					
 								
 			when BACKTRACK_PROPAGATE =>				 
 				if int_in_ack_router_seek(to_integer(unsigned(backtrack_port))) = '1' then
@@ -807,7 +828,7 @@ process(EA_manager, req_task , source_table, service_table, target_table, payloa
 				
 			when HERMES_RESET =>
 			
-				PE_manager <= INIT_CLEAR;
+				PE_manager <= WAIT_RESET;
 			
 			when others => 
 				PE_manager <= S_INIT;
