@@ -293,6 +293,12 @@ void finalize_binary_search() {
     bsa.ht_counter = 0;
     print_noc_health_intersections();
 
+    if (bsa.ht_counter == 0) {
+        probe_puts("[HT] No HT found at this binary searched path, starting ordered search instead.\n");
+        register_new_ordered_search(&bsa.path);
+    }
+    bsa.ht_counter = 0;
+
     //check bsa queue
     if(bsa.queued_paths > 0) {
         copy_suspicious_path(&bsa.path_queue[bsa.next_path_in_queue], &bsa.path);
@@ -509,8 +515,8 @@ void set_suspicious_health(struct suspicious_path *sus_path) {
 
     if (violated_intersections_threshold == 1) {
         probe_puts("[HT] Suspicious path threshold violation\n");
-        // register_new_binary_search(sus_path);
-        register_new_ordered_search(sus_path);
+        register_new_binary_search(sus_path);
+        // register_new_ordered_search(sus_path);
     }
 }
 
