@@ -15,6 +15,7 @@
 #define SUSPICIOUS_PATH_TABLE_SIZE 40
 #define BSA_QUEUE_SIZE 5
 #define THRESHOLD_SUS_PATHS_INTERSECTIONS 1
+#define OS_STOPS_ON_FIRST_HT 1 // 1 to stop the ordered search when the first HT is found, 0 to continue until the end of the path looking for more HTs
 
 #define PROBE_INDEX(probe_id) (probe_id % MAX_PROBE_ENTRIES)
 

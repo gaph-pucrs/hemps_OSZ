@@ -232,6 +232,16 @@ void binary_search_divide(unsigned int source, unsigned int target, char *path, 
     bsa.bsa_probes[right_slot].id = send_probe_request(right_source, right_target, right_path, right_path_size);
 }
 
+void evaluate_bsa_result() {
+    if(bsa.ht_counter == 0) {
+        probe_puts("[HT] No HT found at this binary searched path, starting ordered search instead.\n");
+        register_new_ordered_search(&bsa.path);
+    }
+    else {
+        finalize_binary_search();
+    }
+}
+
 void receive_binary_search_probe(int bs_probe_slot, int result) {
 
     int probe_id = bsa.bsa_probes[bs_probe_slot].id;
@@ -251,7 +261,7 @@ void receive_binary_search_probe(int bs_probe_slot, int result) {
 
     bsa.bsa_probes[bs_probe_slot].status = BSA_PROBE_UNUSED;
     if(is_binary_search_probes_empty())
-        finalize_binary_search();
+        evaluate_bsa_result();
 }
 
 void register_binary_search_ht(unsigned int router, char port) {
@@ -290,13 +300,8 @@ void print_binary_search_result() {
 void finalize_binary_search() {
     
     print_binary_search_result();
-    bsa.ht_counter = 0;
     print_noc_health_intersections();
 
-    if (bsa.ht_counter == 0) {
-        probe_puts("[HT] No HT found at this binary searched path, starting ordered search instead.\n");
-        register_new_ordered_search(&bsa.path);
-    }
     bsa.ht_counter = 0;
 
     //check bsa queue
@@ -756,6 +761,10 @@ void register_ordered_search_ht(unsigned int router, char port) {
     ordered_search.hts[ordered_search.ht_counter].router = router;
     ordered_search.hts[ordered_search.ht_counter].port = port;
     ordered_search.ht_counter++;
+
+    if (OS_STOPS_ON_FIRST_HT) {
+        finalize_ordered_search();
+    }
 }
 
 void finalize_ordered_search() {
@@ -765,6 +774,7 @@ void finalize_ordered_search() {
     ordered_search.next_hop = 0;
     ordered_search.status = OS_IDLE;
     print_noc_health_intersections();
+    finalize_binary_search();
 }
 
 void print_ordered_search_result() {
