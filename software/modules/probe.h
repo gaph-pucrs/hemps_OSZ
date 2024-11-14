@@ -30,6 +30,11 @@
 #define MAX_INCOMING_PROBES 10
 #define MAX_OUTGOING_PROBES 10
 
+#define MAX_INCOMING_BATCHES 3
+#define MAX_OUTGOING_BATCHES 3
+
+#define UNIFORM_BATCH_CODE 0
+
 #define STATIC_PROBE_THRESHOLD 15000 //150us
 
 // Ways to represent a probe path:
@@ -55,6 +60,7 @@ struct incoming_probe {
     unsigned short source;
     unsigned int timestamp;
     enum incoming_probe_status status;
+    unsigned short batch_config;
 };
 
 int next_incoming_probe_slot;
@@ -65,7 +71,8 @@ enum outgoing_probe_status {
     OUTGOING_PROBE_ALLOCATED,
     OUTGOING_PROBE_WAITING_REQUEST,
     OUTGOING_PROBE_WAITING_PATH,
-    OUTGOING_PROBE_SENT
+    OUTGOING_PROBE_SENT,
+    OUTGOING_PROBE_BATCH_CONFIGURED
 };
 
 struct outgoing_probe {
@@ -73,10 +80,66 @@ struct outgoing_probe {
     unsigned short target;
     unsigned char compressed_path[3];
     enum outgoing_probe_status status;
+    unsigned short batch_config;
 };
 
 int next_outgoing_probe_slot;
 struct outgoing_probe outgoing_probes[MAX_OUTGOING_PROBES];
+
+/**** PROBE BATCH STRUCTURES ****/
+
+enum incoming_batch_status {
+    INCOMING_BATCH_BLANK,
+    INCOMING_BATCH_ALLOCATED,
+    INCOMING_BATCH_RECEIVING,
+    INCOMING_BATCH_RECEIVED    
+};
+
+struct incoming_batch {
+    enum incoming_batch_status status;
+    short initial_id;
+
+    unsigned short source;
+
+    int batch_size;
+    int failed_probes;
+    int finished_probes;
+};
+
+struct incoming_batch incoming_batches[MAX_INCOMING_BATCHES];
+
+enum outgoing_batch_status {
+    OUTGOING_BATCH_BLANK,
+    OUTGOING_BATCH_ALLOCATED,
+    OUTGOING_BATCH_SENDING,
+    OUTGOING_BATCH_SENT
+};
+
+enum outgoing_batch_distribution {
+    UNIFORM_DISTRIBUTION
+};
+
+struct outgoing_batch {
+    enum outgoing_batch_status status;
+    short initial_id;
+
+    unsigned short target;
+    unsigned int sr_header[MAX_PROBE_SR_LENGTH];
+    int sr_header_size;
+
+    unsigned short batch_config;
+
+    enum outgoing_batch_distribution distribution;
+    int batch_size;
+    int sent_probes;
+    unsigned int next_probe_timestamp;
+
+    int uniform_distribution_delay;
+};
+
+struct outgoing_batch outgoing_batches[MAX_OUTGOING_BATCHES];
+
+/**** FUNCTION SIGNATURES ****/
 
 void init_probe_structures(unsigned int *mpe_addr_ptr);
 
@@ -126,7 +189,7 @@ void send_reset_packets_to_routers_in_path(unsigned int source, char *path, int 
 
 void request_to_clear_residual_switching(unsigned int faulty_packet_source);
 
-/**** PROBE API TABLE ****/
+/**** PROBE API ****/
 
 int get_new_incoming_probe_slot();
 
@@ -136,9 +199,7 @@ int get_incoming_probe_by_id(unsigned int probe_id);
 
 int get_outgoing_probe_by_id(unsigned int probe_id);
 
-/**** PROBE API ****/
-
-void send_probe(unsigned int probe_id, unsigned int source, unsigned int target, unsigned int *sr_header, int sr_header_length);
+void send_probe(unsigned int probe_id, unsigned int source, unsigned int target, unsigned int *sr_header, int sr_header_length, unsigned int batch_config);
 
 void handle_probe_request(unsigned int pkt_source, unsigned int pkt_target, unsigned int pkt_payload);
 
@@ -148,8 +209,30 @@ void receive_probe(unsigned int probe_id, unsigned int source, unsigned int targ
 
 void receive_probe_control(unsigned int pkt_source, unsigned int pkt_target, unsigned int pkt_payload);
 
+void finalize_incoming_probe(struct incoming_probe *in_probe, int probe_result);
+
 void send_probe_result(unsigned int probe_id, unsigned int probe_source, int result);
 
 void monitor_probe_timeout();
+
+/**** PROBE BATCHES ****/
+
+int get_new_incoming_batch_slot();
+
+int get_new_outgoing_batch_slot();
+
+int find_incoming_batch_by_probe_id(int probe_id);
+
+void configure_new_outgoing_batch(struct outgoing_probe *out_probe);
+
+void monitor_outgoing_batches();
+
+void send_probe_from_outgoing_batch(struct outgoing_batch *out_batch);
+
+void update_outgoing_batch_timestamp(struct outgoing_batch *out_batch);
+
+void register_result_to_incoming_batch(struct incoming_probe *in_probe, int probe_result);
+
+int configure_new_incoming_batch(struct incoming_probe *in_probe);
 
 #endif

@@ -10,6 +10,12 @@ void init_probe_structures(unsigned int *mpe_addr_ptr) {
     for(int i = 0; i < MAX_OUTGOING_PROBES; i++) {
         outgoing_probes[i].status = OUTGOING_PROBE_BLANK;
     }
+    for(int i = 0; i < MAX_INCOMING_BATCHES; i++) {
+        incoming_batches[i].status = INCOMING_BATCH_BLANK;
+    }
+    for(int i = 0; i < MAX_OUTGOING_BATCHES; i++) {
+        outgoing_batches[i].status = OUTGOING_BATCH_BLANK;
+    }
 }
 
 void report_suspicious_path_to_mpe(unsigned int target) {
@@ -32,7 +38,9 @@ void report_suspicious_path_to_mpe(unsigned int target) {
     Seek(REPORT_SUSPICIOUS_PATH, source_field, *probe_mpe_addr_ptr, compressed_path[2]);
 }
 
+/***************/
 /**** PRINT ****/
+/***************/
 
 void print_probe_result(int status) {
     switch(status) {
@@ -91,7 +99,9 @@ void print_compressed_path(unsigned char *compressed_path) {
     }
 }
 
+/********************/
 /**** PATH LOGIC ****/
+/********************/
 
 char get_opposite_direction(char direction) {
 
@@ -426,7 +436,9 @@ int convert_single_channel_path_to_dual_channel_path(char *path, int path_size, 
     return path_size;
 }
 
+/************************/
 /**** FAULTY PACKETS ****/
+/************************/
 
 void clear_residual_switching_from_current_path(unsigned int faulty_packet_source, unsigned int faulty_packet_target) {
 
@@ -522,7 +534,9 @@ void request_to_clear_residual_switching(unsigned int faulty_packet_source) {
     Seek(INIT_ROUTER_RESET, get_net_address(), faulty_packet_source, 0); // payload '0' indicates that it is a regular faulty packet, src field contais src addr
 }
 
-/**** PROBE API TABLE ****/
+/*******************/
+/**** PROBE API ****/
+/*******************/
 
 int get_new_incoming_probe_slot() {
 
@@ -556,7 +570,7 @@ int get_new_outgoing_probe_slot() {
 
         next_outgoing_probe_slot = (next_outgoing_probe_slot + 1) % MAX_OUTGOING_PROBES;
         
-        if(slot_status == OUTGOING_PROBE_BLANK || slot_status == OUTGOING_PROBE_SENT) {
+        if(slot_status == OUTGOING_PROBE_BLANK || slot_status == OUTGOING_PROBE_SENT || slot_status == OUTGOING_PROBE_BATCH_CONFIGURED) {
             outgoing_probes[slot].status = OUTGOING_PROBE_ALLOCATED;
             return slot;
         }
@@ -582,9 +596,7 @@ int get_outgoing_probe_by_id(unsigned int probe_id) {
     return -1;
 }
 
-/**** PROBE API ****/
-
-void send_probe(unsigned int probe_id, unsigned int source, unsigned int target, unsigned int *sr_header, int sr_header_length) {
+void send_probe(unsigned int probe_id, unsigned int source, unsigned int target, unsigned int *sr_header, int sr_header_length, unsigned int batch_config) {
 
     probe_puts("[HT] SEND PROBE MESSAGE -- probe #");
     probe_puts(itoa(probe_id));
@@ -601,7 +613,8 @@ void send_probe(unsigned int probe_id, unsigned int source, unsigned int target,
 
     /* PROBE CONTROL */
 
-    Seek(PROBE_CONTROL, (probe_id << 16) | (get_net_address() & 0xffff), target, 0);
+    unsigned char compact_net_address = ((get_net_address() & 0xf00) >> 4) | (get_net_address() & 0xf);
+    Seek(PROBE_CONTROL, (batch_config << 16) | (probe_id & 0xffff), target, compact_net_address);
 
     /* PROBE MESSAGE */
 
@@ -618,9 +631,11 @@ void send_probe(unsigned int probe_id, unsigned int source, unsigned int target,
 }
 
 void handle_probe_request(unsigned int pkt_source, unsigned int pkt_target, unsigned int pkt_payload) {
-
-    unsigned int probe_id = pkt_source >> 16;
-    unsigned int probe_target = pkt_source & 0xffff;
+    
+    unsigned short batch_config = pkt_source >> 16;
+    unsigned int probe_id = pkt_source & 0xffff;
+    unsigned char compressed_probe_target = pkt_payload;
+    unsigned int probe_target = ((compressed_probe_target & 0xf0) << 4) | (compressed_probe_target & 0xf);
 
     probe_puts("[HT] Received PROBE_REQUEST -- probe #");
     probe_puts(itoa(probe_id));
@@ -635,6 +650,7 @@ void handle_probe_request(unsigned int pkt_source, unsigned int pkt_target, unsi
         outgoing_probes[slot].id = probe_id;
         outgoing_probes[slot].target = probe_target;
         outgoing_probes[slot].status = OUTGOING_PROBE_WAITING_PATH;
+        outgoing_probes[slot].batch_config = batch_config;
         probe_puts("[HT]    Waiting PROBE_PATH...\n");
         return;
     }
@@ -647,21 +663,29 @@ void handle_probe_request(unsigned int pkt_source, unsigned int pkt_target, unsi
     }
 
     outgoing_probes[slot].target = probe_target;
+    outgoing_probes[slot].batch_config = batch_config;
+
+    if(batch_config) {
+        probe_puts("[HT] Configuring batch: "); probe_puts(itoh(batch_config)); probe_puts("\n");
+        configure_new_outgoing_batch(&outgoing_probes[slot]);
+        outgoing_probes[slot].status = OUTGOING_PROBE_BATCH_CONFIGURED;
+        return;
+    }
 
     unsigned int sr_header[MAX_PROBE_SR_LENGTH];
     int sr_header_length = convert_compressed_path_to_sr_header(outgoing_probes[slot].compressed_path, sr_header);
 
     outgoing_probes[slot].status = OUTGOING_PROBE_SENT;
-    send_probe(probe_id, get_net_address(), probe_target, sr_header, sr_header_length);
+    send_probe(probe_id, get_net_address(), probe_target, sr_header, sr_header_length, 0);
 }
 
 void handle_probe_path(unsigned int pkt_source, unsigned int pkt_target, unsigned int pkt_payload) {
     
-    unsigned int probe_id = pkt_source >> 16;
+    unsigned int probe_id = pkt_source & 0xffff;
     
     unsigned char probe_path[3];
-    probe_path[0] = (pkt_source & 0xff00) >> 8;
-    probe_path[1] = pkt_source & 0xff;
+    probe_path[0] = (pkt_source & 0xff000000) >> 24;
+    probe_path[1] = (pkt_source & 0xff0000) >> 16;
     probe_path[2] = pkt_payload;
 
     probe_puts("[HT] Received PROBE_PATH -- probe #");
@@ -694,11 +718,18 @@ void handle_probe_path(unsigned int pkt_source, unsigned int pkt_target, unsigne
     outgoing_probes[slot].compressed_path[1] = probe_path[1];
     outgoing_probes[slot].compressed_path[2] = probe_path[2];
 
+    if(outgoing_probes[slot].batch_config) {
+        probe_puts("[HT] Configuring batch: "); probe_puts(itoh(outgoing_probes[slot].batch_config)); probe_puts("\n");
+        configure_new_outgoing_batch(&outgoing_probes[slot]);
+        outgoing_probes[slot].status = OUTGOING_PROBE_BATCH_CONFIGURED;
+        return;
+    }
+
     unsigned int sr_header[MAX_PROBE_SR_LENGTH];
     int sr_header_length = convert_compressed_path_to_sr_header(probe_path, sr_header);
 
     outgoing_probes[slot].status = OUTGOING_PROBE_SENT;
-    send_probe(probe_id, get_net_address(), outgoing_probes[slot].target, sr_header, sr_header_length);
+    send_probe(probe_id, get_net_address(), outgoing_probes[slot].target, sr_header, sr_header_length, 0);
 }
 
 void receive_probe(unsigned int probe_id, unsigned int source, unsigned int target) {
@@ -736,14 +767,16 @@ void receive_probe(unsigned int probe_id, unsigned int source, unsigned int targ
         return;
     }
 
-    incoming_probes[slot].status = INCOMING_PROBE_SUCCEEDED;
-    send_probe_result(probe_id, source, PROBE_RESULT_SUCCESS);
+    finalize_incoming_probe(&incoming_probes[slot], PROBE_RESULT_SUCCESS);
 }
 
 void receive_probe_control(unsigned int pkt_source, unsigned int pkt_target, unsigned int pkt_payload) {
 
-    unsigned int probe_id = pkt_source >> 16;
-    unsigned int source = pkt_source & 0xffff;
+    unsigned short batch_config = pkt_source >> 16;
+    unsigned short probe_id = pkt_source & 0xff;
+
+    unsigned char compact_source = pkt_payload;
+    unsigned int source = ((compact_source & 0xf0) << 4) | (compact_source & 0xf);
 
     probe_puts("[HT] RECV PROBE CONTROL -- probe #");
     probe_puts(itoa(probe_id));
@@ -763,6 +796,7 @@ void receive_probe_control(unsigned int pkt_source, unsigned int pkt_target, uns
         incoming_probes[slot].source = source;
         incoming_probes[slot].timestamp = MemoryRead(TICK_COUNTER);
         incoming_probes[slot].status = INCOMING_PROBE_WAITING_MESSAGE;
+        incoming_probes[slot].batch_config = batch_config;
         probe_puts("[HT] Debug: allocating new incoming_probe slot:");
         probe_puts(itoa(slot));
         probe_puts("\n");
@@ -781,8 +815,19 @@ void receive_probe_control(unsigned int pkt_source, unsigned int pkt_target, uns
         return;
     }
 
-    incoming_probes[slot].status = INCOMING_PROBE_SUCCEEDED;
-    send_probe_result(probe_id, source, PROBE_RESULT_SUCCESS);
+    incoming_probes[slot].batch_config = batch_config;
+    finalize_incoming_probe(&incoming_probes[slot], PROBE_RESULT_SUCCESS);
+}
+
+void finalize_incoming_probe(struct incoming_probe *in_probe, int probe_result) {
+    
+    if(in_probe->batch_config == 0) {
+        send_probe_result(in_probe->id, in_probe->source, probe_result);
+    } else {
+        register_result_to_incoming_batch(in_probe, probe_result);
+    }
+
+    in_probe->status = (probe_result == PROBE_RESULT_SUCCESS) ? INCOMING_PROBE_SUCCEEDED : INCOMING_PROBE_FAILED;
 }
 
 void send_probe_result(unsigned int probe_id, unsigned int probe_source, int result) {
@@ -812,12 +857,162 @@ void monitor_probe_timeout() {
                 probe_puts("[HT] PROBE TIMEOUT VIOLATION -- Probe #");
                 probe_puts(itoa(incoming_probes[i].id));
                 probe_puts("\n");
-                incoming_probes[i].status = INCOMING_PROBE_FAILED;
-                send_probe_result(incoming_probes[i].id, incoming_probes[i].source, PROBE_RESULT_FAILURE);    
+                finalize_incoming_probe(&incoming_probes[i], PROBE_RESULT_FAILURE);
             }
             else {
                 probe_puts("[HT] Probe is within threshold\n");
             }
         }
     }
+}
+
+/***********************/
+/**** PROBE BATCHES ****/
+/***********************/
+
+int get_new_incoming_batch_slot() {
+    for(int i = 0; i < MAX_INCOMING_BATCHES; i++) {
+        if(incoming_batches[i].status == INCOMING_BATCH_BLANK || incoming_batches[i].status == INCOMING_BATCH_RECEIVED) {
+            incoming_batches[i].status = INCOMING_BATCH_ALLOCATED;
+            return 1;
+        }
+    }
+    return -1;
+}
+
+int get_new_outgoing_batch_slot() {
+    for(int i = 0; i < MAX_OUTGOING_BATCHES; i++) {
+        if(outgoing_batches[i].status == OUTGOING_BATCH_BLANK || outgoing_batches[i].status == OUTGOING_BATCH_SENT) {
+            outgoing_batches[i].status = OUTGOING_BATCH_ALLOCATED;
+            return 1;
+        }
+    }
+    return -1;
+}
+
+int find_incoming_batch_by_probe_id(int probe_id) {
+    for(int i = 0; i < MAX_INCOMING_BATCHES; i++) {
+        int initial_id = incoming_batches[i].initial_id;
+        if(incoming_batches[i].status == INCOMING_BATCH_RECEIVING && initial_id >= probe_id && probe_id < (initial_id + incoming_batches[i].batch_size)) {
+            return i;
+        }
+    }
+    return -1;
+}
+
+void configure_new_outgoing_batch(struct outgoing_probe *out_probe) {
+    
+    int slot = get_new_outgoing_batch_slot();
+    if(slot < 0) {
+        probe_puts("[HT] No space left for new Outgoing Batch, ignoring request.\n");
+        return;
+    }
+
+    outgoing_batches[slot].initial_id = out_probe->id;
+    outgoing_batches[slot].target = out_probe->target;
+    outgoing_batches[slot].sr_header_size = convert_compressed_path_to_sr_header(out_probe->compressed_path, outgoing_batches[slot].sr_header);
+    outgoing_batches[slot].batch_config = out_probe->batch_config;
+
+    probe_puts("[HT] Configuring new Outgoing Batch\n");
+    probe_puts("        Init ID: #"); probe_puts(itoa(out_probe->id)); probe_puts("\n");
+    probe_puts("        Target: "); probe_puts(itoh(out_probe->target)); probe_puts("\n");
+
+    unsigned char distribution = (out_probe->batch_config & 0xC000) >> 14;
+    switch(distribution) {
+        case UNIFORM_BATCH_CODE:
+            outgoing_batches[slot].distribution = UNIFORM_DISTRIBUTION;
+            outgoing_batches[slot].uniform_distribution_delay = (out_probe->batch_config & 0x3F00) >> 8;
+            outgoing_batches[slot].batch_size = out_probe->batch_config & 0xFF;
+            outgoing_batches[slot].next_probe_timestamp = MemoryRead(TICK_COUNTER); //send asap
+            probe_puts("        Distribution: uniform\n");
+            probe_puts("        Batch size: "); probe_puts(itoa(outgoing_batches[slot].batch_size)); probe_puts("\n");
+            probe_puts("        Delay: "); probe_puts(itoa(outgoing_batches[slot].uniform_distribution_delay)); probe_puts("\n");
+            break;
+        default:
+            probe_puts("[HT] Outgoing batch error: unknown distibution type: "); probe_puts(itoa(distribution)); probe_puts("\n");
+            return;
+    }
+
+    outgoing_batches[slot].sent_probes = 0;
+    outgoing_batches[slot].status = OUTGOING_BATCH_SENDING;
+}
+
+void monitor_outgoing_batches() {
+    unsigned int time_now = MemoryRead(TICK_COUNTER);
+    for(int i = 0; i < MAX_OUTGOING_BATCHES; i++) {
+        if(outgoing_batches[i].status == OUTGOING_BATCH_SENDING && time_now >= outgoing_batches[i].next_probe_timestamp) {
+            probe_puts("[HT] sending next probe from batch #"); probe_puts(itoa(outgoing_batches[i].initial_id)); probe_puts(" @"); probe_puts(itoh(time_now)) probe_puts("\n");
+            send_probe_from_outgoing_batch(&outgoing_batches[i]);
+        }
+    }
+}
+
+void send_probe_from_outgoing_batch(struct outgoing_batch *out_batch) {
+
+    unsigned int next_probe_id = out_batch->initial_id + out_batch->sent_probes;
+    send_probe(next_probe_id, get_net_address(), out_batch->target, out_batch->sr_header, out_batch->sr_header_size, out_batch->batch_config);
+    out_batch->sent_probes++;
+    
+    if(out_batch->sent_probes == out_batch->batch_size) {
+        probe_puts("[HT] Outgoing Batch #"); probe_puts(itoa(out_batch->initial_id)); probe_puts(" finalized.\n");
+        out_batch->status = OUTGOING_BATCH_SENT;
+    } else {
+        update_outgoing_batch_timestamp(out_batch);
+    }
+}
+
+void update_outgoing_batch_timestamp(struct outgoing_batch *out_batch) {
+
+    int probe_spacing_in_us, probe_spacing_in_cc;
+
+    switch(out_batch->distribution) {
+        case UNIFORM_DISTRIBUTION:
+            probe_spacing_in_us = out_batch->uniform_distribution_delay; // 1us granularity
+            probe_spacing_in_cc = probe_spacing_in_us * 100;
+            out_batch->next_probe_timestamp = out_batch->next_probe_timestamp + probe_spacing_in_cc;
+            break;
+        
+        default:
+            probe_puts("[HT] Warning: trying to update out_batch timestamp with UNKNOWN DISTRIVUTION.\n");
+            return;
+    }
+}
+
+void register_result_to_incoming_batch(struct incoming_probe *in_probe, int probe_result) {
+
+    int slot = find_incoming_batch_by_probe_id(in_probe->id);
+    if(slot < 0)
+        slot = configure_new_incoming_batch(in_probe);
+
+    incoming_batches[slot].finished_probes++;
+    if(probe_result == PROBE_RESULT_FAILURE)
+        incoming_batches[slot].failed_probes++;
+    
+    if(incoming_batches[slot].finished_probes == incoming_batches[slot].batch_size) {
+        send_probe_result(incoming_batches[slot].initial_id, incoming_batches[slot].source, (incoming_batches->failed_probes > 0) ? PROBE_RESULT_FAILURE : PROBE_RESULT_SUCCESS);
+        incoming_batches[slot].status = INCOMING_BATCH_RECEIVED;
+    }
+
+}
+
+int configure_new_incoming_batch(struct incoming_probe *in_probe) {
+    
+    int slot = get_new_incoming_batch_slot();
+    incoming_batches[slot].initial_id = in_probe->id;
+    incoming_batches[slot].source = in_probe->source;
+    incoming_batches[slot].failed_probes = 0;
+    incoming_batches[slot].finished_probes = 0;
+
+    unsigned char distribution = (in_probe->batch_config && 0xC0) >> 14;
+    switch(distribution) {
+        case UNIFORM_BATCH_CODE:
+            incoming_batches[slot].batch_size = in_probe->batch_config & 0xff;
+            break;
+
+        default:
+            probe_puts("[HT] Incoming batch error: unknown distibution type: "); probe_puts(itoa(distribution)); probe_puts("\n");
+            break;
+    }
+    
+    return slot;
 }
