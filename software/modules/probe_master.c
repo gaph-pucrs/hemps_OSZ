@@ -44,7 +44,6 @@ int get_new_probe_slot() {
     
     int probe_index = PROBE_INDEX(next_probe_id);
     probes[probe_index].id = next_probe_id;
-    probes[probe_index].is_batch = 0;
     probes[probe_index].status = PROBE_STATUS_ALLOCATED;
 
     next_probe_id++;
@@ -59,7 +58,6 @@ int get_new_probe_slot_for_batch(int batch_size) {
     }
 
     int slot = get_new_probe_slot();
-    probes[slot].is_batch = 1;
     next_probe_id += batch_size - 1;
 
     return slot;
@@ -224,6 +222,7 @@ void binary_search_divide(unsigned int source, unsigned int target, char *path, 
 
     unsigned int middle_router = calculate_target(source, path, path_size/2);
 
+    unsigned int batch_config = get_uniform_batch_config(10, 3);
     /* SEND LEFT PROBE */
 
     unsigned int left_source = source;
@@ -232,7 +231,7 @@ void binary_search_divide(unsigned int source, unsigned int target, char *path, 
     int left_path_size = path_size / 2;
 
     int left_slot = get_new_binary_search_probe_slot();
-    bsa.bsa_probes[left_slot].id = send_probe_request(left_source, left_target, left_path, left_path_size, get_uniform_batch_config(10, 3));
+    bsa.bsa_probes[left_slot].id = send_probe_request(left_source, left_target, left_path, left_path_size, 3, batch_config);
 
     /* SEND RIGHT PROBE */
 
@@ -242,7 +241,7 @@ void binary_search_divide(unsigned int source, unsigned int target, char *path, 
     int right_path_size = path_size - left_path_size;
 
     int right_slot = get_new_binary_search_probe_slot();
-    bsa.bsa_probes[right_slot].id = send_probe_request(right_source, right_target, right_path, right_path_size, get_uniform_batch_config(10, 3));
+    bsa.bsa_probes[right_slot].id = send_probe_request(right_source, right_target, right_path, right_path_size, 3, batch_config);
 }
 
 void receive_binary_search_probe(int bs_probe_slot, int result) {
@@ -346,14 +345,16 @@ int check_if_path_intersects_with_registered_bsa(struct suspicious_path *new_pat
     return 0;
 }
 
-int send_probe_request(unsigned int source_addr, unsigned int target_addr, char *path, int path_size, unsigned short batch_config) {
-
-    int probe_index = get_new_probe_slot();
+int send_probe_request(unsigned int source_addr, unsigned int target_addr, char *path, int path_size, int batch_size, unsigned int batch_config) {
+    
+    int probe_index = (batch_config == 0) ? get_new_probe_slot() : get_new_probe_slot_for_batch(batch_size);
     probes[probe_index].source = source_addr;
     probes[probe_index].target = target_addr;
     probes[probe_index].path_size = path_size;
     for(int i = 0; i < path_size; i++)
         probes[probe_index].path[i] = path[i];
+    probes[probe_index].batch_size = batch_size;
+    probes[probe_index].batch_config = batch_config;
     
     unsigned char compressed_path[3];
     convert_path_to_compressed_path(path, path_size, compressed_path);
@@ -648,7 +649,7 @@ void print_noc_health_intersections() {
     }
 }
 
-unsigned short get_uniform_batch_config(int probe_spacing_us, int num_probes) {
+unsigned short get_uniform_batch_config(unsigned int probe_spacing_us, unsigned int num_probes) {
     unsigned short batch_config = ((UNIFORM_BATCH_CODE & 0x3) << 14) | ((probe_spacing_us & 0x3F) << 8) | (num_probes & 0xFF);
     return batch_config;
 }

@@ -874,7 +874,7 @@ int get_new_incoming_batch_slot() {
     for(int i = 0; i < MAX_INCOMING_BATCHES; i++) {
         if(incoming_batches[i].status == INCOMING_BATCH_BLANK || incoming_batches[i].status == INCOMING_BATCH_RECEIVED) {
             incoming_batches[i].status = INCOMING_BATCH_ALLOCATED;
-            return 1;
+            return i;
         }
     }
     return -1;
@@ -884,7 +884,7 @@ int get_new_outgoing_batch_slot() {
     for(int i = 0; i < MAX_OUTGOING_BATCHES; i++) {
         if(outgoing_batches[i].status == OUTGOING_BATCH_BLANK || outgoing_batches[i].status == OUTGOING_BATCH_SENT) {
             outgoing_batches[i].status = OUTGOING_BATCH_ALLOCATED;
-            return 1;
+            return i;
         }
     }
     return -1;
@@ -893,7 +893,8 @@ int get_new_outgoing_batch_slot() {
 int find_incoming_batch_by_probe_id(int probe_id) {
     for(int i = 0; i < MAX_INCOMING_BATCHES; i++) {
         int initial_id = incoming_batches[i].initial_id;
-        if(incoming_batches[i].status == INCOMING_BATCH_RECEIVING && initial_id >= probe_id && probe_id < (initial_id + incoming_batches[i].batch_size)) {
+        int final_id = incoming_batches[i].initial_id + incoming_batches[i].batch_size - 1;
+        if((incoming_batches[i].status == INCOMING_BATCH_RECEIVING) && (initial_id <= probe_id) && (probe_id <= final_id)) {
             return i;
         }
     }
@@ -941,7 +942,7 @@ void monitor_outgoing_batches() {
     unsigned int time_now = MemoryRead(TICK_COUNTER);
     for(int i = 0; i < MAX_OUTGOING_BATCHES; i++) {
         if(outgoing_batches[i].status == OUTGOING_BATCH_SENDING && time_now >= outgoing_batches[i].next_probe_timestamp) {
-            probe_puts("[HT] sending next probe from batch #"); probe_puts(itoa(outgoing_batches[i].initial_id)); probe_puts(" @"); probe_puts(itoh(time_now)) probe_puts("\n");
+            probe_puts("[HT] sending "); probe_puts(itoa(outgoing_batches[i].sent_probes+1)); probe_puts("th from batch #"); probe_puts(itoa(outgoing_batches[i].initial_id)); probe_puts(" @"); probe_puts(itoa(time_now)) probe_puts("cc\n");
             send_probe_from_outgoing_batch(&outgoing_batches[i]);
         }
     }
@@ -973,7 +974,7 @@ void update_outgoing_batch_timestamp(struct outgoing_batch *out_batch) {
             break;
         
         default:
-            probe_puts("[HT] Warning: trying to update out_batch timestamp with UNKNOWN DISTRIVUTION.\n");
+            probe_puts("[HT] Warning: trying to update out_batch timestamp with UNKNOWN DISTRIBUTION.\n");
             return;
     }
 }
@@ -987,6 +988,8 @@ void register_result_to_incoming_batch(struct incoming_probe *in_probe, int prob
     incoming_batches[slot].finished_probes++;
     if(probe_result == PROBE_RESULT_FAILURE)
         incoming_batches[slot].failed_probes++;
+    
+    probe_puts("[HT DEBUG] Finished probes: "); probe_puts(itoa(incoming_batches[slot].finished_probes)); probe_puts("\n");
     
     if(incoming_batches[slot].finished_probes == incoming_batches[slot].batch_size) {
         send_probe_result(incoming_batches[slot].initial_id, incoming_batches[slot].source, (incoming_batches->failed_probes > 0) ? PROBE_RESULT_FAILURE : PROBE_RESULT_SUCCESS);
@@ -1003,16 +1006,24 @@ int configure_new_incoming_batch(struct incoming_probe *in_probe) {
     incoming_batches[slot].failed_probes = 0;
     incoming_batches[slot].finished_probes = 0;
 
+    probe_puts("[HT] Configuring new Incoming Batch\n");
+    probe_puts("        Init ID: #"); probe_puts(itoa(in_probe->id)); probe_puts("\n");
+    probe_puts("        Source: "); probe_puts(itoh(in_probe->source)); probe_puts("\n");
+
     unsigned char distribution = (in_probe->batch_config && 0xC0) >> 14;
     switch(distribution) {
         case UNIFORM_BATCH_CODE:
             incoming_batches[slot].batch_size = in_probe->batch_config & 0xff;
+            probe_puts("        Distribution: uniform\n");
+            probe_puts("        Batch size: "); probe_puts(itoa(incoming_batches[slot].batch_size)); probe_puts("\n");
             break;
 
         default:
             probe_puts("[HT] Incoming batch error: unknown distibution type: "); probe_puts(itoa(distribution)); probe_puts("\n");
             break;
     }
+
+    incoming_batches[slot].status = INCOMING_BATCH_RECEIVING;
     
     return slot;
 }
