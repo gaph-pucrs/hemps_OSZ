@@ -633,8 +633,12 @@ void send_probe(unsigned int probe_id, unsigned int source, unsigned int target,
 void handle_probe_request(unsigned int pkt_source, unsigned int pkt_target, unsigned int pkt_payload) {
     
     unsigned short batch_config = pkt_source >> 16;
-    unsigned int probe_id = pkt_source & 0xffff;
-    unsigned char compressed_probe_target = pkt_payload;
+
+    unsigned int id_lo = (pkt_source >> 8) & 0xff;
+    unsigned int id_hi = pkt_payload;
+    unsigned int probe_id = (id_hi << 16) | id_lo;
+    
+    unsigned char compressed_probe_target = pkt_source & 0xff;
     unsigned int probe_target = ((compressed_probe_target & 0xf0) << 4) | (compressed_probe_target & 0xf);
 
     probe_puts("[HT] Received PROBE_REQUEST -- probe #");
