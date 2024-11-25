@@ -34,6 +34,8 @@ void init_probe_master_structures() {
     for (int i = 0; i < SUSPICIOUS_PATH_TABLE_SIZE; i++) {
         suspicious_path_table[i].used = 0;
     }
+    //init ordered search
+    ordered_search.status = OS_IDLE;
 }
 
 int get_new_probe_slot() {
@@ -244,6 +246,16 @@ void binary_search_divide(unsigned int source, unsigned int target, char *path, 
     bsa.bsa_probes[right_slot].id = send_probe_request(right_source, right_target, right_path, right_path_size, 3, batch_config);
 }
 
+void evaluate_bsa_result() {
+    if(bsa.ht_counter == 0) {
+        probe_puts("[HT] No HT found at this binary searched path, starting ordered search instead.\n");
+        register_new_ordered_search(&bsa.path);
+    }
+    else {
+        finalize_binary_search();
+    }
+}
+
 void receive_binary_search_probe(int bs_probe_slot, int result) {
 
     int probe_id = bsa.bsa_probes[bs_probe_slot].id;
@@ -263,7 +275,7 @@ void receive_binary_search_probe(int bs_probe_slot, int result) {
 
     bsa.bsa_probes[bs_probe_slot].status = BSA_PROBE_UNUSED;
     if(is_binary_search_probes_empty())
-        finalize_binary_search();
+        evaluate_bsa_result();
 }
 
 void register_binary_search_ht(unsigned int router, char port) {
@@ -302,14 +314,14 @@ void print_binary_search_result() {
 void finalize_binary_search() {
     
     print_binary_search_result();
-    bsa.ht_counter = 0;
     print_noc_health_intersections();
+
+    bsa.ht_counter = 0;
 
     //check bsa queue
     if(bsa.queued_paths > 0) {
         copy_suspicious_path(&bsa.path_queue[bsa.next_path_in_queue], &bsa.path);
         bsa.path.used = 1;
-
         bsa.next_path_in_queue = (bsa.next_path_in_queue + 1) % BSA_QUEUE_SIZE;
         bsa.queued_paths--;
 
@@ -427,6 +439,12 @@ void handle_probe_results(unsigned int packet_source_field, unsigned int payload
             receive_binary_search_probe(bs_probe_slot, result);
         }
     }
+    if (ordered_search.status == OS_BUSY) {
+        if (probe_id == ordered_search.current_probe_id) {
+            int os_probe_slot = get_ordered_search_probe_by_id(probe_id);
+            receive_ordered_search_probe(os_probe_slot, result);
+        }
+    }
 }
 
 void update_trust_scores(unsigned int source, unsigned int target, char *path, int path_size, int probe_result) {
@@ -496,7 +514,7 @@ void set_suspicious_health(struct suspicious_path *sus_path) {
     int current_x = sus_path->source >> 8;
     int current_y = sus_path->source & 0xff;
     
-    int registered_new_bsa = 0;
+    int violated_intersections_threshold = 0;
     for(int i = 0; i < sus_path->path_size; i++) {
         
         if(noc_health[current_x][current_y].links[(int) sus_path->path[i]].status != INFECTED) {
@@ -504,11 +522,8 @@ void set_suspicious_health(struct suspicious_path *sus_path) {
             noc_health[current_x][current_y].links[(int) sus_path->path[i]].intersections++;
         }
 
-        if(registered_new_bsa == 0 && noc_health[current_x][current_y].links[(int) sus_path->path[i]].intersections >= THRESHOLD_SUS_PATHS_INTERSECTIONS) {
-            register_new_binary_search(sus_path);
-            registered_new_bsa = 1;
-            probe_puts("[HT] Suspicious path threshold violation in link "); probe_puts(itoa(current_x)); probe_puts("x");
-            probe_puts(itoa(current_y)); probe_puts(" "); print_turn(sus_path->path[i]); probe_puts("\n");
+        if(noc_health[current_x][current_y].links[(int) sus_path->path[i]].intersections >= THRESHOLD_SUS_PATHS_INTERSECTIONS) {
+            violated_intersections_threshold = 1;
         }
         
         switch(sus_path->path[i]) {
@@ -525,6 +540,12 @@ void set_suspicious_health(struct suspicious_path *sus_path) {
                 current_y--;
                 break;
         }
+    }
+
+    if (violated_intersections_threshold == 1) {
+        probe_puts("[HT] Suspicious path threshold violation\n");
+        register_new_binary_search(sus_path);
+        // register_new_ordered_search(sus_path);
     }
 }
 
@@ -650,6 +671,177 @@ void print_noc_health_intersections() {
             probe_puts("\n");
         }
     }
+}
+
+/********************/
+/*  ORDERED SEARCH  */
+/********************/
+
+void register_new_ordered_search(struct suspicious_path *new_os_path) {
+    
+    if (ordered_search.status == OS_BUSY) {
+        probe_puts("[HT] The ordered search is already busy, ignoring new ordered search.\n");
+        return;
+    }
+
+    start_ordered_search(new_os_path);
+}
+
+void start_ordered_search(struct suspicious_path *path) {
+    populate_ordered_search(path);
+    // probe_puts("[HT] NON-SORTED PATH:\n");
+    // for (int i = 0; i < path->path_size; i++) {
+    //     probe_puts("[");
+    //     probe_puts(itoh(ordered_search.hops[i].port));
+    //     probe_puts(", ");
+    //     probe_puts(itoh(ordered_search.hops[i].addr));
+    //     probe_puts(", ");
+    //     probe_puts(itoh(ordered_search.hops[i].intersections));
+    //     probe_puts("]\n");
+    // }
+    // IF YOU NEED THE LOGS ABOVE AND BELOW TO DEBUG THE SORTING, BRING THE QUICKSORT FUNCTION FROM INSIDE THE POPULATE FUNCTION TO THIS LINE
+    // probe_puts("[HT] SORTED PATH:\n");
+    // for (int i = 0; i < path->path_size; i++) {
+    //     probe_puts("[");
+    //     probe_puts(itoh(ordered_search.hops[i].port));
+    //     probe_puts(", ");
+    //     probe_puts(itoh(ordered_search.hops[i].addr));
+    //     probe_puts(", ");
+    //     probe_puts(itoh(ordered_search.hops[i].intersections));
+    //     probe_puts("]\n");
+    //     }
+
+    probe_puts("[HT] **** Starting new Ordered Search - Source:");
+    probe_puts(itoh(path->source));
+    probe_puts(" Target:");
+    probe_puts(itoh(path->target));
+    probe_puts(" Path:");
+    print_path(path->path, path->path_size);
+    probe_puts("\n");
+
+    send_probes_ordered_search();
+}
+
+void populate_ordered_search(struct suspicious_path *path) {
+    ordered_search.status = OS_BUSY;
+    ordered_search.ht_counter = 0;
+    ordered_search.next_hop = 0;
+    ordered_search.target = path->target;
+    ordered_search.hops_size = path->path_size;
+    for (int i = 0; i < path->path_size; i++) {
+        ordered_search.hops[i].addr = path->path_addrs[i];
+        ordered_search.hops[i].port = path->path[i];
+        ordered_search.hops[i].intersections = noc_health[(path->path_addrs[i] & 0xFF00) >> 8][path->path_addrs[i] & 0xFF].links[(int)path->path[i]].intersections;
+        // probe_puts("\n\n[LOG]\n");
+        // probe_puts(itoh(path->path[i]));
+        // probe_puts("\n");
+        // probe_puts(itoh(get_turn_integer(path->path[i])));
+        // probe_puts("\n");
+        // probe_puts(itoh((path->path_addrs[i] & 0xFF00) >> 8));
+        // ("\n");
+        // probe_puts(itoh(path->path_addrs[i] & 0xFF));
+        // probe_puts("\n[LOG]\n");
+    }
+    quicksort(ordered_search.hops, ordered_search.hops_size, sizeof(struct ordered_search_hop), compare_suspicious_hops);
+}
+
+void send_probes_ordered_search() {
+    char path = ordered_search.hops[ordered_search.next_hop].port;
+    int path_size = 1;
+    unsigned short source = ordered_search.hops[ordered_search.next_hop].addr;
+    unsigned short target = calculate_target(source, &path, path_size);
+    ordered_search.current_probe_id = send_probe_request(source, target, &path, path_size);
+    ordered_search.next_hop++;
+}
+
+int get_ordered_search_probe_by_id(int id) {
+    for(int i = 0; i < MAX_PROBE_ENTRIES; i++) {
+        if(probes[i].id == id) {
+            return i;
+        }
+    }
+    return -1;
+}
+
+void receive_ordered_search_probe(int os_probe_slot, int result) {
+    if (result == PROBE_RESULT_FAILURE) {
+        register_ordered_search_ht(probes[os_probe_slot].source, probes[os_probe_slot].path[0]);
+    }
+    if (ordered_search.next_hop == ordered_search.hops_size) {
+        finalize_ordered_search();
+    } else {
+        send_probes_ordered_search();
+    }
+}
+
+void register_ordered_search_ht(unsigned int router, char port) {
+
+    set_infected_health(router, port);
+
+    if (ordered_search.ht_counter == MAX_BINARY_SEARCH_HTS) {
+        return;
+    }
+
+    ordered_search.hts[ordered_search.ht_counter].router = router;
+    ordered_search.hts[ordered_search.ht_counter].port = port;
+    ordered_search.ht_counter++;
+
+    if (OS_STOPS_ON_FIRST_HT) {
+        finalize_ordered_search();
+    }
+}
+
+void finalize_ordered_search() {
+
+    print_ordered_search_result();
+    ordered_search.ht_counter = 0;
+    ordered_search.next_hop = 0;
+    ordered_search.status = OS_IDLE;
+    print_noc_health_intersections();
+    finalize_binary_search();
+}
+
+void print_ordered_search_result() {
+
+    probe_puts("[HT] **** Ordered Search Finalized ****\n");
+
+    if (ordered_search.ht_counter == 0) {
+        probe_puts("[HT]          No HT found.\n");
+        return;
+    }
+
+    for (int i = 0; i < ordered_search.ht_counter; i++) {
+        probe_puts("[HT]          HT #");
+        probe_puts(itoa(i + 1));
+        probe_puts(": ");
+        probe_puts(itoh(ordered_search.hts[i].router));
+        probe_puts(" ");
+        print_turn(ordered_search.hts[i].port);
+        probe_puts("\n");
+    }
+
+}
+
+int compare_suspicious_hops(const void *a, const void *b) {
+    const struct ordered_search_hop *slot_a = (const struct ordered_search_hop *)a;
+    const struct ordered_search_hop *slot_b = (const struct ordered_search_hop *)b;
+
+    int intersections_diff = slot_b->intersections - slot_a->intersections;
+    if (intersections_diff != 0) return intersections_diff;
+
+    unsigned short target = ordered_search.target;
+    int distance_a = distance_between_PEs(slot_a->addr, target);
+    int distance_b = distance_between_PEs(slot_b->addr, target);
+
+    return distance_a - distance_b;
+}
+
+int distance_between_PEs(unsigned short addr, unsigned short target) {
+    int x1 = GET_X(addr);
+    int y1 = GET_Y(addr);
+    int x2 = GET_X(target);
+    int y2 = GET_Y(target);
+    return abs(x1 - x2) + abs(y1 - y2);
 }
 
 unsigned short get_uniform_batch_config(unsigned int probe_spacing_us, unsigned int num_probes) {

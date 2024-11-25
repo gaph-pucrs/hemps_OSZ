@@ -265,3 +265,44 @@ int strlen(const char *string)
 
 	return string - base - 1;
 }
+
+void swap(char *a, char *b, unsigned short size) {
+    while (size--) {
+        char temp = *a;
+        *a++ = *b;
+        *b++ = temp;
+    }
+}
+
+int partition(void *base, int low, int high, unsigned short size, int (*cmp)(const void *, const void *)) {
+    char *arr = (char *)base;
+    char *pivot = arr + high * size;
+    int i = low - 1;
+
+    for (int j = low; j < high; j++) {
+        if (cmp(arr + j * size, pivot) < 0) {
+            i++;
+            swap(arr + i * size, arr + j * size, size);
+        }
+    }
+    swap(arr + (i + 1) * size, arr + high * size, size);
+    return i + 1;
+}
+
+/*
+* @param base: pointer to the first element of the array to be sorted
+* @param num: number of elements in the array
+* @param size: size of each element in the array
+* @param cmp: pointer to the comparison function
+* @return void
+*/
+void quicksort(void *base, unsigned short num, unsigned short size, int (*cmp)(const void *, const void *)) {
+    int low = 0;
+    int high = num - 1;
+    
+    if (low < high) {
+        int pi = partition(base, low, high, size, cmp);
+        quicksort(base, pi, size, cmp);
+        quicksort((char *)base + (pi + 1) * size, high - pi, size, cmp);
+    }
+}

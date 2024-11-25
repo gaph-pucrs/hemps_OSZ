@@ -70,7 +70,6 @@ void print_turn(char turn) {
             probe_puts("S");
             return;
     }
-    probe_puts("?");
 }
 
 void print_path(char *path, int path_size) {
@@ -102,6 +101,14 @@ void print_compressed_path(unsigned char *compressed_path) {
 /********************/
 /**** PATH LOGIC ****/
 /********************/
+
+int get_turn_integer(char turn) {
+    if (turn == 'E') return EAST;
+    if (turn == 'W') return WEST;
+    if (turn == 'N') return NORTH;
+    if (turn == 'S') return SOUTH;
+    return -1;
+}
 
 char get_opposite_direction(char direction) {
 

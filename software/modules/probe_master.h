@@ -4,6 +4,7 @@
 #include "probe.h"
 #include "packet.h"
 #include "seek.h"
+#include "utils.h"
 #include "../../include/kernel_pkg.h"
 
 #define NUM_LINKS_PER_ROUTER 4
@@ -14,6 +15,7 @@
 #define SUSPICIOUS_PATH_TABLE_SIZE 40
 #define BSA_QUEUE_SIZE 5
 #define THRESHOLD_SUS_PATHS_INTERSECTIONS 3
+#define OS_STOPS_ON_FIRST_HT 1 // 1 to stop the ordered search when the first HT is found, 0 to continue until the end of the path looking for more HTs
 
 #define PROBE_INDEX(probe_id) (probe_id % MAX_PROBE_ENTRIES)
 
@@ -83,6 +85,37 @@ struct binary_search {
 };
 
 struct binary_search bsa;
+
+/**** ORDERED SEARCH STRUCTURES ****/
+
+struct ordered_search_hop {
+    unsigned short addr;
+    char port;
+    short intersections;    
+};
+
+struct ordered_search_ht {
+    unsigned short router;
+    char port;
+};
+
+struct ordered_search {
+    enum {OS_BUSY, OS_IDLE} status;
+  
+    struct ordered_search_hop hops[MAX_PROBE_PATH_SIZE];
+    int hops_size;
+    unsigned short next_hop;
+  
+    unsigned short target;
+    unsigned short current_probe_id;
+
+    struct ordered_search_ht hts[MAX_PROBE_PATH_SIZE];
+    int ht_counter;
+}; 
+
+struct ordered_search ordered_search;
+
+int get_turn_integer(char);
 
 /**** NOC HEALTH MATRIX  ****/
 
@@ -161,6 +194,32 @@ void print_noc_health_status();
 
 void print_noc_health_intersections();
 
+/**** ORDERED SEARCH ****/
+
+void register_new_ordered_search(struct suspicious_path *new_os_path);
+
+void start_ordered_search(struct suspicious_path *path);
+
+void populate_ordered_search(struct suspicious_path *path);
+
+void send_probes_ordered_search();
+
+int get_ordered_search_probe_by_id(int id);
+
+void receive_ordered_search_probe(int os_probe_slot, int result);
+
+void register_ordered_search_ht(unsigned int router, char port);
+
+void finalize_ordered_search();
+
+void print_ordered_search_result();
+
+int compare_suspicious_hops(const void *a, const void *b);
+
+int distance_between_PEs(unsigned short addr, unsigned short target);
+
 unsigned short get_uniform_batch_config(unsigned int probe_spacing_us, unsigned int num_probes);
 
 #endif
+
+
