@@ -2690,6 +2690,8 @@ void OS_InterruptServiceRoutine(unsigned int status) {
 		#endif
 
 		monitor_probe_timeout();
+		monitor_outgoing_batches();
+
 		timeoutTimer(Sessions);
 		OS_InterruptMaskSet(IRQ_TIMEOUT);
 		call_scheduler = 1;

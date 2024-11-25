@@ -29,11 +29,15 @@ enum probe_status {
 
 struct probe {
     short id;
+    enum probe_status status;
+
     unsigned short source;
     unsigned short target;
     char path[MAX_PROBE_PATH_SIZE];
     char path_size;
-    enum probe_status status;
+    
+    int batch_size;
+    unsigned short batch_config;
 };
 
 short next_probe_id;
@@ -103,6 +107,8 @@ void init_probe_master_structures();
 
 int get_new_probe_slot();
 
+int get_new_probe_slot_for_batch(int batch_size);
+
 int get_new_binary_search_probe_slot();
 
 int get_binary_search_probe_by_id(int id);
@@ -135,7 +141,7 @@ void finalize_binary_search();
 
 int check_if_path_intersects_with_registered_bsa(struct suspicious_path *new_path);
 
-int send_probe_request(unsigned int source_addr, unsigned int target_addr, char *path, int path_size);
+int send_probe_request(unsigned int source_addr, unsigned int target_addr, char *path, int path_size, int batch_size, unsigned int batch_config);
 
 void handle_probe_results(unsigned int packet_source_field, unsigned int payload);
 
@@ -154,5 +160,7 @@ void set_healthy_health(unsigned int source_address, char *path, int path_size);
 void print_noc_health_status();
 
 void print_noc_health_intersections();
+
+unsigned short get_uniform_batch_config(unsigned int probe_spacing_us, unsigned int num_probes);
 
 #endif

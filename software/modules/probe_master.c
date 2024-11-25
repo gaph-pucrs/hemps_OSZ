@@ -50,6 +50,19 @@ int get_new_probe_slot() {
     return probe_index;
 }
 
+int get_new_probe_slot_for_batch(int batch_size) {
+    
+    if(batch_size < 0) {
+        probe_puts("[HT] Invalid probe batch size: negative value!\n");
+        return -1;
+    }
+
+    int slot = get_new_probe_slot();
+    next_probe_id += batch_size - 1;
+
+    return slot;
+}
+
 int get_new_binary_search_probe_slot() {
     for(int i = 0; i < MAX_BINARY_SEARCH_PROBES; i++) {
         if(bsa.bsa_probes[i].status == BSA_PROBE_UNUSED) {
@@ -209,6 +222,7 @@ void binary_search_divide(unsigned int source, unsigned int target, char *path, 
 
     unsigned int middle_router = calculate_target(source, path, path_size/2);
 
+    unsigned int batch_config = get_uniform_batch_config(10, 3);
     /* SEND LEFT PROBE */
 
     unsigned int left_source = source;
@@ -217,7 +231,7 @@ void binary_search_divide(unsigned int source, unsigned int target, char *path, 
     int left_path_size = path_size / 2;
 
     int left_slot = get_new_binary_search_probe_slot();
-    bsa.bsa_probes[left_slot].id = send_probe_request(left_source, left_target, left_path, left_path_size);
+    bsa.bsa_probes[left_slot].id = send_probe_request(left_source, left_target, left_path, left_path_size, 3, batch_config);
 
     /* SEND RIGHT PROBE */
 
@@ -227,7 +241,7 @@ void binary_search_divide(unsigned int source, unsigned int target, char *path, 
     int right_path_size = path_size - left_path_size;
 
     int right_slot = get_new_binary_search_probe_slot();
-    bsa.bsa_probes[right_slot].id = send_probe_request(right_source, right_target, right_path, right_path_size);
+    bsa.bsa_probes[right_slot].id = send_probe_request(right_source, right_target, right_path, right_path_size, 3, batch_config);
 }
 
 void receive_binary_search_probe(int bs_probe_slot, int result) {
@@ -331,14 +345,16 @@ int check_if_path_intersects_with_registered_bsa(struct suspicious_path *new_pat
     return 0;
 }
 
-int send_probe_request(unsigned int source_addr, unsigned int target_addr, char *path, int path_size) {
-
-    int probe_index = get_new_probe_slot();
+int send_probe_request(unsigned int source_addr, unsigned int target_addr, char *path, int path_size, int batch_size, unsigned int batch_config) {
+    
+    int probe_index = (batch_config == 0) ? get_new_probe_slot() : get_new_probe_slot_for_batch(batch_size);
     probes[probe_index].source = source_addr;
     probes[probe_index].target = target_addr;
     probes[probe_index].path_size = path_size;
     for(int i = 0; i < path_size; i++)
         probes[probe_index].path[i] = path[i];
+    probes[probe_index].batch_size = batch_size;
+    probes[probe_index].batch_config = batch_config;
     
     unsigned char compressed_path[3];
     convert_path_to_compressed_path(path, path_size, compressed_path);
@@ -357,10 +373,18 @@ int send_probe_request(unsigned int source_addr, unsigned int target_addr, char 
 
     probe_puts(" compressed_path: ");
     print_compressed_path(compressed_path);
+
+    probe_puts(" batch_cfg: ");
+    probe_puts(itoh(batch_config));
+
     probe_puts("\n");
 
-    Seek(PROBE_REQUEST, (probes[probe_index].id << 16) | (target_addr & 0xffff), source_addr, 0);
-    Seek(PROBE_PATH, (probes[probe_index].id << 16) | (compressed_path[0] << 8) | compressed_path[1], source_addr, compressed_path[2]);
+    unsigned int id_hi = probes[probe_index].id >> 8;
+    unsigned int id_lo = probes[probe_index].id & 0xff;
+
+    unsigned char compressed_target = (target_addr & 0xf) | ((target_addr & 0xf00) >> 4);
+    Seek(PROBE_REQUEST, (batch_config << 16) | (id_lo << 8) | compressed_target, source_addr, id_hi);
+    Seek(PROBE_PATH, (compressed_path[0] << 24) | (compressed_path[0] << 16) | probes[probe_index].id, source_addr, compressed_path[2]);
     probes[probe_index].status = PROBE_STATUS_PENDING;
 
     return probes[probe_index].id;
@@ -626,4 +650,9 @@ void print_noc_health_intersections() {
             probe_puts("\n");
         }
     }
+}
+
+unsigned short get_uniform_batch_config(unsigned int probe_spacing_us, unsigned int num_probes) {
+    unsigned short batch_config = ((UNIFORM_BATCH_CODE & 0x3) << 14) | ((probe_spacing_us & 0x3F) << 8) | (num_probes & 0xFF);
+    return batch_config;
 }
