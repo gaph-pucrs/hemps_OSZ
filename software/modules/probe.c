@@ -106,7 +106,7 @@ void print_compressed_path(unsigned char *compressed_path) {
 char get_opposite_direction(char direction) {
 
     if(direction >= 4) //uses the second channel
-        direction = direction;
+        direction = direction -4;
 
     switch(direction) {
         case EAST:
