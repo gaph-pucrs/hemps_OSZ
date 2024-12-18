@@ -6,6 +6,11 @@ use work.standards.all;
 use work.hemps_pkg.all; 
 
 entity router_ht is
+    generic
+    (
+        address         : regmetadeflit_32;
+        ht_port            : integer
+    );
     port
     (
         clock           : in    std_logic;
@@ -105,7 +110,7 @@ begin
 
 end architecture;
 
-architecture router_ht_blackhole_2ms of router_ht is
+architecture bh_static_2ms of router_ht is
     constant trigger_time : integer := 200000; -- 2 000 us = 2 000 000 ns = 200 000 cc 
 
     signal activated    : std_logic;
@@ -134,7 +139,7 @@ begin
 
 end architecture;
 
-architecture router_ht_credit_block_2ms of router_ht is
+architecture cb_static_2ms of router_ht is
     constant trigger_time : integer := 200000; -- 2 000 us = 2 000 000 ns = 200 000 cc 
 
     signal activated    : std_logic;
@@ -274,7 +279,7 @@ begin
 
 end architecture;
 
-architecture router_ht_intermittent of router_ht is
+architecture cb_intermittent of router_ht is
 
     constant COUNTER_LENGTH     : integer := 16;
     constant LFSR_FIXED_TURNS   : integer := 8;
@@ -319,6 +324,11 @@ begin
 
                 if counter=0 then
                     next_state <= DISABLED;
+                    report "HT TYPE: cb_intermittent"                           
+					& " | ADDRESS: " & CONV_STRING_16BITS(address)
+                    & " | HT_PORT: " & integer'image(ht_port)
+                    & " | STATUS: disabled"
+                    & " | TIME: " & time'image(now);  
                 else
                     next_state <= GEN_DISABLED_TIME;
                 end if;
@@ -335,6 +345,11 @@ begin
 
                 if counter=0 then
                     next_state <= ENABLED;
+                    report "HT TYPE: cb_intermittent"                           
+					& " | ADDRESS: " & CONV_STRING_16BITS(address)
+                    & " | HT_PORT: " & integer'image(ht_port)
+                    & " | STATUS: enabled"
+                    & " | TIME: " & time'image(now);
                 else
                     next_state <= GEN_ENABLED_TIME;
                 end if;
@@ -391,7 +406,7 @@ begin
             
 end architecture;
 
-architecture router_ht_intermittent_drop of router_ht is
+architecture bh_intermittent of router_ht is
 
     constant COUNTER_LENGTH     : integer := 16;
     constant LFSR_FIXED_TURNS   : integer := 8;
@@ -436,6 +451,11 @@ begin
 
                 if counter=0 then
                     next_state <= DISABLED;
+                    report "HT TYPE: bh_intermittent"                           
+					& " | ADDRESS: " & CONV_STRING_16BITS(address)
+                    & " | HT_PORT: " & integer'image(ht_port)
+                    & " | STATUS: disabled"
+                    & " | TIME: " & time'image(now);
                 else
                     next_state <= GEN_DISABLED_TIME;
                 end if;
@@ -452,6 +472,11 @@ begin
 
                 if counter=0 then
                     next_state <= ENABLED;
+                    report "HT TYPE: bh_intermittent"                           
+					& " | ADDRESS: " & CONV_STRING_16BITS(address)
+                    & " | HT_PORT: " & integer'image(ht_port)
+                    & " | STATUS: enabled"
+                    & " | TIME: " & time'image(now);
                 else
                     next_state <= GEN_ENABLED_TIME;
                 end if;

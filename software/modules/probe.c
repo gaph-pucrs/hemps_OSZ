@@ -55,7 +55,23 @@ void print_probe_result(int status) {
     }
 }
 
+void print_probe_result_logs(int status) {
+    switch(status) {
+        case PROBE_RESULT_SUCCESS:
+            probe_logs_puts("SUCCESS");
+            break;
+        case PROBE_RESULT_FAILURE:
+            probe_logs_puts("FAILURE");
+            break;
+        default:
+            probe_logs_puts("UNKNOWN RESULT");
+    }
+}
+
 void print_turn(char turn) {
+    if(turn >= 4) //uses the second channel
+    turn = turn -4;
+
     switch(turn) {
         case EAST:
             probe_puts("E");
@@ -72,15 +88,50 @@ void print_turn(char turn) {
     }
 }
 
+void print_turn_logs(char turn) {
+    if(turn >= 4) //uses the second channel
+    turn = turn -4;
+
+    switch(turn) {
+        case EAST:
+            probe_logs_puts("E");
+            return;
+        case WEST:
+            probe_logs_puts("W");
+            return;
+        case NORTH:
+            probe_logs_puts("N");
+            return;
+        case SOUTH:
+            probe_logs_puts("S");
+            return;
+        default:
+            probe_logs_puts(itoa(turn));
+            return;
+    }
+}
+
 void print_path(char *path, int path_size) {
     for(int i = 0; i < path_size; i++)
         print_turn(path[i]);
+}
+
+void print_path_logs(char *path, int path_size) {
+    for(int i = 0; i < path_size; i++)
+        print_turn_logs(path[i]);
 }
 
 void print_sr_header(unsigned int *header, int header_size) {
     for(int i = 0; i < header_size; i++) {
         probe_puts(itoh(header[i]));
         probe_puts(" ");
+    }
+}
+
+void print_sr_header_logs(unsigned int *header, int header_size) {
+    for(int i = 0; i < header_size; i++) {
+        probe_logs_puts(itoh(header[i]));
+        probe_logs_puts(" ");
     }
 }
 
@@ -130,6 +181,8 @@ char get_opposite_direction(char direction) {
 }
 
 int are_opposite_directions(char direction1, char direction2) {
+    if(direction1 >= 4) //uses the second channel
+        direction1 = direction1 -4;
     switch(direction1) {
         case EAST:
             return (direction2 == WEST);
@@ -140,8 +193,8 @@ int are_opposite_directions(char direction1, char direction2) {
         case SOUTH:
             return (direction2 == NORTH);
     }
-    probe_puts("[HT] ERROR - are_opposite_directions received invalid input\n");
-    probe_puts("[HT] direction1="); probe_puts(itoa(direction1)); probe_puts(" direction2="); probe_puts(itoa(direction2)); probe_puts("\n");
+    //probe_puts("[HT] ERROR - are_opposite_directions received invalid input\n");
+    //probe_puts("[HT] direction1= "); probe_puts(itoa(direction1)); probe_puts(" direction2= "); probe_puts(itoa(direction2)); probe_puts("\n");
     return 0;
 }
 
@@ -277,14 +330,20 @@ int convert_path_to_sr_header(char *path, int path_size, unsigned int *header) {
 
     int word_index = 0;
     int turn_index = 0;
+    int turn;
 
     int hop = 0;
     int total_hops = dual_channel_path_size + 1; //additional last hop is used to indicate end of path
+ 
+    probe_puts("[HT] Total Hops = ");
+    probe_puts(itoa(total_hops - 1));
+    probe_puts("\n");
 
     while(hop < total_hops) {
 
         int is_last_hop = hop == (total_hops-1);
         int shift = 32 - ((turn_index + 1) * 4);
+
 
         //if it's the first turn, initialize the word
         if(turn_index == 0) {
@@ -298,10 +357,17 @@ int convert_path_to_sr_header(char *path, int path_size, unsigned int *header) {
 
         //the other 4-bit slices contain the actual path hops
         else {
-            int turn = is_last_hop ? get_opposite_direction(dual_channel_path[hop-1]) : dual_channel_path[hop];
+            turn = is_last_hop ? get_opposite_direction(dual_channel_path[hop-1]) : dual_channel_path[hop];
             header[word_index] = header[word_index] | (turn << shift);
             hop++;
         }
+
+        probe_puts("[HT] turn_index = ");
+        probe_puts(itoa(turn_index));
+        probe_puts(";turn = ");
+        probe_puts(itoa(turn));
+        probe_puts("\n");
+        print_sr_header(header, word_index);
 
         //increment turn_index
         turn_index++;
@@ -604,19 +670,8 @@ int get_outgoing_probe_by_id(unsigned int probe_id) {
 }
 
 void send_probe(unsigned int probe_id, unsigned int source, unsigned int target, unsigned int *sr_header, int sr_header_length, unsigned int batch_config) {
-
-    probe_puts("[HT] SEND PROBE MESSAGE -- probe #");
-    probe_puts(itoa(probe_id));
-
-    probe_puts(" src: ");
-    probe_puts(itoh(source));
-    
-    probe_puts(" tgt: ");
-    probe_puts(itoh(target));
-    
-    probe_puts(" sr: ");
-    print_sr_header(sr_header, sr_header_length);
-    probe_puts("\n");
+    char path_to_print[MAX_PROBE_PATH_SIZE];
+    int path_size = convert_sr_header_to_path(sr_header, sr_header_length, path_to_print);
 
     /* PROBE CONTROL */
 
@@ -633,8 +688,45 @@ void send_probe(unsigned int probe_id, unsigned int source, unsigned int target,
     p->probe_id = probe_id;
     p->probe_source = source;
     p->probe_target = target;
+    p->data_size = PROBE_PACKET_SIZE;
 
-    send_packet_through_sr_path(p, 0, 0, sr_header, sr_header_length);
+    if(batch_config==0){
+        probe_logs_puts("[HT] SEND PROBE MESSAGE -- probe #"); probe_logs_puts(itoa(probe_id & 0xffff)); probe_logs_puts(" from batch #"); probe_logs_puts(itoa(probe_id & 0xffff));
+    }
+    probe_logs_puts(" src: ");
+    probe_logs_puts(itoh(source));
+    
+    probe_logs_puts(" tgt: ");
+    probe_logs_puts(itoh(target));
+
+    probe_logs_puts(" path: ");
+
+    probe_logs_puts(" ");
+    for (int i= 0; i < MAX_PROBE_PATH_SIZE; i++) {
+        puts("{");
+        puts(itoa(i));puts(": ");
+        print_turn_logs(path_to_print[i]);
+        puts("} ");
+    }
+    probe_logs_puts("| ");
+
+    print_path_logs(path_to_print, path_size);
+
+	probe_logs_puts(" payload_size: "); probe_logs_puts(itoa(PROBE_PACKET_SIZE));
+
+    probe_logs_puts(" config_period: ");
+    probe_logs_puts(itoa((batch_config & 0xFF)));
+
+    probe_logs_puts(" probe_type: ");
+    probe_logs_puts(batch_config == 0 ? "bsa" : "batch");
+
+    probe_logs_puts(" release_time: @");
+    probe_logs_puts(itoa(MemoryRead(TICK_COUNTER)));
+
+    probe_logs_puts("\n");
+
+    send_packet_through_sr_path(p, 0, PROBE_PACKET_SIZE, sr_header, sr_header_length);
+    // send_packet_through_sr_path(p, 0, 0, sr_header, sr_header_length);
 }
 
 void handle_probe_request(unsigned int pkt_source, unsigned int pkt_target, unsigned int pkt_payload) {
@@ -745,15 +837,19 @@ void handle_probe_path(unsigned int pkt_source, unsigned int pkt_target, unsigne
 
 void receive_probe(unsigned int probe_id, unsigned int source, unsigned int target) {
 
-    probe_puts("[HT] RECV PROBE MESSAGE -- probe #");
-    probe_puts(itoa(probe_id));
+    probe_logs_puts("[HT] RECV PROBE MESSAGE -- probe #");
+    probe_logs_puts(itoa(probe_id));
 
-    probe_puts(" src: ");
-    probe_puts(itoh(source));
+    probe_logs_puts(" src: ");
+    probe_logs_puts(itoh(source));
     
-    probe_puts(" tgt: ");
-    probe_puts(itoh(target));
-    probe_puts("\n");
+    probe_logs_puts(" tgt: ");
+    probe_logs_puts(itoh(target));
+
+    probe_logs_puts(" arrive_time: @");
+    probe_logs_puts(itoa(MemoryRead(TICK_COUNTER)));
+
+    probe_logs_puts("\n");
 
     int slot = get_incoming_probe_by_id(probe_id);
 
@@ -953,7 +1049,7 @@ void monitor_outgoing_batches() {
     unsigned int time_now = MemoryRead(TICK_COUNTER);
     for(int i = 0; i < MAX_OUTGOING_BATCHES; i++) {
         if(outgoing_batches[i].status == OUTGOING_BATCH_SENDING && time_now >= outgoing_batches[i].next_probe_timestamp) {
-            probe_puts("[HT] sending "); probe_puts(itoa(outgoing_batches[i].sent_probes+1)); probe_puts("th from batch #"); probe_puts(itoa(outgoing_batches[i].initial_id)); probe_puts(" @"); probe_puts(itoa(time_now)) probe_puts("cc\n");
+            probe_logs_puts("[HT] SEND PROBE MESSAGE -- probe #"); probe_logs_puts(itoa(outgoing_batches[i].initial_id + (outgoing_batches[i].sent_probes))); probe_logs_puts(" from batch #"); probe_logs_puts(itoa(outgoing_batches[i].initial_id));
             send_probe_from_outgoing_batch(&outgoing_batches[i]);
         }
     }

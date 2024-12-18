@@ -3,9 +3,11 @@
 
 #include "packet.h"
 #include "seek.h"
+#include "probe_defines.h"
 
-#define probe_puts(argument) puts(argument)
-// #define probe_puts(argument)
+// #define probe_puts(argument) puts(argument)
+#define probe_puts(argument)
+#define probe_logs_puts(argument) puts(argument)
 
 #define probe_debug_puts(argument) puts(argument)
 // #define probe_debug_puts(argument)
@@ -40,12 +42,17 @@
 
 #define STATIC_PROBE_THRESHOLD 15000 //150us
 
+#define MAX_PROBE_PAYLOAD_SIZE 210
+#define PROBE_PACKET_SIZE 200 // em flits
+
 // Ways to represent a probe path:
 // Path) String of chars in which each char represents a hop. Does NOT include a termination (opposite) hop.
 // Compressed path) Used to send paths unsing the brNoC. Each hop is represented using 2 bits, end of path is signaled using an opposite hop. Max length = 24 bits.
 // SR Header) Representation used by Hermes to route the packet. Ex: NEEES becomes 0x72007032.
 
 unsigned int *probe_mpe_addr_ptr; //points to the cluster_master_address in the kernel_slave
+
+unsigned int probe_message_buffer[MAX_PROBE_PAYLOAD_SIZE]; // reads insignificant data from the probe message, this value is never used
 
 /**** PROBE API TABLE ****/
 
@@ -154,9 +161,15 @@ void print_probe_result(int status);
 
 void print_turn(char turn);
 
+void print_turn_logs(char turn);
+
 void print_path(char *path, int path_size);
 
+void print_path_logs(char *path, int path_size);
+
 void print_sr_header(unsigned int *header, int header_size);
+
+void print_sr_header_logs(unsigned int *header, int header_size);
 
 void print_compressed_path(unsigned char *compressed_path);
 

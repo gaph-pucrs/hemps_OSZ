@@ -1667,7 +1667,13 @@ int handle_packet(ServiceHeader * p) {
 		break;
 
 	case PROBE_MESSAGE:
+
 		receive_probe(p->probe_id, p->probe_source, p->probe_target);
+
+		if(DMNI_read_data(probe_message_buffer, p->data_size) == -1){
+			MemoryWrite(DMNI_TIMEOUT_SIGNAL,0);
+			puts("payload incompleto...\n");
+		}
 		break;
 		
 	case ATTACK:
@@ -2837,8 +2843,6 @@ int main(){
 	net_address = MemoryRead(NI_CONFIG);
 
 	set_net_address(net_address);
-
-	puts("Initializing PE: "); puts(itoh(net_address)); puts("\n");
 
 	init_communication();
 
