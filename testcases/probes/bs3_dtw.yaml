@@ -21,7 +21,7 @@ apps:
     start_time_ms: 0
     secure: no
     static_mapping:
-      bank: [1,0]
+      bank: [4,1]
       p1: [1,4]
       p2: [2,4]
       p3: [3,4]
