@@ -248,9 +248,9 @@ void binary_search_divide(unsigned int source, unsigned int target, char *path, 
 void evaluate_bsa_result() {
     if(bsa.ht_counter == 0) {
         probe_puts("[HT] No HT found at this binary searched path, starting ordered search instead.\n");
-        register_new_ordered_search(&bsa.path);
+        // register_new_ordered_search(&bsa.path);
     }
-    else {
+    else if (1) {
         finalize_binary_search();
     }
 }
