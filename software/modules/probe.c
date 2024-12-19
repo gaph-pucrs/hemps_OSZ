@@ -69,9 +69,6 @@ void print_probe_result_logs(int status) {
 }
 
 void print_turn(char turn) {
-    if(turn >= 4) //uses the second channel
-    turn = turn -4;
-
     switch(turn) {
         case EAST:
             probe_puts("E");
@@ -89,9 +86,6 @@ void print_turn(char turn) {
 }
 
 void print_turn_logs(char turn) {
-    if(turn >= 4) //uses the second channel
-    turn = turn -4;
-
     switch(turn) {
         case EAST:
             probe_logs_puts("E");
@@ -399,19 +393,29 @@ int convert_sr_header_to_path(unsigned int *header, int header_size, char *path)
     int header_word = 0;
     int header_turn = 1; //skips position 0 (sr flit flag)
 
-    int current_hop;
-    int next_hop = portToDirection((header[0] >> 24) & 0xf); //use only E W N S turns
+    unsigned volatile int current_hop;
+    unsigned volatile int next_hop = 0;
+    // puts("nxt1 = ");puts(itoa(next_hop));puts("\n");
+    next_hop = (header[0]);
+    // // puts("head0 = ");puts(itoa(next_hop));puts("\n");
+    next_hop = (next_hop >> 24);
+    // // puts("nxt_header = ");puts(itoa(next_hop));puts("\n");
+    next_hop = (next_hop) & 0x0f;
+    // // puts("nxt_and = ");puts(itoa(next_hop));puts("\n");
+    next_hop = portToDirection(next_hop); //use only E W N S turns
+    // puts("nxt_port = ");puts(itoa(next_hop));puts("\n");
+
+    // next_hop = portToDirection((header[0] >> 24) & 0xf); //use only E W N S turns
 
     while(header_word < header_size) {
 
         /* Write current hop into path */
-
         current_hop = next_hop;
 
         path[path_index] = current_hop;
-        path_index++;
 
         /* Increment header turn */
+        path_index++;
 
         header_turn++;
 
@@ -670,8 +674,6 @@ int get_outgoing_probe_by_id(unsigned int probe_id) {
 }
 
 void send_probe(unsigned int probe_id, unsigned int source, unsigned int target, unsigned int *sr_header, int sr_header_length, unsigned int batch_config) {
-    char path_to_print[MAX_PROBE_PATH_SIZE];
-    int path_size = convert_sr_header_to_path(sr_header, sr_header_length, path_to_print);
 
     /* PROBE CONTROL */
 
@@ -701,14 +703,8 @@ void send_probe(unsigned int probe_id, unsigned int source, unsigned int target,
 
     probe_logs_puts(" path: ");
 
-    probe_logs_puts(" ");
-    for (int i= 0; i < MAX_PROBE_PATH_SIZE; i++) {
-        puts("{");
-        puts(itoa(i));puts(": ");
-        print_turn_logs(path_to_print[i]);
-        puts("} ");
-    }
-    probe_logs_puts("| ");
+    char path_to_print[MAX_PROBE_PATH_SIZE];
+    int path_size = convert_sr_header_to_path(sr_header, sr_header_length, path_to_print);
 
     print_path_logs(path_to_print, path_size);
 
