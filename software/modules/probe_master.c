@@ -250,7 +250,7 @@ void evaluate_bsa_result() {
         probe_puts("[HT] No HT found at this binary searched path, starting ordered search instead.\n");
         // register_new_ordered_search(&bsa.path);
     }
-    else if (1) {
+    if (1) {
         finalize_binary_search();
     }
 }

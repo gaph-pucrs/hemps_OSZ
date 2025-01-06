@@ -141,7 +141,7 @@ begin
         end generate;
 
         BlackholeHT_300us: if hts_setup(i+1)='b' generate
-            HT: entity work.router_ht(router_ht_blackhole_300us)
+            HT: entity work.router_ht(bh_static_2ms)
             generic map
             (
                 address     => address,
@@ -170,7 +170,7 @@ begin
         end generate;
 
         CreditBlockHT_300us: if hts_setup(i+1)='R' generate
-            HT: entity work.router_ht(router_ht_credit_block_300us)
+            HT: entity work.router_ht(cb_static_1ms)
             generic map
             (
                 address     => address,
@@ -199,7 +199,7 @@ begin
         end generate;
 
         BlackholeHT_2ms: if hts_setup(i+1)='m' generate
-            HT: entity work.router_ht(bh_static_2ms)
+            HT: entity work.router_ht(bh_static_1ms)
             generic map
             (
                 address     => address,

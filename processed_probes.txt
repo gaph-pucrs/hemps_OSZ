@@ -4,1919 +4,399 @@
 batch_id: 0
 batch_config: 0x00000000
 probe_id: 0
-source: 0x00000103
+source: 0x00000304
 target: 0x00000403
-release_time: 275796
-arrive_time: 277646
-config_time: 269862
-result_time: 280593
+release_time: 277651
+arrive_time: None
+config_time: 274094
+result_time: 300710
 config_period: 0
 effective_period: None
-net_period: 1850
-payload_size: 117
+net_period: None
+payload_size: 200
 probe_type: bsa
-path: EE
+path: ES
 status: None
-result: SUCCESS
-file_sources: sandbox/complex1_dijkstra_bh_interm/log/log4x3.txt, sandbox/complex1_dijkstra_bh_interm/log/log0x4.txt, sandbox/complex1_dijkstra_bh_interm/log/log1x3.txt
+result: FAILURE
+file_sources: sandbox/paper_gustavo_baseline/baseline_bh/log/log3x4.txt, sandbox/paper_gustavo_baseline/baseline_bh/log/log0x4.txt
 ----------------------------------------
 --- Probe 2 ---
 batch_id: 1
 batch_config: 0x00000000
 probe_id: 1
 source: 0x00000403
-target: 0x00000400
-release_time: 276380
-arrive_time: 278132
-config_time: 271016
-result_time: 279571
+target: 0x00000401
+release_time: 278160
+arrive_time: 279260
+config_time: 275204
+result_time: 282192
 config_period: 0
-effective_period: 3191
-net_period: 1752
-payload_size: 117
+effective_period: None
+net_period: 1100
+payload_size: 200
 probe_type: bsa
 path: SS
 status: None
 result: SUCCESS
-file_sources: sandbox/complex1_dijkstra_bh_interm/log/log4x3.txt, sandbox/complex1_dijkstra_bh_interm/log/log0x4.txt, sandbox/complex1_dijkstra_bh_interm/log/log4x0.txt
+file_sources: sandbox/paper_gustavo_baseline/baseline_bh/log/log4x1.txt, sandbox/paper_gustavo_baseline/baseline_bh/log/log0x4.txt, sandbox/paper_gustavo_baseline/baseline_bh/log/log4x3.txt
 ----------------------------------------
 --- Probe 3 ---
 batch_id: 2
-batch_config: 0x00000a05
+batch_config: 0x00000000
 probe_id: 2
-source: 0x00000401
-target: 0x00000400
-release_time: 291754
-arrive_time: 293508
-config_time: 285665
-result_time: 343383
-config_period: 5
-effective_period: 11965
-net_period: 1754
-payload_size: 117
-probe_type: batch
-path: S
+source: 0x00000304
+target: 0x00000404
+release_time: 305502
+arrive_time: 307053
+config_time: 301971
+result_time: 309729
+config_period: 0
+effective_period: 4227
+net_period: 1551
+payload_size: 200
+probe_type: bsa
+path: E
 status: None
 result: SUCCESS
-file_sources: sandbox/complex1_dijkstra_bh_interm/log/log0x4.txt, sandbox/complex1_dijkstra_bh_interm/log/log4x1.txt, sandbox/complex1_dijkstra_bh_interm/log/log4x0.txt
+file_sources: sandbox/paper_gustavo_baseline/baseline_bh/log/log3x4.txt, sandbox/paper_gustavo_baseline/baseline_bh/log/log0x4.txt, sandbox/paper_gustavo_baseline/baseline_bh/log/log4x4.txt
 ----------------------------------------
 --- Probe 4 ---
-batch_id: 2
-batch_config: None
+batch_id: 3
+batch_config: 0x00000000
 probe_id: 3
-source: 0x00000401
-target: 0x00000400
-release_time: 303719
-arrive_time: 305263
-config_time: None
-result_time: None
-config_period: 5
-effective_period: 11964
-net_period: 1544
-payload_size: 117
-probe_type: batch
+source: 0x00000404
+target: 0x00000403
+release_time: 305774
+arrive_time: None
+config_time: 303031
+result_time: 322143
+config_period: 0
+effective_period: None
+net_period: None
+payload_size: 200
+probe_type: bsa
 path: S
 status: None
-result: SUCCESS
-file_sources: sandbox/complex1_dijkstra_bh_interm/log/log4x1.txt, sandbox/complex1_dijkstra_bh_interm/log/log4x0.txt
+result: FAILURE
+file_sources: sandbox/paper_gustavo_baseline/baseline_bh/log/log0x4.txt, sandbox/paper_gustavo_baseline/baseline_bh/log/log4x4.txt
 ----------------------------------------
 --- Probe 5 ---
-batch_id: 2
-batch_config: None
+batch_id: 4
+batch_config: 0x00000000
 probe_id: 4
-source: 0x00000401
-target: 0x00000400
-release_time: 315683
-arrive_time: 316717
-config_time: None
-result_time: None
-config_period: 5
-effective_period: 11966
-net_period: 1034
-payload_size: 117
-probe_type: batch
-path: S
+source: 0x00000104
+target: 0x00000404
+release_time: 358493
+arrive_time: 361132
+config_time: 351788
+result_time: 362736
+config_period: 0
+effective_period: 4243
+net_period: 2639
+payload_size: 200
+probe_type: bsa
+path: EEE
 status: None
 result: SUCCESS
-file_sources: sandbox/complex1_dijkstra_bh_interm/log/log4x1.txt, sandbox/complex1_dijkstra_bh_interm/log/log4x0.txt
+file_sources: sandbox/paper_gustavo_baseline/baseline_bh/log/log1x4.txt, sandbox/paper_gustavo_baseline/baseline_bh/log/log0x4.txt, sandbox/paper_gustavo_baseline/baseline_bh/log/log4x4.txt
 ----------------------------------------
 --- Probe 6 ---
-batch_id: 2
-batch_config: None
+batch_id: 5
+batch_config: 0x00000000
 probe_id: 5
-source: 0x00000401
+source: 0x00000404
 target: 0x00000400
-release_time: 327649
-arrive_time: 329433
-config_time: None
-result_time: None
-config_period: 5
-effective_period: 11964
-net_period: 1784
-payload_size: 117
-probe_type: batch
-path: S
+release_time: 359845
+arrive_time: None
+config_time: 353016
+result_time: 381041
+config_period: 0
+effective_period: None
+net_period: None
+payload_size: 200
+probe_type: bsa
+path: SSSSSSSSEEE
 status: None
-result: SUCCESS
-file_sources: sandbox/complex1_dijkstra_bh_interm/log/log4x1.txt, sandbox/complex1_dijkstra_bh_interm/log/log4x0.txt
+result: FAILURE
+file_sources: sandbox/paper_gustavo_baseline/baseline_bh/log/log0x4.txt, sandbox/paper_gustavo_baseline/baseline_bh/log/log4x4.txt
 ----------------------------------------
 --- Probe 7 ---
-batch_id: 2
-batch_config: None
+batch_id: 6
+batch_config: 0x00000000
 probe_id: 6
-source: 0x00000401
-target: 0x00000400
-release_time: 339613
-arrive_time: 341793
-config_time: None
-result_time: None
-config_period: 5
-effective_period: 11964
-net_period: 2180
-payload_size: 117
-probe_type: batch
-path: S
+source: 0x00000404
+target: 0x00000402
+release_time: 385519
+arrive_time: None
+config_time: 382557
+result_time: 405381
+config_period: 0
+effective_period: None
+net_period: None
+payload_size: 200
+probe_type: bsa
+path: SS
 status: None
-result: SUCCESS
-file_sources: sandbox/complex1_dijkstra_bh_interm/log/log4x1.txt, sandbox/complex1_dijkstra_bh_interm/log/log4x0.txt
+result: FAILURE
+file_sources: sandbox/paper_gustavo_baseline/baseline_bh/log/log0x4.txt, sandbox/paper_gustavo_baseline/baseline_bh/log/log4x4.txt
 ----------------------------------------
 --- Probe 8 ---
 batch_id: 7
-batch_config: 0x00000a05
+batch_config: 0x00000000
 probe_id: 7
 source: 0x00000402
-target: 0x00000401
-release_time: 354414
-arrive_time: 355412
-config_time: 344641
-result_time: 404903
-config_period: 5
-effective_period: 11964
-net_period: 998
-payload_size: 117
-probe_type: batch
-path: S
+target: 0x00000400
+release_time: 386641
+arrive_time: 387560
+config_time: 383675
+result_time: 388495
+config_period: 0
+effective_period: None
+net_period: 919
+payload_size: 200
+probe_type: bsa
+path: SS
 status: None
 result: SUCCESS
-file_sources: sandbox/complex1_dijkstra_bh_interm/log/log4x2.txt, sandbox/complex1_dijkstra_bh_interm/log/log0x4.txt, sandbox/complex1_dijkstra_bh_interm/log/log4x1.txt
+file_sources: sandbox/paper_gustavo_baseline/baseline_bh/log/log4x0.txt, sandbox/paper_gustavo_baseline/baseline_bh/log/log0x4.txt, sandbox/paper_gustavo_baseline/baseline_bh/log/log4x2.txt
 ----------------------------------------
 --- Probe 9 ---
-batch_id: 7
-batch_config: None
+batch_id: 8
+batch_config: 0x00000000
 probe_id: 8
-source: 0x00000402
-target: 0x00000401
-release_time: 366378
-arrive_time: 367413
-config_time: None
-result_time: None
-config_period: 5
-effective_period: 11964
-net_period: 1035
-payload_size: 117
-probe_type: batch
+source: 0x00000404
+target: 0x00000403
+release_time: 409836
+arrive_time: None
+config_time: 406651
+result_time: 428348
+config_period: 0
+effective_period: None
+net_period: None
+payload_size: 200
+probe_type: bsa
 path: S
 status: None
-result: SUCCESS
-file_sources: sandbox/complex1_dijkstra_bh_interm/log/log4x2.txt, sandbox/complex1_dijkstra_bh_interm/log/log4x1.txt
+result: FAILURE
+file_sources: sandbox/paper_gustavo_baseline/baseline_bh/log/log0x4.txt, sandbox/paper_gustavo_baseline/baseline_bh/log/log4x4.txt
 ----------------------------------------
 --- Probe 10 ---
-batch_id: 7
-batch_config: None
+batch_id: 9
+batch_config: 0x00000000
 probe_id: 9
-source: 0x00000402
-target: 0x00000401
-release_time: 378342
-arrive_time: 379376
-config_time: None
-result_time: None
-config_period: 5
-effective_period: 11997
-net_period: 1034
-payload_size: 117
-probe_type: batch
+source: 0x00000403
+target: 0x00000402
+release_time: 410495
+arrive_time: 411613
+config_time: 407711
+result_time: 412538
+config_period: 0
+effective_period: None
+net_period: 1118
+payload_size: 200
+probe_type: bsa
 path: S
 status: None
 result: SUCCESS
-file_sources: sandbox/complex1_dijkstra_bh_interm/log/log4x2.txt, sandbox/complex1_dijkstra_bh_interm/log/log4x1.txt
+file_sources: sandbox/paper_gustavo_baseline/baseline_bh/log/log0x4.txt, sandbox/paper_gustavo_baseline/baseline_bh/log/log4x2.txt, sandbox/paper_gustavo_baseline/baseline_bh/log/log4x3.txt
 ----------------------------------------
 --- Probe 11 ---
-batch_id: 7
-batch_config: None
+batch_id: 10
+batch_config: 0x00000000
 probe_id: 10
-source: 0x00000402
-target: 0x00000401
-release_time: 390339
-arrive_time: 391435
-config_time: None
-result_time: None
-config_period: 5
-effective_period: 11996
-net_period: 1096
-payload_size: 117
-probe_type: batch
-path: S
+source: 0x00000204
+target: 0x00000403
+release_time: 441414
+arrive_time: None
+config_time: 437248
+result_time: 460407
+config_period: 0
+effective_period: None
+net_period: None
+payload_size: 200
+probe_type: bsa
+path: EES
 status: None
-result: SUCCESS
-file_sources: sandbox/complex1_dijkstra_bh_interm/log/log4x2.txt, sandbox/complex1_dijkstra_bh_interm/log/log4x1.txt
+result: FAILURE
+file_sources: sandbox/paper_gustavo_baseline/baseline_bh/log/log2x4.txt, sandbox/paper_gustavo_baseline/baseline_bh/log/log0x4.txt
 ----------------------------------------
 --- Probe 12 ---
-batch_id: 7
-batch_config: None
+batch_id: 11
+batch_config: 0x00000000
 probe_id: 11
-source: 0x00000402
-target: 0x00000401
-release_time: 402335
-arrive_time: 403433
-config_time: None
-result_time: None
-config_period: 5
-effective_period: 11980
-net_period: 1098
-payload_size: 117
-probe_type: batch
-path: S
+source: 0x00000403
+target: 0x00000400
+release_time: 441666
+arrive_time: 442623
+config_time: 438447
+result_time: 443585
+config_period: 0
+effective_period: None
+net_period: 957
+payload_size: 200
+probe_type: bsa
+path: SSS
 status: None
 result: SUCCESS
-file_sources: sandbox/complex1_dijkstra_bh_interm/log/log4x2.txt, sandbox/complex1_dijkstra_bh_interm/log/log4x1.txt
+file_sources: sandbox/paper_gustavo_baseline/baseline_bh/log/log4x0.txt, sandbox/paper_gustavo_baseline/baseline_bh/log/log0x4.txt, sandbox/paper_gustavo_baseline/baseline_bh/log/log4x3.txt
 ----------------------------------------
 --- Probe 13 ---
 batch_id: 12
-batch_config: 0x00000a05
+batch_config: 0x00000000
 probe_id: 12
-source: 0x00000403
-target: 0x00000402
-release_time: 412058
-arrive_time: 413098
-config_time: 406232
-result_time: 462781
-config_period: 5
-effective_period: 12027
-net_period: 1040
-payload_size: 117
-probe_type: batch
-path: S
+source: 0x00000204
+target: 0x00000304
+release_time: 464680
+arrive_time: 467218
+config_time: 461780
+result_time: 469893
+config_period: 0
+effective_period: 5213
+net_period: 2538
+payload_size: 200
+probe_type: bsa
+path: E
 status: None
 result: SUCCESS
-file_sources: sandbox/complex1_dijkstra_bh_interm/log/log4x3.txt, sandbox/complex1_dijkstra_bh_interm/log/log4x2.txt, sandbox/complex1_dijkstra_bh_interm/log/log0x4.txt
+file_sources: sandbox/paper_gustavo_baseline/baseline_bh/log/log3x4.txt, sandbox/paper_gustavo_baseline/baseline_bh/log/log2x4.txt, sandbox/paper_gustavo_baseline/baseline_bh/log/log0x4.txt
 ----------------------------------------
 --- Probe 14 ---
-batch_id: 12
-batch_config: None
+batch_id: 13
+batch_config: 0x00000000
 probe_id: 13
-source: 0x00000403
-target: 0x00000402
-release_time: 424085
-arrive_time: 425424
-config_time: None
-result_time: None
-config_period: 5
-effective_period: 12028
-net_period: 1339
-payload_size: 117
-probe_type: batch
-path: S
+source: 0x00000304
+target: 0x00000403
+release_time: 465908
+arrive_time: None
+config_time: 462929
+result_time: 481753
+config_period: 0
+effective_period: None
+net_period: None
+payload_size: 200
+probe_type: bsa
+path: ES
 status: None
-result: SUCCESS
-file_sources: sandbox/complex1_dijkstra_bh_interm/log/log4x3.txt, sandbox/complex1_dijkstra_bh_interm/log/log4x2.txt
+result: FAILURE
+file_sources: sandbox/paper_gustavo_baseline/baseline_bh/log/log3x4.txt, sandbox/paper_gustavo_baseline/baseline_bh/log/log0x4.txt
 ----------------------------------------
 --- Probe 15 ---
-batch_id: 12
-batch_config: None
+batch_id: 14
+batch_config: 0x00000000
 probe_id: 14
-source: 0x00000403
-target: 0x00000402
-release_time: 436113
-arrive_time: 437088
-config_time: None
-result_time: None
-config_period: 5
-effective_period: 12027
-net_period: 975
-payload_size: 117
-probe_type: batch
-path: S
+source: 0x00000304
+target: 0x00000404
+release_time: 486304
+arrive_time: 488283
+config_time: 483053
+result_time: 489923
+config_period: 0
+effective_period: 3619
+net_period: 1979
+payload_size: 200
+probe_type: bsa
+path: E
 status: None
 result: SUCCESS
-file_sources: sandbox/complex1_dijkstra_bh_interm/log/log4x3.txt, sandbox/complex1_dijkstra_bh_interm/log/log4x2.txt
+file_sources: sandbox/paper_gustavo_baseline/baseline_bh/log/log3x4.txt, sandbox/paper_gustavo_baseline/baseline_bh/log/log0x4.txt, sandbox/paper_gustavo_baseline/baseline_bh/log/log4x4.txt
 ----------------------------------------
 --- Probe 16 ---
-batch_id: 12
-batch_config: None
+batch_id: 15
+batch_config: 0x00000000
 probe_id: 15
-source: 0x00000403
-target: 0x00000402
-release_time: 448140
-arrive_time: 449486
-config_time: None
-result_time: None
-config_period: 5
-effective_period: 12028
-net_period: 1346
-payload_size: 117
-probe_type: batch
+source: 0x00000404
+target: 0x00000403
+release_time: 486973
+arrive_time: None
+config_time: 484136
+result_time: 503055
+config_period: 0
+effective_period: None
+net_period: None
+payload_size: 200
+probe_type: bsa
 path: S
 status: None
-result: SUCCESS
-file_sources: sandbox/complex1_dijkstra_bh_interm/log/log4x3.txt, sandbox/complex1_dijkstra_bh_interm/log/log4x2.txt
+result: FAILURE
+file_sources: sandbox/paper_gustavo_baseline/baseline_bh/log/log0x4.txt, sandbox/paper_gustavo_baseline/baseline_bh/log/log4x4.txt
 ----------------------------------------
 --- Probe 17 ---
-batch_id: 12
-batch_config: None
+batch_id: 16
+batch_config: 0x00000000
 probe_id: 16
-source: 0x00000403
-target: 0x00000402
-release_time: 460168
-arrive_time: 461266
-config_time: None
-result_time: None
-config_period: 5
-effective_period: 12027
-net_period: 1098
-payload_size: 117
-probe_type: batch
-path: S
+source: 0x00000304
+target: 0x00000403
+release_time: 515160
+arrive_time: None
+config_time: 511459
+result_time: 535036
+config_period: 0
+effective_period: None
+net_period: None
+payload_size: 200
+probe_type: bsa
+path: ES
 status: None
-result: SUCCESS
-file_sources: sandbox/complex1_dijkstra_bh_interm/log/log4x3.txt, sandbox/complex1_dijkstra_bh_interm/log/log4x2.txt
+result: FAILURE
+file_sources: sandbox/paper_gustavo_baseline/baseline_bh/log/log3x4.txt, sandbox/paper_gustavo_baseline/baseline_bh/log/log0x4.txt
 ----------------------------------------
 --- Probe 18 ---
 batch_id: 17
-batch_config: 0x00000a05
+batch_config: 0x00000000
 probe_id: 17
-source: 0x00000303
-target: 0x00000403
-release_time: 470997
-arrive_time: 472099
-config_time: 464143
-result_time: 523048
-config_period: 5
-effective_period: 12023
-net_period: 1102
-payload_size: 117
-probe_type: batch
-path: E
+source: 0x00000403
+target: 0x00000400
+release_time: 516258
+arrive_time: 517771
+config_time: 512658
+result_time: 518799
+config_period: 0
+effective_period: None
+net_period: 1513
+payload_size: 200
+probe_type: bsa
+path: SSS
 status: None
 result: SUCCESS
-file_sources: sandbox/complex1_dijkstra_bh_interm/log/log4x3.txt, sandbox/complex1_dijkstra_bh_interm/log/log0x4.txt, sandbox/complex1_dijkstra_bh_interm/log/log3x3.txt
+file_sources: sandbox/paper_gustavo_baseline/baseline_bh/log/log4x0.txt, sandbox/paper_gustavo_baseline/baseline_bh/log/log0x4.txt, sandbox/paper_gustavo_baseline/baseline_bh/log/log4x3.txt
 ----------------------------------------
 --- Probe 19 ---
-batch_id: 17
-batch_config: None
+batch_id: 18
+batch_config: 0x00000000
 probe_id: 18
-source: 0x00000303
-target: 0x00000403
-release_time: 483020
-arrive_time: 484122
-config_time: None
-result_time: None
-config_period: 5
-effective_period: 12021
-net_period: 1102
-payload_size: 117
-probe_type: batch
+source: 0x00000304
+target: 0x00000404
+release_time: 539174
+arrive_time: 541573
+config_time: 536328
+result_time: 543213
+config_period: 0
+effective_period: 4039
+net_period: 2399
+payload_size: 200
+probe_type: bsa
 path: E
 status: None
 result: SUCCESS
-file_sources: sandbox/complex1_dijkstra_bh_interm/log/log4x3.txt, sandbox/complex1_dijkstra_bh_interm/log/log3x3.txt
+file_sources: sandbox/paper_gustavo_baseline/baseline_bh/log/log3x4.txt, sandbox/paper_gustavo_baseline/baseline_bh/log/log0x4.txt, sandbox/paper_gustavo_baseline/baseline_bh/log/log4x4.txt
 ----------------------------------------
 --- Probe 20 ---
-batch_id: 17
-batch_config: None
+batch_id: 19
+batch_config: 0x00000000
 probe_id: 19
-source: 0x00000303
+source: 0x00000404
 target: 0x00000403
-release_time: 495041
-arrive_time: 496143
-config_time: None
-result_time: None
-config_period: 5
-effective_period: 12021
-net_period: 1102
-payload_size: 117
-probe_type: batch
-path: E
-status: None
-result: SUCCESS
-file_sources: sandbox/complex1_dijkstra_bh_interm/log/log4x3.txt, sandbox/complex1_dijkstra_bh_interm/log/log3x3.txt
-----------------------------------------
---- Probe 21 ---
-batch_id: 17
-batch_config: None
-probe_id: 20
-source: 0x00000303
-target: 0x00000403
-release_time: 507062
-arrive_time: 508164
-config_time: None
-result_time: None
-config_period: 5
-effective_period: 12021
-net_period: 1102
-payload_size: 117
-probe_type: batch
-path: E
-status: None
-result: SUCCESS
-file_sources: sandbox/complex1_dijkstra_bh_interm/log/log4x3.txt, sandbox/complex1_dijkstra_bh_interm/log/log3x3.txt
-----------------------------------------
---- Probe 22 ---
-batch_id: 17
-batch_config: None
-probe_id: 21
-source: 0x00000303
-target: 0x00000403
-release_time: 519083
-arrive_time: 520185
-config_time: None
-result_time: None
-config_period: 5
-effective_period: 12021
-net_period: 1102
-payload_size: 117
-probe_type: batch
-path: E
-status: None
-result: SUCCESS
-file_sources: sandbox/complex1_dijkstra_bh_interm/log/log4x3.txt, sandbox/complex1_dijkstra_bh_interm/log/log3x3.txt
-----------------------------------------
---- Probe 23 ---
-batch_id: 22
-batch_config: 0x00000a05
-probe_id: 22
-source: 0x00000203
-target: 0x00000303
-release_time: 535509
-arrive_time: 536576
-config_time: 524449
-result_time: 586263
-config_period: 5
-effective_period: 12022
-net_period: 1067
-payload_size: 117
-probe_type: batch
-path: E
-status: None
-result: SUCCESS
-file_sources: sandbox/complex1_dijkstra_bh_interm/log/log0x4.txt, sandbox/complex1_dijkstra_bh_interm/log/log2x3.txt, sandbox/complex1_dijkstra_bh_interm/log/log3x3.txt
-----------------------------------------
---- Probe 24 ---
-batch_id: 22
-batch_config: None
-probe_id: 23
-source: 0x00000203
-target: 0x00000303
-release_time: 547531
-arrive_time: 548633
-config_time: None
-result_time: None
-config_period: 5
-effective_period: 12021
-net_period: 1102
-payload_size: 117
-probe_type: batch
-path: E
-status: None
-result: SUCCESS
-file_sources: sandbox/complex1_dijkstra_bh_interm/log/log2x3.txt, sandbox/complex1_dijkstra_bh_interm/log/log3x3.txt
-----------------------------------------
---- Probe 25 ---
-batch_id: 22
-batch_config: None
-probe_id: 24
-source: 0x00000203
-target: 0x00000303
-release_time: 559552
-arrive_time: 560654
-config_time: None
-result_time: None
-config_period: 5
-effective_period: 12021
-net_period: 1102
-payload_size: 117
-probe_type: batch
-path: E
-status: None
-result: SUCCESS
-file_sources: sandbox/complex1_dijkstra_bh_interm/log/log2x3.txt, sandbox/complex1_dijkstra_bh_interm/log/log3x3.txt
-----------------------------------------
---- Probe 26 ---
-batch_id: 22
-batch_config: None
-probe_id: 25
-source: 0x00000203
-target: 0x00000303
-release_time: 571573
-arrive_time: 572675
-config_time: None
-result_time: None
-config_period: 5
-effective_period: 12021
-net_period: 1102
-payload_size: 117
-probe_type: batch
-path: E
-status: None
-result: SUCCESS
-file_sources: sandbox/complex1_dijkstra_bh_interm/log/log2x3.txt, sandbox/complex1_dijkstra_bh_interm/log/log3x3.txt
-----------------------------------------
---- Probe 27 ---
-batch_id: 22
-batch_config: None
-probe_id: 26
-source: 0x00000203
-target: 0x00000303
-release_time: 583594
-arrive_time: 584696
-config_time: None
-result_time: None
-config_period: 5
-effective_period: 12021
-net_period: 1102
-payload_size: 117
-probe_type: batch
-path: E
-status: None
-result: SUCCESS
-file_sources: sandbox/complex1_dijkstra_bh_interm/log/log2x3.txt, sandbox/complex1_dijkstra_bh_interm/log/log3x3.txt
-----------------------------------------
---- Probe 28 ---
-batch_id: 27
-batch_config: 0x00000a05
-probe_id: 27
-source: 0x00000103
-target: 0x00000203
-release_time: 594888
-arrive_time: 596745
-config_time: 587704
-result_time: 645955
-config_period: 5
-effective_period: 12094
-net_period: 1857
-payload_size: 117
-probe_type: batch
-path: E
-status: None
-result: SUCCESS
-file_sources: sandbox/complex1_dijkstra_bh_interm/log/log0x4.txt, sandbox/complex1_dijkstra_bh_interm/log/log1x3.txt, sandbox/complex1_dijkstra_bh_interm/log/log2x3.txt
-----------------------------------------
---- Probe 29 ---
-batch_id: 27
-batch_config: None
-probe_id: 28
-source: 0x00000103
-target: 0x00000203
-release_time: 606982
-arrive_time: 608083
-config_time: None
-result_time: None
-config_period: 5
-effective_period: 12120
-net_period: 1101
-payload_size: 117
-probe_type: batch
-path: E
-status: None
-result: SUCCESS
-file_sources: sandbox/complex1_dijkstra_bh_interm/log/log1x3.txt, sandbox/complex1_dijkstra_bh_interm/log/log2x3.txt
-----------------------------------------
---- Probe 30 ---
-batch_id: 27
-batch_config: None
-probe_id: 29
-source: 0x00000103
-target: 0x00000203
-release_time: 619102
-arrive_time: 620205
-config_time: None
-result_time: None
-config_period: 5
-effective_period: 12120
-net_period: 1103
-payload_size: 117
-probe_type: batch
-path: E
-status: None
-result: SUCCESS
-file_sources: sandbox/complex1_dijkstra_bh_interm/log/log1x3.txt, sandbox/complex1_dijkstra_bh_interm/log/log2x3.txt
-----------------------------------------
---- Probe 31 ---
-batch_id: 27
-batch_config: None
-probe_id: 30
-source: 0x00000103
-target: 0x00000203
-release_time: 631222
-arrive_time: 632325
-config_time: None
-result_time: None
-config_period: 5
-effective_period: 12120
-net_period: 1103
-payload_size: 117
-probe_type: batch
-path: E
-status: None
-result: SUCCESS
-file_sources: sandbox/complex1_dijkstra_bh_interm/log/log1x3.txt, sandbox/complex1_dijkstra_bh_interm/log/log2x3.txt
-----------------------------------------
---- Probe 32 ---
-batch_id: 27
-batch_config: None
-probe_id: 31
-source: 0x00000103
-target: 0x00000203
-release_time: 643342
-arrive_time: 644444
-config_time: None
-result_time: None
-config_period: 5
-effective_period: 12113
-net_period: 1102
-payload_size: 117
-probe_type: batch
-path: E
-status: None
-result: SUCCESS
-file_sources: sandbox/complex1_dijkstra_bh_interm/log/log1x3.txt, sandbox/complex1_dijkstra_bh_interm/log/log2x3.txt
-----------------------------------------
---- Probe 33 ---
-batch_id: None
-batch_config: 0x00000000
-probe_id: 32
-source: 0x00000300
-target: 0x00000400
-release_time: None
-arrive_time: 660449
-config_time: 653006
-result_time: 663143
+release_time: 540263
+arrive_time: None
+config_time: 537419
+result_time: 556360
 config_period: 0
 effective_period: None
 net_period: None
-payload_size: 117
-probe_type: None
-path: E
-status: None
-result: SUCCESS
-file_sources: sandbox/complex1_dijkstra_bh_interm/log/log0x4.txt, sandbox/complex1_dijkstra_bh_interm/log/log4x0.txt
-----------------------------------------
---- Probe 34 ---
-batch_id: 33
-batch_config: 0x00000000
-probe_id: 33
-source: 0x00000400
-target: 0x00000402
-release_time: 659114
-arrive_time: 660681
-config_time: 654134
-result_time: 662095
-config_period: 0
-effective_period: None
-net_period: 1567
-payload_size: 117
+payload_size: 200
 probe_type: bsa
-path: N
-status: None
-result: SUCCESS
-file_sources: sandbox/complex1_dijkstra_bh_interm/log/log4x2.txt, sandbox/complex1_dijkstra_bh_interm/log/log0x4.txt, sandbox/complex1_dijkstra_bh_interm/log/log4x0.txt
-----------------------------------------
---- Probe 35 ---
-batch_id: 34
-batch_config: 0x00000a05
-probe_id: 34
-source: 0x00000401
-target: 0x00000402
-release_time: 673634
-arrive_time: 674735
-config_time: 665808
-result_time: 748350
-config_period: 5
-effective_period: 12021
-net_period: 1101
-payload_size: 117
-probe_type: batch
-path: N
+path: S
 status: None
 result: FAILURE
-file_sources: sandbox/complex1_dijkstra_bh_interm/log/log4x2.txt, sandbox/complex1_dijkstra_bh_interm/log/log0x4.txt, sandbox/complex1_dijkstra_bh_interm/log/log4x1.txt
-----------------------------------------
---- Probe 36 ---
-batch_id: 34
-batch_config: None
-probe_id: 35
-source: 0x00000401
-target: 0x00000402
-release_time: 685655
-arrive_time: 686757
-config_time: None
-result_time: None
-config_period: 5
-effective_period: 12021
-net_period: 1102
-payload_size: 117
-probe_type: batch
-path: N
-status: None
-result: None
-file_sources: sandbox/complex1_dijkstra_bh_interm/log/log4x2.txt, sandbox/complex1_dijkstra_bh_interm/log/log4x1.txt
-----------------------------------------
---- Probe 37 ---
-batch_id: 34
-batch_config: None
-probe_id: 36
-source: 0x00000401
-target: 0x00000402
-release_time: 697676
-arrive_time: 698779
-config_time: None
-result_time: None
-config_period: 5
-effective_period: 12022
-net_period: 1103
-payload_size: 117
-probe_type: batch
-path: N
-status: None
-result: None
-file_sources: sandbox/complex1_dijkstra_bh_interm/log/log4x2.txt, sandbox/complex1_dijkstra_bh_interm/log/log4x1.txt
-----------------------------------------
---- Probe 38 ---
-batch_id: 34
-batch_config: None
-probe_id: 37
-source: 0x00000401
-target: 0x00000402
-release_time: 709698
-arrive_time: 710801
-config_time: None
-result_time: None
-config_period: 5
-effective_period: 12022
-net_period: 1103
-payload_size: 117
-probe_type: batch
-path: N
-status: None
-result: None
-file_sources: sandbox/complex1_dijkstra_bh_interm/log/log4x2.txt, sandbox/complex1_dijkstra_bh_interm/log/log4x1.txt
-----------------------------------------
---- Probe 39 ---
-batch_id: 34
-batch_config: None
-probe_id: 38
-source: 0x00000401
-target: 0x00000402
-release_time: 721720
-arrive_time: None
-config_time: None
-result_time: None
-config_period: 5
-effective_period: 12021
-net_period: None
-payload_size: 117
-probe_type: batch
-path: N
-status: None
-result: None
-file_sources: sandbox/complex1_dijkstra_bh_interm/log/log4x1.txt
-----------------------------------------
---- Probe 40 ---
-batch_id: 39
-batch_config: 0x00000a05
-probe_id: 39
-source: 0x00000401
-target: 0x00000402
-release_time: 765811
-arrive_time: 767575
-config_time: 756204
-result_time: 816614
-config_period: 5
-effective_period: 12023
-net_period: 1764
-payload_size: 117
-probe_type: batch
-path: N
-status: None
-result: SUCCESS
-file_sources: sandbox/complex1_dijkstra_bh_interm/log/log4x2.txt, sandbox/complex1_dijkstra_bh_interm/log/log0x4.txt, sandbox/complex1_dijkstra_bh_interm/log/log4x1.txt
-----------------------------------------
---- Probe 41 ---
-batch_id: 39
-batch_config: None
-probe_id: 40
-source: 0x00000401
-target: 0x00000402
-release_time: 777834
-arrive_time: 780415
-config_time: None
-result_time: None
-config_period: 5
-effective_period: 12022
-net_period: 2581
-payload_size: 117
-probe_type: batch
-path: N
-status: None
-result: SUCCESS
-file_sources: sandbox/complex1_dijkstra_bh_interm/log/log4x2.txt, sandbox/complex1_dijkstra_bh_interm/log/log4x1.txt
-----------------------------------------
---- Probe 42 ---
-batch_id: 39
-batch_config: None
-probe_id: 41
-source: 0x00000401
-target: 0x00000402
-release_time: 789856
-arrive_time: 790960
-config_time: None
-result_time: None
-config_period: 5
-effective_period: 12023
-net_period: 1104
-payload_size: 117
-probe_type: batch
-path: N
-status: None
-result: SUCCESS
-file_sources: sandbox/complex1_dijkstra_bh_interm/log/log4x2.txt, sandbox/complex1_dijkstra_bh_interm/log/log4x1.txt
-----------------------------------------
---- Probe 43 ---
-batch_id: 39
-batch_config: None
-probe_id: 42
-source: 0x00000401
-target: 0x00000402
-release_time: 801879
-arrive_time: 802983
-config_time: None
-result_time: None
-config_period: 5
-effective_period: 12023
-net_period: 1104
-payload_size: 117
-probe_type: batch
-path: N
-status: None
-result: SUCCESS
-file_sources: sandbox/complex1_dijkstra_bh_interm/log/log4x2.txt, sandbox/complex1_dijkstra_bh_interm/log/log4x1.txt
-----------------------------------------
---- Probe 44 ---
-batch_id: 39
-batch_config: None
-probe_id: 43
-source: 0x00000401
-target: 0x00000402
-release_time: 813902
-arrive_time: 815007
-config_time: None
-result_time: None
-config_period: 5
-effective_period: 12022
-net_period: 1105
-payload_size: 117
-probe_type: batch
-path: N
-status: None
-result: SUCCESS
-file_sources: sandbox/complex1_dijkstra_bh_interm/log/log4x2.txt, sandbox/complex1_dijkstra_bh_interm/log/log4x1.txt
-----------------------------------------
---- Probe 45 ---
-batch_id: 44
-batch_config: 0x00000000
-probe_id: 44
-source: 0x00000200
-target: 0x00000400
-release_time: 869341
-arrive_time: 871613
-config_time: 864080
-result_time: 874055
-config_period: 0
-effective_period: 4714
-net_period: 2272
-payload_size: 117
-probe_type: bsa
-path: E
-status: None
-result: SUCCESS
-file_sources: sandbox/complex1_dijkstra_bh_interm/log/log2x0.txt, sandbox/complex1_dijkstra_bh_interm/log/log0x4.txt, sandbox/complex1_dijkstra_bh_interm/log/log4x0.txt
-----------------------------------------
---- Probe 46 ---
-batch_id: 45
-batch_config: 0x00000000
-probe_id: 45
-source: 0x00000400
-target: 0x00000402
-release_time: 870258
-arrive_time: 871587
-config_time: 865208
-result_time: 873007
-config_period: 0
-effective_period: None
-net_period: 1329
-payload_size: 117
-probe_type: bsa
-path: N
-status: None
-result: SUCCESS
-file_sources: sandbox/complex1_dijkstra_bh_interm/log/log4x2.txt, sandbox/complex1_dijkstra_bh_interm/log/log0x4.txt, sandbox/complex1_dijkstra_bh_interm/log/log4x0.txt
-----------------------------------------
---- Probe 47 ---
-batch_id: 46
-batch_config: 0x00000a05
-probe_id: 46
-source: 0x00000400
-target: 0x00000401
-release_time: 885422
-arrive_time: 886523
-config_time: 877471
-result_time: 936624
-config_period: 5
-effective_period: 12175
-net_period: 1101
-payload_size: 117
-probe_type: batch
-path: N
-status: None
-result: SUCCESS
-file_sources: sandbox/complex1_dijkstra_bh_interm/log/log0x4.txt, sandbox/complex1_dijkstra_bh_interm/log/log4x1.txt, sandbox/complex1_dijkstra_bh_interm/log/log4x0.txt
-----------------------------------------
---- Probe 48 ---
-batch_id: 46
-batch_config: None
-probe_id: 47
-source: 0x00000400
-target: 0x00000401
-release_time: 897597
-arrive_time: 898700
-config_time: None
-result_time: None
-config_period: 5
-effective_period: 12008
-net_period: 1103
-payload_size: 117
-probe_type: batch
-path: N
-status: None
-result: SUCCESS
-file_sources: sandbox/complex1_dijkstra_bh_interm/log/log4x1.txt, sandbox/complex1_dijkstra_bh_interm/log/log4x0.txt
-----------------------------------------
---- Probe 49 ---
-batch_id: 46
-batch_config: None
-probe_id: 48
-source: 0x00000400
-target: 0x00000401
-release_time: 909605
-arrive_time: 910708
-config_time: None
-result_time: None
-config_period: 5
-effective_period: 12343
-net_period: 1103
-payload_size: 117
-probe_type: batch
-path: N
-status: None
-result: SUCCESS
-file_sources: sandbox/complex1_dijkstra_bh_interm/log/log4x1.txt, sandbox/complex1_dijkstra_bh_interm/log/log4x0.txt
-----------------------------------------
---- Probe 50 ---
-batch_id: 46
-batch_config: None
-probe_id: 49
-source: 0x00000400
-target: 0x00000401
-release_time: 921948
-arrive_time: 923049
-config_time: None
-result_time: None
-config_period: 5
-effective_period: 12008
-net_period: 1101
-payload_size: 117
-probe_type: batch
-path: N
-status: None
-result: SUCCESS
-file_sources: sandbox/complex1_dijkstra_bh_interm/log/log4x1.txt, sandbox/complex1_dijkstra_bh_interm/log/log4x0.txt
-----------------------------------------
---- Probe 51 ---
-batch_id: 46
-batch_config: None
-probe_id: 50
-source: 0x00000400
-target: 0x00000401
-release_time: 933956
-arrive_time: 935057
-config_time: None
-result_time: None
-config_period: 5
-effective_period: 12133
-net_period: 1101
-payload_size: 117
-probe_type: batch
-path: N
-status: None
-result: SUCCESS
-file_sources: sandbox/complex1_dijkstra_bh_interm/log/log4x1.txt, sandbox/complex1_dijkstra_bh_interm/log/log4x0.txt
-----------------------------------------
---- Probe 52 ---
-batch_id: 51
-batch_config: 0x00000a05
-probe_id: 51
-source: 0x00000300
-target: 0x00000400
-release_time: 946169
-arrive_time: 947249
-config_time: 938256
-result_time: 995624
-config_period: 5
-effective_period: 9268
-net_period: 1080
-payload_size: 117
-probe_type: batch
-path: E
-status: None
-result: SUCCESS
-file_sources: sandbox/complex1_dijkstra_bh_interm/log/log3x0.txt, sandbox/complex1_dijkstra_bh_interm/log/log0x4.txt, sandbox/complex1_dijkstra_bh_interm/log/log4x0.txt
-----------------------------------------
---- Probe 53 ---
-batch_id: 51
-batch_config: None
-probe_id: 52
-source: 0x00000300
-target: 0x00000400
-release_time: 955437
-arrive_time: 956517
-config_time: None
-result_time: None
-config_period: 5
-effective_period: 12077
-net_period: 1080
-payload_size: 117
-probe_type: batch
-path: E
-status: None
-result: SUCCESS
-file_sources: sandbox/complex1_dijkstra_bh_interm/log/log3x0.txt, sandbox/complex1_dijkstra_bh_interm/log/log4x0.txt
-----------------------------------------
---- Probe 54 ---
-batch_id: 51
-batch_config: None
-probe_id: 53
-source: 0x00000300
-target: 0x00000400
-release_time: 967514
-arrive_time: 968632
-config_time: None
-result_time: None
-config_period: 5
-effective_period: 12009
-net_period: 1118
-payload_size: 117
-probe_type: batch
-path: E
-status: None
-result: SUCCESS
-file_sources: sandbox/complex1_dijkstra_bh_interm/log/log3x0.txt, sandbox/complex1_dijkstra_bh_interm/log/log4x0.txt
-----------------------------------------
---- Probe 55 ---
-batch_id: 51
-batch_config: None
-probe_id: 54
-source: 0x00000300
-target: 0x00000400
-release_time: 979523
-arrive_time: 980605
-config_time: None
-result_time: None
-config_period: 5
-effective_period: 12517
-net_period: 1082
-payload_size: 117
-probe_type: batch
-path: E
-status: None
-result: SUCCESS
-file_sources: sandbox/complex1_dijkstra_bh_interm/log/log3x0.txt, sandbox/complex1_dijkstra_bh_interm/log/log4x0.txt
-----------------------------------------
---- Probe 56 ---
-batch_id: 51
-batch_config: None
-probe_id: 55
-source: 0x00000300
-target: 0x00000400
-release_time: 992040
-arrive_time: 994051
-config_time: None
-result_time: None
-config_period: 5
-effective_period: 11467
-net_period: 2011
-payload_size: 117
-probe_type: batch
-path: E
-status: None
-result: SUCCESS
-file_sources: sandbox/complex1_dijkstra_bh_interm/log/log3x0.txt, sandbox/complex1_dijkstra_bh_interm/log/log4x0.txt
-----------------------------------------
---- Probe 57 ---
-batch_id: 56
-batch_config: 0x00000a05
-probe_id: 56
-source: 0x00000200
-target: 0x00000300
-release_time: 1003557
-arrive_time: 1005368
-config_time: 996897
-result_time: 1055249
-config_period: 5
-effective_period: 12366
-net_period: 1811
-payload_size: 117
-probe_type: batch
-path: E
-status: None
-result: SUCCESS
-file_sources: sandbox/complex1_dijkstra_bh_interm/log/log3x0.txt, sandbox/complex1_dijkstra_bh_interm/log/log2x0.txt, sandbox/complex1_dijkstra_bh_interm/log/log0x4.txt
-----------------------------------------
---- Probe 58 ---
-batch_id: 56
-batch_config: None
-probe_id: 57
-source: 0x00000200
-target: 0x00000300
-release_time: 1015923
-arrive_time: 1017245
-config_time: None
-result_time: None
-config_period: 5
-effective_period: 12077
-net_period: 1322
-payload_size: 117
-probe_type: batch
-path: E
-status: None
-result: SUCCESS
-file_sources: sandbox/complex1_dijkstra_bh_interm/log/log3x0.txt, sandbox/complex1_dijkstra_bh_interm/log/log2x0.txt
-----------------------------------------
---- Probe 59 ---
-batch_id: 56
-batch_config: None
-probe_id: 58
-source: 0x00000200
-target: 0x00000300
-release_time: 1028000
-arrive_time: 1029377
-config_time: None
-result_time: None
-config_period: 5
-effective_period: 12206
-net_period: 1377
-payload_size: 117
-probe_type: batch
-path: E
-status: None
-result: SUCCESS
-file_sources: sandbox/complex1_dijkstra_bh_interm/log/log3x0.txt, sandbox/complex1_dijkstra_bh_interm/log/log2x0.txt
-----------------------------------------
---- Probe 60 ---
-batch_id: 56
-batch_config: None
-probe_id: 59
-source: 0x00000200
-target: 0x00000300
-release_time: 1040206
-arrive_time: 1041525
-config_time: None
-result_time: None
-config_period: 5
-effective_period: 12077
-net_period: 1319
-payload_size: 117
-probe_type: batch
-path: E
-status: None
-result: SUCCESS
-file_sources: sandbox/complex1_dijkstra_bh_interm/log/log3x0.txt, sandbox/complex1_dijkstra_bh_interm/log/log2x0.txt
-----------------------------------------
---- Probe 61 ---
-batch_id: 56
-batch_config: None
-probe_id: 60
-source: 0x00000200
-target: 0x00000300
-release_time: 1052283
-arrive_time: 1053689
-config_time: None
-result_time: None
-config_period: 5
-effective_period: 12181
-net_period: 1406
-payload_size: 117
-probe_type: batch
-path: E
-status: None
-result: SUCCESS
-file_sources: sandbox/complex1_dijkstra_bh_interm/log/log3x0.txt, sandbox/complex1_dijkstra_bh_interm/log/log2x0.txt
-----------------------------------------
---- Probe 62 ---
-batch_id: 61
-batch_config: 0x00000a05
-probe_id: 61
-source: 0x00000401
-target: 0x00000402
-release_time: 1066735
-arrive_time: 1067952
-config_time: 1056593
-result_time: 1141605
-config_period: 5
-effective_period: 12052
-net_period: 1217
-payload_size: 117
-probe_type: batch
-path: N
-status: None
-result: FAILURE
-file_sources: sandbox/complex1_dijkstra_bh_interm/log/log4x2.txt, sandbox/complex1_dijkstra_bh_interm/log/log0x4.txt, sandbox/complex1_dijkstra_bh_interm/log/log4x1.txt
-----------------------------------------
---- Probe 63 ---
-batch_id: 61
-batch_config: None
-probe_id: 62
-source: 0x00000401
-target: 0x00000402
-release_time: 1078787
-arrive_time: 1080276
-config_time: None
-result_time: None
-config_period: 5
-effective_period: 12052
-net_period: 1489
-payload_size: 117
-probe_type: batch
-path: N
-status: None
-result: None
-file_sources: sandbox/complex1_dijkstra_bh_interm/log/log4x2.txt, sandbox/complex1_dijkstra_bh_interm/log/log4x1.txt
-----------------------------------------
---- Probe 64 ---
-batch_id: 61
-batch_config: None
-probe_id: 63
-source: 0x00000401
-target: 0x00000402
-release_time: 1090839
-arrive_time: 1092410
-config_time: None
-result_time: None
-config_period: 5
-effective_period: 12051
-net_period: 1571
-payload_size: 117
-probe_type: batch
-path: N
-status: None
-result: None
-file_sources: sandbox/complex1_dijkstra_bh_interm/log/log4x2.txt, sandbox/complex1_dijkstra_bh_interm/log/log4x1.txt
-----------------------------------------
---- Probe 65 ---
-batch_id: 61
-batch_config: None
-probe_id: 64
-source: 0x00000401
-target: 0x00000402
-release_time: 1102890
-arrive_time: 1104514
-config_time: None
-result_time: None
-config_period: 5
-effective_period: 12053
-net_period: 1624
-payload_size: 117
-probe_type: batch
-path: N
-status: None
-result: None
-file_sources: sandbox/complex1_dijkstra_bh_interm/log/log4x2.txt, sandbox/complex1_dijkstra_bh_interm/log/log4x1.txt
-----------------------------------------
---- Probe 66 ---
-batch_id: 61
-batch_config: None
-probe_id: 65
-source: 0x00000401
-target: 0x00000402
-release_time: 1114943
-arrive_time: None
-config_time: None
-result_time: None
-config_period: 5
-effective_period: 12052
-net_period: None
-payload_size: 117
-probe_type: batch
-path: N
-status: None
-result: None
-file_sources: sandbox/complex1_dijkstra_bh_interm/log/log4x1.txt
-----------------------------------------
---- Probe 67 ---
-batch_id: 66
-batch_config: 0x00000a05
-probe_id: 66
-source: 0x00000400
-target: 0x00000401
-release_time: 1157067
-arrive_time: 1158135
-config_time: 1149209
-result_time: 1210133
-config_period: 5
-effective_period: 12206
-net_period: 1068
-payload_size: 117
-probe_type: batch
-path: N
-status: None
-result: SUCCESS
-file_sources: sandbox/complex1_dijkstra_bh_interm/log/log0x4.txt, sandbox/complex1_dijkstra_bh_interm/log/log4x1.txt, sandbox/complex1_dijkstra_bh_interm/log/log4x0.txt
-----------------------------------------
---- Probe 68 ---
-batch_id: 66
-batch_config: None
-probe_id: 67
-source: 0x00000400
-target: 0x00000401
-release_time: 1169273
-arrive_time: 1170376
-config_time: None
-result_time: None
-config_period: 5
-effective_period: 12562
-net_period: 1103
-payload_size: 117
-probe_type: batch
-path: N
-status: None
-result: SUCCESS
-file_sources: sandbox/complex1_dijkstra_bh_interm/log/log4x1.txt, sandbox/complex1_dijkstra_bh_interm/log/log4x0.txt
-----------------------------------------
---- Probe 69 ---
-batch_id: 66
-batch_config: None
-probe_id: 68
-source: 0x00000400
-target: 0x00000401
-release_time: 1181835
-arrive_time: 1182938
-config_time: None
-result_time: None
-config_period: 5
-effective_period: 12562
-net_period: 1103
-payload_size: 117
-probe_type: batch
-path: N
-status: None
-result: SUCCESS
-file_sources: sandbox/complex1_dijkstra_bh_interm/log/log4x1.txt, sandbox/complex1_dijkstra_bh_interm/log/log4x0.txt
-----------------------------------------
---- Probe 70 ---
-batch_id: 66
-batch_config: None
-probe_id: 69
-source: 0x00000400
-target: 0x00000401
-release_time: 1194397
-arrive_time: 1195501
-config_time: None
-result_time: None
-config_period: 5
-effective_period: 13064
-net_period: 1104
-payload_size: 117
-probe_type: batch
-path: N
-status: None
-result: SUCCESS
-file_sources: sandbox/complex1_dijkstra_bh_interm/log/log4x1.txt, sandbox/complex1_dijkstra_bh_interm/log/log4x0.txt
-----------------------------------------
---- Probe 71 ---
-batch_id: 66
-batch_config: None
-probe_id: 70
-source: 0x00000400
-target: 0x00000401
-release_time: 1207461
-arrive_time: 1208565
-config_time: None
-result_time: None
-config_period: 5
-effective_period: 12598
-net_period: 1104
-payload_size: 117
-probe_type: batch
-path: N
-status: None
-result: SUCCESS
-file_sources: sandbox/complex1_dijkstra_bh_interm/log/log4x1.txt, sandbox/complex1_dijkstra_bh_interm/log/log4x0.txt
-----------------------------------------
---- Probe 72 ---
-batch_id: 71
-batch_config: 0x00000000
-probe_id: 71
-source: 0x00000000
-target: 0x00000300
-release_time: 1193375
-arrive_time: 1196173
-config_time: 1188043
-result_time: 1198273
-config_period: 0
-effective_period: 4898
-net_period: 2798
-payload_size: 117
-probe_type: bsa
-path: EE
-status: None
-result: SUCCESS
-file_sources: sandbox/complex1_dijkstra_bh_interm/log/log3x0.txt, sandbox/complex1_dijkstra_bh_interm/log/log0x0.txt, sandbox/complex1_dijkstra_bh_interm/log/log0x4.txt
-----------------------------------------
---- Probe 73 ---
-batch_id: 72
-batch_config: 0x00000000
-probe_id: 72
-source: 0x00000300
-target: 0x00000402
-release_time: 1194865
-arrive_time: 1197717
-config_time: 1189251
-result_time: 1199388
-config_period: 0
-effective_period: 4523
-net_period: 2852
-payload_size: 117
-probe_type: bsa
-path: NN
-status: None
-result: SUCCESS
-file_sources: sandbox/complex1_dijkstra_bh_interm/log/log3x0.txt, sandbox/complex1_dijkstra_bh_interm/log/log4x2.txt, sandbox/complex1_dijkstra_bh_interm/log/log0x4.txt
-----------------------------------------
---- Probe 74 ---
-batch_id: 73
-batch_config: 0x00000a05
-probe_id: 73
-source: 0x00000400
-target: 0x00000401
-release_time: 1219578
-arrive_time: 1220681
-config_time: 1204536
-result_time: 1271122
-config_period: 5
-effective_period: 12298
-net_period: 1103
-payload_size: 117
-probe_type: batch
-path: N
-status: None
-result: SUCCESS
-file_sources: sandbox/complex1_dijkstra_bh_interm/log/log0x4.txt, sandbox/complex1_dijkstra_bh_interm/log/log4x1.txt, sandbox/complex1_dijkstra_bh_interm/log/log4x0.txt
-----------------------------------------
---- Probe 75 ---
-batch_id: 73
-batch_config: None
-probe_id: 74
-source: 0x00000400
-target: 0x00000401
-release_time: 1231876
-arrive_time: 1232980
-config_time: None
-result_time: None
-config_period: 5
-effective_period: 12038
-net_period: 1104
-payload_size: 117
-probe_type: batch
-path: N
-status: None
-result: SUCCESS
-file_sources: sandbox/complex1_dijkstra_bh_interm/log/log4x1.txt, sandbox/complex1_dijkstra_bh_interm/log/log4x0.txt
-----------------------------------------
---- Probe 76 ---
-batch_id: 73
-batch_config: None
-probe_id: 75
-source: 0x00000400
-target: 0x00000401
-release_time: 1243914
-arrive_time: 1245018
-config_time: None
-result_time: None
-config_period: 5
-effective_period: 12429
-net_period: 1104
-payload_size: 117
-probe_type: batch
-path: N
-status: None
-result: SUCCESS
-file_sources: sandbox/complex1_dijkstra_bh_interm/log/log4x1.txt, sandbox/complex1_dijkstra_bh_interm/log/log4x0.txt
-----------------------------------------
---- Probe 77 ---
-batch_id: 73
-batch_config: None
-probe_id: 76
-source: 0x00000400
-target: 0x00000401
-release_time: 1256343
-arrive_time: 1257447
-config_time: None
-result_time: None
-config_period: 5
-effective_period: 12038
-net_period: 1104
-payload_size: 117
-probe_type: batch
-path: N
-status: None
-result: SUCCESS
-file_sources: sandbox/complex1_dijkstra_bh_interm/log/log4x1.txt, sandbox/complex1_dijkstra_bh_interm/log/log4x0.txt
-----------------------------------------
---- Probe 78 ---
-batch_id: 73
-batch_config: None
-probe_id: 77
-source: 0x00000400
-target: 0x00000401
-release_time: 1268381
-arrive_time: 1269484
-config_time: None
-result_time: None
-config_period: 5
-effective_period: 12200
-net_period: 1103
-payload_size: 117
-probe_type: batch
-path: N
-status: None
-result: SUCCESS
-file_sources: sandbox/complex1_dijkstra_bh_interm/log/log4x1.txt, sandbox/complex1_dijkstra_bh_interm/log/log4x0.txt
-----------------------------------------
---- Probe 79 ---
-batch_id: 78
-batch_config: 0x00000a05
-probe_id: 78
-source: 0x00000300
-target: 0x00000400
-release_time: 1278601
-arrive_time: 1279915
-config_time: 1272600
-result_time: 1330466
-config_period: 5
-effective_period: 12039
-net_period: 1314
-payload_size: 117
-probe_type: batch
-path: E
-status: None
-result: SUCCESS
-file_sources: sandbox/complex1_dijkstra_bh_interm/log/log3x0.txt, sandbox/complex1_dijkstra_bh_interm/log/log0x4.txt, sandbox/complex1_dijkstra_bh_interm/log/log4x0.txt
-----------------------------------------
---- Probe 80 ---
-batch_id: 78
-batch_config: None
-probe_id: 79
-source: 0x00000300
-target: 0x00000400
-release_time: 1290640
-arrive_time: 1291722
-config_time: None
-result_time: None
-config_period: 5
-effective_period: 12470
-net_period: 1082
-payload_size: 117
-probe_type: batch
-path: E
-status: None
-result: SUCCESS
-file_sources: sandbox/complex1_dijkstra_bh_interm/log/log3x0.txt, sandbox/complex1_dijkstra_bh_interm/log/log4x0.txt
-----------------------------------------
---- Probe 81 ---
-batch_id: 78
-batch_config: None
-probe_id: 80
-source: 0x00000300
-target: 0x00000400
-release_time: 1303110
-arrive_time: 1304336
-config_time: None
-result_time: None
-config_period: 5
-effective_period: 12039
-net_period: 1226
-payload_size: 117
-probe_type: batch
-path: E
-status: None
-result: SUCCESS
-file_sources: sandbox/complex1_dijkstra_bh_interm/log/log3x0.txt, sandbox/complex1_dijkstra_bh_interm/log/log4x0.txt
-----------------------------------------
---- Probe 82 ---
-batch_id: 78
-batch_config: None
-probe_id: 81
-source: 0x00000300
-target: 0x00000400
-release_time: 1315149
-arrive_time: 1316231
-config_time: None
-result_time: None
-config_period: 5
-effective_period: 12125
-net_period: 1082
-payload_size: 117
-probe_type: batch
-path: E
-status: None
-result: SUCCESS
-file_sources: sandbox/complex1_dijkstra_bh_interm/log/log3x0.txt, sandbox/complex1_dijkstra_bh_interm/log/log4x0.txt
-----------------------------------------
---- Probe 83 ---
-batch_id: 78
-batch_config: None
-probe_id: 82
-source: 0x00000300
-target: 0x00000400
-release_time: 1327274
-arrive_time: 1328800
-config_time: None
-result_time: None
-config_period: 5
-effective_period: 12168
-net_period: 1526
-payload_size: 117
-probe_type: batch
-path: E
-status: None
-result: SUCCESS
-file_sources: sandbox/complex1_dijkstra_bh_interm/log/log3x0.txt, sandbox/complex1_dijkstra_bh_interm/log/log4x0.txt
-----------------------------------------
---- Probe 84 ---
-batch_id: 83
-batch_config: 0x00000a05
-probe_id: 83
-source: 0x00000200
-target: 0x00000300
-release_time: 1338613
-arrive_time: 1340466
-config_time: 1331985
-result_time: 1390790
-config_period: 5
-effective_period: 12131
-net_period: 1853
-payload_size: 117
-probe_type: batch
-path: E
-status: None
-result: SUCCESS
-file_sources: sandbox/complex1_dijkstra_bh_interm/log/log3x0.txt, sandbox/complex1_dijkstra_bh_interm/log/log2x0.txt, sandbox/complex1_dijkstra_bh_interm/log/log0x4.txt
-----------------------------------------
---- Probe 85 ---
-batch_id: 83
-batch_config: None
-probe_id: 84
-source: 0x00000200
-target: 0x00000300
-release_time: 1350744
-arrive_time: 1352287
-config_time: None
-result_time: None
-config_period: 5
-effective_period: 12293
-net_period: 1543
-payload_size: 117
-probe_type: batch
-path: E
-status: None
-result: SUCCESS
-file_sources: sandbox/complex1_dijkstra_bh_interm/log/log3x0.txt, sandbox/complex1_dijkstra_bh_interm/log/log2x0.txt
-----------------------------------------
---- Probe 86 ---
-batch_id: 83
-batch_config: None
-probe_id: 85
-source: 0x00000200
-target: 0x00000300
-release_time: 1363037
-arrive_time: 1364683
-config_time: None
-result_time: None
-config_period: 5
-effective_period: 12852
-net_period: 1646
-payload_size: 117
-probe_type: batch
-path: E
-status: None
-result: SUCCESS
-file_sources: sandbox/complex1_dijkstra_bh_interm/log/log3x0.txt, sandbox/complex1_dijkstra_bh_interm/log/log2x0.txt
-----------------------------------------
---- Probe 87 ---
-batch_id: 83
-batch_config: None
-probe_id: 86
-source: 0x00000200
-target: 0x00000300
-release_time: 1375889
-arrive_time: 1377057
-config_time: None
-result_time: None
-config_period: 5
-effective_period: 12262
-net_period: 1168
-payload_size: 117
-probe_type: batch
-path: E
-status: None
-result: SUCCESS
-file_sources: sandbox/complex1_dijkstra_bh_interm/log/log3x0.txt, sandbox/complex1_dijkstra_bh_interm/log/log2x0.txt
-----------------------------------------
---- Probe 88 ---
-batch_id: 83
-batch_config: None
-probe_id: 87
-source: 0x00000200
-target: 0x00000300
-release_time: 1388151
-arrive_time: 1389250
-config_time: None
-result_time: None
-config_period: 5
-effective_period: 12384
-net_period: 1099
-payload_size: 117
-probe_type: batch
-path: E
-status: None
-result: SUCCESS
-file_sources: sandbox/complex1_dijkstra_bh_interm/log/log3x0.txt, sandbox/complex1_dijkstra_bh_interm/log/log2x0.txt
-----------------------------------------
---- Probe 89 ---
-batch_id: 88
-batch_config: 0x00000a05
-probe_id: 88
-source: 0x00000100
-target: 0x00000200
-release_time: 1401583
-arrive_time: 1403227
-config_time: 1392349
-result_time: 1453491
-config_period: 5
-effective_period: 12442
-net_period: 1644
-payload_size: 117
-probe_type: batch
-path: E
-status: None
-result: SUCCESS
-file_sources: sandbox/complex1_dijkstra_bh_interm/log/log2x0.txt, sandbox/complex1_dijkstra_bh_interm/log/log1x0.txt, sandbox/complex1_dijkstra_bh_interm/log/log0x4.txt
-----------------------------------------
---- Probe 90 ---
-batch_id: 88
-batch_config: None
-probe_id: 89
-source: 0x00000100
-target: 0x00000200
-release_time: 1414025
-arrive_time: 1415224
-config_time: None
-result_time: None
-config_period: 5
-effective_period: 12134
-net_period: 1199
-payload_size: 117
-probe_type: batch
-path: E
-status: None
-result: SUCCESS
-file_sources: sandbox/complex1_dijkstra_bh_interm/log/log2x0.txt, sandbox/complex1_dijkstra_bh_interm/log/log1x0.txt
-----------------------------------------
---- Probe 91 ---
-batch_id: 88
-batch_config: None
-probe_id: 90
-source: 0x00000100
-target: 0x00000200
-release_time: 1426159
-arrive_time: 1427655
-config_time: None
-result_time: None
-config_period: 5
-effective_period: 12040
-net_period: 1496
-payload_size: 117
-probe_type: batch
-path: E
-status: None
-result: SUCCESS
-file_sources: sandbox/complex1_dijkstra_bh_interm/log/log2x0.txt, sandbox/complex1_dijkstra_bh_interm/log/log1x0.txt
-----------------------------------------
---- Probe 92 ---
-batch_id: 88
-batch_config: None
-probe_id: 91
-source: 0x00000100
-target: 0x00000200
-release_time: 1438199
-arrive_time: 1439309
-config_time: None
-result_time: None
-config_period: 5
-effective_period: 12527
-net_period: 1110
-payload_size: 117
-probe_type: batch
-path: E
-status: None
-result: SUCCESS
-file_sources: sandbox/complex1_dijkstra_bh_interm/log/log2x0.txt, sandbox/complex1_dijkstra_bh_interm/log/log1x0.txt
-----------------------------------------
---- Probe 93 ---
-batch_id: 88
-batch_config: None
-probe_id: 92
-source: 0x00000100
-target: 0x00000200
-release_time: 1450726
-arrive_time: 1451837
-config_time: None
-result_time: None
-config_period: 5
-effective_period: 12285
-net_period: 1111
-payload_size: 117
-probe_type: batch
-path: E
-status: None
-result: SUCCESS
-file_sources: sandbox/complex1_dijkstra_bh_interm/log/log2x0.txt, sandbox/complex1_dijkstra_bh_interm/log/log1x0.txt
-----------------------------------------
---- Probe 94 ---
-batch_id: 93
-batch_config: 0x00000a05
-probe_id: 93
-source: 0x00000000
-target: 0x00000100
-release_time: 1462961
-arrive_time: 1464349
-config_time: 1455013
-result_time: None
-config_period: 5
-effective_period: 9465
-net_period: 1388
-payload_size: 117
-probe_type: batch
-path: E
-status: None
-result: None
-file_sources: sandbox/complex1_dijkstra_bh_interm/log/log1x0.txt, sandbox/complex1_dijkstra_bh_interm/log/log0x0.txt, sandbox/complex1_dijkstra_bh_interm/log/log0x4.txt
-----------------------------------------
---- Probe 95 ---
-batch_id: 93
-batch_config: None
-probe_id: 94
-source: 0x00000000
-target: 0x00000100
-release_time: 1472426
-arrive_time: 1474205
-config_time: None
-result_time: None
-config_period: 5
-effective_period: 12130
-net_period: 1779
-payload_size: 117
-probe_type: batch
-path: E
-status: None
-result: None
-file_sources: sandbox/complex1_dijkstra_bh_interm/log/log1x0.txt, sandbox/complex1_dijkstra_bh_interm/log/log0x0.txt
-----------------------------------------
---- Probe 96 ---
-batch_id: 93
-batch_config: None
-probe_id: 95
-source: 0x00000000
-target: 0x00000100
-release_time: 1484556
-arrive_time: 1486169
-config_time: None
-result_time: None
-config_period: 5
-effective_period: 10797
-net_period: 1613
-payload_size: 117
-probe_type: batch
-path: E
-status: None
-result: None
-file_sources: sandbox/complex1_dijkstra_bh_interm/log/log1x0.txt, sandbox/complex1_dijkstra_bh_interm/log/log0x0.txt
+file_sources: sandbox/paper_gustavo_baseline/baseline_bh/log/log0x4.txt, sandbox/paper_gustavo_baseline/baseline_bh/log/log4x4.txt
 ----------------------------------------
