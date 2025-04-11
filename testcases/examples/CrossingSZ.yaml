@@ -7,9 +7,15 @@ hw:
   noc_buffer_size: 8       # must be power of 2
   mpsoc_dimension: [4,4]     # for while, must be a square shape
   cluster_dimension: [4,4] # for while, must be a square shape
-  master_location: LB      # LB
+  master_location: LT      # LB
+  session: yes             # yes - with ComunicationSession
   open_port:
     - port: [Injector,90,0,0,W,1,0,S]
+  gray_area:
+    rows: [3]
+    cols: [3]
+  ht: # e0 e1 w0 w1 n0 n1 s0 s1 l0 l1
+    - router: [0,2,"xxxxxxxxxx"]
 apps:                
   - name: prod_cons
     start_time_ms: 0 #any unsigned integer number
