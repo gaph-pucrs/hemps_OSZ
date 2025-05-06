@@ -5,6 +5,7 @@
 #include "packet.h"
 #include "seek.h"
 #include "utils.h"
+#include "probe_defines.h"
 #include "../../include/kernel_pkg.h"
 
 #define NUM_LINKS_PER_ROUTER 4
@@ -17,8 +18,8 @@
 #define THRESHOLD_SUS_PATHS_INTERSECTIONS 3
 #define OS_STOPS_ON_FIRST_HT 1 // 1 to stop the ordered search when the first HT is found, 0 to continue until the end of the path looking for more HTs
 
-#define BATCH_SIZE 5 //number of probes sent in a batch
-#define BATCH_DELAY 10 //delay between probes in a batch in us
+// #define BATCH_SIZE 5 //number of probes sent in a batch
+// #define BATCH_DELAY 10 //delay between probes in a batch in us
 
 #define PROBE_INDEX(probe_id) (probe_id % MAX_PROBE_ENTRIES)
 #define UNIFORM_CONFIG(batch_delay_us, batch_size) (((UNIFORM_BATCH_CODE & 0x3) << 14) | ((batch_delay_us & 0x3F) << 8) | (batch_size & 0xFF))

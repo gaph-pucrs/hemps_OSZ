@@ -45,7 +45,7 @@
 #define STATIC_PROBE_THRESHOLD 15000 //150us
 
 #define MAX_PROBE_PAYLOAD_SIZE 210
-#define PROBE_PACKET_SIZE 200 // em flits
+//#define PROBE_PACKET_SIZE 200 // em flits
 
 // Ways to represent a probe path:
 // Path) String of chars in which each char represents a hop. Does NOT include a termination (opposite) hop.
