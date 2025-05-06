@@ -265,7 +265,6 @@ def copy_makefiles_and_waves(hemps_path, testcase_path, page_size_KB, memory_siz
 
         sim_do_path = testcase_path+"/sim.do"
         sim_file = open(sim_do_path, "a")
-        sim_file.write("\nwhen -label end_of_simulation { HeMPS/local0x0/end_sim_reg == x\"00000000\" } {echo \"End of simulation\" ; quit ;}")
 
         if faults:
             sim_file.write("\nset trun 0")
@@ -286,7 +285,6 @@ def copy_makefiles_and_waves(hemps_path, testcase_path, page_size_KB, memory_siz
 
         sim_do_path = testcase_path+"/sim.do"
         sim_file = open(sim_do_path, "a")
-        sim_file.write("\nwhen -label end_of_simulation { HeMPS/proc(0)/PE/end_sim_reg == x\"00000000\" } {echo \"End of simulation\" ; quit ;}")
         sim_file.write("\ndo fault-inject.do")
         sim_file.write("\nrun "+str(simul_time)+"ms")
         sim_file.write("\nexit")

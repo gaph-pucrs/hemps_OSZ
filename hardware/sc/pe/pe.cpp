@@ -361,7 +361,7 @@ void pe::end_of_simulation(){
 		
         cout << "END OF ALL APPLICATIONS!!!" << endl;
         cout << "Simulation time: " << (float) ((tick_counter.read() * 10.0f) / 1000.0f / 1000.0f) << "ms" << endl;
-        sc_stop();
+        //sc_stop();
     }
 }
 
