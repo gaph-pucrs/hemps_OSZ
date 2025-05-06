@@ -209,6 +209,8 @@ void start_binary_search() {
     bsa.status = BSA_BUSY;
     bsa.ht_counter = 0;
 
+    puts("[IC-1] Starting BSA - "); puts(itoa(MemoryRead(TICK_COUNTER))); puts("\n");
+
     probe_puts("[HT] **** Starting new Binary Search - Source:");
     probe_puts(itoh(bsa.path.source));
     probe_puts(" Target:");
@@ -246,6 +248,7 @@ void binary_search_divide(unsigned int source, unsigned int target, char *path, 
 }
 
 void evaluate_bsa_result() {
+    puts("[IC-2] Ending BSA - "); puts(itoa(MemoryRead(TICK_COUNTER))); puts("\n");
     if(bsa.ht_counter == 0) {
         probe_puts("[HT] No HT found at this binary searched path, starting ordered search instead.\n");
         register_new_ordered_search(&bsa.path);
@@ -703,6 +706,7 @@ void register_new_ordered_search(struct suspicious_path *new_os_path) {
 }
 
 void start_ordered_search(struct suspicious_path *path) {
+    puts("[IC-3] Starting OSA - "); puts(itoa(MemoryRead(TICK_COUNTER))); puts("\n");
     populate_ordered_search(path);
     // probe_puts("[HT] NON-SORTED PATH:\n");
     // for (int i = 0; i < path->path_size; i++) {
@@ -809,7 +813,7 @@ void register_ordered_search_ht(unsigned int router, char port) {
 }
 
 void finalize_ordered_search() {
-
+    puts("[IC-4] Ending OSA - "); puts(itoa(MemoryRead(TICK_COUNTER))); puts("\n");
     print_ordered_search_result();
     ordered_search.ht_counter = 0;
     ordered_search.next_hop = 0;
