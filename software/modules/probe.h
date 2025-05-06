@@ -5,12 +5,14 @@
 #include "seek.h"
 #include "probe_defines.h"
 
-// #define probe_puts(argument) puts(argument)
-#define probe_puts(argument)
+#define probe_puts(argument) puts(argument)
+//#define probe_puts(argument)
+
 #define probe_logs_puts(argument) puts(argument)
+//#define probe_logs_puts(argument)
 
 #define probe_debug_puts(argument) puts(argument)
-// #define probe_debug_puts(argument)
+//#define probe_debug_puts(argument)
 
 #define GET_X(argument) (argument >> 8)
 #define GET_Y(argument) (argument & 0xFF)
