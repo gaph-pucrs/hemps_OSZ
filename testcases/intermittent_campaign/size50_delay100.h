@@ -1,0 +1,3 @@
+#define BATCH_SIZE 50
+#define BATCH_DELAY 100
+#define PROBE_PACKET_SIZE 17
