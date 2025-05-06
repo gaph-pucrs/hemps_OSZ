@@ -731,7 +731,7 @@ void handle_probe_request(unsigned int pkt_source, unsigned int pkt_target, unsi
 
     unsigned int id_lo = (pkt_source >> 8) & 0xff;
     unsigned int id_hi = pkt_payload;
-    unsigned int probe_id = (id_hi << 16) | id_lo;
+    unsigned int probe_id = (id_hi << 8) | id_lo;
     
     unsigned char compressed_probe_target = pkt_source & 0xff;
     unsigned int probe_target = ((compressed_probe_target & 0xf0) << 4) | (compressed_probe_target & 0xf);

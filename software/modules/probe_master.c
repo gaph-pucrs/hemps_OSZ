@@ -401,8 +401,8 @@ int send_probe_request(unsigned int source_addr, unsigned int target_addr, char 
 
     probe_logs_puts("\n");
 
-    unsigned int id_hi = probes[probe_index].id >> 8;
-    unsigned int id_lo = probes[probe_index].id & 0xff;
+    unsigned int id_hi = ((unsigned int) probes[probe_index].id) >> 8;
+    unsigned int id_lo = ((unsigned int) probes[probe_index].id) & 0xff;
 
     unsigned char compressed_target = (target_addr & 0xf) | ((target_addr & 0xf00) >> 4);
     Seek(PROBE_REQUEST, (batch_config << 16) | (id_lo << 8) | compressed_target, source_addr, id_hi);
