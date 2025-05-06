@@ -13,8 +13,8 @@
 #define MAX_BINARY_SEARCH_HTS MAX_PROBE_PATH_SIZE //maximum possible number of hts in a searched path
 #define SIZE_MISSING_PACKETS_QUEUE 10
 #define SUSPICIOUS_PATH_TABLE_SIZE 40
-#define BSA_QUEUE_SIZE 5
-#define THRESHOLD_SUS_PATHS_INTERSECTIONS 1
+#define BSA_QUEUE_SIZE 10
+#define THRESHOLD_SUS_PATHS_INTERSECTIONS 3
 #define OS_STOPS_ON_FIRST_HT 1 // 1 to stop the ordered search when the first HT is found, 0 to continue until the end of the path looking for more HTs
 
 #define BATCH_SIZE 5 //number of probes sent in a batch
