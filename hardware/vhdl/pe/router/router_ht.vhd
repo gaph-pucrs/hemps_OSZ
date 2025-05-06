@@ -413,7 +413,10 @@ architecture bh_intermittent of router_ht is
     constant LFSR_POLYNOMIAL    : std_logic_vector(COUNTER_LENGTH-1 downto 0) := x"D008";
     constant LFSR_SEED          : std_logic_vector(COUNTER_LENGTH-1 downto 0) := x"ABBA";
 
-    type StateType is (GEN_DISABLED_TIME, DISABLED, GEN_ENABLED_TIME, ENABLED);
+    constant WAITING_BOP        : std_logic := '0';
+    constant WAITING_EOP        : std_logic := '1';
+
+    type StateType is (GEN_DISABLED_TIME, DISABLED, GEN_ENABLED_TIME, ENABLED, POSTPONE);
     signal state        : StateType;
     signal next_state   : StateType;
 
@@ -422,6 +425,9 @@ architecture bh_intermittent of router_ht is
     signal lfsr_mask    : std_logic_vector(COUNTER_LENGTH-1 downto 0);
 
     signal tx_mask      : std_logic;
+
+    signal waiting_which_flag   : std_logic;
+    signal postpone_activation  : std_logic;
 
 begin
 
@@ -432,7 +438,7 @@ begin
     ht_bop_out      <= router_bop_out;
     router_cred_in  <= ht_cred_in;
 
-    tx_mask <= '0' when (state=ENABLED or state=GEN_DISABLED_TIME) else '1';
+    tx_mask <= '0' when (state=ENABLED) else '1';
 
     ChangeState: process(clock, reset)
     begin
@@ -443,7 +449,7 @@ begin
         end if;
     end process;
 
-    NextStateLogic: process(state, counter)
+    NextStateLogic: process(state, counter, postpone_activation)
     begin
         case state is
 
@@ -470,13 +476,15 @@ begin
             
             when GEN_ENABLED_TIME =>
 
-                if counter=0 then
+                if counter=0 and postpone_activation='0' then
                     next_state <= ENABLED;
                     report "HT TYPE: bh_intermittent"                           
 					& " | ADDRESS: " & CONV_STRING_16BITS(address)
                     & " | HT_PORT: " & integer'image(ht_port)
                     & " | STATUS: enabled"
                     & " | TIME: " & time'image(now);
+                elsif counter=0 and postpone_activation='1' then
+                    next_state <= POSTPONE;
                 else
                     next_state <= GEN_ENABLED_TIME;
                 end if;
@@ -487,6 +495,19 @@ begin
                     next_state <= GEN_DISABLED_TIME;
                 else
                     next_state <= ENABLED;
+                end if;
+            
+            when POSTPONE =>
+
+                if postpone_activation='0' then
+                    next_state <= ENABLED;
+                    report "HT TYPE: bh_intermittent"                           
+					& " | ADDRESS: " & CONV_STRING_16BITS(address)
+                    & " | HT_PORT: " & integer'image(ht_port)
+                    & " | STATUS: enabled"
+                    & " | TIME: " & time'image(now);
+                else
+                    next_state <= POSTPONE;
                 end if;
         
         end case;
@@ -501,7 +522,9 @@ begin
             -- set counter for next state
             if counter=0 then
                 if state=GEN_DISABLED_TIME then
-                    counter <= lfsr or x"E000";
+                    counter <= lfsr or x"5000"; -- at least 200 us
+                    -- counter <= lfsr or x"E000";
+                    -- counter <= (lfsr or x"E000") and x"7FFF";
                 elsif state=GEN_ENABLED_TIME then
                     counter <= lfsr and x"1FFF";
                 elsif state=DISABLED or state=ENABLED then
@@ -509,7 +532,7 @@ begin
                 end if;
             
             -- decrement counter
-            else
+            elsif postpone_activation='0' then
                 counter <= counter - 1;
             end if;
 
@@ -530,6 +553,21 @@ begin
             end if;
         end if;
     end process;
+
+    EopRegister: process(clock, reset)
+    begin
+        if reset ='1' then
+            waiting_which_flag <= WAITING_BOP;
+        elsif rising_edge(clock) then
+            if router_bop_out='1' then
+                waiting_which_flag <= WAITING_EOP;
+            elsif router_eop_out='1' then
+                waiting_which_flag <= WAITING_BOP;
+            end if;
+        end if;
+    end process;
+
+    postpone_activation <= '1' when (waiting_which_flag = WAITING_EOP) or router_tx='1' else '0';
             
 end architecture;
 
