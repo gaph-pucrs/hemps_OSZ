@@ -1054,7 +1054,11 @@ void monitor_outgoing_batches() {
 void send_probe_from_outgoing_batch(struct outgoing_batch *out_batch) {
 
     unsigned int next_probe_id = out_batch->initial_id + out_batch->sent_probes;
-    send_probe(next_probe_id, get_net_address(), out_batch->target, out_batch->sr_header, out_batch->sr_header_size, out_batch->batch_config);
+
+    //Generating second batch_config that contains relative position
+    
+    unsigned int new_batch_config = 0xC000 | ((out_batch->sent_probes & 0x2F) << 6) | (out_batch->batch_size & 0x2F);
+    send_probe(next_probe_id, get_net_address(), out_batch->target, out_batch->sr_header, out_batch->sr_header_size, new_batch_config);
     out_batch->sent_probes++;
     
     if(out_batch->sent_probes == out_batch->batch_size) {
@@ -1109,29 +1113,23 @@ void register_result_to_incoming_batch(struct incoming_probe *in_probe, int prob
 int configure_new_incoming_batch(struct incoming_probe *in_probe) {
     
     int slot = get_new_incoming_batch_slot();
-    incoming_batches[slot].initial_id = in_probe->id;
+
+    //unsigned int distribution = (in_probe->batch_config & 0xC0) >> 14;
+    unsigned int relative_position = (in_probe->batch_config & 0xFC) >> 6;
+    unsigned int batch_size = (in_probe->batch_config & 0x3F);
+
+    incoming_batches[slot].initial_id = in_probe->id - relative_position;
     incoming_batches[slot].source = in_probe->source;
+    incoming_batches[slot].batch_size = batch_size;
     incoming_batches[slot].failed_probes = 0;
     incoming_batches[slot].finished_probes = 0;
+    incoming_batches[slot].status = INCOMING_BATCH_RECEIVING;
 
     probe_puts("[HT] Configuring new Incoming Batch\n");
-    probe_puts("        Init ID: #"); probe_puts(itoa(in_probe->id)); probe_puts("\n");
+    probe_puts("        Init ID: #"); probe_puts(itoa(in_probe->id - relative_position)); probe_puts("\n");
     probe_puts("        Source: "); probe_puts(itoh(in_probe->source)); probe_puts("\n");
-
-    unsigned char distribution = (in_probe->batch_config && 0xC0) >> 14;
-    switch(distribution) {
-        case UNIFORM_BATCH_CODE:
-            incoming_batches[slot].batch_size = in_probe->batch_config & 0xff;
-            probe_puts("        Distribution: uniform\n");
-            probe_puts("        Batch size: "); probe_puts(itoa(incoming_batches[slot].batch_size)); probe_puts("\n");
-            break;
-
-        default:
-            probe_puts("[HT] Incoming batch error: unknown distibution type: "); probe_puts(itoa(distribution)); probe_puts("\n");
-            break;
-    }
-
-    incoming_batches[slot].status = INCOMING_BATCH_RECEIVING;
+    probe_puts("        Distribution: uniform\n");
+    probe_puts("        Batch size: "); probe_puts(itoa(incoming_batches[slot].batch_size)); probe_puts("\n");
     
     return slot;
 }
