@@ -14,10 +14,14 @@
 #define SIZE_MISSING_PACKETS_QUEUE 10
 #define SUSPICIOUS_PATH_TABLE_SIZE 40
 #define BSA_QUEUE_SIZE 5
-#define THRESHOLD_SUS_PATHS_INTERSECTIONS 3
+#define THRESHOLD_SUS_PATHS_INTERSECTIONS 1
 #define OS_STOPS_ON_FIRST_HT 1 // 1 to stop the ordered search when the first HT is found, 0 to continue until the end of the path looking for more HTs
 
+#define BATCH_SIZE 5 //number of probes sent in a batch
+#define BATCH_DELAY 10 //delay between probes in a batch in us
+
 #define PROBE_INDEX(probe_id) (probe_id % MAX_PROBE_ENTRIES)
+#define UNIFORM_CONFIG(batch_delay_us, batch_size) (((UNIFORM_BATCH_CODE & 0x3) << 14) | ((batch_delay_us & 0x3F) << 8) | (batch_size & 0xFF))
 
 /**** PROBE TABLE ****/
 
@@ -217,8 +221,6 @@ void print_ordered_search_result();
 int compare_suspicious_hops(const void *a, const void *b);
 
 int distance_between_PEs(unsigned short addr, unsigned short target);
-
-unsigned short get_uniform_batch_config(unsigned int probe_spacing_us, unsigned int num_probes);
 
 #endif
 

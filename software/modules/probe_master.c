@@ -139,7 +139,7 @@ void handle_report_suspicious_path(unsigned int pkt_source, unsigned int pkt_tar
     probe_puts(" Target: "); probe_puts(itoh(target));
     probe_puts(" Path: "); print_path(suspicious_path_table[slot].path, suspicious_path_table[slot].path_size); probe_puts("\n");
     set_suspicious_health(&suspicious_path_table[slot]);
-    print_noc_health_intersections(); 
+    // print_noc_health_intersections(); 
 }
 
 void release_suspicious_path_by_slot(int slot) {
@@ -224,7 +224,6 @@ void binary_search_divide(unsigned int source, unsigned int target, char *path, 
 
     unsigned int middle_router = calculate_target(source, path, path_size/2);
 
-    unsigned int batch_config = get_uniform_batch_config(10, 3);
     /* SEND LEFT PROBE */
 
     unsigned int left_source = source;
@@ -233,7 +232,7 @@ void binary_search_divide(unsigned int source, unsigned int target, char *path, 
     int left_path_size = path_size / 2;
 
     int left_slot = get_new_binary_search_probe_slot();
-    bsa.bsa_probes[left_slot].id = send_probe_request(left_source, left_target, left_path, left_path_size, 3, batch_config);
+    bsa.bsa_probes[left_slot].id = send_probe_request(left_source, left_target, left_path, left_path_size, 0, 0);
 
     /* SEND RIGHT PROBE */
 
@@ -243,7 +242,7 @@ void binary_search_divide(unsigned int source, unsigned int target, char *path, 
     int right_path_size = path_size - left_path_size;
 
     int right_slot = get_new_binary_search_probe_slot();
-    bsa.bsa_probes[right_slot].id = send_probe_request(right_source, right_target, right_path, right_path_size, 3, batch_config);
+    bsa.bsa_probes[right_slot].id = send_probe_request(right_source, right_target, right_path, right_path_size, 0, 0);
 }
 
 void evaluate_bsa_result() {
@@ -293,6 +292,7 @@ void register_binary_search_ht(unsigned int router, char port) {
 
 void print_binary_search_result() {
     
+    
     probe_puts("[HT] **** BINARY SEARCH FINALIZED ****\n");
 
     if(bsa.ht_counter == 0) {
@@ -301,20 +301,22 @@ void print_binary_search_result() {
     }
 
     for(int i = 0; i < bsa.ht_counter; i++) {
-        probe_puts("[HT]          HT #");
-        probe_puts(itoa(i+1));
-        probe_puts(": ");
-        probe_puts(itoh(bsa.hts[i].router));
-        probe_puts(" ");
-        print_turn(bsa.hts[i].port);
-        probe_puts("\n");
+        probe_logs_puts("[HT]          HT #");
+        probe_logs_puts(itoa(i+1));
+        probe_logs_puts(": ");
+        probe_logs_puts(itoh(bsa.hts[i].router));
+        probe_logs_puts(" port: ");
+        print_turn_logs(bsa.hts[i].port);
+        probe_logs_puts(" time: ");
+        probe_logs_puts(itoa(MemoryRead(TICK_COUNTER)));
+        probe_logs_puts("\n");
     }
 }
 
 void finalize_binary_search() {
     
     print_binary_search_result();
-    print_noc_health_intersections();
+    // print_noc_health_intersections();
 
     bsa.ht_counter = 0;
 
@@ -371,25 +373,33 @@ int send_probe_request(unsigned int source_addr, unsigned int target_addr, char 
     unsigned char compressed_path[3];
     convert_path_to_compressed_path(path, path_size, compressed_path);
 
-    probe_puts("[HT] PROBE REQUEST -- probe #");
-    probe_puts(itoa(probes[probe_index].id));
+    probe_logs_puts("[HT] PROBE REQUEST -- probe #");
+    probe_logs_puts(itoa(probes[probe_index].id));
 
-    probe_puts(" src: ");
-    probe_puts(itoh(source_addr));
+    probe_logs_puts(" src: ");
+    probe_logs_puts(itoh(source_addr));
     
-    probe_puts(" tgt: ");
-    probe_puts(itoh(target_addr));
+    probe_logs_puts(" tgt: ");
+    probe_logs_puts(itoh(target_addr));
 
-    probe_puts(" path: ");
-    print_path(path, path_size);
+    probe_logs_puts(" path: ");
+    print_path_logs(path, path_size);
 
-    probe_puts(" compressed_path: ");
-    print_compressed_path(compressed_path);
+    probe_logs_puts(" batch_cfg: ");
+    probe_logs_puts(itoh(batch_config));
 
-    probe_puts(" batch_cfg: ");
-    probe_puts(itoh(batch_config));
+    probe_logs_puts(" time: @");
+    probe_logs_puts(itoa(MemoryRead(TICK_COUNTER)));
 
-    probe_puts("\n");
+    probe_logs_puts(" payload_size: "); probe_logs_puts(itoa(PROBE_PACKET_SIZE));
+
+    probe_logs_puts(" config_period: ");
+    probe_logs_puts(itoa((batch_config & 0xFF)));
+
+    //print payload size 
+    
+
+    probe_logs_puts("\n");
 
     unsigned int id_hi = probes[probe_index].id >> 8;
     unsigned int id_lo = probes[probe_index].id & 0xff;
@@ -412,18 +422,22 @@ void handle_probe_results(unsigned int packet_source_field, unsigned int payload
     int i = PROBE_INDEX(probe_id);
     probes[i].status = (result == PROBE_RESULT_SUCCESS) ? PROBE_STATUS_SUCCEEDED : PROBE_STATUS_FAILED;
     
-    probe_puts("[HT] PROBE RESULTS -- probe #");
-    probe_puts(itoa(probe_id));
+    probe_logs_puts("[HT] PROBE RESULTS -- probe #");
+    probe_logs_puts(itoa(probe_id));
 
-    probe_puts(" src: ");
-    probe_puts(itoh(probes[i].source));
+    probe_logs_puts(" src: ");
+    probe_logs_puts(itoh(probes[i].source));
     
-    probe_puts(" tgt: ");
-    probe_puts(itoh(probes[i].target));
+    probe_logs_puts(" tgt: ");
+    probe_logs_puts(itoh(probes[i].target));
 
-    probe_puts(" result: ");
-    print_probe_result(result);
-    probe_puts("\n");
+    probe_logs_puts(" result: ");
+    print_probe_result_logs(result);
+
+    probe_logs_puts(" time: @");
+    probe_logs_puts(itoa(MemoryRead(TICK_COUNTER)));
+
+    probe_logs_puts("\n");
 
     if(result == PROBE_RESULT_FAILURE)
         clear_residual_switching_from_probe_id(probe_id);
@@ -545,6 +559,7 @@ void set_suspicious_health(struct suspicious_path *sus_path) {
     if (violated_intersections_threshold == 1) {
         probe_puts("[HT] Suspicious path threshold violation\n");
         register_new_binary_search(sus_path);
+        print_noc_health_intersections();
         // register_new_ordered_search(sus_path);
     }
 }
@@ -643,16 +658,16 @@ void print_noc_health_intersections() {
 
         switch(link) {
             case EAST:
-                probe_puts("EAST:\n");
+                probe_logs_puts("EAST:\n");
                 break;
             case WEST:
-                probe_puts("WEST:\n");
+                probe_logs_puts("WEST:\n");
                 break;
             case NORTH:
-                probe_puts("NORTH:\n");
+                probe_logs_puts("NORTH:\n");
                 break;
             case SOUTH:
-                probe_puts("SOUTH:\n");
+                probe_logs_puts("SOUTH:\n");
                 break;
         }
 
@@ -660,15 +675,15 @@ void print_noc_health_intersections() {
             for(int x = 0; x < XDIMENSION; x++) {
                 int intersections = noc_health[x][y].links[link].intersections;
                 if(intersections < 0) {
-                    probe_puts("X");
+                    probe_logs_puts("X");
                 } else if(intersections == 0) {
-                    probe_puts(".");
+                    probe_logs_puts(".");
                 } else {
-                    probe_puts(itoa(intersections));
+                    probe_logs_puts(itoa(intersections));
                 }
-                probe_puts(" ");
+                probe_logs_puts(" ");
             }
-            probe_puts("\n");
+            probe_logs_puts("\n");
         }
     }
 }
@@ -750,7 +765,7 @@ void send_probes_ordered_search() {
     int path_size = 1;
     unsigned short source = ordered_search.hops[ordered_search.next_hop].addr;
     unsigned short target = calculate_target(source, &path, path_size);
-    ordered_search.current_probe_id = send_probe_request(source, target, &path, path_size);
+    ordered_search.current_probe_id = send_probe_request(source, target, &path, path_size, BATCH_SIZE, UNIFORM_CONFIG(BATCH_DELAY, BATCH_SIZE));
     ordered_search.next_hop++;
 }
 
@@ -797,7 +812,7 @@ void finalize_ordered_search() {
     ordered_search.ht_counter = 0;
     ordered_search.next_hop = 0;
     ordered_search.status = OS_IDLE;
-    print_noc_health_intersections();
+    // print_noc_health_intersections();
     finalize_binary_search();
 }
 
@@ -811,12 +826,16 @@ void print_ordered_search_result() {
     }
 
     for (int i = 0; i < ordered_search.ht_counter; i++) {
-        probe_puts("[HT]          HT #");
-        probe_puts(itoa(i + 1));
-        probe_puts(": ");
-        probe_puts(itoh(ordered_search.hts[i].router));
-        probe_puts(" ");
-        print_turn(ordered_search.hts[i].port);
+        probe_logs_puts("[HT]          HT #");
+        probe_logs_puts(itoa(i + 1));
+        probe_logs_puts(": ");
+        probe_logs_puts(itoh(ordered_search.hts[i].router));
+        probe_logs_puts(" ");
+        probe_logs_puts(" port: ");
+        print_turn_logs(ordered_search.hts[i].port);
+        probe_logs_puts(" time: ");
+        probe_logs_puts(itoa(MemoryRead(TICK_COUNTER)));
+
         probe_puts("\n");
     }
 
@@ -842,9 +861,4 @@ int distance_between_PEs(unsigned short addr, unsigned short target) {
     int x2 = GET_X(target);
     int y2 = GET_Y(target);
     return abs(x1 - x2) + abs(y1 - y2);
-}
-
-unsigned short get_uniform_batch_config(unsigned int probe_spacing_us, unsigned int num_probes) {
-    unsigned short batch_config = ((UNIFORM_BATCH_CODE & 0x3) << 14) | ((probe_spacing_us & 0x3F) << 8) | (num_probes & 0xFF);
-    return batch_config;
 }

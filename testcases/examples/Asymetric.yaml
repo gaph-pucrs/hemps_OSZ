@@ -1,5 +1,5 @@
 hw:
-  page_size_KB:  64
+  page_size_KB:  128
   tasks_per_PE: 1    
   repository_size_MB:  1
   physical_channels: 2

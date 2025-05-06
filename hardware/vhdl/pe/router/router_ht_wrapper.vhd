@@ -113,6 +113,12 @@ begin
 
         HarmlessHT: if hts_setup(i+1)='x' generate
             HT: entity work.router_ht(router_ht_harmless)
+            generic map
+            (
+                address     => address,
+                ht_port        => i
+
+            )
             port map
             (
                 clock           => clock,
@@ -136,6 +142,12 @@ begin
 
         BlackholeHT_300us: if hts_setup(i+1)='b' generate
             HT: entity work.router_ht(router_ht_blackhole_300us)
+            generic map
+            (
+                address     => address,
+                ht_port        => i
+
+            )
             port map
             (
                 clock           => clock,
@@ -159,6 +171,12 @@ begin
 
         CreditBlockHT_300us: if hts_setup(i+1)='R' generate
             HT: entity work.router_ht(router_ht_credit_block_300us)
+            generic map
+            (
+                address     => address,
+                ht_port        => i
+
+            )
             port map
             (
                 clock           => clock,
@@ -181,7 +199,13 @@ begin
         end generate;
 
         BlackholeHT_2ms: if hts_setup(i+1)='m' generate
-            HT: entity work.router_ht(router_ht_blackhole_2ms)
+            HT: entity work.router_ht(bh_static_2ms)
+            generic map
+            (
+                address     => address,
+                ht_port        => i
+
+            )
             port map
             (
                 clock           => clock,
@@ -204,7 +228,13 @@ begin
         end generate;
 
         CreditBlockHT_2ms: if hts_setup(i+1)='o' generate
-            HT: entity work.router_ht(router_ht_credit_block_2ms)
+            HT: entity work.router_ht(cb_static_2ms)
+            generic map
+            (
+                address     => address,
+                ht_port        => i
+
+            )
             port map
             (
                 clock           => clock,
@@ -228,6 +258,12 @@ begin
 
         BlackholeHT_3ms: if hts_setup(i+1)='M' generate
             HT: entity work.router_ht(router_ht_blackhole_3ms)
+            generic map
+            (
+                address     => address,
+                ht_port        => i
+
+            )
             port map
             (
                 clock           => clock,
@@ -251,6 +287,12 @@ begin
 
         BlackholeHT_300usTo1950ms: if hts_setup(i+1)='w' generate
             HT: entity work.router_ht(router_ht_blackhole_300us_to_1950us)
+            generic map
+            (
+                address     => address,
+                ht_port        => i
+
+            )
             port map
             (
                 clock           => clock,
@@ -274,6 +316,12 @@ begin
 
         CreditBlockHT_300usTo1950ms: if hts_setup(i+1)='r' generate
         HT: entity work.router_ht(router_ht_credit_block_300us_to_1950us)
+        generic map
+        (
+            address     => address,
+            ht_port        => i
+
+        )
         port map
         (
             clock           => clock,
@@ -296,7 +344,13 @@ begin
         end generate;
 
         IntermittentHT: if hts_setup(i+1)='i' generate
-            HT: entity work.router_ht(router_ht_intermittent)
+            HT: entity work.router_ht(cb_intermittent)
+            generic map
+            (
+                address     => address,
+                ht_port        => i
+
+            )
             port map
             (
                 clock           => clock,
@@ -319,7 +373,13 @@ begin
         end generate;
 
         IntermittentHT_Drop: if hts_setup(i+1)='I' generate
-            HT: entity work.router_ht(router_ht_intermittent_drop)
+            HT: entity work.router_ht(bh_intermittent)
+            generic map
+            (
+                address     => address,
+                ht_port        => i
+
+            )
             port map
             (
                 clock           => clock,
@@ -343,6 +403,12 @@ begin
 
         CreditBlockHT: if hts_setup(i+1)='c' generate
         HT: entity work.router_ht(router_ht_credit_block)
+        generic map
+        (
+            address     => address,
+            ht_port        => i
+
+        )
         port map
         (
             clock           => clock,
@@ -366,6 +432,12 @@ begin
 
         CreditBlockHT_563usTo590us: if hts_setup(i+1)='k' generate
         HT: entity work.router_ht(router_ht_credit_block_563us_to_590us)
+        generic map
+        (
+            address     => address,
+            ht_port        => i
+
+        )
         port map
         (
             clock           => clock,
@@ -389,6 +461,12 @@ begin
 
         PacketInjectorHT: if hts_setup(i+1)='j' generate
             HT: entity work.router_ht(router_ht_packet_injector)
+            generic map
+            (
+                address     => address,
+                ht_port        => i
+
+            )
             port map
             (
                 clock           => clock,
