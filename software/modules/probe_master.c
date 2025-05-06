@@ -179,6 +179,18 @@ void fill_suspicious_path_pe_addrs(int slot) {
 
 void register_new_binary_search(struct suspicious_path *new_bsa_path) {
     
+    //check localized hts
+    int x, y, h;
+    for(int i = 0; i < new_bsa_path->path_size; i++) {
+        x = (new_bsa_path->path_addrs[i] & 0xFF00) >> 8; 
+        y = new_bsa_path->path_addrs[i] & 0xFF;
+        h = new_bsa_path->path[i];
+        if(noc_health[x][y].links[h].status == INFECTED) {
+            probe_puts("[HT] This path is already infected, discarding BSA!\n");
+            return;
+        }
+    }
+    
     if(bsa.status == BSA_BUSY) {
         
         if(bsa.queued_paths == BSA_QUEUE_SIZE) {
