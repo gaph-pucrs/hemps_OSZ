@@ -1069,6 +1069,9 @@ void update_outgoing_batch_timestamp(struct outgoing_batch *out_batch) {
 
     int probe_spacing_in_us, probe_spacing_in_cc;
 
+    probe_puts("[HT] Batch next timestamp upload. Batch #") probe_puts(itoa(out_batch->initial_id)); 
+    probe_puts(". Previous value: "); probe_puts(itoa(out_batch->next_probe_timestamp));
+
     switch(out_batch->distribution) {
         case UNIFORM_DISTRIBUTION:
             probe_spacing_in_us = out_batch->uniform_distribution_delay; // 1us granularity
@@ -1080,6 +1083,8 @@ void update_outgoing_batch_timestamp(struct outgoing_batch *out_batch) {
             probe_puts("[HT] Warning: trying to update out_batch timestamp with UNKNOWN DISTRIBUTION.\n");
             return;
     }
+
+    probe_puts(". Next value: "); probe_puts(itoa(out_batch->next_probe_timestamp)); probe_puts("\n");
 }
 
 void register_result_to_incoming_batch(struct incoming_probe *in_probe, int probe_result) {
