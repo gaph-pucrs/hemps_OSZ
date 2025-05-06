@@ -711,7 +711,7 @@ void send_probe(unsigned int probe_id, unsigned int source, unsigned int target,
 	probe_logs_puts(" payload_size: "); probe_logs_puts(itoa(PROBE_PACKET_SIZE));
 
     probe_logs_puts(" config_period: ");
-    probe_logs_puts(itoa((batch_config & 0xFF)));
+    probe_logs_puts(itoa((batch_config & 0x3F)));
 
     probe_logs_puts(" probe_type: ");
     probe_logs_puts(batch_config == 0 ? "bsa" : "batch");
