@@ -781,9 +781,11 @@ int get_ordered_search_probe_by_id(int id) {
 void receive_ordered_search_probe(int os_probe_slot, int result) {
     if (result == PROBE_RESULT_FAILURE) {
         register_ordered_search_ht(probes[os_probe_slot].source, probes[os_probe_slot].path[0]);
+        return;
     }
     if (ordered_search.next_hop == ordered_search.hops_size) {
         finalize_ordered_search();
+        return;
     } else {
         send_probes_ordered_search();
     }
