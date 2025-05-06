@@ -35,7 +35,7 @@ enum probe_status {
 };
 
 struct probe {
-    short id;
+    int id;
     enum probe_status status;
 
     unsigned short source;
@@ -47,7 +47,7 @@ struct probe {
     unsigned short batch_config;
 };
 
-short next_probe_id;
+int next_probe_id;
 struct probe probes[MAX_PROBE_ENTRIES];
 
 /**** SUSPICIOUS PATH TABLE ****/
