@@ -439,8 +439,8 @@ void handle_probe_results(unsigned int packet_source_field, unsigned int payload
 
     probe_logs_puts("\n");
 
-    if(result == PROBE_RESULT_FAILURE)
-        clear_residual_switching_from_probe_id(probe_id);
+    //if(result == PROBE_RESULT_FAILURE)
+    //    clear_residual_switching_from_probe_id(probe_id);
 
     if(packet_src != probes[i].target)
         probe_puts("[HT]    ERROR: PROBE_RESULTS was sent by someone other than original probe_target\n");

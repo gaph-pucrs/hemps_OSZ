@@ -1366,7 +1366,7 @@ int SeekInterruptHandler(){
 			break;
 			
 		case INIT_ROUTER_RESET:
-			clear_residual_switching(source, target, payload, service);
+			// clear_residual_switching(source, target, payload, service);
 			break;
 
 		case REPORT_SUSPICIOUS_PATH:

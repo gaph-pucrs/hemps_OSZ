@@ -601,14 +601,14 @@ void request_to_clear_residual_switching(unsigned int faulty_packet_source) {
     }
 
     if(probe_id > 0) {
-        Seek(INIT_ROUTER_RESET, probe_id, *probe_mpe_addr_ptr, 1); // payload '1' indicates that it is a faulty probe, src field contains probe_id
+        // Seek(INIT_ROUTER_RESET, probe_id, *probe_mpe_addr_ptr, 1); // payload '1' indicates that it is a faulty probe, src field contains probe_id
         return;
     }
 
     /* PACKET IS REGULAR AND SENT BY THE SOURCE */
 
     probe_puts("[DMNI TIMEOUT] Sending reset router REQUEST to "); probe_puts(itoh(faulty_packet_source)); probe_puts("\n");
-    Seek(INIT_ROUTER_RESET, get_net_address(), faulty_packet_source, 0); // payload '0' indicates that it is a regular faulty packet, src field contais src addr
+    // Seek(INIT_ROUTER_RESET, get_net_address(), faulty_packet_source, 0); // payload '0' indicates that it is a regular faulty packet, src field contais src addr
 }
 
 /*******************/
