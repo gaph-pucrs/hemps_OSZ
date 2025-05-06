@@ -893,7 +893,7 @@ void dmni::receive_master_kernel(){
 
 void dmni::receive_timeout() {
 
-	const unsigned int timeout_threshold = 30;
+	const unsigned int timeout_threshold = 100000;
 
 	if(reset.read()==1) {
 		counter_receive_timeout.write(0);
@@ -913,5 +913,5 @@ void dmni::receive_timeout() {
 
 	}
 
-	receive_flit_timeout.write(counter_receive_timeout.read() == timeout_threshold);
+	receive_flit_timeout.write(0); //(counter_receive_timeout.read() == timeout_threshold);
 }
