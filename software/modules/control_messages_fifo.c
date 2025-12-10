@@ -24,6 +24,8 @@
 
 
 void insert_CM_FIFO(volatile ServiceHeader *p, unsigned int initial_address, unsigned int dmni_msg_size){
+	// puts("[INSERT_CM_FIFO]   BEGIN\n");
+
     int aux;
 	switch(p->service){
 
@@ -32,6 +34,7 @@ void insert_CM_FIFO(volatile ServiceHeader *p, unsigned int initial_address, uns
 		case MESSAGE_DELIVERY:
 		case IO_OPEN_WRAPPER:
 		case IO_SR_PATH:
+				// puts("[INSERT_CM_FIFO]   IO_SR_PATH\n");
 				return;
 		break;
 
@@ -42,8 +45,11 @@ void insert_CM_FIFO(volatile ServiceHeader *p, unsigned int initial_address, uns
 		case ATTACK:
 		case AUTHENTICATE_PE:
 		case INITIALIZE_SLAVE:
-				if( search_Service(p->service) == -1 )
+				if( search_Service(p->service) == -1 ){
+					// puts("[INSERT_CM_FIFO]   INITIALIZE_SLAVE\n");
 					return; 								// @suppress("No break at end of case")
+				}
+					
 
 		// services with payload: save the pointer to data and length
 
@@ -128,6 +134,8 @@ void insert_CM_FIFO(volatile ServiceHeader *p, unsigned int initial_address, uns
 			 //puts("achou: "); puts(itoh(aux)); puts("\n");
 		break;
 	}
+
+	// puts("[INSERT_CM_FIFO]   END\n");
 }
 
 

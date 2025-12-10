@@ -80,7 +80,7 @@ void init_service_header_slots(){
 	sh_slot2.status = 1; 
 } 
  
-/**Function that abstracts the DMNI programming for read data from NoC and copy to memory 
+/** Function that abstracts the DMNI programming for read data from NoC and copy to memory 
  * \param initial_address Initial memory address to copy the received data 
  * \param dmni_msg_size Data size, is represented in memory word of 32 bits 
  * \return 1 if the read was sucessfull and -1 if not 
@@ -123,6 +123,7 @@ void DMNI_send_data(unsigned int initial_address, unsigned int dmni_msg_size){
  */ 
 void send_packet(volatile ServiceHeader *p, unsigned int initial_address, unsigned int dmni_msg_size){ 
  
+    // puts("[SEND_PACKET]   BEGIN\n");
 		unsigned int slot; 
 		int i; 
 		enum {DISTRIBUTED_ROUTING, SOURCE_ROUTING} packet_type; 
@@ -241,6 +242,8 @@ void send_packet(volatile ServiceHeader *p, unsigned int initial_address, unsign
 		MemoryWrite(DMNI_OP, READ); 
 		MemoryWrite(DMNI_START, 1); 
  
+
+    // puts("[SEND_PACKET]   END\n");
 		insert_CM_FIFO(p, initial_address, dmni_msg_size); 
 } 
  

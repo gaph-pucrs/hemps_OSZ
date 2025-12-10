@@ -33,6 +33,8 @@ void init_task_location();
 
 int get_task_location(int);
 
+int get_task_from_PE(int addr);
+
 void add_task_location(int, int);
 
 void change_task_location(int , int );
@@ -40,7 +42,6 @@ void change_task_location(int , int );
 int remove_task_location(int);
 
 void clear_app_tasks_locations(int);
-
 
 
 #endif /* TASK_LOCATION_H_ */

@@ -41,6 +41,7 @@ int get_task_location(int task_ID){
 
 	for(int i=0; i<MAX_TASK_LOCATION; i++) {
 		if (task_location[i].id == task_ID){
+			// puts("[TASK_LOCATION]	address was select by task_locaton: ");puts(itoh(task_location[i].proc_address));puts("\n");
 			return task_location[i].proc_address;
 		}
 	}
@@ -100,7 +101,7 @@ void add_task_location(int task_ID, int proc){
  * \param proc Location (address) of the task
  */
 void change_task_location(int task_ID, int proc){
-
+	// puts("[change_task_location]	receive task_id:	");puts(itoh(task_ID));puts("	proc:	");puts(itoh(proc));puts("\n");
 	for(int i=0; i<MAX_TASK_LOCATION; i++) {
 		if (task_location[i].id == task_ID){
 			//task_location[i].id = task_ID;

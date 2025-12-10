@@ -117,6 +117,16 @@ void send_peripheral_SR_path(int, int, int, int);
 	
 unsigned int remove_last_msg_waiting_ack(int taskID);
 
+int check_pipe(int producer_task,  int consumer_task);
+
+int get_slot_msg_req(int requested_task_id);
+
+MessageRequest * get_pending_msg_req(int slot_req_pend);
+
+void print_msg_req_table();
+
+void update_message_request(int prod_task, int cons_task, int new_processor);
+
 //#define comm_puts(argument) puts(argument)
 #define comm_puts(argument) 
 

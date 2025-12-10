@@ -160,7 +160,7 @@ int map_task(int last_proc_address, int task_id, int AppSec){
 
 		//Test if task_id is statically mapped
 		if (static_map[i][0] == task_id){
-			puts("Task id "); puts(itoa(static_map[i][0])); puts(" statically mapped at processor"); puts(itoh(static_map[i][1])); puts("\n");
+			puts("Task id "); puts(itoh(static_map[i][0])); puts(" statically mapped at processor "); puts(itoh(static_map[i][1])); puts("\n");
 
 			proc_address = static_map[i][1];
 

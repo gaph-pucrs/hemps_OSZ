@@ -95,4 +95,18 @@ int set_migration_list_status(int proc_address, int status);
 
 void freeze_application();
 
+void insert_migrate_list(int actual_addrss, int new_addrss);
+
+void migrate_task();
+
+int get_task_id_pe(int proc_address);
+
+int get_task_migrating();
+
+void send_tasks_location_control(int proc_address ,int task_ID);
+
+int get_new_addrss_pe_migrated(int old_addrss);
+
+int get_task_is_MIGRATING(int addrss);
+
 #endif /* PROCESSOR_H_ */

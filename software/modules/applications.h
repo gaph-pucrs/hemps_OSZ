@@ -129,6 +129,10 @@ void remove_application(int);
 
 void initialize_applications();
 
+int check_migrations_app();
+
+int check_app_pe(int App_id, int addrss);
+
 // /void set_RH_Address(int App_ID, int Address);
 
 // int  get_AppID_with_RH_Address(int Address);
@@ -138,6 +142,5 @@ int  add_migrations(int App_ID);
 int  sub_migrations(int App_ID);
 
 Application * get_app_ptr_from_task_location(int task_addr); 
-
 
 #endif /* SOFTWARE_INCLUDE_APPLICATIONS_APPLICATIONS_H_ */

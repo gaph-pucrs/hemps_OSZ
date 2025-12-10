@@ -801,6 +801,22 @@ void pe::seek_receive(){
 						cout << "REPORT_SUSPICIOUS_PATH";
 						int_seek.write(1);
 					break;
+					case 0x2F:
+						cout << "CLOSE_LINK_CONTROL";
+						int_seek.write(1);
+					break;
+					case 0x30:
+						cout << "TASK_MIGRATION_CONTROL";
+						int_seek.write(1);
+					break;
+					case 0x34:
+						cout << "TASKS_LOCATION_CONTROL";
+						int_seek.write(1);
+					break;
+					case 0x35:
+						cout << "TASK_MIGRATED_CONTROL";
+						int_seek.write(1);
+					break;
 					default:
 						cout << out_service_fifopdn.read() << " unknown --- ERROR! " ;
 						in_ack_fifopdn.write(1);

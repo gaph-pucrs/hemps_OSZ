@@ -26,6 +26,7 @@
 #include "../../modules/packet.h"
 #include "../../modules/new_task.h"
 #include "../../modules/cluster_scheduler.h"
+#include "../../modules/task_location.h"
 #include "../../modules/reclustering.h"
 #include "../../modules/applications.h"
 #include "../../modules/processors.h"
@@ -52,6 +53,7 @@ unsigned int 	cluster_load[CLUSTER_NUMBER];										//!< Keep the cluster load,
 unsigned int 	terminated_app_count = 0;											//!< Used to fires the END OF ALL APPLIATIONS
 unsigned int 	waiting_app_allocation = 0;											//!< Signal that an application is not fully mapped
 unsigned int 	app_id_counter = 0;
+
 
 extern int shape_index;
 //extern Shapes shapes[MAX_SHAPES];
@@ -124,7 +126,6 @@ void send_authenticate_nip(int periphID, int k0){
 
 	//set open line table 
 }
-
 // // send_open_line
 // {
 // 	int xyPath[] = {0x0083,0x0303}
@@ -226,8 +227,8 @@ void send_task_release(Application * app){
 
 	app->appID_random = appID_rand;
 	app->nTurns = turns;
-	puts("AppID rand: ");puts(itoh(appID_rand));puts("\n");
-	puts("turns: ");puts(itoh(turns));puts("\n");
+	// puts("AppID rand: ");puts(itoh(appID_rand));puts("\n");
+	// puts("turns: ");puts(itoh(turns));puts("\n");
 	#endif
 
 	for (int i =0; i<app->tasks_number; i++){
@@ -337,12 +338,28 @@ int send_full_task_migration(int task_ID, int old_proc, int new_proc){
 	p->task_ID = task_ID;
 	p->allocated_processor = new_proc;
 	send_packet(p, 0, 0);
-	//putsvsv("Task migration order of task ", task_ID, " to proc ", old_proc);
-	puts("Task migration order of task "); puts(itoh(task_ID)); puts(" to processor "); puts(itoh(old_proc)); puts("\n");
+	puts("[SEND_FULL_TM]	Task migration order of task: "); puts(itoh(task_ID)); 
+	puts("	old processor: "); puts(itoh(old_proc));
+	puts("	new processor: "); puts(itoh(new_proc)); puts("\n");
 	change_task_location_TCB(task_ID, old_proc, new_proc);
-
 	return 1;
 
+}
+
+/** Assembles and sends a TASK_MIGRATION_CONTROL packet to a slave kernel
+ *  \param task_ID The task ID to be migrated
+ *  \param new_proc The new processor address of task_ID
+ * BY FOCHI
+ */
+int start_task_migration_control(int task_ID, int old_proc, int new_proc){
+
+	Seek(TASK_MIGRATION_CONTROL, ((MemoryRead(TICK_COUNTER) << 16) | task_ID) , old_proc, (new_proc >> 4) | (new_proc & 0xF));
+
+	puts("[START_MIGRATION]	Start migration of task: "); puts(itoh(task_ID)); 
+	puts("	old processor: "); puts(itoh(old_proc));
+	puts("	new processor: "); puts(itoh(new_proc)); puts("\n");
+	change_task_location_TCB(task_ID, old_proc, new_proc);
+	return 1;
 }
 
 /** Requests a new application to the global master kernel
@@ -455,25 +472,25 @@ void request_task_of_application(int proc_address){
 	NewTask nt;
 	unsigned int task_info[80];
 	int index_counter, taskID0, tasks_mapped = 0;
-	puts("entrou request.. proc_address: "); puts(itoh(proc_address)); puts("\n");
+	// puts("entrou request.. proc_address: "); puts(itoh(proc_address)); puts("\n");
     taskID0 = get_task_id_processor(proc_address) &  0XFFFF;
-	puts("request task id : "); puts(itoh(taskID0)); puts("\n");
+	// puts("request task id : "); puts(itoh(taskID0)); puts("\n");
 	app = get_application_ptr(taskID0>>8); 
 	index_counter = 0;
 
 	for (int i=0; i<app->tasks_number; i++){
 		t = &app->tasks[i];
 		if (t->allocated_proc == -1){
-			putsv("ERROR task id not allocated: ", t->id);
+			// putsv("ERROR task id not allocated: ", t->id);
 			while(1);
 		}
 		//putsv("Task status: ", t->status);
 		//puts("processor: "); puts(itoh(t->allocated_proc)); puts("\n");
 		//puts("   status: "); puts(itoh(t->status)); puts("\n");
 		if(t->status == OFF && t->allocated_proc == proc_address){
-			puts("Achou para alocar depois migração \n");
+			// puts("Achou para alocar depois migração \n");
 			t->status = REQUESTED;
-			puts("Request allocation of task "); puts(itoh(t->id)); puts(" to processor "); puts(itoh(t->allocated_proc)); puts("\n");
+			// puts("Request allocation of task "); puts(itoh(t->id)); puts(" to processor "); puts(itoh(t->allocated_proc)); puts("\n");
 			task_info[index_counter++] = t->id;
 			task_info[index_counter++] = t->allocated_proc;
 			task_info[index_counter++] = t->initial_address;
@@ -540,6 +557,7 @@ void handle_packet() {
 	uint64_t Km;
 	ServiceHeader *send_value;
 	int allocated_processor;
+	Processor *aux_proc;
 
 
 	int app_id, allocated_tasks, index_counter, master_addr;
@@ -755,29 +773,52 @@ void handle_packet() {
 
 	case TASK_MIGRATED:
 
-		putsv("End migration at time - ", MemoryRead(TICK_COUNTER));
-		putsv("Task migrated id: ", p.task_ID);
-		puts("New processor address: "); puts(itoh( p.source_PE)); puts("\n");
+		send_tasks_location_control(p.released_proc ,p.task_ID);
+		remove_from_migration_list(p.released_proc ,p.task_ID);
+		request_task_of_application(p.released_proc);
 
+		//remove task but keep processor unvailable
+		aux_proc = search_processor(p.released_proc);
+		aux_proc->task[0] = -1;
+
+		puts("[TASK_MIGRATED]	End migrate task_id:	");puts(itoh(p.task_ID));puts("\n");
+		
 		if(sub_migrations(p.task_ID >> 8) == 0){
-
-			app_id = p.task_ID >> 8;
-
-			app = get_application_ptr(app_id); 
-
-			send_tasks_location(app);
-
-			Seek(UNFREEZE_TASK_SERVICE, p.released_proc << 16 | get_net_address(), p.task_ID >> 8, 0);
-
-			putsv("Send UNFREEZE appid: ", p.task_ID >> 8);
-		    putsv("Time - ", MemoryRead(TICK_COUNTER));
-
+			Seek(UNFREEZE_TASK_SERVICE, p.released_proc << 16 | get_net_address(), p.task_ID >> 8, FARTHEST_PE);
 			Seek(CLEAR_SERVICE, p.released_proc << 16 | get_net_address(), 0, 0);
 		}
-		remove_from_migration_list(p.released_proc ,p.task_ID);
-		puts("Requesting allocation...\n");
-		request_task_of_application(p.released_proc);
+
+		if(check_migrations_app()){
+			start_binary_search();
+		}
+
 		break;
+
+		// putsv("End migration at time - ", MemoryRead(TICK_COUNTER));
+		// puts("Task migrated id: ");puts(itoh(p.task_ID)); puts("\n");
+		// puts("New processor address: "); puts(itoh( p.source_PE)); puts("\n");
+
+		// if(sub_migrations(p.task_ID >> 8) == 0){
+
+		// 	app_id = p.task_ID >> 8;
+
+		// 	app = get_application_ptr(app_id); 
+
+		// 	send_tasks_location(app);
+
+		// 	Seek(UNFREEZE_TASK_SERVICE, p.released_proc << 16 | get_net_address(), p.task_ID >> 8, 0);
+
+		// 	putsv("Send UNFREEZE appid: ", p.task_ID >> 8);
+		//     putsv("Time - ", MemoryRead(TICK_COUNTER));
+
+		// 	Seek(CLEAR_SERVICE, p.released_proc << 16 | get_net_address(), 0, 0);
+		// }
+
+		// remove_from_migration_list(p.released_proc ,p.task_ID);
+		// puts("Requesting allocation...\n");
+		// request_task_of_application(p.released_proc);
+		// remove_task(p.released_proc, p.task_ID);
+		// break;
 
 	case SLACK_TIME_REPORT:
 
@@ -947,14 +988,16 @@ void handle_new_app(int app_ID, volatile unsigned int *ref_address, unsigned int
 	if(application->secure == 1){
 
 		shape_location = get_static_SZ(app_id_counter-1); // passar por parametro
+		puts("\nShape location after get_static: ");  puts(itoh(shape_location)); puts("\n");
 
 		if( shape_location == 0 ){
   			PEs_number = create_shapes(MAX_LOCAL_TASKS, application->tasks_number);
   			print_shapes_found(PEs_number);
   			shape_location = search_shape(PEs_number);
+			puts("\nShape location after search: ");  puts(itoh(shape_location)); puts("\n");
   		}
 
-//#ifdef DEBUG_RUARO
+// #ifdef DEBUG_RUARO
 		putsv("end shape - ", MemoryRead(TICK_COUNTER));
 	  	putsv("Index: ", shape_index);
 	    	puts("\nShape location: ");  puts(itoh(shape_location)); puts("\n");
@@ -964,7 +1007,7 @@ void handle_new_app(int app_ID, volatile unsigned int *ref_address, unsigned int
 			print_migrating_list();	
 	    } 
 	    else{ 
-	    	puts("\nERROR: don't found a shape to allocate the secure application in this cluster");
+	    	puts("\nERROR: don't found a shape to  the secure application in this cluster");
 	    	while(1);
 	    }
 	}
@@ -1037,6 +1080,7 @@ int SeekInterruptHandler(){
 	int allocated_tasks, aux;
 	static int apChanged;
 	int slot_seek;
+	Processor *aux_proc;
 	Application *app;
 	Warning w;
 	 // terminated_task_list[MAX_APP_SIZE];;
@@ -1294,9 +1338,16 @@ int SeekInterruptHandler(){
 		// case LOAN_PROCESSOR_RELEASE_SERVICE:
 		//     handle_reclustering_release_from_seek((source&0xffff), target, payload);
 		// break;
-		case RCV_FREEZE_TASK_SERVICE:
-					puts("RCV_FREEZE_TASK "); puts(itoh(source)); puts("\n"); // used to reset the time_out
 		
+		case RCV_FREEZE_TASK_SERVICE:
+			puts("[RCV_FREEZE_TASK_SERVICE]	App that was freeze: ")puts(itoh(payload));puts("	time: @");puts(itoa(MemoryRead(TICK_COUNTER)));puts("\n");
+			#ifdef FREEZE_APP_TO_SEARCH
+				// puts("[RCV_FREEZE_TASK_SERVICE]	start bsa with app freeze\n");
+				start_binary_search();
+			#else
+				// puts("[RCV_FREEZE_TASK_SERVICE]	start migrate with app freeze\n");
+				migrate_task();
+			#endif
 		break;
 		
 		case REQUEST_SNIP_RENEWAL: 
@@ -1514,6 +1565,54 @@ int SeekInterruptHandler(){
 			// addReport(w);			
 		break;
 
+		case MSG_REQUEST_CONTROL:
+
+			aux = get_new_addrss_pe_migrated(((target & 0xF00) << 4) | target & 0x0F);
+			if(aux != -1){
+				puts("[MSG_REQUEST_CONTROL]	Send control to:	");puts(itoh(aux));
+				Seek(service, source, aux, 0);
+			}
+			else
+			{
+				puts("[MSG_REQUEST_CONTROL]	Not found addrss to forward req_control\n")
+			}
+
+		break;
+
+		case TASK_MIGRATED_CONTROL:
+
+			task_id = source & 0xFFFF;
+			PE_address = ((payload << 4) & 0xF00) | (payload & 0xF);
+
+			puts("[TASK_MIGRATED_CONTROL]	End migrate task_id:	");puts(itoh(task_id));puts("	old_proc:	");puts(itoh(PE_address));puts("\n");
+	
+			//check if all migrations was completed
+			if(sub_migrations(task_id >> 8) == 0){//finalize all migraions of app
+				puts("[TASK_MIGRATED_CONTROL]	All migrations of app:	");puts(itoh(task_id >> 8));puts(" was completed\n");
+
+				for(int i = 0; i < MAX_MIGRATIONS; i++){
+					if(get_task_is_MIGRATING(migration_list[i].actual_address) && (task_id >> 8) == (migration_list[i].actual_taskID >> 8)){
+						puts("[TASK_MIGRATED_CONTROL]	migration_list addrss:	");puts(itoh(migration_list[i].actual_address));puts("	task_id:	");puts(itoh(migration_list[i].actual_taskID));puts("\n");
+						send_tasks_location_control(migration_list[i].actual_address, migration_list[i].actual_taskID);
+						request_task_of_application(migration_list[i].actual_address);
+						remove_from_migration_list(migration_list[i].actual_address,migration_list[i].actual_taskID);
+					}
+				}
+				
+				Seek(UNFREEZE_TASK_SERVICE, (MemoryRead(TICK_COUNTER) << 16 | get_net_address()), task_id >> 8, FARTHEST_PE);
+			}
+			else{//there is still migrations in progress
+
+				//remove task but keep processor unvailable
+				aux_proc = search_processor(PE_address);
+				aux_proc->task[0] = -1;
+			}
+
+			if(check_migrations_app())
+				start_binary_search();
+				
+		break;
+
 		default:
 			puts("Received unknown seek service\n");
 			puts("Master receiving a slave service???\n");
@@ -1563,6 +1662,7 @@ int main() {
 
 	initialize_CM_FIFO();
 
+	initialize_migration_list();
 
 	//send ready by brnoc
 	if (is_global_master){
@@ -1572,7 +1672,11 @@ int main() {
 	}
 	else
 		puts("Kernel CM Initialized\n");
-	
+
+	int send_full_1 = 0;
+	int send_full_2 = 0;
+	int send_full_3 = 0;
+
 	for (;;) {
 
 		// if((MemoryRead(TICK_COUNTER) > 120000) && (auxKey == 0)){

@@ -1,3 +1,9 @@
-#define BATCH_SIZE 3
+#define BATCH_SIZE 15
 #define BATCH_DELAY 3
-#define PROBE_PACKET_SIZE 3
+#define PROBE_PACKET_SIZE 40
+
+#define FIRST_RATE 5
+#define SECOND_RATE 8
+
+#define STATIC_WINDOW 50
+#define STATIC_PAYLOAD 40

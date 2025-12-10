@@ -94,7 +94,6 @@ typedef struct
     unsigned int timeoutThreshold;
 } Session;
 
-
 Message waitingMessages[WAITING_MSG_QUEUE];
 ServiceHeader waitingServices[WAITING_MSG_QUEUE];
 Session Sessions[MAX_SESSIONS];

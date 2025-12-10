@@ -171,7 +171,7 @@ void print_tasks_location(int app_ID){
 void change_task_location_TCB(int task_ID, int old_proc, int new_proc){
 
 	Application * app = get_application_ptr( task_ID >> 8 );
-
+	//altera o pe na aplicação
 	for(int i=0; i < app->tasks_number; i++){
 		if(task_ID == app->tasks[i].id)
 			app->tasks[i].allocated_proc = new_proc;
@@ -296,6 +296,17 @@ int add_migrations(int App_ID){
 	}
 	return -1;
 }
+
+int check_migrations_app(){
+	for(int i=0; i<MAX_CLUSTER_APP / 2; i++){
+		if(applications[i].active_migrations > 0)
+			return 0; 
+	}
+	puts("[CHECK_MIGRATION]	All migrations was completed\n");
+	return 1;
+}
+
+
 int sub_migrations(int App_ID){
 	for(int i=0; i<MAX_CLUSTER_APP; i++){
 		if(applications[i].app_ID == App_ID){
@@ -311,4 +322,24 @@ Application * get_app_ptr_from_task_location(int task_addr) {
 		for(int j=0; j<applications[i].tasks_number; j++)
 			if(applications[i].tasks[j].allocated_proc == task_addr)
 				return &applications[i];
+}
+
+int check_app_pe(int App_id, int addrss){
+
+	for(int i = 0; i < APP_NUMBER; i++){
+		if(applications[i].app_ID == App_id){	
+			
+			// puts("[check_app_pe]	App_id:	");puts(itoh(App_id));puts("\n");
+			for(int j = 0; j < applications[i].tasks_number; j++)
+				if(applications[i].tasks[j].allocated_proc == addrss){
+					// puts("[check_app_pe]	Locate addrss:	");puts(itoh(applications[i].tasks[j].allocated_proc));puts("\n");
+					return 1;
+				}
+					
+		}
+		else
+			continue;
+	}
+	// puts("[check_app_pe]	Not found app to addrss:	");puts(itoh(addrss));puts("\n");
+	return 0;
 }

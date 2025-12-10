@@ -20,7 +20,7 @@ use work.hemps_pkg.all;
 
 entity Seek_Local_Controller is 
 generic (
-	router_address        			: regflit
+	router_address        			: regflit := x"0000"
 );
 port( 
 	clock                   : in  std_logic; 

@@ -33,6 +33,7 @@
 #include "../../modules/control_messages_fifo.h" 
 #include "../../modules/csiphash.h"
 #include "../../modules/lfsr.h"
+#include "../../modules/processors.h"
 
 #include "../../modules/osz_slave.h"
 #include "../../modules/probe.h"
@@ -406,7 +407,7 @@ int Syscall(unsigned int service, unsigned int arg0, unsigned int arg1, unsigned
 				return 0;
 			}
 			#endif
-			puts("Task id: "); puts(itoa(current->id)); putsv(" terminated at ", MemoryRead(TICK_COUNTER));
+			puts("Task id: "); puts(itoh(current->id)); putsv(" terminated at ", MemoryRead(TICK_COUNTER));
 
 			// adjust appID e taskID to 6 bits
 			aux_appID_task_ID = ((current->id >> 4) & 0xF0) | (current->id & 0x0F);
@@ -449,7 +450,7 @@ int Syscall(unsigned int service, unsigned int arg0, unsigned int arg1, unsigned
 			}
 
  			//puts("current master: "); puts(itoh(current->master_address)); puts(" cluster master: ");  puts(itoh(cluster_master_address)); puts("\n");
-			// puts("WRITEPIPE - prod: "); puts(itoa(current->id)); puts("  cons: "); puts(itoa(arg1));puts("  addr: "); puts(itoa(&arg1));puts("\n");
+			// puts("[WRITEPIPE]	prod: "); puts(itoa(current->id)); puts("  cons: "); puts(itoa(arg1));puts("  addr: "); puts(itoa(&arg1));puts("\n");
 
 			producer_task =  current->id;
 			consumer_task = (int) arg1;
@@ -459,13 +460,15 @@ int Syscall(unsigned int service, unsigned int arg0, unsigned int arg1, unsigned
 
 			// puts("WRITEPIPE - prod: "); puts(itoa(producer_task)); putsv(" consumer ", consumer_task);
 
-			// consumer_PE = get_task_location(consumer_task);
 			consumer_PE = get_task_location(consumer_task);
+			// puts("Consumer PE writepipe:	");puts(itoa(consumer_PE));puts("\n");
+			// puts("[WRITEPIPE]	consumer pe: "); puts(itoa(consumer_PE));puts("\n");
 			
 
 			//Test if the consumer task is not allocated
 			if (consumer_PE == -1){
 				//Task is blocked until its a TASK_RELEASE packet
+
 				current->scheduling_ptr->status = BLOCKED;
 				return 0;
 			}
@@ -475,7 +478,7 @@ int Syscall(unsigned int service, unsigned int arg0, unsigned int arg1, unsigned
 
 			consumer_PE = get_message_request(producer_task, consumer_task);
 
-			if (consumer_PE == net_address){//message is local
+			if (consumer_PE == net_address){//message is local-- [FREEZE] tratamento para mensagem local???
 
 				TCB * requesterTCB = searchTCB(consumer_task);
 
@@ -483,7 +486,7 @@ int Syscall(unsigned int service, unsigned int arg0, unsigned int arg1, unsigned
 
 				#if MIGRATION_ENABLED
 					if (requesterTCB->proc_to_migrate != -1){
-						puts("Migrou no write pipe\n");
+						// puts("Migrou no write pipe\n");
 						migrate_dynamic_memory(requesterTCB);
 
 						schedule_after_syscall = 1;
@@ -498,23 +501,36 @@ int Syscall(unsigned int service, unsigned int arg0, unsigned int arg1, unsigned
 				
 				if (pipe_ptr == 0){//there is no space in the pipe
 					schedule_after_syscall = 1;
-					// puts("PIPE cheio\n");
+					// puts("[WRITEPIPE]	PIPE cheio\n");
 					return 0;
 				}
 
 				if (consumer_PE != -1){//message has been requested
-					remove_message_request(producer_task, consumer_task);
-					#ifdef SESSION_MANAGER
-					// tInit = MemoryRead(TICK_COUNTER);
-					session_puts("SYSCALL: Eviando delivery WRITEPIPE\n ");
-					send_message_delivery_control(Sessions, producer_task, consumer_task, consumer_PE);
-					// tEnd= MemoryRead(TICK_COUNTER);
-					// session_time_puts("REQ SEND= ");session_time_puts(itoa(tEnd-tInit));session_time_puts("\n");
-					#endif
-					// puts("MESSAGE DELIVERY  to - prod: "); puts(itoa(current->id)); puts("  cons: "); puts(itoa(arg1));puts("  addr: "); puts(itoh(&arg1));puts("\n");
-					pipe_ptr->status = WAITING_ACK;
-					send_message_delivery(producer_task, consumer_task, consumer_PE, msg_read);
+					// remove_message_request(producer_task, consumer_task);
+
+					TCB *aux_tcb = searchTCB(get_task_from_PE(get_net_address()));
+
+					// puts("[WRITEPIPE]	task: "); puts(itoh(aux_tcb->id)); puts("	status: "); puts(itoh((aux_tcb->scheduling_ptr->status))); puts("\n");
+
+					//se a tarefa do atual PE esta congelada, ja foi armazenada a msg e o req, nao deve enviar o delivery
+					if(aux_tcb->scheduling_ptr->status != BLOCKED){
+
+						// puts("[WRITEPIPE]	Delivery ENVIADO, tarefa NAO ESTA bloqueada\n");
+						pipe_ptr->status = WAITING_ACK;
+						remove_message_request(producer_task, consumer_task);
+						// puts("[WRITEPIPE]	address that will send to control:	");puts(itoh(consumer_PE));puts("\n");
+						send_message_delivery_control(Sessions, producer_task, consumer_task, consumer_PE);
+						send_message_delivery(producer_task, consumer_task, consumer_PE, msg_read);
+						// puts("[WRITEPIPE]	MESSAGE DELIVERY  to - prod: "); puts(itoa(aux_tcb->id)); puts("  cons: "); puts(itoa(arg1));puts("  addr: "); puts(itoh(&arg1));puts("\n");
+					}else{
+						// puts("[WRITEPIPE]	Delivery NAO ENVIADO, tarefa ESTA bloqueada\n");
+					}
+
+					// send_message_delivery(producer_task, consumer_task, consumer_PE, msg_read);
 				} 
+				else{
+						puts("[WRITEPIPE]	Delivery not send, not found request to it consumer\n");
+				}
 			}
 
 		tEnd= MemoryRead(TICK_COUNTER);
@@ -523,6 +539,7 @@ int Syscall(unsigned int service, unsigned int arg0, unsigned int arg1, unsigned
 		break;
 
 		case READPIPE:
+			// puts("[READPIPE]	BEGIN READPIPE\n");
 			tInit = MemoryRead(TICK_COUNTER);
 			// #ifdef SESSION_MANAGER
 			// ToutFlag = timeoutMonitor(Sessions, MemoryRead(TICK_COUNTER));
@@ -547,22 +564,23 @@ int Syscall(unsigned int service, unsigned int arg0, unsigned int arg1, unsigned
 			//Test if the producer task is not allocated
 			if (producer_PE == -1){
 				//Task is blocked until its a TASK_RELEASE packet
+				// puts("[READPIPE]	producer_PE == -1\n");
 				current->scheduling_ptr->status = BLOCKED;
 				return 0;
 			}
 
 			if (producer_PE == net_address){ //Local producer
-
+				// puts("[READPIPE]	producer_PE == net_address\n");
 				//Searches if the message is in PIPE (local producer)
 				pipe_ptr = remove_PIPE(producer_task, consumer_task);
 
 				if (pipe_ptr == 0){
-
+					// puts("[READPIPE]	pipe_ptr == 0\n");
 					//Stores the request into the message request table (local producer)
 					insert_message_request(producer_task, consumer_task, net_address);
 
 				} else {
-
+					// puts("[READPIPE]	pipe_ptr != 0\n");
 					//Message was found in pipe, writes to the consumer page address (local producer)
 
 					msg_write = (Message*) arg0;
@@ -579,13 +597,20 @@ int Syscall(unsigned int service, unsigned int arg0, unsigned int arg1, unsigned
 				}
 
 			} else { //Remote producer : Sends the message request (remote producer)
-
+				// puts("[READPIPE]	producer_PE != net_address\n");
 				if ((producer_task & 0xFF) == 99){
+					// puts("[READPIPE]	(producer_task & 0xFF) == 99\n");
 					send_message_request(producer_task, consumer_task, producer_PE, net_address);
 					schedule_after_syscall = 1;
 					return 1;
 				}
+				// puts("[READPIPE]	(producer_task & 0xFF) != 99\n");
 				#ifdef SESSION_MANAGER
+				// puts("[READ_PIPE]	SEND MSG_CONTROL	prod:	");puts(itoh(producer_task));
+				// puts("	cons:	");puts(itoh(consumer_task));
+				// puts("	addrss_prod:	");puts(itoh(producer_PE));
+				// puts("	@time:	");puts(itoa(MemoryRead(TICK_COUNTER)));
+				// puts("\n");
 				send_message_request_control(Sessions, producer_task, consumer_task, producer_PE);
 				#endif
 				// session_puts("Req Via  READPIPE");
@@ -602,6 +627,7 @@ int Syscall(unsigned int service, unsigned int arg0, unsigned int arg1, unsigned
 			schedule_after_syscall = 1;
 			tEnd= MemoryRead(TICK_COUNTER);
 			session_time_puts("READPIPE= ");session_time_puts(itoa(tEnd-tInit));session_time_puts("\n");
+			// puts("[READPIPE]	END READPIPE\n");
 			return 0;
 		break;
 
@@ -917,7 +943,8 @@ int handle_packet(ServiceHeader * p) {
 	case MESSAGE_REQUEST: //MR_HANDLER
 		tInit = MemoryRead(TICK_COUNTER);
 
-		puts("<------ MESSAGE_REQUEST from :");puts(itoh( p->consumer_task));puts("\n");
+		puts("<------ MESSAGE_REQUEST from :");puts(itoh( p->consumer_task));
+		puts("	time: @");puts(itoa(MemoryRead(TICK_COUNTER))); puts("\n");
 
 		#ifdef SESSION_MANAGER
 		// puts("header:");puts(itoh(p->header[MAX_SOURCE_ROUTING_PATH_SIZE-2])); puts("\n");
@@ -929,10 +956,13 @@ int handle_packet(ServiceHeader * p) {
 	
 
 		// printSessions(Sessions);
-		session_puts("DATA: Chegou REQUEST para "); session_puts(itoh(p->producer_task)); session_puts("\n");
+		puts("DATA: Chegou REQUEST para "); puts(itoh(p->producer_task)); puts("\n");//session_puts
+
 		auxIndex = checkSession(Sessions, p->producer_task, p->consumer_task);
+		// puts("[MESSAGE_REQUEST]	auxIndex:	");puts(itoa(auxIndex));puts("\n");
+
 		if (auxIndex < 0){
-			// session_puts("DATA: REQUEST - Nao achou a Sessao, salvando Service \n");
+			puts("DATA: REQUEST - Nao achou a Sessao, salvando Service \n");
 			auxSlot = getServiceSlot();
 			if (auxSlot < 0)
 				session_puts("DATA: Nao tem lugar na ServiceQueue");
@@ -942,32 +972,36 @@ int handle_packet(ServiceHeader * p) {
 			updateTimeoutThreshold(auxSession, p);
 			if (auxSession->status == WAITING_ANY )
 			{
-				session_puts("DATA: -->> REQUEST esperando autorizar\n");			
-				// auxSession->time = arrivalTime;
+				puts("DATA: -->> REQUEST esperando autorizar\n");			
+				auxSession->time = arrivalTime;
 				auxSession->status = WAITING_CONTROL;
 				auxSlot = getServiceSlot();
 				copyService(p, auxSlot);
 				auxSession->header =auxSlot;
-				// puts("**MR NoC ANY:");puts(itoa(p->arrival_time - p->timestamp));puts("\n");
+				puts("**MR NoC ANY:");puts(itoa(p->arrival_time - p->timestamp));puts("\n");
 
 			}
 			else if (auxSession->status == WAITING_DATA || auxSession->status == SUSPICIOUS)
 			{
-				// puts("**MR NoC DATA:");puts(itoa(p->arrival_time - p->timestamp));puts("\n");
-				// puts("**MR Check:");puts(itoa(p->arrival_time - auxSession->time));puts("\n");
+				puts("**MR NoC DATA:");puts(itoa(p->arrival_time - p->timestamp));puts("\n");
+				puts("**MR Check:");puts(itoa(p->arrival_time - auxSession->time));puts("\n");
 			
 				// if (tInit - auxSession->time  > LAT_THRESHOLD){
 				//		puts("WARNING REQ: XXXXX suspicious packet latency XXXXX \n");
 				// }
 				auxSession->time = 0;
 
-				session_puts("DATA: -->> REQUEST - Achou Sessão\n");
+				puts("DATA: -->> REQUEST - Achou Sessão\n");
 
-				slot_ptr = remove_PIPE(p->producer_task, p->consumer_task);
+				// slot_ptr = remove_PIPE(p->producer_task, p->consumer_task);
+
+				// puts("[MSG_REQUEST]	send to check_pipe	prod_task:	");puts(itoa(p->producer_task));
+				// puts("	cons_task:	");puts(itoa(p->consumer_task));puts("\n");
+				int aux_search_pipe = check_pipe(p->producer_task, p->consumer_task);
 
 				//Test if there is no message in PIPE
-				if (slot_ptr == 0){
-
+				if (aux_search_pipe == 0){
+					// puts("[MR]	aux_search_pipe = 0\n");
 					//Gets the location of the producer task
 					task_loc = get_task_location(p->producer_task);
 
@@ -984,17 +1018,42 @@ int handle_packet(ServiceHeader * p) {
 						}
 
 					} else {
-
 						insert_message_request(p->producer_task, p->consumer_task, p->requesting_processor);
+						// puts("[MR]	aux_search_pipe = 0 ->	insert_MR\n");
 					}
 
 				} else if (p->requesting_processor != net_address){
-					// session_puts("DATA: Enviando DELIVERY por MR\n");
-					send_message_delivery_control(Sessions, p->producer_task, p->consumer_task, p->requesting_processor);
-					send_message_delivery(p->producer_task, p->consumer_task, p->requesting_processor, &slot_ptr->message);
+					// puts("[MR]	aux_search_pipe != 0\n");
+					TCB *aux_tcb = searchTCB(get_task_from_PE(get_net_address()));
+
+					// puts("[MR]	task: "); puts(itoh(aux_tcb->id)); puts("	status: "); puts(itoh((aux_tcb->scheduling_ptr->status))); puts("\n");
+
+					
+					if(aux_tcb->scheduling_ptr->status != BLOCKED){
+
+						slot_ptr = remove_PIPE(p->producer_task, p->consumer_task);
+
+						// puts("[MR]	Delivery ENVIADO, tarefa NAO ESTA bloqueada\n");
+						// puts("[MESSAGE_REQUEST]	address that will send to control:	");puts(itoh(p->requesting_processor));puts("\n");
+						send_message_delivery_control(Sessions, p->producer_task, p->consumer_task, p->requesting_processor);
+						send_message_delivery(p->producer_task, p->consumer_task, p->requesting_processor, &slot_ptr->message);
+						// puts("[MR]	MESSAGE DELIVERY to - prod: "); puts(itoa(p->producer_task)); puts("  cons: "); puts(itoa(p->consumer_task));puts("  addr: "); puts(itoh(p->requesting_processor));puts("\n");	
+
+					} else{
+						/*Se a tarefa esta congelada, apenas insere o request recebido*/
+						// puts("[MR]	Delivery NAO ENVIADO, tarefa ESTA bloqueada\n");
+						insert_message_request(p->producer_task, p->consumer_task, p->requesting_processor);
+						// puts("[MR]	Request armazenado	prod:"); puts(itoh(p->producer_task)); puts("	cons: "); puts(itoh(p->consumer_task)); puts("	proc: "); puts(itoh(p->requesting_processor));puts("\n");
+					}
+					// puts("DATA: Enviando DELIVERY por MR\n");
+					// send_message_delivery_control(Sessions, p->producer_task, p->consumer_task, p->requesting_processor);
+					// send_message_delivery(p->producer_task, p->consumer_task, p->requesting_processor, &slot_ptr->message);
 					// puts("MESSAGE DELIVERY to - prod: "); puts(itoa(p->producer_task)); puts("  cons: "); puts(itoa(p->consumer_task));puts("  addr: "); puts(itoh(p->requesting_processor));puts("\n");
 				//This else is executed when this slave receved a own MESSAGE_REQUEST due a by pass
 				} else {
+
+					slot_ptr = remove_PIPE(p->producer_task, p->consumer_task);
+
 					tcb_ptr = searchTCB(p->consumer_task);
 					write_local_msg_to_task(tcb_ptr, slot_ptr->message.length, slot_ptr->message.msg);
 				}
@@ -1214,13 +1273,14 @@ int handle_packet(ServiceHeader * p) {
 		if (auxIndex < 0)
 			session_puts("DATA: Nao achou a Sessao\n");
 
-		puts("<------ MESSAGE_DELIVERY from :");puts(itoh( p->producer_task));puts("\n");
+		puts("<------ MESSAGE_DELIVERY from :");puts(itoh( p->producer_task));
 		// puts("producer_task:");puts(itoh(p->producer_task));puts("\n");
+		puts("	time: @");puts(itoa(MemoryRead(TICK_COUNTER))); puts("\n");
 
 		auxSession = &Sessions[auxIndex];
 		updateTimeoutThreshold(auxSession, p);
 		// session_puts("DATA: status ="); session_puts(itoa(auxSession->status));
-		puts("DATA: status ="); puts(itoa(auxSession->status));puts("\n");
+		// puts("DATA: status ="); puts(itoa(auxSession->status));puts("\n");
 		if (auxSession->status == WAITING_ANY){
 				
 			session_puts("DATA: -->> Mensagem esperando validação\n");
@@ -1274,8 +1334,16 @@ int handle_packet(ServiceHeader * p) {
 			puts(">Autenticado<\n");
 			// auxSession->requested += 1;
 
-			if(tcb_ptr->scheduling_ptr->status != BLOCKED)
+			if(tcb_ptr->scheduling_ptr->status != BLOCKED){
+				// puts("[MD]	task is not blocked, change state of tcb to READY\n");
 				tcb_ptr->scheduling_ptr->status = READY;
+			}else if(tcb_ptr->scheduling_ptr->last_status == WAITING){
+					puts("[MD]	task is blocked, state was WAITING now is READY\n");
+					tcb_ptr->scheduling_ptr->last_status = READY;
+			}else{
+				puts("[MD]	task is blocked, last_state is READY\n");
+				tcb_ptr->scheduling_ptr->last_status = READY;
+			}
 
 			if(p->service != IO_DELIVERY){
 					remove_msg_request(p->source_PE, p->consumer_task, p->producer_task);
@@ -1392,7 +1460,7 @@ int handle_packet(ServiceHeader * p) {
 		// common code independent of function order: task allocation <---> task_release
 		tcb_ptr->pc = 0;
 
-		puts("Task id: "); puts(itoa(tcb_ptr->id)); putsv(" allocated at ", MemoryRead(TICK_COUNTER));
+		puts("Task id: "); puts(itoh(tcb_ptr->id)); putsv(" allocated at ", MemoryRead(TICK_COUNTER));
 
 		code_lenght = p->code_size;
 
@@ -1492,7 +1560,7 @@ int handle_packet(ServiceHeader * p) {
 
 			new_ptr = 1;
 		}
-		puts("Task id: "); puts(itoa(tcb_ptr->id)); putsv(" released at ", MemoryRead(TICK_COUNTER));
+		puts("Task id: "); puts(itoh(tcb_ptr->id)); putsv(" released at ", MemoryRead(TICK_COUNTER));
 
 		app_ID = p->task_ID >> 8;
 
@@ -1600,22 +1668,22 @@ int handle_packet(ServiceHeader * p) {
 
 		//if (get_task_location(tcb_ptr->id) == -1){
 			for (int i = 0; i < p->app_task_number; i++){
-				migration_puts("Location "); migration_puts(itoa(i)); 
+				migration_puts("[TASKS_LOCATION]	Location "); migration_puts(itoh(i)); 
 				migration_puts(": "); migration_puts(itoh(app_tasks_location[i])); migration_puts("\n");
 				change_task_location(app_ID << 8 | i, app_tasks_location[i]);
 				update_msg_request_migration(i, app_tasks_location[i]);
+				update_message_request(get_task_from_PE(get_net_address()), i, app_tasks_location[i]);
 			}
-		//}			
-
+		//}
 		break;		
 
 	case UPDATE_TASK_LOCATION:
 
-	//	puts("UPDATE_TASK_LOCATION");  puts("\n");
+		// puts("UPDATE_TASK_LOCATION");  puts("\n");///NAO É ACIONADO NO TASK MIGRATION
 	//	puts("p->task_ID "); puts(itoa(p->task_ID & 0xFF)); puts("\n");
 	//	puts("app ID >> "); puts(itoa(p->task_ID >> 8)); puts("\n"); 
+
 		if (is_another_task_running(p->task_ID >> 8)){ // FOCHI ADD 01/06/2017 orientações do Ruaro.
-	//				puts("entrou");  puts("\n");
 			update_msg_request_table((p->task_ID & 0xFF), p->allocated_processor);//			FOCHI ADD 02/10/2017 orientações do Caimi.
 			remove_task_location(p->task_ID);
 			add_task_location(p->task_ID, p->allocated_processor);
@@ -1708,9 +1776,10 @@ int handle_packet(ServiceHeader * p) {
 		case MIGRATION_STACK:
 		case MIGRATION_DATA_BSS:
 		case MIGRATION_PIPE:
+		case MIGRATION_SESSION_DATA:
 
 			//cluster_master_address = get_master_address(get_net_address()); //fochi
-
+			
 			need_scheduling = handle_migration(p, cluster_master_address);
 
 		break;
@@ -1837,7 +1906,7 @@ int SeekInterruptHandler(){
 	TCB * tcb_ptr = 0; 
 	PipeSlot* tmpSlot; 
 	ServiceHeader* auxService = 0; 
-	int task_loc; 
+	int task_loc;
 	int slot_seek = 0;
 	// For AP
 	static int prevSetAP = -1;
@@ -1848,6 +1917,7 @@ int SeekInterruptHandler(){
 	static ackSources[MAX_TASKS_APP];
 	int i, timeAux;
 
+	ServiceHeader *p_aux = 0;
 	
 	switch(service){
 		case TARGET_UNREACHABLE_SERVICE:
@@ -2117,6 +2187,12 @@ int SeekInterruptHandler(){
 			auxNumber = source & 0xFFFF;
 			auxService = -1;
 
+			if(get_task_from_PE(target) == -1){//PE vazio que recebeu
+				puts("[MSG_REQUEST_CONTROL]	Receive MRC from:	");puts(itoh(source));puts("	forward to master\n");
+				Seek(service, source, cluster_master_address, ((target >> 4) & 0xF0) | (target & 0xF));
+				break;
+			}
+
 			if (auxCode == 0xFFC0){ // END_SESSION // Se o código for "11 1111 1111"
 				puts("CONTROL: Received END_SESSION\n");
 				clearSession(Sessions, auxIndex); // O índice vem junto no "code"
@@ -2137,6 +2213,10 @@ int SeekInterruptHandler(){
 				auxSession = &Sessions[auxIndex];
 				//AuxService needs to be retrieved and, in case of new Session, both steps need to be done here- Control and Data
 				auxService = auxSession->header;
+
+
+				// puts("<------ MESSAGE_REQUEST_CONTROL from :");puts(itoh(auxSession->consumer));
+				// puts("	time: @");puts(itoa(MemoryRead(TICK_COUNTER))); puts("\n");
 
 				// if ((auxSession->requested == auxNumber) && (auxNumber != 1) ){ // Repeated MRC
 				// if ((auxSession->requested == auxNumber)){ // Repeated MRC 
@@ -2159,10 +2239,15 @@ int SeekInterruptHandler(){
 						
 						// auxService = auxSession->header;
 
-						tmpSlot = remove_PIPE(auxService->producer_task, auxService->consumer_task);
+						// tmpSlot = remove_PIPE(auxService->producer_task, auxService->consumer_task);
+
+
+						// puts("[MSG_REQUEST_CONTROL]	send to check_pipe	prod_task:	");puts(itoa(auxService->producer_task));
+						// puts("	cons_task:	");puts(itoa(auxService->producer_task));puts("\n");
+						int aux_search_pipe = check_pipe(auxService->producer_task, auxService->consumer_task);
 
 						//Test if there is no message in PIPE
-						if (tmpSlot == 0){
+						if (aux_search_pipe == 0){
 							// session_puts("---- sem mensagem no PIPE\n");
 							//Gets the location of the producer task
 							task_loc = get_task_location(auxService->producer_task);
@@ -2185,11 +2270,32 @@ int SeekInterruptHandler(){
 						} else if (auxService->requesting_processor != net_address){
 							// session_puts("---- enviando MD e MDR\n");
 							// t3 = MemoryRead(TICK_COUNTER);
-							send_message_delivery_control(Sessions, auxService->producer_task, auxService->consumer_task, auxService->requesting_processor);
-							send_message_delivery(auxService->producer_task, auxService->consumer_task, auxService->requesting_processor, &tmpSlot->message);
+							// send_message_delivery_control(Sessions, auxService->producer_task, auxService->consumer_task, auxService->requesting_processor);
+							// send_message_delivery(auxService->producer_task, auxService->consumer_task, auxService->requesting_processor, &tmpSlot->message);
 							// puts("MESSAGE DELIVERY  sent - prod: "); puts(itoa(auxService->producer_task)); puts("  cons: "); puts(itoa(auxService->consumer_task));puts("  addr: "); puts(itoh(auxService->requesting_processor));puts("\n");
+
+							TCB *aux_tcb = searchTCB(get_task_from_PE(get_net_address()));
+
+							// puts("[MRC]	task: "); puts(itoh(aux_tcb->id)); puts("	status: "); puts(itoh((aux_tcb->scheduling_ptr->status))); puts("\n");
+
+							if(aux_tcb->scheduling_ptr->status != BLOCKED){
+
+								tmpSlot = remove_PIPE(auxService->producer_task, auxService->consumer_task);
+
+								// puts("[MRC]	Delivery ENVIADO, tarefa NAO ESTA bloqueada\n");
+								puts("[MSG_REQUEST_CONTROL]	address that will send to control:	");puts(itoh(auxService->requesting_processor));puts("\n");
+								send_message_delivery_control(Sessions, auxService->producer_task, auxService->consumer_task, auxService->requesting_processor);
+								send_message_delivery(auxService->producer_task, auxService->consumer_task, auxService->requesting_processor, &tmpSlot->message);
+								// puts("[MRC]	MESSAGE DELIVERY  sent - prod: "); puts(itoa(auxService->producer_task)); puts("  cons: "); puts(itoa(auxService->consumer_task));puts("  addr: "); puts(itoh(auxService->requesting_processor));puts("\n");
+							} else{
+								// puts("[MRC]	Delivery NAO ENVIADO, tarefa ESTA bloqueada\n");
+								insert_message_request(auxService->producer_task, auxService->consumer_task, auxService->requesting_processor);
+								// puts("[MR]	Request armazenado	prod:"); puts(itoh(auxService->producer_task)); puts("	cons: "); puts(itoh(auxService->consumer_task)); puts("	proc: "); puts(itoh(auxService->requesting_processor));puts("\n");
+							}
 						} else {
 							// session_puts("---- deu no Pass\n");
+							tmpSlot = remove_PIPE(auxService->producer_task, auxService->consumer_task);
+
 							tcb_ptr = searchTCB(auxService->consumer_task);
 							write_local_msg_to_task(tcb_ptr, tmpSlot->message.length, tmpSlot->message.msg);
 						}
@@ -2314,20 +2420,25 @@ int SeekInterruptHandler(){
 		break;
 
 		case FREEZE_TASK_SERVICE:
-				//print_task();	
-				puts(itoa(MemoryRead(TICK_COUNTER))); puts("\n");
-			 	puts("Received FREEZE_TASK_SERVICE"); puts("\n");
-					
-				aux = freeze_tasks_of_App(target);
-				
-				Seek(CLEAR_SERVICE, source, target ,payload);
-				payload = ((payload << 4 ) & 0XF00) | (payload & 0x0F);
-				if(payload == get_net_address()){
-					puts("send FREEZE_TASK_RCV app: "); puts(itoh(payload)); puts("\n");
-					Seek(RCV_FREEZE_TASK_SERVICE, get_net_address(), source ,payload);
+				puts("[FREEZE]	Received FREEZE_TASK_SERVICE to app:	"); puts(itoh(target)); puts("\n");
+
+				aux = freeze_tasks_of_App(target);//freeze task of app
+
+				int farthest_PE = ((payload << 4 ) & 0X0F00) | (payload & 0x0F);
+
+				if(farthest_PE == get_net_address()){
+					puts("[FREEZE]	Send RCV_FREEZE_TASK_SERVICE    source: "); puts(itoh(get_net_address())); puts("\n");
+					Seek(RCV_FREEZE_TASK_SERVICE, (MemoryRead(TICK_COUNTER) << 16) | get_net_address(), cluster_master_address , target & 0XFF);
+					Seek(CLEAR_SERVICE, source, 0, 0);
 				}
-				puts("Tasks FREZZED: "); puts(itoh(aux)); puts("\n");
-				//print_task();	
+
+				if(aux > 0){
+					puts("[FREEZE]	Task of app that was freeze: "); puts(itoh(get_task_from_PE(get_net_address()))); puts("\n");
+				}
+				else{
+					puts("[FREEZE]	No task was freeze.\n");
+				}
+
 			return aux;
 		break;
 
@@ -2519,15 +2630,48 @@ int SeekInterruptHandler(){
 			return 1;
 		break;
 
-		case UNFREEZE_TASK_SERVICE: //enviado pelo Mastre WARD do cluster
-			puts("Received UNFREEZE_TASK_SERVICE"); puts("\n");
+		case UNFREEZE_TASK_SERVICE:
+
+			puts("[UNFREEZE]	Received UNFREEZE_TASK_SERVICE to app:	");puts(itoh(target)) puts("\n");
+
 			aux = unfreeze_tasks_of_App(target);
-			puts("Tasks UNFREZZED: "); puts(itoh(aux)); puts("\n");
-			//print_locations();
+
+			int farthest_addrss = ((payload << 4 ) & 0X0F00) | (payload & 0x0F);
+
+			if(farthest_addrss == get_net_address()){
+				Seek(CLEAR_SERVICE, source, 0 ,0);
+			}
+
+			if(aux > 0){
+				#ifdef FREEZE_APP_TO_SEARCH
+				// verifica se chegou req enquanto estava congelado
+				int numbers_slot_req = get_slot_msg_req(get_task_from_PE(get_net_address()));
+
+				if(numbers_slot_req > 0){
+					//se chegou, enviara todos ate que acabe a fila
+					for(int i = 0; i < numbers_slot_req; i++){
+						
+						MessageRequest *aux_msg = get_pending_msg_req(i);
+						int aux_check_pipe = check_pipe(aux_msg->requested, aux_msg->requester);
+						if(aux_check_pipe != 0){
+
+							PipeSlot *tmpSlot = remove_PIPE(aux_msg->requested, aux_msg->requester);
+
+							send_message_delivery_control(Sessions, aux_msg->requested, aux_msg->requester, aux_msg->requester_proc);
+							send_message_delivery(aux_msg->requested, aux_msg->requester, aux_msg->requester_proc, &tmpSlot->message);
+							remove_message_request(aux_msg->requested, aux_msg->requester);
+						}
+					}
+				}
+				#endif
+				puts("[UNFREEZE]	Task of app that was unfreeze: "); puts(itoh(get_task_from_PE(get_net_address()))); puts("\n");
+			}
+			else{
+				puts("[UNFREEZE]	No task was unfreeze.\n");
+			}
+
 			return aux;
 		break;	
-
-
 
 		// case WAIT_KERNEL_SERVICE: //enviado pelo Mestre WARD do cluster
 		// 	puts("Received WAIT_KERNEL_SERVICE from "); puts(itoh((source&0xFFFF))); puts("\n"); //WARNING puts necessário para sincronização
@@ -2572,7 +2716,35 @@ int SeekInterruptHandler(){
 		case CLEAR_SERVICE:
 			puts("[SEEK] WARNING -- Received a CLEAR_SERVICE packet, this should not have happened\n");
 			break;
-					
+
+		case CLOSE_LINK_CONTOL:
+			puts("[SEEK]	Receive CLOSE_LINK_CONTROL\n");
+			MemoryWrite(WRAPPER_REGISTER, payload);
+			break;
+
+		case TASK_MIGRATION_CONTROL:
+
+			puts("[TASK_MIGRATION_CONTROL]	receive\n");
+			p_aux = get_service_header_slot();
+			p_aux->service = TASK_MIGRATION;
+			p_aux->task_ID = source & 0xFFFF;//task_ID
+			p_aux->allocated_processor = (payload << 4 & 0xF00) | (payload & 0xF);//new_proc
+
+			handle_migration(p_aux, cluster_master_address);
+			
+			break;
+		
+		case TASKS_LOCATION_CONTROL:
+
+			puts("[TASKS_LOCATION_CONTROL]	receive\n");
+			
+			change_task_location(source & 0xFFFF, (((payload << 4) & 0xF00) | (payload & 0x0F)));//task_id new_proc
+			update_msg_request_migration(source & 0xFFFF, (((payload << 4) & 0xF00) | (payload & 0x0F)));
+			update_message_request(get_task_from_PE(get_net_address()), source & 0xFFFF, (((payload << 4) & 0xF00) | (payload & 0x0F)));
+
+		break;
+
+		
 		default:
 			//seek_puts("Received unknown seek service\n");
 		break;

@@ -118,7 +118,7 @@ unsigned int add_msg_request_migration(unsigned int status, unsigned int process
 
 void update_msg_request_migration(unsigned int source_id, unsigned int processor){
 	int i;
-	
+	// puts("[update_msg_request_migration]	receive	source_id:	");puts(itoh(source_id));puts("	processor:	");puts(itoh(processor));puts("\n");
 	for(i=0;i<MSG_REQUEST_SIZE;i++){
 			//puts("update \nproc: ");puts(itoh(processor));
 			//puts(" ID: ");puts(itoa(source_id));puts("\n");
@@ -242,7 +242,6 @@ unsigned int resend_messages(int remote_addr){
 		
 		if (pipe[i].status == WAITING_ACK && consumer_proc == remote_addr) {
 			send_message_delivery(pipe[i].producer_task, pipe[i].consumer_task, remote_addr, &pipe[i].message);
-			comm_puts("resent mesage delivery to: "); comm_puts(itoh(consumer_proc)); comm_puts("\n");
 			puts("resent mesage delivery to: "); puts(itoh(consumer_proc)); puts("\n");
 			return 1;
 		}
@@ -265,6 +264,7 @@ PipeSlot * add_PIPE(int producer_task, int consumer_task, Message * msg){
 	unsigned char task_pipe_slots = 0;
 
 	if (pipe_free_positions == 0){
+		// puts("[ADD_PIPE]	pipe_free_positions = 0\n");
 		return 0;
 	}
 
@@ -286,12 +286,14 @@ PipeSlot * add_PIPE(int producer_task, int consumer_task, Message * msg){
 	}
 
 	if (task_pipe_slots == MAX_TASK_SLOTS){
+		// puts("[ADD_PIPE]	task_pipe_slots = MAX_TASK_SLOTS\n");
 		return 0;
 	}
 
 	pipe_ptr = get_PIPE_free_position();
 
 	if (pipe_ptr == 0){
+		// puts("[ADD_PIPE]	NOT FREE POSITION IN THE PIPE\n");
 		return 0;
 	}
 
@@ -312,9 +314,11 @@ PipeSlot * add_PIPE(int producer_task, int consumer_task, Message * msg){
 	// puts("Message to :"); puts(itoh(consumer_task)); puts(" put in PIPE\n");
 
 	pipe_free_positions--;
-	// puts("WRITEPIPE adicionou do PIPE:\n");
-	// puts("consumer_task:");puts(itoh( consumer_task));puts("\n");
-	// puts("----PIPE free slots: ");puts(itoa(pipe_free_positions));puts("\n");
+	puts("[ADD_PIPE]	pipe adicionado:	pipe_cons: ");puts(itoh(pipe_ptr->consumer_task));
+	puts("	pipe_prod: ");puts(itoh(pipe_ptr->producer_task));
+	puts("	pipe_order: ");puts(itoh(pipe_ptr->order));
+	puts("	pipe_status: ");puts(itoh(pipe_ptr->status));
+	puts("	pipe_free_positions--: ");puts(itoh(pipe_free_positions));puts("\n");
 	//Only for debug purposes
 	MemoryWrite(ADD_PIPE_DEBUG, (producer_task << 16) | (consumer_task & 0xFFFF));
 
@@ -371,61 +375,107 @@ unsigned int PIPE_msg_number(){
  *  \param consumer_task ID of the consumer task of the message
  *  \return 0 if it not found any message, or the PipeSlot pointer if the message was successfully removed
  */
-PipeSlot * remove_PIPE(int producer_task,  int consumer_task){
+PipeSlot * remove_PIPE(int producer_task, int consumer_task){
+
 	int i;
 
 	PipeSlot * pipe_ptr, * sel_pipe;
+
 	unsigned int min_order = 0xFFFFFFFF; //Max unsigned integer value
 
 	if (pipe_free_positions == PIPE_SIZE){
 		return 0;
+
 	}
 
 	sel_pipe = 0;
-
 
 	for(i=0; i<PIPE_SIZE; i++){
 		pipe_ptr = &pipe[i];
 		if (pipe_ptr->status == WAITING_ACK && producer_task == pipe_ptr->producer_task && consumer_task == pipe_ptr->consumer_task){
 			pipe_ptr->status = EMPTY;
 			pipe_free_positions++;
+			puts("[REMOVE_PIPE]	pipe alterado para empty:	pipe_cons: ");puts(itoh(pipe_ptr->consumer_task));
+			puts("	pipe_prod: ");puts(itoh(pipe_ptr->producer_task));
+			puts("	pipe_order: ");puts(itoh(pipe_ptr->order));
+			puts("	pipe_status: ");puts(itoh(pipe_ptr->status));
+			puts("	pipe_free_positions++: ");puts(itoh(pipe_free_positions));puts("\n");
 			break;
-		}
+		}	
 	}
 
-
 	for(i=0; i<PIPE_SIZE; i++){
+
 		pipe_ptr = &pipe[i];
-		// print_pipe_status(pipe_ptr->status);
-		// comm_puts(itoa(pipe_ptr->consumer_task));
-
 		if (pipe_ptr->status == USED && producer_task == pipe_ptr->producer_task && consumer_task == pipe_ptr->consumer_task){
-
 			if(min_order > pipe_ptr->order){
 				sel_pipe = pipe_ptr;
 				min_order = pipe_ptr->order;
 			}
+			puts("[REMOVE_PIPE]	sel_pipe:	pipe_cons: ");puts(itoh(sel_pipe->consumer_task));
+			puts("	pipe_prod: ");puts(itoh(sel_pipe->producer_task));
+			puts("	pipe_order: ");puts(itoh(sel_pipe->order));
+			puts("	pipe_status: ");puts(itoh(sel_pipe->status));
+			puts("	pipe_free_positions: ");puts(itoh(pipe_free_positions));puts("\n");
 		}
+
 	}
-	// comm_puts("\n");
 
 	if (sel_pipe == 0){
-		// puts("Message to :"); puts(itoh(consumer_task)); puts(" not in pipe\n");
+		// puts("[REMOVE_PIPE]	NOT FOUND PIPE WITH STATUS->USED, PROD AND CONS\n");
 		return 0;
 	}
 
-
 	sel_pipe->status = WAITING_ACK;
-	
+	// puts("[REMOVE_PIPE]	STATUS-> WAITING_ACK\n");
+
 
 	//Only for debug purposes
 	MemoryWrite(REM_PIPE_DEBUG, (producer_task << 16) | (consumer_task & 0xFFFF));
 
+
 	return sel_pipe;
 }
 
+int check_pipe(int producer_task,  int consumer_task){
+	int cont = 0, min_order = 0;
+	PipeSlot *pipe_ptr;
+
+	// puts("[CHECK_PIPE]	receive prod_task: ");puts(itoh(producer_task));
+	// puts("	cons_task: ");puts(itoh(consumer_task));puts("\n");
 
 
+	for(int i = 0; i < PIPE_SIZE; i++){
+		pipe_ptr = &pipe[i];
+
+		if (pipe_ptr->status == USED && producer_task == pipe_ptr->producer_task && consumer_task == pipe_ptr->consumer_task){
+			// puts("[CHECK_PIPE]	pipe: ");puts(itoh(i));
+			// puts("	pipe_prod: ");puts(itoh(pipe_ptr->producer_task));
+			// puts("	pipe_cons: ");puts(itoh(pipe_ptr->consumer_task));
+			// puts("	pipe_status: ");puts(itoh(pipe_ptr->status));
+			// puts("	pipe_free_positions: ");puts(itoh(pipe_free_positions));puts("\n");
+			cont++;
+		}			
+	}
+
+	if(cont < 1){
+		for(int i = 0; i < PIPE_SIZE; i++){
+			pipe_ptr = &pipe[i];
+			if (pipe_ptr->status == WAITING_ACK && producer_task == pipe_ptr->producer_task && consumer_task == pipe_ptr->consumer_task){
+				pipe_ptr->status = EMPTY;
+				pipe_free_positions++;
+				puts("[CHECK_PIPE]	pipe alterado para empty:	pipe_cons: ");puts(itoh(pipe_ptr->consumer_task));
+				puts("	pipe_prod: ");puts(itoh(pipe_ptr->producer_task));
+				puts("	pipe_order: ");puts(itoh(pipe_ptr->order));
+				puts("	pipe_status: ");puts(itoh(pipe_ptr->status));
+				puts("	pipe_free_positions++: ");puts(itoh(pipe_free_positions));puts("\n");
+				return 0;
+			}	
+		}
+	}
+	
+	return cont;
+}
 
 
 //Ruaro //Fochi
@@ -517,7 +567,7 @@ int insert_message_request(int producer_task, int consumer_task, int requester_p
     		message_request[i].requested  = producer_task;
     		message_request[i].requester_proc = requester_proc;
 
-    		// puts("Message request added from :"); puts(itoh(consumer_task));puts("\n");
+    		puts("Message request added from :"); puts(itoh(consumer_task));puts("\n");
     		//Only for debug purposes
     		MemoryWrite(ADD_REQUEST_DEBUG, (producer_task << 16) | (consumer_task & 0xFFFF));
 
@@ -594,6 +644,15 @@ int get_message_request(int producer_task, int consumer_task) {
     return -1;
 }
 
+void update_message_request(int prod_task, int cons_task, int new_processor){
+	// puts("[update_message_request]	receive prod_task:	");puts(itoh(prod_task)); puts("	cons_task:	");puts(itoh(cons_task));puts("	new_processor:	");puts(itoh(new_processor));puts("\n");
+	for(int i=0; i<REQUEST_SIZE; i++) {
+        if(message_request[i].requested == prod_task && message_request[i].requester == cons_task){
+				// puts("[UPDATE_MESSAGE_REQ]	change address of:	");puts(itoh(message_request[i].requester_proc)); puts("	to:	");puts(itoh(new_processor));puts("\n");
+				message_request[i].requester_proc = new_processor;
+        }
+    }
+}
 
 /*--------------------------------------------------------------------
  update_msg_request_table FOCHI
@@ -740,7 +799,8 @@ void send_message_delivery(int producer_task, int consumer_task, int consumer_PE
 //	puts("producer: "); puts(itoh(producer_task));
 //	puts("  length: "); puts(itoh(msg_ptr->length));
 //	puts("\n");
-	puts("------>> MESSAGE_DELIVERY to :");puts(itoh( p->consumer_task));puts("\n");
+	puts("------>> MESSAGE_DELIVERY to :");puts(itoh( p->consumer_task));
+	puts("	time: @");puts(itoa(MemoryRead(TICK_COUNTER))); puts("\n");
 
 
 	send_packet(p, (unsigned int)msg_ptr->msg, msg_ptr->length);
@@ -770,7 +830,8 @@ void send_message_request_(int producer_task, int consumer_task, unsigned int pr
 		add_msg_request(p->header[MAX_SOURCE_ROUTING_PATH_SIZE-1], consumer_task, producer_task);
 	}
 
-	puts("------>> MESSAGE_REQUEST to :");puts(itoh(producer_task));puts("\n");
+	puts("------>> MESSAGE_REQUEST to :");puts(itoh(producer_task));
+	puts("	time: @");puts(itoa(MemoryRead(TICK_COUNTER))); puts("\n");
 
 	send_packet(p, 0, 0);
 }
@@ -916,4 +977,56 @@ void send_peripheral_SR_path(int slot_seek, int peripheral_ID, int secure, int t
 	//add_msg_request(p->header[MAX_SOURCE_ROUTING_PATH_SIZE-1], consumer_task, peripheral_ID); //caimi: arrumar header
 
 	send_packet_io(p, &SR_Table[slot_seek].path[0], SR_Table[slot_seek].path_size, peripheral_ID);
+}
+
+int get_slot_msg_req(int requested_task_id){
+
+	MessageRequest *mr;
+
+	int cont_slots = 0;
+
+	for(int i = 0; i < 	REQUEST_SIZE; i++){
+
+		mr = &message_request[i];
+
+		/*puts("[GET_SLOT]	task_id producer: "); puts((itoh(mr->requested)));
+		puts("	task_id consumer: "); puts((itoh(mr->requester)));
+		puts("	addrss consumer: "); puts((itoh(mr->requester_proc)));
+		puts("	slot: "); puts(itoa(i));*/
+
+		if(mr->requested == requested_task_id)
+			cont_slots++;
+		// puts("\n");
+	}
+
+	return cont_slots;
+}
+
+MessageRequest *get_pending_msg_req(int slot_req_pend){
+
+	MessageRequest *sel_mr = &message_request[slot_req_pend];
+
+	/*puts("[GET_PEND_MSG_REQ]	task_id producer: "); puts((itoh(sel_mr->requested)));
+	puts("	task_id consumer: "); puts((itoh(sel_mr->requester)));
+	puts("	addrss consumer: "); puts((itoh(sel_mr->requester_proc)));
+	puts("\n");*/
+
+	return sel_mr;
+}
+
+void print_msg_req_table(){
+
+	MessageRequest *mr;
+
+	// puts("[PRINT_MSG_REQ_TABLE]	:");puts("\n");
+	for(int i = 0; i < REQUEST_SIZE; i++){
+
+		mr = &message_request[i];
+
+		/*puts("["); puts(itoa(i)); puts("]");
+		puts("	task_id producer: "); puts((itoh(mr->requested)));
+		puts("	task_id consumer: "); puts((itoh(mr->requester)));
+		puts("	addrss consumer: "); puts((itoh(mr->requester_proc)));
+		puts("\n");*/
+	}
 }

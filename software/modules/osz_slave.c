@@ -674,6 +674,30 @@ ServiceHeader* checkWaitingServices(ServiceHeader* serviceQueue, int sProd, int 
 }
 
 /*--------------------------------------------------------------------
+* change_session
+*
+* DESCRIPTION:
+*   Change prod task that was migrate in the session
+*
+*    parameters:  *sessions - array of the system sessions 
+*                  old prod - producer task of the Session that was migrate
+*                  new prod - new producer task of the Session
+*                  cons - consumer task of the Session
+*    
+*    return:  none
+*--------------------------------------------------------------------*/
+
+void change_prod_session(Session *session, unsigned int old_prod, unsigned int new_prod, unsigned int cons){
+  for (int i = 0; i < MAX_SESSIONS; i++){
+    if(session[i].producer == old_prod && session[i].consumer == cons){
+      puts("[CHANGE_PROD_SESSION] cons: "); puts(itoh(cons)); 
+      puts(" old prod: "); puts(itoh(old_prod));
+      puts(" new prod:"); puts(itoh(new_prod));
+    }
+  }
+}
+
+/*--------------------------------------------------------------------
 * send_message_delivery_control
 *
 * DESCRIPTION:
@@ -692,6 +716,7 @@ void send_message_delivery_control(Session * sessions,unsigned int prod, unsigne
   if (index < 0)
     puts("ERRO: não achou sessão no MDR\n"); 
   sessions[index].sent += 1; // Increase the number of sent Messages
+  // puts("[SEND_MDC]  Send Message Delivery Control   source:"); puts(itoh((sessions[index].code <<16) | (sessions[index].pairIndex << 16) | sessions[index].sent)); puts("   target:"); puts(itoh(target));puts("\n");
 	Seek(MSG_DELIVERY_CONTROL, (sessions[index].code <<16) | (sessions[index].pairIndex << 16) | sessions[index].sent , target, index);
 }
 

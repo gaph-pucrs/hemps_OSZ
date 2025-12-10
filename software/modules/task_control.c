@@ -70,7 +70,7 @@ TCB * searchTCB(unsigned int task_id) {
     return 0;
 }
 
-/**Gets the TCB pointer from a index
+/** Gets the TCB pointer from a index
  * \param i Index of TCB
  * \return The respective TCB pointer
  */
@@ -78,7 +78,7 @@ TCB * get_tcb_index_ptr(unsigned int i){
 	return &(tcbs[i]);
 }
 
-/**Test if there is another task of the same application running in the same slave processor
+/** Test if there is another task of the same application running in the same slave processor
  * \param app_id Appliation ID
  * \return 1 - if YES, 0 if NO
  */
@@ -242,10 +242,14 @@ int freeze_tasks_of_App(int appId){
             if ((tcbs[i].id  >> 8)== appId){    
                 tcbs[i].scheduling_ptr->last_status = tcbs[i].scheduling_ptr->status;
                 tcbs[i].scheduling_ptr->status = BLOCKED;
+
                 
-                puts("app id: "); puts(itoh(appId)); puts("\n");
-                puts("status: "); puts(itoh(tcbs[i].scheduling_ptr->status)); puts("\n");
-                puts("last status: "); puts(itoh(tcbs[i].scheduling_ptr->last_status)); puts("\n");
+                puts("Status depois do freeze:   ");puts(itoa(tcbs[i].scheduling_ptr->status));puts("\n");
+                puts("LastStatus depois do freeze:   ");puts(itoa(tcbs[i].scheduling_ptr->last_status));puts("\n");
+                
+                // puts("app id: "); puts(itoh(appId)); puts("\n");
+                // puts("status: "); puts(itoh(tcbs[i].scheduling_ptr->status)); puts("\n");
+                // puts("last status: "); puts(itoh(tcbs[i].scheduling_ptr->last_status)); puts("\n");
 
                 cont++;
             }
@@ -260,9 +264,11 @@ int unfreeze_tasks_of_App(int appId){
         for (int i = 0; i < MAX_LOCAL_TASKS; i++){
         //puts("    Id: "); puts(itoh(tcbs[i].id  >> 8)); puts("\n");
             if (((tcbs[i].id  >> 8) == appId)  ){
-                //tcbs[i].scheduling_ptr->status = tcbs[i].scheduling_ptr->last_status;
-                tcbs[i].scheduling_ptr->status = RUNNING;
+                tcbs[i].scheduling_ptr->status = tcbs[i].scheduling_ptr->last_status;
+                // tcbs[i].scheduling_ptr->status = RUNNING;
                 cont++;
+                
+                puts("Status depois do unfreeze:   ");puts(itoa(tcbs[i].scheduling_ptr->status));puts("\n");
             }
         }
     return cont;

@@ -70,10 +70,13 @@
 #define PROBE_PATH						44  //0x2C
 #define PROBE_CONTROL					45  //0x2D
 #define PROBE_RESULT					46  //0x2E
-
+#define CLOSE_LINK_CONTOL				47  //0x2F
+#define TASK_MIGRATION_CONTROL			48	//0x30
 #define RESET_HERMES_PORT_SERVICE		49  //0x31
 #define INIT_ROUTER_RESET				50  //0x32
 #define REPORT_SUSPICIOUS_PATH			51  //0x33
+#define TASKS_LOCATION_CONTROL			52 	//0x34 
+#define TASK_MIGRATED_CONTROL			53	//0X35
 
 
 #define	IRQ_SEEK						0x80

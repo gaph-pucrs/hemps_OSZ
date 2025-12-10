@@ -1,0 +1,15 @@
+#!/bin/bash
+
+TEST_FILES=("2_dijkstra_migrate.yaml" "2_dtw_migrate.yaml" "dijkstra_migrate.yaml" "dtw_migrate.yaml" "dtw_mpeg_migrate.yaml")
+TIMER=60 
+
+for CONFIG_FILE in "${TEST_FILES[@]}"; do
+    
+    OUTPUT_DIR="${CONFIG_FILE%.*}"
+    rm -rf "${OUTPUT_DIR}"
+    COMMAND_STRING="nohup hemps-run ${CONFIG_FILE} ${TIMER}"
+    eval "$COMMAND_STRING &" 
+    sleep 0.5
+done
+
+jobs

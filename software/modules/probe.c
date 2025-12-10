@@ -519,7 +519,7 @@ int convert_single_channel_path_to_dual_channel_path(char *path, int path_size, 
 
 void clear_residual_switching_from_current_path(unsigned int faulty_packet_source, unsigned int faulty_packet_target) {
 
-    // probe_puts("[ROUTER RST] ** DATA MESSAGE RESET **\n");
+    puts("[ROUTER RST] *** RESET FROM PATH ***\n");
 
     char faulty_path[MAX_PROBE_PATH_SIZE];
     int faulty_path_size;
@@ -540,9 +540,10 @@ void send_reset_packets_to_routers_in_path(unsigned int source, char *path, int 
     // probe_puts("[ROUTER RST] Faulty path: "); print_path(path, path_size); probe_puts("\n");
 
     // RESET SOURCE LOCAL PORT
-    
+
+
     unsigned int reset_mask = (1 << PORT_LOCAL0) | (1 << PORT_LOCAL1);
-    // probe_puts("[ROUTER RST]   Resetting "); probe_puts(itoh(source)); probe_puts(" L\n");
+    puts("[ROUTER RST]   Resetting "); puts(itoh(source)); puts("	time: @");puts(itoa(MemoryRead(TICK_COUNTER))); puts("\n");
     Seek(RESET_HERMES_PORT_SERVICE, (MemoryRead(TICK_COUNTER) << 16) | reset_mask, source, 0);
 
     // RESET INTERMEDIATE HOPS
@@ -583,7 +584,7 @@ void send_reset_packets_to_routers_in_path(unsigned int source, char *path, int 
 
         int current_router = (current_x << 8) | current_y;
 
-        // probe_puts("[ROUTER RST]   Resetting "); probe_puts(itoh(current_router)); probe_puts(" "); print_turn(get_opposite_direction(path[i])); probe_puts("\n");
+        puts("[ROUTER RST]   Resetting "); puts(itoh(current_router)); puts("	time: @");puts(itoa(MemoryRead(TICK_COUNTER))); puts("\n");
         Seek(RESET_HERMES_PORT_SERVICE, (MemoryRead(TICK_COUNTER) << 16) | reset_mask, current_router, 0);
     }
 }
@@ -855,6 +856,9 @@ void receive_probe(unsigned int probe_id, unsigned int source, unsigned int targ
         incoming_probes[slot].source = source;
         incoming_probes[slot].timestamp = MemoryRead(TICK_COUNTER);
         incoming_probes[slot].status = INCOMING_PROBE_WAITING_CONTROL;
+        puts("[HT] Debug: allocating new incoming_probe slot:");
+        puts(itoa(slot));
+        puts(" - probe\n");
         return;
     }
 
@@ -881,15 +885,15 @@ void receive_probe_control(unsigned int pkt_source, unsigned int pkt_target, uns
     unsigned char compact_source = pkt_payload;
     unsigned int source = ((compact_source & 0xf0) << 4) | (compact_source & 0xf);
 
-    probe_puts("[HT] RECV PROBE CONTROL -- probe #");
-    probe_puts(itoa(probe_id));
+    puts("[HT] RECV PROBE CONTROL -- probe #");
+    puts(itoa(probe_id));
     
-    probe_puts(" src: ");
-    probe_puts(itoh(source));
+    puts(" src: ");
+    puts(itoh(source));
 
-    probe_puts(" tgt: ");
-    probe_puts(itoh(pkt_target));
-    probe_puts("\n");
+    puts(" tgt: ");
+    puts(itoh(pkt_target));
+    puts("\n");
 
     int slot = get_incoming_probe_by_id(probe_id);
 
@@ -900,21 +904,21 @@ void receive_probe_control(unsigned int pkt_source, unsigned int pkt_target, uns
         incoming_probes[slot].timestamp = MemoryRead(TICK_COUNTER);
         incoming_probes[slot].status = INCOMING_PROBE_WAITING_MESSAGE;
         incoming_probes[slot].batch_config = batch_config;
-        probe_puts("[HT] Debug: allocating new incoming_probe slot:");
-        probe_puts(itoa(slot));
-        probe_puts("\n");
+        puts("[HT] Debug: allocating new incoming_probe slot:");
+        puts(itoa(slot));
+        puts(" - probe_control\n");
         return;
     }
 
     if(incoming_probes[slot].status != INCOMING_PROBE_WAITING_CONTROL) {
-        probe_puts("[HT] ERROR: receive_probe function expected slot to be WAITING_CONTROL, but was: ");
-        probe_puts(itoa(incoming_probes[slot].status));
-        probe_puts("\n");
+        puts("[HT] ERROR: receive_probe function expected slot to be WAITING_CONTROL, but was: ");
+        puts(itoa(incoming_probes[slot].status));
+        puts("\n");
         return;
     }
 
     if(incoming_probes[slot].source != source) {
-        probe_puts("[HT] ERROR: PROBE_MESSAGE and PROBE_CONTROL had different sources\n");
+        puts("[HT] ERROR: PROBE_MESSAGE and PROBE_CONTROL had different sources\n");
         return;
     }
 
@@ -931,6 +935,18 @@ void finalize_incoming_probe(struct incoming_probe *in_probe, int probe_result) 
     }
 
     in_probe->status = (probe_result == PROBE_RESULT_SUCCESS) ? INCOMING_PROBE_SUCCEEDED : INCOMING_PROBE_FAILED;
+
+    puts("[HT] FINALIZING PROBE #");
+    puts(itoa(in_probe->id));
+    puts("  SOURCE:");
+    puts(itoh(in_probe->source));
+    puts("  RESULT:");
+    if(in_probe->status == INCOMING_PROBE_SUCCEEDED){
+        puts("  SUCCESS\n");
+    }
+    else if (in_probe->status == INCOMING_PROBE_FAILED){
+        puts("  FAILURE\n");
+    }
 }
 
 void send_probe_result(unsigned int probe_id, unsigned int probe_source, int result) {
@@ -957,9 +973,10 @@ void monitor_probe_timeout() {
     for(int i = 0; i < MAX_INCOMING_PROBES; i++) {
         if(incoming_probes[i].status == INCOMING_PROBE_WAITING_CONTROL || incoming_probes[i].status == INCOMING_PROBE_WAITING_MESSAGE) {
             if((MemoryRead(TICK_COUNTER) - incoming_probes[i].timestamp) >= STATIC_PROBE_THRESHOLD) {
-                probe_puts("[HT] PROBE TIMEOUT VIOLATION -- Probe #");
-                probe_puts(itoa(incoming_probes[i].id));
-                probe_puts("\n");
+                puts("[HT] PROBE TIMEOUT VIOLATION -- PROBE #");
+                puts(itoa(incoming_probes[i].id));
+                puts("\n");
+
                 finalize_incoming_probe(&incoming_probes[i], PROBE_RESULT_FAILURE);
             }
             else {
@@ -1073,8 +1090,8 @@ void update_outgoing_batch_timestamp(struct outgoing_batch *out_batch) {
 
     int probe_spacing_in_us, probe_spacing_in_cc;
 
-    probe_puts("[HT] Batch next timestamp upload. Batch #") probe_puts(itoa(out_batch->initial_id)); 
-    probe_puts(". Previous value: "); probe_puts(itoa(out_batch->next_probe_timestamp));
+    puts("[HT] Batch next timestamp upload. Batch #") probe_puts(itoa(out_batch->initial_id)); 
+    puts(". Previous value: "); probe_puts(itoa(out_batch->next_probe_timestamp));
 
     switch(out_batch->distribution) {
         case UNIFORM_DISTRIBUTION:

@@ -6,16 +6,22 @@
 #include "seek.h"
 #include "utils.h"
 #include "probe_defines.h"
+#include "applications.h"
+#include "task_location.h"
+#include "task_migration.h"
+#include "processors.h"
 #include "../../include/kernel_pkg.h"
 
 #define NUM_LINKS_PER_ROUTER 4
 #define MAX_PROBE_ENTRIES 50
 #define MAX_BINARY_SEARCH_PROBES MAX_PROBE_PATH_SIZE+1 //maximum possible number of parallel path segments + 1 slot used during configuration
 #define MAX_BINARY_SEARCH_HTS MAX_PROBE_PATH_SIZE //maximum possible number of hts in a searched path
+#define MAX_HT  10  //maximum numbers of hts in a execution
+#define MAX_LINK_BLOCKED 10   //maximum number of links blocked
 #define SIZE_MISSING_PACKETS_QUEUE 10
 #define SUSPICIOUS_PATH_TABLE_SIZE 40
 #define BSA_QUEUE_SIZE 5
-#define THRESHOLD_SUS_PATHS_INTERSECTIONS 1
+#define THRESHOLD_SUS_PATHS_INTERSECTIONS 3
 #define OS_STOPS_ON_FIRST_HT 1 // 1 to stop the ordered search when the first HT is found, 0 to continue until the end of the path looking for more HTs
 
 // #define BATCH_SIZE 5 //number of probes sent in a batch
@@ -23,6 +29,7 @@
 
 #define PROBE_INDEX(probe_id) (probe_id % MAX_PROBE_ENTRIES)
 #define UNIFORM_CONFIG(batch_delay_us, batch_size) (((UNIFORM_BATCH_CODE & 0x3) << 14) | ((batch_delay_us & 0x3F) << 8) | (batch_size & 0xFF))
+
 
 /**** PROBE TABLE ****/
 
@@ -87,9 +94,12 @@ struct binary_search {
 
     struct binary_search_ht hts[MAX_BINARY_SEARCH_HTS];
     int ht_counter;
+    int ht_size;
 };
 
 struct binary_search bsa;
+
+int * app_ID_freeze, app_ID_last;
 
 /**** ORDERED SEARCH STRUCTURES ****/
 
@@ -105,7 +115,8 @@ struct ordered_search_ht {
 };
 
 struct ordered_search {
-    enum {OS_BUSY, OS_IDLE} status;
+    enum {OS_IDLE, OS_BUSY_FIRST, OS_BUSY_SECOND} status;
+
   
     struct ordered_search_hop hops[MAX_PROBE_PATH_SIZE];
     int hops_size;
@@ -116,9 +127,38 @@ struct ordered_search {
 
     struct ordered_search_ht hts[MAX_PROBE_PATH_SIZE];
     int ht_counter;
+
+    int batch_size, batch_delay, batch_payload;
 }; 
 
 struct ordered_search ordered_search;
+
+struct ht{
+    unsigned short router;
+    char port;
+};
+
+struct ht_queue{
+    struct ht ht_queue[MAX_HT];
+    int ht_counter;
+};
+
+struct ht_queue ht_locate;
+
+struct link_blocked
+{
+    struct ht link_1;
+    struct ht link_2;
+};
+
+struct link_blocked_queue
+{
+    struct link_blocked link_blocked_queue[MAX_LINK_BLOCKED];
+    int link_counter;
+};
+
+struct link_blocked_queue link_queue;
+
 
 int get_turn_integer(char);
 
@@ -199,13 +239,33 @@ void print_noc_health_status();
 
 void print_noc_health_intersections();
 
+int calcule_new_size(int rate, int window);
+
+int calcule_new_delay(int rate, int window);
+
+int check_ht_path(struct suspicious_path *path);
+
+void print_path_addrss(struct suspicious_path *path);
+
+void send_close_port(unsigned short router, char port);
+
+void insert_ht_queue(unsigned short router, char port);
+
+void insert_link_blocked_queue(unsigned short router, char port);
+
+int check_link_blocked(unsigned short source, unsigned short target);
+
+int check_migrate();
+
+int get_PE_clear(int old_proc);
+
 /**** ORDERED SEARCH ****/
 
-void register_new_ordered_search(struct suspicious_path *new_os_path);
+void register_new_ordered_search(struct suspicious_path *new_os_path, int rate, int window, int order);
 
-void start_ordered_search(struct suspicious_path *path);
+void start_ordered_search(struct suspicious_path *path, int rate, int window, int order);
 
-void populate_ordered_search(struct suspicious_path *path);
+void populate_ordered_search(struct suspicious_path *path, int rate, int window, int order);
 
 void send_probes_ordered_search();
 

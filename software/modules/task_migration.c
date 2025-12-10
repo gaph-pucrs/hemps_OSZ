@@ -20,6 +20,7 @@
 #include "local_scheduler.h"
 #include "communication.h"
 #include "utils.h"
+#include "osz_slave.h"
 
 //#define TASK_MIGRATION_DEBUG  1	//!<When enable shows puts related to task migration
 
@@ -37,11 +38,16 @@ void print_locations(){
 }
 
 
-/**Assembles and sends a TASK_MIGRATED packet to the master kernel
+/** Assembles and sends a TASK_MIGRATED packet to the master kernel
  * \param migrated_task Migrated task ID
  * \param old_proc Old processor address of task
  * \param master_address Master address of the task
  */
+
+ void send_task_migrated_control(int migrated_task, int old_proc, unsigned int master_address){
+	Seek(TASK_MIGRATED_CONTROL, ((MemoryRead(TICK_COUNTER) << 16) | migrated_task), master_address, (old_proc >> 4) & 0XF0 | (old_proc & 0XF));
+}
+
 void send_task_migrated(int migrated_task, int old_proc, unsigned int master_address){
 
 	ServiceHeader * p = get_service_header_slot();
@@ -53,6 +59,7 @@ void send_task_migrated(int migrated_task, int old_proc, unsigned int master_add
 	p->task_ID = migrated_task;
 
 	p->released_proc = old_proc;
+
 
 	send_packet(p, 0, 0);
 	//migration_puts("send_task_migrated master_address:");migration_puts(itoh(processor));migration_puts("\n");
@@ -81,14 +88,14 @@ void send_update_task_location(unsigned int target_proc, unsigned int task_id, u
 	send_packet(p, 0, 0);
 }
 
-/**This function os the core of task migration.
+/** This function os the core of task migration.
  * It is called by the source processor (the older processor)
  * Its job is to migrate to the new processor the dynamic data section that can change during task execution.
  * \param tcb_aux The TCB pointer of the task to be migrated
  */
 void migrate_dynamic_memory(TCB * tcb_aux){//FOCHI ANALISAR
 
-	unsigned int _stack_pointer,stack_lenght,processor,request_msg[REQUEST_SIZE*3],app_id,request_array_size;
+	unsigned int _stack_pointer, stack_lenght, processor, request_msg[REQUEST_SIZE*3], app_id, request_array_size;
 	volatile unsigned int tcb_registers[30];
 	volatile unsigned int task_location_array[MAX_TASKS_APP];
 	PipeSlot * pipe_ptr;
@@ -120,11 +127,9 @@ void migrate_dynamic_memory(TCB * tcb_aux){//FOCHI ANALISAR
 	stack_lenght = (PAGE_SIZE - _stack_pointer) / 4;
 
 	_stack_pointer = tcb_aux->reg[25];
-
+	
 #if TASK_MIGRATION_DEBUG
-	migration_puts("\tstack lenght"); migration_puts(itoa(stack_lenght));migration_puts("\n");
-	migration_puts("\tstack address: "); migration_puts(itoa(_stack_pointer));migration_puts("\n");
-	migration_puts("end computing stack pointer\n----> migrating TCB....\n");
+	migration_puts("Migrating TCB\n");
 #endif
 
 	//------ tcb ------
@@ -150,6 +155,55 @@ void migrate_dynamic_memory(TCB * tcb_aux){//FOCHI ANALISAR
 
 	send_packet(p, (unsigned int) &tcb_registers, 30);
 	// ------- end tcb ------
+
+#if TASK_MIGRATION_DEBUG
+	migration_puts("\tstack lenght"); migration_puts(itoa(stack_lenght));migration_puts("\n");
+	migration_puts("\tstack address: "); migration_puts(itoa(_stack_pointer));migration_puts("\n");
+	migration_puts("end computing stack pointer\n----> migrating session data....\n");
+#endif
+	
+	// ------ session data -----
+
+	int session_aux[14*MAX_SESSIONS];//14 = n de variaveis de session
+	int session_aux_size = 0;
+
+	p = get_service_header_slot();
+
+	p->header[MAX_SOURCE_ROUTING_PATH_SIZE-1] = processor;
+
+	p->service = MIGRATION_SESSION_DATA;
+
+	for(int i = 0; i < MAX_SESSIONS; i++){
+		session_aux[session_aux_size++] = Sessions[i].producer;
+		session_aux[session_aux_size++] = Sessions[i].consumer;
+		session_aux[session_aux_size++] = Sessions[i].status;
+		session_aux[session_aux_size++] = Sessions[i].code;
+		session_aux[session_aux_size++] = Sessions[i].pairIndex;
+		session_aux[session_aux_size++] = Sessions[i].requested;
+		session_aux[session_aux_size++] = Sessions[i].sent;
+		session_aux[session_aux_size++] = Sessions[i].header;
+		session_aux[session_aux_size++] = Sessions[i].auxTimestamp;
+		session_aux[session_aux_size++] = Sessions[i].timeoutThreshold;
+		// session_aux[session_aux_size++] = Sessions[i].time;
+		
+		//limpa sessao que foi migrada
+		Sessions[i].producer = -1; 
+		Sessions[i].consumer = -1;
+		Sessions[i].time = 0;
+		Sessions[i].status = BLANK;
+		Sessions[i].sent = 0;
+		Sessions[i].requested = 0;
+		Sessions[i].code = 0;
+		Sessions[i].msg->length = -1;
+		Sessions[i].pairIndex = -1;
+
+	}
+
+	p->data_size = session_aux_size;
+
+	send_packet(p, &session_aux,  session_aux_size);
+
+	// ----- end session data -----
 
 #if TASK_MIGRATION_DEBUG
 	migration_puts("TCB migrated\n----> migrating task location....\n");
@@ -342,6 +396,8 @@ void migrate_dynamic_memory(TCB * tcb_aux){//FOCHI ANALISAR
 	tcb_aux->id = -1;
 	tcb_aux->proc_to_migrate = -1;
 
+
+
 #if TASK_MIGRATION_DEBUG
 	puts("##### Migration FINISH, clearing task structures....\n");
 	puts("Task ID: ");// migration_puts(itoa(tcb_aux->id)); migration_puts("\nMigrated to processor: "); migration_puts(itoh(processor));
@@ -375,7 +431,7 @@ void migrate_CODE(TCB* tcb_migration){
 #endif
 }
 
-/**Handle the migration code, coping the code to a free page.
+/** Handle the migration code, coping the code to a free page.
  * It is called by the target processor (the new processor)
  * \param p ServiceHeader pointer of the packet with the task code
  * \param migrate_tcb The TCB pointer of the task to be migrated
@@ -394,16 +450,15 @@ void handle_migration_code(volatile ServiceHeader * p, TCB * migrate_tcb){
 	//printTaskInformations(allocatingTCB, 1, 0, 0);
 
 #if TASK_MIGRATION_DEBUG
-	puts("##### Receiving Task Migration\n");
-	puts("      Task ID: "); puts(itoa(p->task_ID)); puts("\n");
-	migration_puts("\tCODE received with size "); migration_puts(itoa(p->code_size)); 
-	migration_puts(" the task offset is: "); migration_puts(itoa(migrate_tcb->offset)); migration_puts("\n");	
+	puts("[HANDLE_MIG_CODE]	Receiving Task Migration	Task ID: "); puts(itoh(p->task_ID));
+	migration_puts("	CODE received with size "); migration_puts(itoa(p->code_size)); 
+	migration_puts("	the task offset is: "); migration_puts(itoa(migrate_tcb->offset)); migration_puts("\n");	
 #endif
 
 
 }
 
-/**Handles the migration of the task TCB information
+/** Handles the migration of the task TCB information
  * It is called by the target processor (the new processor)
  * \param p ServiceHeader pointer of the packet with the TCB data
  * \param migrate_tcb The TCB pointer of the task to be migrated
@@ -416,6 +471,7 @@ void handle_migration_TCB(volatile ServiceHeader * p, TCB * migrate_tcb){
 
 	migrate_tcb->scheduling_ptr->last_status = p->hops;
 
+	int session_aux_size = p->data_size;
 	DMNI_read_data((unsigned int) &tcb_registers, 30);
 
 	for (int i=0; i<30; i++){
@@ -430,7 +486,7 @@ void handle_migration_TCB(volatile ServiceHeader * p, TCB * migrate_tcb){
 #endif
 }
 
-/**Handles the migration of the task task location data
+/** Handles the migration of the task task location data
  * It is called by the target processor (the new processor)
  * \param p ServiceHeader pointer of the packet with the task location data
  * \param migrate_tcb The TCB pointer of the task to be migrated
@@ -444,24 +500,28 @@ void handle_migration_task_location(volatile ServiceHeader * p, TCB * migrate_tc
 
 	app_id = migrate_tcb->id & 0xFF00;
 
-	migration_puts("\tReceiveing task location....\n");
+	// migration_puts("[HANDLE_MIG_TASK_LOC]	Receiveing task location....\n");
+
 	for( int i=0; i<MAX_TASKS_APP; i++ ){
 
 		location = task_location_array[i];
 		task_id = (app_id | i);
 
-		migration_puts("Location task "); migration_puts(itoa(task_id)); migration_puts(" : "); migration_puts(itoh(location)); migration_puts("\n");
-		migration_puts("get_task_location(task_id) "); migration_puts(itoh(get_task_location(task_id) ) ); migration_puts("\n");
+		// migration_puts("[HANDLE_MIG_TASK_LOC]	Location task "); migration_puts(itoh(task_id)); migration_puts(" : "); migration_puts(itoh(location));
+		// migration_puts("	get_task_location(task_id): "); migration_puts(itoh(get_task_location(task_id) ) );
 
+		//atualiza a lista do proc recem migrado com a loc dos outros procs
 		if ( location != -1 && get_task_location(task_id) == -1){
-			migration_puts("updated\n");
+			// migration_puts("	UPDATE");
 			add_task_location(task_id, location);
-		}		
+			// migration_puts("	get_task_location(task_id): "); migration_puts(itoh(get_task_location(task_id) ) );
+		}
+		// migration_puts("\n");
 	}
-	migration_puts("\ttask location received\n");
+	// migration_puts("[HANDLE_MIG_TASK_LOC]	task location received\n");
 }
 
-/**Handles the migration of the task message request data
+/** Handles the migration of the task message request data
  * It is called by the target processor (the new processor)
  * \param p ServiceHeader pointer of the packet with the message request data
  * \param migrate_tcb The TCB pointer of the task to be migrated
@@ -478,8 +538,8 @@ void handle_producer_migration_request_msg(volatile ServiceHeader * p, TCB * mig
 
 	iterations = p->request_size / 3;
 
-	migration_puts("\treceiving PRODUCER task request....\n");
-	migration_puts("number of request: "); migration_puts(itoa(iterations) ); migration_puts("\n");
+	migration_puts("[HANDLE_PROD_MIG_REQ]	receiving PRODUCER task request");
+	migration_puts("	number of request: "); migration_puts(itoa(iterations) ); migration_puts("\n");
 
 	for( int i=0; i<iterations; i++ ) {
 		requester = request_msg[request_index++];
@@ -487,23 +547,24 @@ void handle_producer_migration_request_msg(volatile ServiceHeader * p, TCB * mig
 		requester_proc = request_msg[request_index++];
 
 		if ( requested == migrate_tcb->id) {
-			migration_puts("requester"); migration_puts(itoa(requester) );
-			migration_puts("requested: "); migration_puts(itoa(requested) ); migration_puts("\n");
+			migration_puts("[HANDLE_PROD_MIG_REQ]	requester: "); migration_puts(itoh(requester) );
+			migration_puts("	requested: "); migration_puts(itoh(requested) ); migration_puts("\n");
 
 			insert_message_request(requested, requester, requester_proc);
 		}
 	}
-	migration_puts("\tPRODUCER task request received\n");
+	migration_puts("[HANDLE_PROD_MIG_REQ]	PRODUCER task request received\n");
 }
 
 
-/**Handles the migration of the task message request data
+/** Handles the migration of the task message request data
  * It is called by the target processor (the new processor)
  * \param p ServiceHeader pointer of the packet with the message request data
  * \param migrate_tcb The TCB pointer of the task to be migrated
  */
 void handle_consumer_migration_request_msg(volatile ServiceHeader * p, TCB * migrate_tcb){
 
+	int session_aux_size = p->data_size;
 	volatile unsigned int request_msg[p->request_size];
 	unsigned int status, sourceID, targetID, requester_proc, tick_counter;
 	unsigned int request_index, iterations;
@@ -514,8 +575,8 @@ void handle_consumer_migration_request_msg(volatile ServiceHeader * p, TCB * mig
 
 	iterations = p->request_size / 5;
 
-	migration_puts("\treceiveing CONSUMER task request....\n");
-	migration_puts("number of request: "); migration_puts(itoh(iterations) ); migration_puts("\n");
+	migration_puts("[HANDLE_CONS_MIG_REQ]	receiveing CONSUMER task request");
+	migration_puts("	number of request: "); migration_puts(itoh(iterations) ); migration_puts("\n");
 
 	for( int i=0; i<iterations; i++ ) {
 		status = request_msg[request_index++];
@@ -525,15 +586,14 @@ void handle_consumer_migration_request_msg(volatile ServiceHeader * p, TCB * mig
 		tick_counter = request_msg[request_index++];
 
 		if ( targetID == migrate_tcb->id) {
-			migration_puts("---processor:"); migration_puts(itoa(requester_proc) ); 
-			migration_puts(" tick: "); migration_puts(itoa(tick_counter) ); migration_puts("\n");
+			migration_puts("[HANDLE_CONS_MIG_REQ]	requester_proc:"); migration_puts(itoh(requester_proc) );migration_puts("\n");
 			add_msg_request_migration(status, requester_proc, targetID, sourceID, tick_counter);
 		}
 	}
-	migration_puts("\tCONSUMER task request received\n");
+	migration_puts("[HANDLE_CONS_MIG_REQ]	CONSUMER task request received\n");
 }
 
-/**Handles the migration of the task stack data
+/** Handles the migration of the task stack data
  * It is called by the target processor (the new processor)
  * \param p ServiceHeader pointer of the packet with the task stack data
  * \param migrate_tcb The TCB pointer of the task to be migrated
@@ -543,10 +603,10 @@ void handle_migration_stack(volatile ServiceHeader * p, TCB * migrate_tcb){
 	if (p->stack_size > 0){
 		DMNI_read_data(migrate_tcb->offset + migrate_tcb->reg[25], p->stack_size);
 	}
-	migration_puts("\tSTACK received\n");
+	// migration_puts("\tSTACK received\n");
 }
 
-/**Handles the migration of the task DATA and BSS data sections
+/** Handles the migration of the task DATA and BSS data sections
  * It is called by the target processor (the new processor)
  * \param p ServiceHeader pointer of the packet with the task DATA and BSS data sections
  * \param migrate_tcb The TCB pointer of the task to be migrated
@@ -568,11 +628,11 @@ void handle_migration_DATA_BSS(volatile ServiceHeader * p, TCB * migrate_tcb, un
 
 	migrate_tcb->scheduling_ptr->remaining_exec_time = MAX_TIME_SLICE;
 
-	send_task_migrated(migrate_tcb->id, p->source_PE, master_address);
-
 	//printTaskInformations(migrate_tcb, 1, 1, 1);
 
-	migration_puts("\tDATA and BSS received");
+	// migration_puts("\tDATA and BSS received\n");
+
+	send_task_migrated_control(migrate_tcb->id, p->source_PE, master_address);
 
 #if TASK_MIGRATION_DEBUG
 	puts("##### Migration FINISH - task READY TO EXECUTE\n");
@@ -581,8 +641,6 @@ void handle_migration_DATA_BSS(volatile ServiceHeader * p, TCB * migrate_tcb, un
 	puts(itoh(p->source_PE)); migration_puts("\n");
 #endif	
 }
-
-
 
 void handle_migration_PIPE(volatile ServiceHeader * p, TCB * migrate_tcb){
 
@@ -593,28 +651,65 @@ void handle_migration_PIPE(volatile ServiceHeader * p, TCB * migrate_tcb){
 	DMNI_read_data(&migrated_message.msg, migrated_message.length);
 
 	add_PIPE(p->producer_task, p->consumer_task, &migrated_message);
+
 }
 
-/**Handles a task migration order from the kernel master
+void handle_migration_session_data(volatile ServiceHeader * p, TCB * migrate_tcb){
+
+	int session_aux[14 * MAX_SESSIONS];
+	int session_aux_size = p->data_size;
+	int aux = 0;
+
+	puts("[MIGRATION_SESSION]	task:	");puts(itoh(migrate_tcb->id));puts("	last_status:	");puts(itoa(migrate_tcb->scheduling_ptr->last_status));puts("\n");
+
+	DMNI_read_data(&session_aux, session_aux_size);
+
+	for(int i = 0; i < MAX_SESSIONS; i++){
+		Sessions[i].producer = session_aux[aux++];
+		Sessions[i].consumer = session_aux[aux++];
+
+		//if task is waiting data, force too the session 
+		if(migrate_tcb->scheduling_ptr->last_status == WAITING){
+			// puts("[MIGRATION_SESSION]	task last_status = WAITING, status of session change to WAITING_DATA\n");
+			Sessions[i].status = WAITING_DATA;
+			aux++;
+		}
+		else{
+			Sessions[i].status = session_aux[aux++];
+		}
+
+		Sessions[i].code = session_aux[aux++];
+		Sessions[i].pairIndex = session_aux[aux++];
+		Sessions[i].requested = session_aux[aux++];
+		Sessions[i].sent = session_aux[aux++];
+		Sessions[i].header = session_aux[aux++];
+		Sessions[i].auxTimestamp = session_aux[aux++];
+		Sessions[i].timeoutThreshold = session_aux[aux++];
+		Sessions[i].time = 0;
+	}
+}
+
+/** Handles a task migration order from the kernel master
  * This function is called by the source processor (the old processor)
  * \param p ServiceHeader pointer of the packet with task migration order
  * \param tcb_ptr TCB pointer of the task to be migrated
  */
 int handle_task_migration(volatile ServiceHeader * p, TCB * tcb_ptr){
 
-	migration_puts("##### Sending Task migration\n      task id: "); migration_puts(itoa(p->task_ID) );
-	migration_puts("\n      to processor: "); migration_puts(itoh(p->allocated_processor) ); migration_puts("\n");
+	migration_puts("[HANDLE_TASK_MIG]	Send Task migration	task id: "); migration_puts(itoh(p->task_ID) );
+	migration_puts("	to processor: "); migration_puts(itoh(p->allocated_processor) ); migration_puts("\n");
 
 	if (tcb_ptr && tcb_ptr->proc_to_migrate == -1){
 
 		tcb_ptr->proc_to_migrate = p->allocated_processor;
 		migrate_CODE(tcb_ptr);
 
-		migration_puts("\ttask status: "); migration_puts(itoa(tcb_ptr->scheduling_ptr->status) ); migration_puts("\n");
+		migration_puts("[HANDLE_TASK_MIG]	task status: "); migration_puts(itoa(tcb_ptr->scheduling_ptr->status) ); migration_puts("\n");
+		migration_puts("[HANDLE_TASK_MIG]	task last_status: "); migration_puts(itoa(tcb_ptr->scheduling_ptr->last_status) ); migration_puts("\n");
 
 		if (tcb_ptr->scheduling_ptr->status == WAITING || tcb_ptr->scheduling_ptr->status == READY || tcb_ptr->scheduling_ptr->status == RUNNING || tcb_ptr->scheduling_ptr->status == BLOCKED){
 
-			migration_puts("\tMigrou de primeira\n");
+			migration_puts("[HANDLE_TASK_MIG]	Migrou de primeira\n");
 			migrate_dynamic_memory(tcb_ptr);
 			return 1;
 		}
@@ -643,53 +738,75 @@ int handle_migration(volatile ServiceHeader * p, unsigned int master_address){
 		migrate_tcb = searchTCB(p->task_ID);
 	}
 
-	migration_puts("service: "); migration_puts(itoh(p->service)); migration_puts("\n");
-
 	switch(p->service){
 
 		case TASK_MIGRATION:
+			
+			migration_puts("[HANDLE_MIGRATION]	Receive service: TASK_MIGRATION"); migration_puts("\n");
 
 			need_scheduling = handle_task_migration(p, migrate_tcb);
 
 			break;
 
 		case MIGRATION_CODE:
+			
+			migration_puts("[HANDLE_MIGRATION]	Receive service: MIGRATION_CODE"); migration_puts("\n");
 
 			handle_migration_code(p, migrate_tcb);
 
 			break;
 
+		case MIGRATION_SESSION_DATA:
+			
+			migration_puts("[HANDLE_MIGRATION]	Receive service: MIGRATION_SESSION_DATA"); migration_puts("\n");
+
+			handle_migration_session_data(p, migrate_tcb);
+
+			break;
+
 		case MIGRATION_TCB:
+			
+			migration_puts("[HANDLE_MIGRATION]	Receive service: MIGRATION_TCB"); migration_puts("\n");
 
 			handle_migration_TCB(p, migrate_tcb);
 
 			break;
 
 		case MIGRATION_TASK_LOCATION:
+			
+			migration_puts("[HANDLE_MIGRATION]	Receive service: MIGRATION_TASK_LOCATION"); migration_puts("\n");
 
 			handle_migration_task_location(p, migrate_tcb);
 
 			break;
 
 		case MIGRATION_PRODUCER_MSG_REQUEST:
+			
+			migration_puts("[HANDLE_MIGRATION]	Receive service: MIGRATION_PRODUCER_MSG_REQUEST"); migration_puts("\n");
 
 			handle_producer_migration_request_msg(p, migrate_tcb);
 
 			break;
 
 		case MIGRATION_CONSUMER_MSG_REQUEST:
+			
+			migration_puts("[HANDLE_MIGRATION]	Receive service: MIGRATION_CONSUMER_MSG_REQUEST"); migration_puts("\n");
 
 			handle_consumer_migration_request_msg(p, migrate_tcb);
 
 			break;			
 
 		case MIGRATION_STACK:
+			
+			migration_puts("[HANDLE_MIGRATION]	Receive service: MIGRATION_STACK"); migration_puts("\n");
 
 			handle_migration_stack(p, migrate_tcb);
 
 			break;
 
 		case MIGRATION_DATA_BSS:
+			
+			migration_puts("[HANDLE_MIGRATION]	Receive service: MIGRATION_DATA_BSS"); migration_puts("\n");
 			
 			handle_migration_DATA_BSS(p, migrate_tcb, master_address);
 
@@ -698,6 +815,8 @@ int handle_migration(volatile ServiceHeader * p, unsigned int master_address){
 			break;
 
 		case MIGRATION_PIPE:
+			
+			migration_puts("[HANDLE_MIGRATION]	Receive service: MIGRATION_PIPE"); migration_puts("\n");
 
 			handle_migration_PIPE(p, migrate_tcb);
 

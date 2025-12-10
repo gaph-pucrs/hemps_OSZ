@@ -32,8 +32,8 @@
 #define PORT_LOCAL0 8
 #define PORT_LOCAL1 9 
 
-#define MAX_INCOMING_PROBES 10
-#define MAX_OUTGOING_PROBES 10
+#define MAX_INCOMING_PROBES 20
+#define MAX_OUTGOING_PROBES 20
 
 #define MAX_INCOMING_BATCHES 3
 #define MAX_OUTGOING_BATCHES 3
@@ -44,6 +44,11 @@
 
 #define MAX_PROBE_PAYLOAD_SIZE 210
 // #define PROBE_PACKET_SIZE 200 // em flits
+
+#define FARTHEST_PE 0x40
+
+//Freeze protocol - probe
+// #define FREEZE_APP_TO_SEARCH 
 
 // Ways to represent a probe path:
 // Path) String of chars in which each char represents a hop. Does NOT include a termination (opposite) hop.
@@ -253,4 +258,5 @@ void register_result_to_incoming_batch(struct incoming_probe *in_probe, int prob
 
 int configure_new_incoming_batch(struct incoming_probe *in_probe);
 
+void init_freeze();
 #endif

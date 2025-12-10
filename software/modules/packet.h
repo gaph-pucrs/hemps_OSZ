@@ -78,6 +78,7 @@ typedef struct {
 		unsigned int stack_size;
 		unsigned int requesting_task;
 		unsigned int released_proc;
+		unsigned int old_proc;
 		unsigned int app_task_number;
 		unsigned int app_descriptor_size;
 		unsigned int allocated_processor;
